@@ -6,6 +6,36 @@ service EncoderFile {
     rpc Health(HealthRequest) returns (HealthResponse);
 }
 
+message EmbeddingRequest {
+    repeated string inputs = 1;
+    bool normalize = 2;
+    bool return_tokens = 3;
+    map<string, string> metadata = 4;
+}
+
+message EmbeddingResponse {
+    // len(embeddings) == len(inputs)
+    repeated EmbeddingVectorSequence embeddings = 1;
+    int32 dim = 2;
+    map<string, string> metadata = 3;
+}
+
+message EmbeddingVectorSequence {
+    repeated EmbeddingVector embeddings = 1;
+    repeated TokenInfo token_info = 2;
+}
+
+message TokenInfo {
+  string token = 1;
+  int32 token_id = 2;
+  int32 start = 3;  // byte start offset
+  int32 end = 4;    // byte end offset
+}
+
+message EmbeddingVector {
+  repeated float values = 1;
+}
+
 message HealthRequest {
     string service = 1;
 }
