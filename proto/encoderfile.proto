@@ -11,5 +11,6 @@ message HealthRequest {
 }
 
 message HealthResponse {
-    string message = 1;
+    bool ok = 1;
+    optional string message = 2;
 }
