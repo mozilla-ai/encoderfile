@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package encoderfile;
+
+service EncoderFile {
+    rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message HealthRequest {
+    string service = 1;
+}
+
+message HealthResponse {
+    string message = 1;
+}
