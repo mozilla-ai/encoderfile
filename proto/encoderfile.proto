@@ -4,23 +4,26 @@ package encoderfile;
 
 service EncoderFile {
     rpc Health(HealthRequest) returns (HealthResponse);
+    rpc Embedding(EmbeddingRequest) returns (EmbeddingResponse);
 }
 
 message EmbeddingRequest {
-    repeated string inputs = 1;
-    bool normalize = 2;
-    bool return_tokens = 3;
-    map<string, string> metadata = 4;
+    string request_id = 1;
+    repeated string inputs = 2;
+    bool normalize = 3;
+    bool return_tokens = 4;
+    map<string, string> metadata = 5;
 }
 
 message EmbeddingResponse {
+    string request_id = 1;
     // len(embeddings) == len(inputs)
-    repeated EmbeddingVectorSequence embeddings = 1;
-    int32 dim = 2;
-    map<string, string> metadata = 3;
+    repeated EmbeddingSequence embeddings = 2;
+    int32 dim = 3;
+    map<string, string> metadata = 4;
 }
 
-message EmbeddingVectorSequence {
+message EmbeddingSequence {
     repeated EmbeddingVector embeddings = 1;
     repeated TokenInfo token_info = 2;
 }
@@ -28,8 +31,8 @@ message EmbeddingVectorSequence {
 message TokenInfo {
   string token = 1;
   int32 token_id = 2;
-  int32 start = 3;  // byte start offset
-  int32 end = 4;    // byte end offset
+  int32 start = 3;
+  int32 end = 4;
 }
 
 message EmbeddingVector {
@@ -43,4 +46,5 @@ message HealthRequest {
 message HealthResponse {
     bool ok = 1;
     optional string message = 2;
+    map<string, string> metadata = 3; // future-proof
 }
