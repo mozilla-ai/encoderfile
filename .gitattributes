@@ -1,1 +1,1 @@
-*.proto text linguist-language=Protobuf
+*.proto linguist-detectable
