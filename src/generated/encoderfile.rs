@@ -22,8 +22,8 @@ pub struct EmbeddingResponse {
     /// len(embeddings) == len(inputs)
     #[prost(message, repeated, tag = "2")]
     pub embeddings: ::prost::alloc::vec::Vec<TokenEmbedding>,
-    #[prost(int32, tag = "3")]
-    pub dim: i32,
+    #[prost(uint32, tag = "3")]
+    pub dim: u32,
     #[prost(map = "string, string", tag = "4")]
     pub metadata: ::std::collections::HashMap<
         ::prost::alloc::string::String,
@@ -41,12 +41,12 @@ pub struct TokenEmbedding {
 pub struct TokenInfo {
     #[prost(string, tag = "1")]
     pub token: ::prost::alloc::string::String,
-    #[prost(int32, tag = "2")]
-    pub token_id: i32,
-    #[prost(int32, tag = "3")]
-    pub start: i32,
-    #[prost(int32, tag = "4")]
-    pub end: i32,
+    #[prost(uint32, tag = "2")]
+    pub token_id: u32,
+    #[prost(uint32, tag = "3")]
+    pub start: u32,
+    #[prost(uint32, tag = "4")]
+    pub end: u32,
 }
 /// Generated client implementations.
 pub mod encoder_file_client {

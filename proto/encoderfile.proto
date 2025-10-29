@@ -18,7 +18,7 @@ message EmbeddingResponse {
     string request_id = 1;
     // len(embeddings) == len(inputs)
     repeated TokenEmbedding embeddings = 2;
-    int32 dim = 3;
+    uint32 dim = 3;
     map<string, string> metadata = 4;
 }
 
@@ -29,7 +29,7 @@ message TokenEmbedding {
 
 message TokenInfo {
   string token = 1;
-  int32 token_id = 2;
-  int32 start = 3;
-  int32 end = 4;
+  uint32 token_id = 2;
+  uint32 start = 3;
+  uint32 end = 4;
 }
