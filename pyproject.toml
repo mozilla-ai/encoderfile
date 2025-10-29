@@ -13,3 +13,8 @@ dependencies = [
     "torch>=2.8.0",
     "transformers>=4.55.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.2",
+]

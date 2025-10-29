@@ -37,4 +37,5 @@ features = [
 ]
 
 [build-dependencies]
+dotenv = "0.15.0"
 tonic-prost-build = "0.14.2"
