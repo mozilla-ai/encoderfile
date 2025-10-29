@@ -1,5 +1,4 @@
-use super::super::assets::TOKENIZER_JSON;
-use crate::error::ApiError;
+use crate::{assets::TOKENIZER_JSON, error::ApiError};
 use anyhow::Result;
 use std::str::FromStr;
 use std::sync::OnceLock;
