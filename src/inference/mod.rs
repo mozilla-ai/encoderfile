@@ -1,2 +1,2 @@
-pub mod tokenizer;
 pub mod inference;
+pub mod tokenizer;

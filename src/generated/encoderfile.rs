@@ -21,7 +21,7 @@ pub struct EmbeddingResponse {
     pub request_id: ::prost::alloc::string::String,
     /// len(embeddings) == len(inputs)
     #[prost(message, repeated, tag = "2")]
-    pub embeddings: ::prost::alloc::vec::Vec<EmbeddingSequence>,
+    pub embeddings: ::prost::alloc::vec::Vec<TokenEmbedding>,
     #[prost(int32, tag = "3")]
     pub dim: i32,
     #[prost(map = "string, string", tag = "4")]
@@ -31,11 +31,11 @@ pub struct EmbeddingResponse {
     >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EmbeddingSequence {
-    #[prost(message, repeated, tag = "1")]
-    pub embeddings: ::prost::alloc::vec::Vec<EmbeddingVector>,
-    #[prost(message, repeated, tag = "2")]
-    pub token_info: ::prost::alloc::vec::Vec<TokenInfo>,
+pub struct TokenEmbedding {
+    #[prost(float, repeated, tag = "1")]
+    pub embedding: ::prost::alloc::vec::Vec<f32>,
+    #[prost(message, optional, tag = "2")]
+    pub token_info: ::core::option::Option<TokenInfo>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TokenInfo {
@@ -47,11 +47,6 @@ pub struct TokenInfo {
     pub start: i32,
     #[prost(int32, tag = "4")]
     pub end: i32,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EmbeddingVector {
-    #[prost(float, repeated, tag = "1")]
-    pub values: ::prost::alloc::vec::Vec<f32>,
 }
 /// Generated client implementations.
 pub mod encoder_file_client {

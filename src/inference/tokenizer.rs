@@ -1,15 +1,46 @@
-use crate::{assets::TOKENIZER_JSON, error::ApiError};
+use crate::{assets::TOKENIZER_JSON, config::get_model_config, error::ApiError};
 use anyhow::Result;
 use std::str::FromStr;
 use std::sync::OnceLock;
-use tokenizers::{Encoding, tokenizer::Tokenizer};
+use tokenizers::{
+    Encoding, PaddingDirection, PaddingParams, PaddingStrategy, tokenizer::Tokenizer,
+};
 
 static TOKENIZER: OnceLock<Tokenizer> = OnceLock::new();
 
 pub fn get_tokenizer() -> &'static Tokenizer {
-    TOKENIZER.get_or_init(|| match Tokenizer::from_str(TOKENIZER_JSON) {
-        Ok(t) => t,
-        Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
+    let model_config = get_model_config();
+    let pad_token_id = model_config.pad_token_id;
+
+    TOKENIZER.get_or_init(|| {
+        let mut tokenizer = match Tokenizer::from_str(TOKENIZER_JSON) {
+            Ok(t) => t,
+            Err(e) => panic!("FATAL: Error loading tokenizer: {:?}", e),
+        };
+
+        let pad_token = match tokenizer.id_to_token(pad_token_id) {
+            Some(tok) => tok,
+            None => panic!("Model requires a padding token."),
+        };
+
+        if tokenizer.get_padding().is_none() {
+            let params = PaddingParams {
+                strategy: PaddingStrategy::BatchLongest,
+                direction: PaddingDirection::Right,
+                pad_to_multiple_of: None,
+                pad_id: pad_token_id,
+                pad_type_id: 0,
+                pad_token,
+            };
+
+            tracing::warn!(
+                "No padding strategy specified in tokenizer config. Setting default: {:?}",
+                &params
+            );
+            tokenizer.with_padding(Some(params));
+        }
+
+        tokenizer
     })
 }
 
