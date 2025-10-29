@@ -53,24 +53,6 @@ pub struct EmbeddingVector {
     #[prost(float, repeated, tag = "1")]
     pub values: ::prost::alloc::vec::Vec<f32>,
 }
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct HealthRequest {
-    #[prost(string, tag = "1")]
-    pub service: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct HealthResponse {
-    #[prost(bool, tag = "1")]
-    pub ok: bool,
-    #[prost(string, optional, tag = "2")]
-    pub message: ::core::option::Option<::prost::alloc::string::String>,
-    /// future-proof
-    #[prost(map = "string, string", tag = "3")]
-    pub metadata: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-}
 /// Generated client implementations.
 pub mod encoder_file_client {
     #![allow(
@@ -162,27 +144,6 @@ pub mod encoder_file_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        pub async fn health(
-            &mut self,
-            request: impl tonic::IntoRequest<super::HealthRequest>,
-        ) -> std::result::Result<tonic::Response<super::HealthResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic_prost::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/encoderfile.EncoderFile/Health",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("encoderfile.EncoderFile", "Health"));
-            self.inner.unary(req, path, codec).await
-        }
         pub async fn embedding(
             &mut self,
             request: impl tonic::IntoRequest<super::EmbeddingRequest>,
@@ -222,10 +183,6 @@ pub mod encoder_file_server {
     /// Generated trait containing gRPC methods that should be implemented for use with EncoderFileServer.
     #[async_trait]
     pub trait EncoderFile: std::marker::Send + std::marker::Sync + 'static {
-        async fn health(
-            &self,
-            request: tonic::Request<super::HealthRequest>,
-        ) -> std::result::Result<tonic::Response<super::HealthResponse>, tonic::Status>;
         async fn embedding(
             &self,
             request: tonic::Request<super::EmbeddingRequest>,
@@ -310,51 +267,6 @@ pub mod encoder_file_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/encoderfile.EncoderFile/Health" => {
-                    #[allow(non_camel_case_types)]
-                    struct HealthSvc<T: EncoderFile>(pub Arc<T>);
-                    impl<
-                        T: EncoderFile,
-                    > tonic::server::UnaryService<super::HealthRequest>
-                    for HealthSvc<T> {
-                        type Response = super::HealthResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::HealthRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as EncoderFile>::health(&inner, request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = HealthSvc(inner);
-                        let codec = tonic_prost::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
                 "/encoderfile.EncoderFile/Embedding" => {
                     #[allow(non_camel_case_types)]
                     struct EmbeddingSvc<T: EncoderFile>(pub Arc<T>);

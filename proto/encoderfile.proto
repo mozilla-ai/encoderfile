@@ -3,7 +3,6 @@ syntax = "proto3";
 package encoderfile;
 
 service EncoderFile {
-    rpc Health(HealthRequest) returns (HealthResponse);
     rpc Embedding(EmbeddingRequest) returns (EmbeddingResponse);
 }
 
@@ -37,14 +36,4 @@ message TokenInfo {
 
 message EmbeddingVector {
   repeated float values = 1;
-}
-
-message HealthRequest {
-    string service = 1;
-}
-
-message HealthResponse {
-    bool ok = 1;
-    optional string message = 2;
-    map<string, string> metadata = 3; // future-proof
 }
