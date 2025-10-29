@@ -8,11 +8,9 @@ use tokenizers::{Encoding, tokenizer::Tokenizer};
 static TOKENIZER: OnceLock<Tokenizer> = OnceLock::new();
 
 pub fn get_tokenizer() -> &'static Tokenizer {
-    TOKENIZER.get_or_init(|| {
-        match Tokenizer::from_str(TOKENIZER_JSON) {
-            Ok(t) => t,
-            Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
-        }
+    TOKENIZER.get_or_init(|| match Tokenizer::from_str(TOKENIZER_JSON) {
+        Ok(t) => t,
+        Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
     })
 }
 

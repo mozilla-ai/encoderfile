@@ -7,7 +7,7 @@ pub enum ApiError {
     InputError(&'static str),
 
     #[error("Internal Error: {0}")]
-    InternalError(&'static str)
+    InternalError(&'static str),
 }
 
 impl Into<Status> for ApiError {

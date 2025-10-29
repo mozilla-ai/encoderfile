@@ -1,5 +1,5 @@
 mod assets;
-pub mod generated;
-pub mod models;
 pub mod error;
+pub mod generated;
 pub mod inference;
+pub mod models;
