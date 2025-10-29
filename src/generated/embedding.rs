@@ -10,8 +10,10 @@ pub struct EmbeddingRequest {
     #[prost(bool, tag = "4")]
     pub return_tokens: bool,
     #[prost(map = "string, string", tag = "5")]
-    pub metadata:
-        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EmbeddingResponse {
@@ -23,8 +25,10 @@ pub struct EmbeddingResponse {
     #[prost(uint32, tag = "3")]
     pub dim: u32,
     #[prost(map = "string, string", tag = "4")]
-    pub metadata:
-        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TokenEmbedding {

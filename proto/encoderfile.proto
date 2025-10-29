@@ -6,8 +6,14 @@ import "proto/embedding.proto";
 import "proto/token_classification.proto";
 import "proto/sequence_classification.proto";
 
-service EncoderFile {
-  rpc Embedding(embedding.EmbeddingRequest) returns (embedding.EmbeddingResponse);
-  rpc SequenceClassification(sequence_classification.SequenceClassificationRequest) returns (sequence_classification.SequenceClassificationResponse);
-  rpc TokenClassification(token_classification.TokenClassificationRequest) returns (token_classification.TokenClassificationResponse);
+service Embedding {
+  rpc Predict(embedding.EmbeddingRequest) returns (embedding.EmbeddingResponse);
+}
+
+service SequenceClassification {
+  rpc Predict(sequence_classification.SequenceClassificationRequest) returns (sequence_classification.SequenceClassificationResponse);
+}
+
+service TokenClassification {
+  rpc Predict(token_classification.TokenClassificationRequest) returns (token_classification.TokenClassificationResponse);
 }
