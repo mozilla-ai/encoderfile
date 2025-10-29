@@ -23,9 +23,7 @@ def download_export_models(
 
 if __name__ == "__main__":
     # save embedding model
-    download_export_models(
-        "microsoft/MiniLM-L12-H384-uncased", "embedding", ORTModel
-    )
+    download_export_models("microsoft/MiniLM-L12-H384-uncased", "embedding", ORTModel)
 
     # save sequence classification model
     download_export_models(
