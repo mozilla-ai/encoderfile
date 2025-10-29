@@ -412,6 +412,7 @@ dependencies = [
  "prost",
  "serde",
  "serde_json",
+ "thiserror",
  "tokenizers",
  "tokio",
  "tonic",
