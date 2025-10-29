@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package embedding;
+
+message EmbeddingRequest {
+  string request_id = 1;
+  repeated string inputs = 2;
+  bool normalize = 3;
+  bool return_tokens = 4;
+  map<string, string> metadata = 5;
+}
+
+message EmbeddingResponse {
+  string request_id = 1;
+  // len(embeddings) == len(inputs)
+  repeated TokenEmbedding embeddings = 2;
+  uint32 dim = 3;
+  map<string, string> metadata = 4;
+}
+
+message TokenEmbedding {
+  repeated float embedding = 1;
+  optional TokenInfo token_info = 2;
+}
+
+message TokenInfo {
+  string token = 1;
+  uint32 token_id = 2;
+  uint32 start = 3;
+  uint32 end = 4;
+}

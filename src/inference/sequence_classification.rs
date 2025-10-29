@@ -90,7 +90,7 @@ pub struct SequenceClassificationResult {
 }
 
 impl From<SequenceClassificationResult>
-    for crate::generated::encoderfile::SequenceClassificationResult
+    for crate::generated::sequence_classification::SequenceClassificationResult
 {
     fn from(val: SequenceClassificationResult) -> Self {
         Self {

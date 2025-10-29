@@ -127,9 +127,9 @@ pub struct TokenEmbedding {
     pub token_info: Option<TokenInfo>,
 }
 
-impl From<TokenEmbedding> for crate::generated::encoderfile::TokenEmbedding {
+impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
     fn from(val: TokenEmbedding) -> Self {
-        crate::generated::encoderfile::TokenEmbedding {
+        crate::generated::embedding::TokenEmbedding {
             embedding: val.embedding,
             token_info: val.token_info.map(|i| i.into()),
         }
@@ -144,9 +144,9 @@ pub struct TokenInfo {
     pub end: usize,
 }
 
-impl From<TokenInfo> for crate::generated::encoderfile::TokenInfo {
+impl From<TokenInfo> for crate::generated::embedding::TokenInfo {
     fn from(val: TokenInfo) -> Self {
-        crate::generated::encoderfile::TokenInfo {
+        crate::generated::embedding::TokenInfo {
             token: val.token,
             token_id: val.token_id,
             start: (val.start as u32),
