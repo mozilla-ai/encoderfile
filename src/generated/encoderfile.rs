@@ -28,11 +28,11 @@ pub struct SequenceClassificationResult {
     #[prost(float, repeated, tag = "1")]
     pub logits: ::prost::alloc::vec::Vec<f32>,
     #[prost(float, repeated, tag = "2")]
-    pub probabilities: ::prost::alloc::vec::Vec<f32>,
+    pub scores: ::prost::alloc::vec::Vec<f32>,
     #[prost(uint32, tag = "3")]
     pub predicted_index: u32,
-    #[prost(string, tag = "4")]
-    pub predicted_label: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "4")]
+    pub predicted_label: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EmbeddingRequest {

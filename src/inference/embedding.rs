@@ -2,7 +2,7 @@ use ndarray::{Array2, Axis, Ix1, Ix2};
 use ort::value::TensorRef;
 use tokenizers::Encoding;
 
-use crate::{error::ApiError, inference::inference::get_model};
+use crate::{error::ApiError, inference::{inference::get_model, utils::requires_token_type_ids}};
 
 pub async fn embedding(
     encodings: Vec<Encoding>,
@@ -36,8 +36,10 @@ pub async fn embedding(
     let a_type_ids =
         TensorRef::from_array_view(([encodings.len(), padded_token_length], &*type_ids)).unwrap();
 
-    let outputs = session
-        .run(ort::inputs![a_ids, a_mask, a_type_ids])
+    let outputs = match requires_token_type_ids(&session) {
+        true => session.run(ort::inputs!(a_ids, a_mask, a_type_ids)),
+        false => session.run(ort::inputs!(a_ids, a_mask)),
+        }
         .map_err(|e| {
             tracing::error!("Error running model: {:?}", e);
             ApiError::InternalError("Error running model")

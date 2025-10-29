@@ -21,9 +21,9 @@ message SequenceClassificationResponse {
 
 message SequenceClassificationResult {
   repeated float logits = 1;
-  repeated float probabilities = 2;
+  repeated float scores = 2;
   uint32 predicted_index = 3;
-  string predicted_label = 4;
+  optional string predicted_label = 4;
 }
 
 message EmbeddingRequest {
