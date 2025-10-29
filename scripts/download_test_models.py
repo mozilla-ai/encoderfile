@@ -2,7 +2,11 @@
 
 import os
 from transformers import AutoTokenizer
-from optimum.onnxruntime import ORTModel, ORTModelForSequenceClassification
+from optimum.onnxruntime import (
+    ORTModel,
+    ORTModelForSequenceClassification,
+    ORTModelForTokenClassification,
+)
 
 MODELS_DIR = "models/"
 
@@ -30,4 +34,11 @@ if __name__ == "__main__":
         "tabularisai/multilingual-sentiment-analysis",
         "sequence_classification",
         ORTModelForSequenceClassification,
+    )
+
+    # save token classification model
+    download_export_models(
+        "mozilla-ai/tiny-pii-electra-small",
+        "token_classification",
+        ORTModelForTokenClassification,
     )
