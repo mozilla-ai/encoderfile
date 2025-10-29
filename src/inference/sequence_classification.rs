@@ -13,30 +13,7 @@ pub async fn sequence_classification(
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
     let mut session = get_model();
 
-    // Get padded length of each encoding.
-    let padded_token_length = encodings[0].len();
-
-    // Get token IDs & mask as a flattened array.
-    let ids: Vec<i64> = encodings
-        .iter()
-        .flat_map(|e| e.get_ids().iter().map(|i| *i as i64))
-        .collect();
-    let mask: Vec<i64> = encodings
-        .iter()
-        .flat_map(|e| e.get_attention_mask().iter().map(|i| *i as i64))
-        .collect();
-    let type_ids: Vec<i64> = encodings
-        .iter()
-        .flat_map(|e| e.get_type_ids().iter().map(|i| *i as i64))
-        .collect();
-
-    // Convert flattened arrays into 2-dimensional tensors of shape [N, L].
-    let a_ids =
-        TensorRef::from_array_view(([encodings.len(), padded_token_length], &*ids)).unwrap();
-    let a_mask =
-        TensorRef::from_array_view(([encodings.len(), padded_token_length], &*mask)).unwrap();
-    let a_type_ids =
-        TensorRef::from_array_view(([encodings.len(), padded_token_length], &*type_ids)).unwrap();
+    let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
     let outputs = match requires_token_type_ids(&session) {
         true => session.run(ort::inputs!(a_ids, a_mask, a_type_ids)),
