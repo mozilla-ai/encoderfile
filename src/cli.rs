@@ -9,8 +9,18 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     Serve {
-        #[command(subcommand)]
-        command: ServeCommands,
+        #[arg(long, default_value = "[::]")]
+        grpc_hostname: String,
+        #[arg(long, default_value = "50051")]
+        grpc_port: String,
+        #[arg(long, default_value = "0.0.0.0")]
+        http_hostname: String,
+        #[arg(long, default_value = "8080")]
+        http_port: String,
+        #[arg(long, default_value_t = false)]
+        disable_grpc: bool,
+        #[arg(long, default_value_t = false)]
+        disable_http: bool
     },
 }
 
