@@ -4,9 +4,7 @@ use crate::generated::{
     encoderfile::sequence_classification_server::{
         SequenceClassification, SequenceClassificationServer,
     },
-    sequence_classification::{
-        SequenceClassificationRequest, SequenceClassificationResponse, SequenceClassificationResult,
-    },
+    sequence_classification::{SequenceClassificationRequest, SequenceClassificationResponse},
 };
 
 pub fn sequence_classification_server()
@@ -23,19 +21,10 @@ impl SequenceClassification for SequenceClassificationService {
         &self,
         request: Request<SequenceClassificationRequest>,
     ) -> Result<Response<SequenceClassificationResponse>, Status> {
-        let request = request.into_inner();
-
-        let classifications: Vec<SequenceClassificationResult> =
-            crate::services::sequence_classification(request.inputs)
+        Ok(Response::new(
+            crate::services::sequence_classification(request.into_inner())
                 .map_err(|e| e.to_tonic_status())?
-                .into_iter()
-                .map(|i| i.into())
-                .collect();
-
-        Ok(Response::new(SequenceClassificationResponse {
-            results: classifications,
-            metadata: request.metadata,
-            model_id: crate::assets::MODEL_ID.to_string(),
-        }))
+                .into(),
+        ))
     }
 }

@@ -6,7 +6,7 @@ pub mod tokenizer;
 pub mod utils;
 
 pub mod token_info {
-    #[derive(Debug, serde::Serialize)]
+    #[derive(Debug, serde::Serialize, serde::Deserialize)]
     pub struct TokenInfo {
         pub token: String,
         pub token_id: u32,

@@ -1,7 +1,7 @@
 use tonic::{Request, Response, Status};
 
 use crate::generated::{
-    embedding::{EmbeddingRequest, EmbeddingResponse, TokenEmbeddingSequence},
+    embedding::{EmbeddingRequest, EmbeddingResponse},
     encoderfile::embedding_server::{Embedding, EmbeddingServer},
 };
 
@@ -18,20 +18,10 @@ impl Embedding for EmbeddingService {
         &self,
         request: Request<EmbeddingRequest>,
     ) -> Result<Response<EmbeddingResponse>, Status> {
-        let request = request.into_inner();
-
-        let embeddings = crate::services::embedding(request.inputs, request.normalize)
-            .map_err(|e| e.to_tonic_status())?;
-
-        Ok(Response::new(EmbeddingResponse {
-            results: embeddings
-                .into_iter()
-                .map(|embs| TokenEmbeddingSequence {
-                    embeddings: embs.into_iter().map(|i| i.into()).collect(),
-                })
-                .collect(),
-            metadata: request.metadata,
-            model_id: crate::assets::MODEL_ID.to_string(),
-        }))
+        Ok(Response::new(
+            crate::services::embedding(request.into_inner())
+                .map_err(|e| e.to_tonic_status())?
+                .into(),
+        ))
     }
 }

@@ -6,7 +6,7 @@ use tokenizers::Encoding;
 pub fn token_classification<'a>(
     mut session: super::inference::Model<'a>,
     encodings: Vec<Encoding>,
-) -> Result<Vec<Vec<TokenClassification>>, ApiError> {
+) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
     let outputs = match super::utils::requires_token_type_ids(&session) {
@@ -87,17 +87,14 @@ pub fn token_classification<'a>(
     Ok(predictions)
 }
 
-#[derive(Debug, serde::Serialize)]
-pub struct TokenClassificationResult {
-    pub tokens: Vec<TokenClassification>,
-}
+pub type TokenClassificationResult = Vec<TokenClassification>;
 
 impl From<TokenClassificationResult>
     for crate::generated::token_classification::TokenClassificationResult
 {
     fn from(val: TokenClassificationResult) -> Self {
         Self {
-            tokens: val.tokens.into_iter().map(|i| i.into()).collect(),
+            tokens: val.into_iter().map(|i| i.into()).collect(),
         }
     }
 }

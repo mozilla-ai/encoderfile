@@ -18,7 +18,7 @@ impl ApiError {
         match self {
             Self::InputError(s) => Status::invalid_argument(*s),
             Self::InternalError(s) => Status::internal(*s),
-            Self::ConfigError(s) => Status::internal(*s)
+            Self::ConfigError(s) => Status::internal(*s),
         }
     }
 }

@@ -7,7 +7,7 @@ pub fn embedding<'a>(
     mut session: super::inference::Model<'a>,
     encodings: Vec<Encoding>,
     normalize: bool,
-) -> Result<Vec<Vec<TokenEmbedding>>, ApiError> {
+) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
     let outputs = match requires_token_type_ids(&session) {
@@ -88,6 +88,16 @@ impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
         crate::generated::embedding::TokenEmbedding {
             embedding: val.embedding,
             token_info: val.token_info.map(|i| i.into()),
+        }
+    }
+}
+
+pub type TokenEmbeddingSequence = Vec<TokenEmbedding>;
+
+impl From<TokenEmbeddingSequence> for crate::generated::embedding::TokenEmbeddingSequence {
+    fn from(val: Vec<TokenEmbedding>) -> Self {
+        Self {
+            embeddings: val.into_iter().map(|i| i.into()).collect(),
         }
     }
 }

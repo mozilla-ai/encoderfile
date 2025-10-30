@@ -20,7 +20,7 @@ pub enum Commands {
         #[arg(long, default_value_t = false)]
         disable_grpc: bool,
         #[arg(long, default_value_t = false)]
-        disable_http: bool
+        disable_http: bool,
     },
 }
 
