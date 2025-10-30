@@ -6,7 +6,6 @@ use crate::{error::ApiError, inference::utils::requires_token_type_ids};
 pub fn embedding<'a>(
     mut session: super::inference::Model<'a>,
     encodings: Vec<Encoding>,
-    return_token_info: bool,
     normalize: bool,
 ) -> Result<Vec<Vec<TokenEmbedding>>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -57,19 +56,16 @@ pub fn embedding<'a>(
             let (start, end) = *offset;
             let embedding: Vec<f32> = e.iter().map(|i| *i).collect();
 
-            let token_info = match return_token_info {
-                true => Some(TokenInfo {
+            let token_info = super::token_info::TokenInfo {
                     token: token.clone(),
                     token_id: *token_id,
                     start,
                     end,
-                }),
-                false => None,
             };
 
             results.push(TokenEmbedding {
                 embedding,
-                token_info,
+                token_info: Some(token_info),
             })
         }
 
@@ -84,7 +80,7 @@ pub fn embedding<'a>(
 #[derive(Debug, serde::Serialize)]
 pub struct TokenEmbedding {
     pub embedding: Vec<f32>,
-    pub token_info: Option<TokenInfo>,
+    pub token_info: Option<super::token_info::TokenInfo>,
 }
 
 impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
@@ -92,25 +88,6 @@ impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
         crate::generated::embedding::TokenEmbedding {
             embedding: val.embedding,
             token_info: val.token_info.map(|i| i.into()),
-        }
-    }
-}
-
-#[derive(Debug, serde::Serialize)]
-pub struct TokenInfo {
-    pub token: String,
-    pub token_id: u32,
-    pub start: usize,
-    pub end: usize,
-}
-
-impl From<TokenInfo> for crate::generated::embedding::TokenInfo {
-    fn from(val: TokenInfo) -> Self {
-        crate::generated::embedding::TokenInfo {
-            token: val.token,
-            token_id: val.token_id,
-            start: (val.start as u32),
-            end: (val.end as u32),
         }
     }
 }

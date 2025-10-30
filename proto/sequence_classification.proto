@@ -3,15 +3,13 @@ syntax = "proto3";
 package sequence_classification;
 
 message SequenceClassificationRequest {
-  string request_id = 1;
-  repeated string inputs = 2;
-  map<string, string> metadata = 3;
+  repeated string inputs = 1;
+  map<string, string> metadata = 2;
 }
 
 message SequenceClassificationResponse {
-  string request_id = 1;
-  repeated SequenceClassificationResult results = 2;
-  map<string, string> metadata = 3;
+  repeated SequenceClassificationResult results = 1;
+  map<string, string> metadata = 2;
 }
 
 message SequenceClassificationResult {

@@ -6,3 +6,5 @@ pub mod embedding;
 pub mod sequence_classification;
 #[rustfmt::skip]
 pub mod token_classification;
+#[rustfmt::skip]
+pub mod token;

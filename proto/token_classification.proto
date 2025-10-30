@@ -2,16 +2,16 @@ syntax = "proto3";
 
 package token_classification;
 
+import "proto/token.proto";
+
 message TokenClassificationRequest {
-  string request_id = 1;
-  repeated string inputs = 2;
-  map<string, string> metadata = 3;
+  repeated string inputs = 1;
+  map<string, string> metadata = 2;
 }
 
 message TokenClassificationResponse {
-  string request_id = 1;
-  repeated TokenClassificationResult results = 2;
-  map<string, string> metadata = 3;
+  repeated TokenClassificationResult results = 1;
+  map<string, string> metadata = 2;
 }
 
 message TokenClassificationResult {
@@ -19,12 +19,9 @@ message TokenClassificationResult {
 }
 
 message TokenClassification {
-  uint32 token_id = 1;
-  string token = 2;
-  uint32 start = 3;
-  uint32 end = 4;
-  repeated float logits = 5;
-  repeated float scores = 6;
-  string label = 7;
-  float score = 8;
+  token.TokenInfo token_info = 1;
+  repeated float logits = 2;
+  repeated float scores = 3;
+  string label = 4;
+  float score = 5;
 }

@@ -68,12 +68,14 @@ pub fn token_classification<'a>(
             }
 
             results.push(TokenClassification {
-                token_id: *token_id,
-                token: token.clone(),
+                token_info: super::token_info::TokenInfo {
+                    token_id: *token_id,
+                    token: token.clone(),
+                    start,
+                    end
+                },
                 score: score,
                 label,
-                start: start as u32,
-                end: end as u32,
                 logits: logs.iter().map(|i| *i).collect(),
                 scores: scores.iter().map(|i| *i).collect(),
             })
@@ -102,10 +104,7 @@ impl From<TokenClassificationResult>
 
 #[derive(Debug, serde::Serialize)]
 pub struct TokenClassification {
-    pub token_id: u32,
-    pub token: String,
-    pub start: u32,
-    pub end: u32,
+    pub token_info: super::token_info::TokenInfo,
     pub logits: Vec<f32>,
     pub scores: Vec<f32>,
     pub label: String,
@@ -115,10 +114,7 @@ pub struct TokenClassification {
 impl From<TokenClassification> for crate::generated::token_classification::TokenClassification {
     fn from(val: TokenClassification) -> Self {
         Self {
-            token_id: val.token_id,
-            token: val.token,
-            start: val.start,
-            end: val.end,
+            token_info: Some(val.token_info.into()),
             logits: val.logits,
             scores: val.scores,
             label: val.label,

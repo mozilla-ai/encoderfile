@@ -99,7 +99,7 @@ fn test_embedding_model() {
     let session_lock = session.lock();
 
     let results =
-        embedding(session_lock, encodings.clone(), true, true).expect("Failed to compute results");
+        embedding(session_lock, encodings.clone(), true).expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
