@@ -1,4 +1,4 @@
-use ndarray::{Array2, Axis, Ix1, Ix2};
+use ndarray::{Axis, Ix1, Ix2};
 use ort::value::TensorRef;
 use tokenizers::Encoding;
 
@@ -37,7 +37,7 @@ pub async fn embedding(
         let mut transformed = embs.into_dimensionality::<Ix2>().unwrap().into_owned();
 
         if normalize {
-            transformed = l2_normalize_rows(transformed);
+            transformed = super::utils::l2_normalize(transformed, Axis(0));
         }
 
         let mut token_ids = encoding.get_ids().iter();
@@ -89,16 +89,6 @@ pub async fn embedding(
     Ok(embeddings)
 
     // Err(ApiError::InternalError("Not Implemented"))
-}
-
-fn l2_normalize_rows(mut x: Array2<f32>) -> Array2<f32> {
-    for mut row in x.axis_iter_mut(Axis(0)) {
-        let norm = row.mapv(|v| v * v).sum().sqrt();
-        if norm > 0.0 {
-            row.mapv_inplace(|v| v / norm);
-        }
-    }
-    x
 }
 
 #[derive(Debug)]

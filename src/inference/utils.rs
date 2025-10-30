@@ -37,6 +37,16 @@ macro_rules! prepare_inputs {
     }};
 }
 
+pub fn l2_normalize(mut x: Array2<f32>, axis: Axis) -> Array2<f32> {
+    for mut row in x.axis_iter_mut(axis) {
+        let norm = row.mapv(|v| v * v).sum().sqrt();
+        if norm > 0.0 {
+            row.mapv_inplace(|v| v / norm);
+        }
+    }
+    x
+}
+
 pub fn softmax(x: &Array2<f32>, axis: Axis) -> Array2<f32> {
     let max_per_axis = x.map_axis(axis, |row| row.fold(f32::NEG_INFINITY, |a, &b| a.max(b)));
     let expx = x - &max_per_axis.insert_axis(axis);
