@@ -17,23 +17,19 @@ pub fn get_model_config() -> &'static ModelConfig {
 }
 
 pub fn get_model_type() -> &'static ModelType {
-    MODEL_TYPE.get_or_init(
-        || {
-            match MODEL_TYPE_STR {
-                "embedding" => ModelType::Embedding,
-                "sequence_classification" => ModelType::SequenceClassification,
-                "token_classification" => ModelType::TokenClassification,
-                other => panic!("Invalid model type: {}", other)
-            }
-        }
-    )
+    MODEL_TYPE.get_or_init(|| match MODEL_TYPE_STR {
+        "embedding" => ModelType::Embedding,
+        "sequence_classification" => ModelType::SequenceClassification,
+        "token_classification" => ModelType::TokenClassification,
+        other => panic!("Invalid model type: {}", other),
+    })
 }
 
 #[derive(Debug)]
 pub enum ModelType {
     Embedding,
     SequenceClassification,
-    TokenClassification
+    TokenClassification,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
