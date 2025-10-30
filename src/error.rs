@@ -10,11 +10,11 @@ pub enum ApiError {
     InternalError(&'static str),
 }
 
-impl Into<Status> for ApiError {
-    fn into(self) -> Status {
+impl ApiError {
+    pub fn to_tonic_status(&self) -> Status {
         match self {
-            Self::InputError(s) => Status::invalid_argument(s),
-            Self::InternalError(s) => Status::internal(s),
+            Self::InputError(s) => Status::invalid_argument(*s),
+            Self::InternalError(s) => Status::internal(*s),
         }
     }
 }

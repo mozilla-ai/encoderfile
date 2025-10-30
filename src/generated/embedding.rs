@@ -15,7 +15,7 @@ pub struct EmbeddingRequest {
 pub struct EmbeddingResponse {
     /// len(embeddings) == len(inputs)
     #[prost(message, repeated, tag = "1")]
-    pub embeddings: ::prost::alloc::vec::Vec<TokenEmbedding>,
+    pub results: ::prost::alloc::vec::Vec<TokenEmbeddingSequence>,
     #[prost(uint32, tag = "2")]
     pub dim: u32,
     #[prost(map = "string, string", tag = "3")]
@@ -23,6 +23,11 @@ pub struct EmbeddingResponse {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TokenEmbeddingSequence {
+    #[prost(message, repeated, tag = "1")]
+    pub embeddings: ::prost::alloc::vec::Vec<TokenEmbedding>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TokenEmbedding {

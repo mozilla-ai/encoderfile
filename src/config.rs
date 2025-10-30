@@ -38,6 +38,7 @@ pub enum ModelType {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModelConfig {
+    pub hidden_size: u32,
     pub model_type: String,
     pub pad_token_id: u32,
     pub id2label: Option<HashMap<u32, String>>,
