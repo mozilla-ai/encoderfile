@@ -1,3 +1,4 @@
+use axum::http::StatusCode;
 use thiserror::Error;
 use tonic::Status;
 
@@ -19,6 +20,14 @@ impl ApiError {
             Self::InputError(s) => Status::invalid_argument(*s),
             Self::InternalError(s) => Status::internal(*s),
             Self::ConfigError(s) => Status::internal(*s),
+        }
+    }
+
+    pub fn to_axum_status(&self) -> (StatusCode, &'static str) {
+        match self {
+            Self::InputError(s) => (StatusCode::BAD_REQUEST, *s),
+            Self::InternalError(s) => (StatusCode::INTERNAL_SERVER_ERROR, *s),
+            Self::ConfigError(s) => (StatusCode::INTERNAL_SERVER_ERROR, *s),
         }
     }
 }

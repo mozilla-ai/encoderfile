@@ -22,8 +22,7 @@ async fn run_grpc(hostname: String, port: String) -> Result<()> {
 async fn run_http(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let router = axum::Router::new()
-        .route("/health", axum::routing::get(|| async { "OK" }))
+    let router = encoderfile::http::router()
         .layer(tower_http::trace::TraceLayer::new_for_http())
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 

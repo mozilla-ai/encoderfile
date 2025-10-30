@@ -4,6 +4,7 @@ pub mod config;
 pub mod error;
 pub mod generated;
 pub mod grpc;
+pub mod http;
 pub mod inference;
 pub mod services;
 
