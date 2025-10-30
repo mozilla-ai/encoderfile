@@ -11,5 +11,17 @@ async fn main() -> Result<()> {
         .compact() // short, pretty output
         .init();
 
+    let encodings = encoderfile::inference::tokenizer::encode_text(vec![
+        "hello my name is raz besaleli".to_string(),
+    ])
+    .unwrap();
+
+    let classifications =
+        encoderfile::inference::token_classification::token_classification(encodings)
+            .await
+            .unwrap();
+
+    println!("{:?}", classifications);
+
     Ok(())
 }

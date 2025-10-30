@@ -1,5 +1,4 @@
-use ndarray::{Axis, Ix1, Ix2};
-use ort::value::TensorRef;
+use ndarray::{Axis, Ix2};
 use tokenizers::Encoding;
 
 use crate::{
@@ -60,12 +59,7 @@ pub async fn embedding(
             }
 
             let (start, end) = *offset;
-            let embedding: Vec<f32> = e
-                .into_dimensionality::<Ix1>()
-                .unwrap()
-                .iter()
-                .map(|i| *i)
-                .collect();
+            let embedding: Vec<f32> = e.iter().map(|i| *i).collect();
 
             let token_info = match return_token_info {
                 true => Some(TokenInfo {

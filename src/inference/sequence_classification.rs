@@ -5,7 +5,6 @@ use crate::{
 };
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
-use ort::value::TensorRef;
 use tokenizers::Encoding;
 
 pub async fn sequence_classification(

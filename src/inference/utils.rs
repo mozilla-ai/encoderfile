@@ -22,16 +22,24 @@ macro_rules! prepare_inputs {
             .collect();
 
         // Convert flattened arrays into 2-dimensional tensors of shape [N, L].
-        let a_ids = TensorRef::from_array_view(([$encodings.len(), padded_token_length], &*ids))
-            .unwrap()
-            .to_owned();
-        let a_mask = TensorRef::from_array_view(([$encodings.len(), padded_token_length], &*mask))
-            .unwrap()
-            .to_owned();
-        let a_type_ids =
-            TensorRef::from_array_view(([$encodings.len(), padded_token_length], &*type_ids))
-                .unwrap()
-                .to_owned();
+        let a_ids = ort::value::TensorRef::from_array_view((
+            [$encodings.len(), padded_token_length],
+            &*ids,
+        ))
+        .unwrap()
+        .to_owned();
+        let a_mask = ort::value::TensorRef::from_array_view((
+            [$encodings.len(), padded_token_length],
+            &*mask,
+        ))
+        .unwrap()
+        .to_owned();
+        let a_type_ids = ort::value::TensorRef::from_array_view((
+            [$encodings.len(), padded_token_length],
+            &*type_ids,
+        ))
+        .unwrap()
+        .to_owned();
 
         (a_ids, a_mask, a_type_ids)
     }};

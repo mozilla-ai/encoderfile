@@ -1,12 +1,106 @@
-#[derive(Debug, serde::Serialize)]
-pub struct TokenClassificationResult {
-    pub tokens: Vec<TokenClassification>
+use crate::{
+    config::get_model_config,
+    error::ApiError,
+    inference::{inference::get_model, utils::softmax},
+};
+use ndarray::{Axis, Ix2};
+use ndarray_stats::QuantileExt;
+use tokenizers::Encoding;
+
+pub async fn token_classification(
+    encodings: Vec<Encoding>,
+) -> Result<Vec<Vec<TokenClassification>>, ApiError> {
+    let mut session = get_model();
+
+    let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
+
+    let outputs = match super::utils::requires_token_type_ids(&session) {
+        true => session.run(ort::inputs!(a_ids, a_mask, a_type_ids)),
+        false => session.run(ort::inputs!(a_ids, a_mask)),
+    }
+    .map_err(|e| {
+        tracing::error!("Error running model: {:?}", e);
+        ApiError::InternalError("Error running model")
+    })?;
+
+    let outputs = outputs
+        .get("logits")
+        .unwrap()
+        .try_extract_array::<f32>()
+        .unwrap();
+
+    let mut predictions = Vec::new();
+
+    for (encoding, logits) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
+        let logits = logits.into_dimensionality::<Ix2>().unwrap().to_owned();
+
+        let scores = softmax(&logits, Axis(1));
+
+        let mut token_ids = encoding.get_ids().iter();
+        let mut tokens = encoding.get_tokens().iter();
+        let mut special_tokens_mask = encoding.get_special_tokens_mask().iter();
+        let mut offsets = encoding.get_offsets().iter();
+        let mut logs_iter = logits.axis_iter(Axis(0));
+        let mut scores_iter = scores.axis_iter(Axis(0));
+
+        let mut results = Vec::new();
+
+        let model_config = get_model_config();
+
+        while let (
+            Some(token_id),
+            Some(token),
+            Some(special_tokens_mask),
+            Some(offset),
+            Some(logs),
+            Some(scores),
+        ) = (
+            token_ids.next(),
+            tokens.next(),
+            special_tokens_mask.next(),
+            offsets.next(),
+            logs_iter.next(),
+            scores_iter.next(),
+        ) {
+            let argmax = scores.argmax().unwrap();
+            let score = scores[argmax];
+            let label = model_config.id2label(argmax as u32).unwrap().to_string();
+
+            let (start, end) = *offset;
+
+            if *special_tokens_mask == 1 {
+                continue;
+            }
+
+            results.push(TokenClassification {
+                token_id: *token_id,
+                token: token.clone(),
+                score: score,
+                label,
+                start: start as u32,
+                end: end as u32,
+                logits: logs.iter().map(|i| *i).collect(),
+                scores: scores.iter().map(|i| *i).collect(),
+            })
+        }
+
+        predictions.push(results);
+    }
+
+    Ok(predictions)
 }
 
-impl From<TokenClassificationResult> for crate::generated::token_classification::TokenClassificationResult {
+#[derive(Debug, serde::Serialize)]
+pub struct TokenClassificationResult {
+    pub tokens: Vec<TokenClassification>,
+}
+
+impl From<TokenClassificationResult>
+    for crate::generated::token_classification::TokenClassificationResult
+{
     fn from(val: TokenClassificationResult) -> Self {
         Self {
-            tokens: val.tokens.into_iter().map(|i| i.into()).collect()
+            tokens: val.tokens.into_iter().map(|i| i.into()).collect(),
         }
     }
 }
@@ -17,7 +111,7 @@ pub struct TokenClassification {
     pub token: String,
     pub start: u32,
     pub end: u32,
-    pub logits: Option<Vec<f32>>,
+    pub logits: Vec<f32>,
     pub scores: Vec<f32>,
     pub label: String,
     pub score: f32,
@@ -30,10 +124,10 @@ impl From<TokenClassification> for crate::generated::token_classification::Token
             token: val.token,
             start: val.start,
             end: val.end,
-            logits: val.logits.unwrap_or(Vec::new()),
+            logits: val.logits,
             scores: val.scores,
             label: val.label,
-            score: val.score
+            score: val.score,
         }
     }
 }
