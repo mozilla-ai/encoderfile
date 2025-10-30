@@ -9,7 +9,7 @@ use crate::{
     services,
 };
 
-const PREDICT_ROUTE: &'static str = "predict";
+const PREDICT_ROUTE: &'static str = "/predict";
 
 pub fn router() -> axum::Router {
     let router = axum::Router::new().route("/health", get(|| async { "OK" }));
