@@ -60,10 +60,10 @@ pub async fn sequence_classification(
 
 #[derive(Debug, serde::Serialize)]
 pub struct SequenceClassificationResult {
-    logits: Vec<f32>,
-    scores: Vec<f32>,
-    predicted_index: u32,
-    predicted_label: Option<String>,
+    pub logits: Vec<f32>,
+    pub scores: Vec<f32>,
+    pub predicted_index: u32,
+    pub predicted_label: Option<String>,
 }
 
 impl From<SequenceClassificationResult>
