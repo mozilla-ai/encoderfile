@@ -17,5 +17,5 @@ pub fn get_banner() -> String {
 
     let spaces = " ".repeat(remaining_len);
 
-    format!("{}\nModel ID: {}{}{}", BANNER, MODEL_ID, spaces, signature)
+    format!("{}\nModel ID: {}{}{}\n", BANNER, MODEL_ID, spaces, signature)
 }

@@ -1,6 +1,6 @@
 use clap::Parser;
 use anyhow::Result;
-use encoderfile::cli::{Commands, ServeCommands};
+use encoderfile::{cli::{Commands, ServeCommands}, config::get_model_type};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -22,6 +22,8 @@ async fn main() -> Result<()> {
                     let addr = format!("{}:{}", hostname, port).parse().unwrap();
 
                     println!("{}", encoderfile::get_banner());
+
+                    tracing::info!("Serving {:?} model {} on gRPC {}", get_model_type(), encoderfile::MODEL_ID, &addr);
 
                     encoderfile::grpc::router()
                         .serve(addr)
