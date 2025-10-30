@@ -42,8 +42,8 @@ pub struct TokenClassification {
     pub logits: ::prost::alloc::vec::Vec<f32>,
     #[prost(float, repeated, tag = "6")]
     pub scores: ::prost::alloc::vec::Vec<f32>,
-    #[prost(string, optional, tag = "7")]
-    pub label: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(string, tag = "8")]
-    pub score: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub label: ::prost::alloc::string::String,
+    #[prost(float, tag = "8")]
+    pub score: f32,
 }

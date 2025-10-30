@@ -25,6 +25,6 @@ message TokenClassification {
   uint32 end = 4;
   repeated float logits = 5;
   repeated float scores = 6;
-  optional string label = 7;
-  string score = 8;
+  string label = 7;
+  float score = 8;
 }
