@@ -26,8 +26,8 @@ pub enum Commands {
         #[arg(required = true)]
         inputs: Vec<String>,
         #[arg(long, default_value_t = true)]
-        normalize: bool
-    }
+        normalize: bool,
+    },
 }
 
 #[derive(Subcommand)]

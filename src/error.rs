@@ -1,7 +1,7 @@
 use axum::http::StatusCode;
+use serde::Serialize;
 use thiserror::Error;
 use tonic::Status;
-use serde::Serialize;
 
 #[derive(Debug, Error, Serialize)]
 pub enum ApiError {
