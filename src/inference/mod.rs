@@ -5,7 +5,7 @@ pub mod token_classification;
 pub mod tokenizer;
 pub mod utils;
 
-mod token_info {
+pub mod token_info {
     #[derive(Debug, serde::Serialize)]
     pub struct TokenInfo {
         pub token: String,
