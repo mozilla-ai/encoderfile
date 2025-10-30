@@ -7,7 +7,7 @@ setup:
 	@echo "downloading test models..."
 	@uv run scripts/download_test_models.py
 
-.PHONY: licenses
+.PHONY: format
 format:
 	@echo "Formatting python..."
 	@uv run -m ruff format
