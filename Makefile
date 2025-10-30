@@ -1,13 +1,20 @@
 .PHONY: setup
 setup:
+	@echo "installing dependencies..."
+	@cargo install cargo-bundle-licenses
 	@echo "creating .venv..."
 	@uv sync --locked
-	@echo "downloading test models"
+	@echo "downloading test models..."
 	@uv run scripts/download_test_models.py
 
-.PHONY:
+.PHONY: licenses
 format:
-	@echo "Formatting python"
+	@echo "Formatting python..."
 	@uv run -m ruff format
-	@echo "Formatting rust"
+	@echo "Formatting rust..."
 	@cargo fmt
+
+,PHONY: licenses
+licenses:
+	@echo "Generating licenses..."
+	@cargo bundle-licenses --format yaml --output THIRDPARTY.yml
