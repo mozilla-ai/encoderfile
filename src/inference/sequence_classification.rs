@@ -58,7 +58,7 @@ pub async fn sequence_classification(
     Ok(results)
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct SequenceClassificationResult {
     logits: Vec<f32>,
     scores: Vec<f32>,

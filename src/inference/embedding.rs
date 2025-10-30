@@ -91,7 +91,7 @@ pub async fn embedding(
     // Err(ApiError::InternalError("Not Implemented"))
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct TokenEmbedding {
     pub embedding: Vec<f32>,
     pub token_info: Option<TokenInfo>,
@@ -106,7 +106,7 @@ impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct TokenInfo {
     pub token: String,
     pub token_id: u32,
