@@ -1,17 +1,12 @@
-use crate::{
-    config::get_model_config,
-    error::ApiError,
-    inference::{inference::get_model, utils::softmax},
-};
+use crate::{config::get_model_config, error::ApiError, inference::utils::softmax};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
-pub async fn token_classification(
+pub fn token_classification<'a>(
+    mut session: super::inference::Model<'a>,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<Vec<TokenClassification>>, ApiError> {
-    let mut session = get_model();
-
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
     let outputs = match super::utils::requires_token_type_ids(&session) {

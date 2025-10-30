@@ -63,7 +63,7 @@ pub fn softmax(x: &Array2<f32>, axis: Axis) -> Array2<f32> {
     &expx / &sum
 }
 
-pub fn requires_token_type_ids(session: &MutexGuard<'static, Session>) -> bool {
+pub fn requires_token_type_ids<'a>(session: &MutexGuard<'a, Session>) -> bool {
     session
         .inputs
         .iter()

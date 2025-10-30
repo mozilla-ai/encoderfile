@@ -1,18 +1,14 @@
 use ndarray::{Axis, Ix2};
 use tokenizers::Encoding;
 
-use crate::{
-    error::ApiError,
-    inference::{inference::get_model, utils::requires_token_type_ids},
-};
+use crate::{error::ApiError, inference::utils::requires_token_type_ids};
 
-pub async fn embedding(
+pub fn embedding<'a>(
+    mut session: super::inference::Model<'a>,
     encodings: Vec<Encoding>,
     return_token_info: bool,
     normalize: bool,
 ) -> Result<Vec<Vec<TokenEmbedding>>, ApiError> {
-    let mut session = get_model();
-
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
     let outputs = match requires_token_type_ids(&session) {

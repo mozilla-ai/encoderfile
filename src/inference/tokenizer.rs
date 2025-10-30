@@ -44,12 +44,10 @@ pub fn get_tokenizer() -> &'static Tokenizer {
     })
 }
 
-pub fn encode_text(text: Vec<String>) -> Result<Vec<Encoding>, ApiError> {
+pub fn encode_text(tokenizer: &Tokenizer, text: Vec<String>) -> Result<Vec<Encoding>, ApiError> {
     if text.is_empty() || text.iter().any(|i| i.is_empty()) {
         return Err(ApiError::InputError("Cannot tokenize empty string"));
     }
-
-    let tokenizer = get_tokenizer();
 
     tokenizer.encode_batch(text, true).map_err(|e| {
         tracing::error!("Error tokenizing text: {}", e);
@@ -75,7 +73,8 @@ mod tests {
     #[test]
     fn test_encode_text_basic() {
         let text = "Hello world!".to_string();
-        let encoding = encode_text(vec![text.clone()])
+        let tokenizer = get_tokenizer();
+        let encoding = encode_text(tokenizer, vec![text.clone()])
             .expect("failed to encode text")
             .first()
             .expect("nothing encoded?")

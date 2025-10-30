@@ -1,17 +1,12 @@
-use crate::{
-    config::get_model_config,
-    error::ApiError,
-    inference::{inference::get_model, utils::requires_token_type_ids},
-};
+use crate::{config::get_model_config, error::ApiError, inference::utils::requires_token_type_ids};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
-pub async fn sequence_classification(
+pub fn sequence_classification<'a>(
+    mut session: super::inference::Model<'a>,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
-    let mut session = get_model();
-
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
     let outputs = match requires_token_type_ids(&session) {
