@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::collections::HashMap;
 use clap::Parser;
 use encoderfile::{cli::Commands, config::{ModelType, get_model_type}, error::ApiError, services::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest, embedding, sequence_classification, token_classification}};
 use tracing_subscriber::EnvFilter;
@@ -54,7 +53,7 @@ async fn main() -> Result<()> {
             let _ = tokio::join!(grpc_process, http_process);
         },
         Commands::Infer { inputs, normalize } => {
-            let metadata = HashMap::new();
+            let metadata = None;
 
             match get_model_type() {
                 ModelType::Embedding => {

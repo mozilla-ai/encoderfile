@@ -27,7 +27,7 @@ pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingRespon
 pub struct EmbeddingRequest {
     pub inputs: Vec<String>,
     pub normalize: bool,
-    pub metadata: HashMap<String, String>,
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
@@ -35,7 +35,7 @@ impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
         Self {
             inputs: val.inputs,
             normalize: val.normalize,
-            metadata: val.metadata,
+            metadata: Some(val.metadata),
         }
     }
 }
@@ -44,7 +44,7 @@ impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
 pub struct EmbeddingResponse {
     results: Vec<Vec<TokenEmbedding>>,
     model_id: String,
-    metadata: HashMap<String, String>,
+    metadata: Option<HashMap<String, String>>,
 }
 
 impl From<EmbeddingResponse> for crate::generated::embedding::EmbeddingResponse {
@@ -52,7 +52,7 @@ impl From<EmbeddingResponse> for crate::generated::embedding::EmbeddingResponse 
         Self {
             results: val.results.into_iter().map(|embs| embs.into()).collect(),
             model_id: val.model_id,
-            metadata: val.metadata,
+            metadata: val.metadata.unwrap_or(HashMap::new()),
         }
     }
 }

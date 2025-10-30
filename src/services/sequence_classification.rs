@@ -30,7 +30,7 @@ pub fn sequence_classification(
 #[derive(Debug, Deserialize)]
 pub struct SequenceClassificationRequest {
     pub inputs: Vec<String>,
-    pub metadata: HashMap<String, String>,
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 impl From<crate::generated::sequence_classification::SequenceClassificationRequest>
@@ -39,7 +39,7 @@ impl From<crate::generated::sequence_classification::SequenceClassificationReque
     fn from(val: crate::generated::sequence_classification::SequenceClassificationRequest) -> Self {
         Self {
             inputs: val.inputs,
-            metadata: val.metadata,
+            metadata: Some(val.metadata),
         }
     }
 }
@@ -48,7 +48,7 @@ impl From<crate::generated::sequence_classification::SequenceClassificationReque
 pub struct SequenceClassificationResponse {
     results: Vec<SequenceClassificationResult>,
     model_id: String,
-    metadata: HashMap<String, String>,
+    metadata: Option<HashMap<String, String>>,
 }
 
 impl From<SequenceClassificationResponse>
@@ -58,7 +58,7 @@ impl From<SequenceClassificationResponse>
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
             model_id: val.model_id,
-            metadata: val.metadata,
+            metadata: val.metadata.unwrap_or(HashMap::new()),
         }
     }
 }

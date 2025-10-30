@@ -30,7 +30,7 @@ pub fn token_classification(
 #[derive(Debug, Deserialize)]
 pub struct TokenClassificationRequest {
     pub inputs: Vec<String>,
-    pub metadata: HashMap<String, String>,
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 impl From<crate::generated::token_classification::TokenClassificationRequest>
@@ -39,7 +39,7 @@ impl From<crate::generated::token_classification::TokenClassificationRequest>
     fn from(val: crate::generated::token_classification::TokenClassificationRequest) -> Self {
         Self {
             inputs: val.inputs,
-            metadata: val.metadata,
+            metadata: Some(val.metadata),
         }
     }
 }
@@ -48,7 +48,7 @@ impl From<crate::generated::token_classification::TokenClassificationRequest>
 pub struct TokenClassificationResponse {
     results: Vec<TokenClassificationResult>,
     model_id: String,
-    metadata: HashMap<String, String>,
+    metadata: Option<HashMap<String, String>>,
 }
 
 impl From<TokenClassificationResponse>
@@ -58,7 +58,7 @@ impl From<TokenClassificationResponse>
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
             model_id: crate::assets::MODEL_ID.to_string(),
-            metadata: val.metadata,
+            metadata: val.metadata.unwrap_or(HashMap::new()),
         }
     }
 }
