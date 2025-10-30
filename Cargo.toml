@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.100"
 axum = "0.8.6"
+clap = "4.5.51"
+clap_derive = "4.5.49"
 ndarray = "0.16.1"
 ndarray-stats = "0.6.0"
 parking_lot = "0.12.5"

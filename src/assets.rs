@@ -4,3 +4,4 @@ pub const TOKENIZER_JSON: &str = include_str!(env!("TOKENIZER_PATH"));
 pub const MODEL_CONFIG_JSON: &str = include_str!(env!("MODEL_CONFIG_PATH"));
 
 pub const BANNER: &'static str = include_str!("../assets/banner.txt");
+pub const MODEL_ID: &'static str = env!("MODEL_NAME");

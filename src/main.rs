@@ -1,4 +1,6 @@
+use clap::Parser;
 use anyhow::Result;
+use encoderfile::cli::{Commands, ServeCommands};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -11,11 +13,24 @@ async fn main() -> Result<()> {
         .compact() // short, pretty output
         .init();
 
-    println!("{}", encoderfile::BANNER);
+    let cli = encoderfile::cli::Cli::parse();
 
-    encoderfile::grpc::router()
-        .serve("[::]:50051".parse().unwrap())
-        .await?;
+    match &cli.command {
+        Commands::Serve { command } => {
+            match command {
+                ServeCommands::Grpc { hostname, port } => {
+                    let addr = format!("{}:{}", hostname, port).parse().unwrap();
+
+                    println!("{}", encoderfile::get_banner());
+
+                    encoderfile::grpc::router()
+                        .serve(addr)
+                        .await?;
+                },
+                ServeCommands::Http { hostname, port } => {}
+            }
+        }
+    };
 
     Ok(())
 }
