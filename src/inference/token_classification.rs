@@ -72,7 +72,7 @@ pub fn token_classification<'a>(
                     token_id: *token_id,
                     token: token.clone(),
                     start,
-                    end
+                    end,
                 },
                 score: score,
                 label,

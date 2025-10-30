@@ -57,10 +57,10 @@ pub fn embedding<'a>(
             let embedding: Vec<f32> = e.iter().map(|i| *i).collect();
 
             let token_info = super::token_info::TokenInfo {
-                    token: token.clone(),
-                    token_id: *token_id,
-                    start,
-                    end,
+                token: token.clone(),
+                token_id: *token_id,
+                start,
+                end,
             };
 
             results.push(TokenEmbedding {
