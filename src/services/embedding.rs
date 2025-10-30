@@ -27,6 +27,7 @@ pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingRespon
 pub struct EmbeddingRequest {
     pub inputs: Vec<String>,
     pub normalize: bool,
+    #[serde(default)]
     pub metadata: Option<HashMap<String, String>>,
 }
 
@@ -44,6 +45,7 @@ impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
 pub struct EmbeddingResponse {
     results: Vec<Vec<TokenEmbedding>>,
     model_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     metadata: Option<HashMap<String, String>>,
 }
 

@@ -30,6 +30,7 @@ pub fn sequence_classification(
 #[derive(Debug, Deserialize)]
 pub struct SequenceClassificationRequest {
     pub inputs: Vec<String>,
+    #[serde(default)]
     pub metadata: Option<HashMap<String, String>>,
 }
 
@@ -48,6 +49,7 @@ impl From<crate::generated::sequence_classification::SequenceClassificationReque
 pub struct SequenceClassificationResponse {
     results: Vec<SequenceClassificationResult>,
     model_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     metadata: Option<HashMap<String, String>>,
 }
 

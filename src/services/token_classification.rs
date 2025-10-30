@@ -30,6 +30,7 @@ pub fn token_classification(
 #[derive(Debug, Deserialize)]
 pub struct TokenClassificationRequest {
     pub inputs: Vec<String>,
+    #[serde(default)]
     pub metadata: Option<HashMap<String, String>>,
 }
 
@@ -48,6 +49,7 @@ impl From<crate::generated::token_classification::TokenClassificationRequest>
 pub struct TokenClassificationResponse {
     results: Vec<TokenClassificationResult>,
     model_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     metadata: Option<HashMap<String, String>>,
 }
 
