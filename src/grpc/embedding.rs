@@ -20,10 +20,6 @@ impl Embedding for EmbeddingService {
     ) -> Result<Response<EmbeddingResponse>, Status> {
         let request = request.into_inner();
 
-        if request.inputs.len() == 0 {
-            return Err(Status::invalid_argument("Inputs are empty"));
-        }
-
         let embeddings = crate::services::embedding(request.inputs, request.normalize)
             .map_err(|e| e.to_tonic_status())?;
 

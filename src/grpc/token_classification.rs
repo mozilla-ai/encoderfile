@@ -22,10 +22,6 @@ impl TokenClassification for TokenClassificationService {
     ) -> Result<Response<TokenClassificationResponse>, Status> {
         let request = request.into_inner();
 
-        if request.inputs.len() == 0 {
-            return Err(Status::invalid_argument("Inputs are empty"));
-        }
-
         let classifications = crate::services::token_classification(request.inputs)
             .map_err(|e| e.to_tonic_status())?;
 

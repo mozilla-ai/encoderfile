@@ -5,3 +5,5 @@ pub mod generated;
 pub mod grpc;
 pub mod inference;
 pub mod services;
+
+pub use assets::BANNER;

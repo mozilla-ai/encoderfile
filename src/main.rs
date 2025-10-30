@@ -11,5 +11,11 @@ async fn main() -> Result<()> {
         .compact() // short, pretty output
         .init();
 
+    println!("{}", encoderfile::BANNER);
+
+    encoderfile::grpc::router()
+        .serve("[::]:50051".parse().unwrap())
+        .await?;
+
     Ok(())
 }

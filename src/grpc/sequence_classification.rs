@@ -24,10 +24,6 @@ impl SequenceClassification for SequenceClassificationService {
     ) -> Result<Response<SequenceClassificationResponse>, Status> {
         let request = request.into_inner();
 
-        if request.inputs.len() == 0 {
-            return Err(Status::invalid_argument("Inputs are empty"));
-        }
-
         let classifications: Vec<SequenceClassificationResult> =
             crate::services::sequence_classification(request.inputs)
                 .map_err(|e| e.to_tonic_status())?
