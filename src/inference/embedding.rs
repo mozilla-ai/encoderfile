@@ -31,7 +31,7 @@ pub fn embedding<'a>(
         let mut transformed = embs.into_dimensionality::<Ix2>().unwrap().into_owned();
 
         if normalize {
-            transformed = super::utils::l2_normalize(transformed, Axis(0));
+            transformed = super::utils::l2_normalize(transformed, Axis(1));
         }
 
         let mut token_ids = encoding.get_ids().iter();
