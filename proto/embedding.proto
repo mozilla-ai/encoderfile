@@ -13,8 +13,7 @@ message EmbeddingRequest {
 message EmbeddingResponse {
   // len(embeddings) == len(inputs)
   repeated TokenEmbeddingSequence results = 1;
-  uint32 dim = 2;
-  map<string, string> metadata = 3;
+  map<string, string> metadata = 2;
 }
 
 message TokenEmbeddingSequence {

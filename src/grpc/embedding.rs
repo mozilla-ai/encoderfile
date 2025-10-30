@@ -30,7 +30,6 @@ impl Embedding for EmbeddingService {
                     embeddings: embs.into_iter().map(|i| i.into()).collect(),
                 })
                 .collect(),
-            dim: crate::config::get_model_config().hidden_size,
             metadata: request.metadata,
         }))
     }
