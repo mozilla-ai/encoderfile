@@ -9,7 +9,7 @@ use crate::generated::{
     },
 };
 
-pub fn embedding_server() -> SequenceClassificationServer<SequenceClassificationService> {
+pub fn sequence_classification_server() -> SequenceClassificationServer<SequenceClassificationService> {
     SequenceClassificationServer::new(SequenceClassificationService)
 }
 
