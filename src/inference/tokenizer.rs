@@ -44,7 +44,7 @@ pub fn get_tokenizer() -> &'static Tokenizer {
     })
 }
 
-pub async fn encode_text(text: Vec<String>) -> Result<Vec<Encoding>, ApiError> {
+pub fn encode_text(text: Vec<String>) -> Result<Vec<Encoding>, ApiError> {
     if text.is_empty() || text.iter().any(|i| i.is_empty()) {
         return Err(ApiError::InputError("Cannot tokenize empty string"));
     }
@@ -60,10 +60,9 @@ pub async fn encode_text(text: Vec<String>) -> Result<Vec<Encoding>, ApiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio;
 
-    #[tokio::test]
-    async fn test_get_tokenizer_initializes_once() {
+    #[test]
+    fn test_get_tokenizer_initializes_once() {
         let tokenizer1 = get_tokenizer();
         let tokenizer2 = get_tokenizer();
 
@@ -73,11 +72,10 @@ mod tests {
         assert_eq!(ptr1, ptr2, "Tokenizers should be the same instance");
     }
 
-    #[tokio::test]
-    async fn test_encode_text_basic() {
+    #[test]
+    fn test_encode_text_basic() {
         let text = "Hello world!".to_string();
         let encoding = encode_text(vec![text.clone()])
-            .await
             .expect("failed to encode text")
             .first()
             .expect("nothing encoded?")
