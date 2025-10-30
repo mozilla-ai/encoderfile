@@ -25,9 +25,9 @@ pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingRespon
 
 #[derive(Debug, Deserialize)]
 pub struct EmbeddingRequest {
-    inputs: Vec<String>,
-    normalize: bool,
-    metadata: HashMap<String, String>,
+    pub inputs: Vec<String>,
+    pub normalize: bool,
+    pub metadata: HashMap<String, String>,
 }
 
 impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {

@@ -22,6 +22,12 @@ pub enum Commands {
         #[arg(long, default_value_t = false)]
         disable_http: bool,
     },
+    Infer {
+        #[arg(required = true)]
+        inputs: Vec<String>,
+        #[arg(long, default_value_t = true)]
+        normalize: bool
+    }
 }
 
 #[derive(Subcommand)]

@@ -29,8 +29,8 @@ pub fn token_classification(
 
 #[derive(Debug, Deserialize)]
 pub struct TokenClassificationRequest {
-    inputs: Vec<String>,
-    metadata: HashMap<String, String>,
+    pub inputs: Vec<String>,
+    pub metadata: HashMap<String, String>,
 }
 
 impl From<crate::generated::token_classification::TokenClassificationRequest>

@@ -1,38 +1,17 @@
 use anyhow::Result;
+use std::collections::HashMap;
 use clap::Parser;
-use encoderfile::{cli::Commands, config::get_model_type, error::ApiError};
+use encoderfile::{cli::Commands, config::{ModelType, get_model_type}, error::ApiError, services::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest, embedding, sequence_classification, token_classification}};
 use tracing_subscriber::EnvFilter;
+use serde_json::json;
 
-async fn run_grpc(hostname: String, port: String) -> Result<()> {
-    let addr = format!("{}:{}", &hostname, &port);
-
-    let router = encoderfile::grpc::router()
-        .layer(tower_http::trace::TraceLayer::new_for_grpc())
-        .into_make_service_with_connect_info::<std::net::SocketAddr>();
-
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-
-    tracing::info!("Running {:?} gRPC server on {}", get_model_type(), &addr);
-
-    axum::serve(listener, router).await?;
-
-    Ok(())
-}
-
-async fn run_http(hostname: String, port: String) -> Result<()> {
-    let addr = format!("{}:{}", &hostname, &port);
-
-    let router = encoderfile::http::router()
-        .layer(tower_http::trace::TraceLayer::new_for_http())
-        .into_make_service_with_connect_info::<std::net::SocketAddr>();
-
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-
-    tracing::info!("Running {:?} HTTP server on {}", get_model_type(), &addr);
-
-    axum::serve(listener, router).await?;
-
-    Ok(())
+macro_rules! generate_cli_route {
+    ($req:ident, $fn:path) => {
+        match $fn($req) {
+            Ok(r) => println!("{}", json!(r).to_string()),
+            Err(e) => println!("{}", json!(e).to_string())
+        }
+    }
 }
 
 #[tokio::main]
@@ -73,8 +52,69 @@ async fn main() -> Result<()> {
             println!("{}", encoderfile::get_banner());
 
             let _ = tokio::join!(grpc_process, http_process);
+        },
+        Commands::Infer { inputs, normalize } => {
+            let metadata = HashMap::new();
+
+            match get_model_type() {
+                ModelType::Embedding => {
+                    let request = EmbeddingRequest {
+                        inputs, normalize, metadata
+                    };
+
+                    generate_cli_route!(request, embedding)
+                },
+                ModelType::SequenceClassification => {
+                    let request = SequenceClassificationRequest {
+                        inputs,
+                        metadata
+                    };
+
+                    generate_cli_route!(request, sequence_classification)
+                },
+                ModelType::TokenClassification => {
+                    let request = TokenClassificationRequest {
+                        inputs,
+                        metadata
+                    };
+
+                    generate_cli_route!(request, token_classification)
+                },
+            }
         }
     }
+
+    Ok(())
+}
+
+async fn run_grpc(hostname: String, port: String) -> Result<()> {
+    let addr = format!("{}:{}", &hostname, &port);
+
+    let router = encoderfile::grpc::router()
+        .layer(tower_http::trace::TraceLayer::new_for_grpc())
+        .into_make_service_with_connect_info::<std::net::SocketAddr>();
+
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+
+    tracing::info!("Running {:?} gRPC server on {}", get_model_type(), &addr);
+
+    axum::serve(listener, router).await?;
+
+    Ok(())
+}
+
+async fn run_http(hostname: String, port: String) -> Result<()> {
+    let addr = format!("{}:{}", &hostname, &port);
+
+    let router = encoderfile::http::router()
+        .layer(tower_http::trace::TraceLayer::new_for_http())
+        .into_make_service_with_connect_info::<std::net::SocketAddr>();
+
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+
+    tracing::info!("Running {:?} HTTP server on {}", get_model_type(), &addr);
+
+    axum::serve(listener, router).await?;
 
     Ok(())
 }

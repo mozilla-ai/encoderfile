@@ -29,8 +29,8 @@ pub fn sequence_classification(
 
 #[derive(Debug, Deserialize)]
 pub struct SequenceClassificationRequest {
-    inputs: Vec<String>,
-    metadata: HashMap<String, String>,
+    pub inputs: Vec<String>,
+    pub metadata: HashMap<String, String>,
 }
 
 impl From<crate::generated::sequence_classification::SequenceClassificationRequest>

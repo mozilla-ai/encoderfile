@@ -1,8 +1,9 @@
 use axum::http::StatusCode;
 use thiserror::Error;
 use tonic::Status;
+use serde::Serialize;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Serialize)]
 pub enum ApiError {
     #[error("Invalid Input: {0}")]
     InputError(&'static str),
