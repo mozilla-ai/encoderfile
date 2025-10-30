@@ -16,9 +16,8 @@ async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
     tracing::info!(
-        "Serving {:?} model {} on gRPC {}",
+        "Running {:?} gRPC server on {}",
         get_model_type(),
-        encoderfile::MODEL_ID,
         &addr
     );
 
@@ -42,9 +41,8 @@ async fn run_http(hostname: String, port: String) -> Result<()> {
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
     tracing::info!(
-        "Serving {:?} model {} on HTTP {}",
+        "Running {:?} HTTP server on {}",
         get_model_type(),
-        encoderfile::MODEL_ID,
         &addr
     );
 

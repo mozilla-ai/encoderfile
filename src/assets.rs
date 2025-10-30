@@ -5,3 +5,17 @@ pub const MODEL_CONFIG_JSON: &str = include_str!(env!("MODEL_CONFIG_PATH"));
 
 pub const BANNER: &'static str = include_str!("../assets/banner.txt");
 pub const MODEL_ID: &'static str = env!("MODEL_NAME");
+
+pub fn get_banner() -> String {
+    let model_id_len = MODEL_ID.len();
+    let signature = " | Mozilla.ai";
+    let total_len: usize = 73;
+    let remaining_len = total_len - model_id_len - signature.len();
+
+    let spaces = " ".repeat(remaining_len);
+
+    format!(
+        "{}\nModel ID: {}{}{}\n",
+        BANNER, MODEL_ID, spaces, signature
+    )
+}
