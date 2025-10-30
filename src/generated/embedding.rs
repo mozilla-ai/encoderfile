@@ -16,7 +16,9 @@ pub struct EmbeddingResponse {
     /// len(embeddings) == len(inputs)
     #[prost(message, repeated, tag = "1")]
     pub results: ::prost::alloc::vec::Vec<TokenEmbeddingSequence>,
-    #[prost(map = "string, string", tag = "2")]
+    #[prost(string, tag = "2")]
+    pub model_id: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "3")]
     pub metadata: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,

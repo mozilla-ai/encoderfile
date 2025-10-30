@@ -11,7 +11,8 @@ message TokenClassificationRequest {
 
 message TokenClassificationResponse {
   repeated TokenClassificationResult results = 1;
-  map<string, string> metadata = 2;
+  string model_id = 2;
+  map<string, string> metadata = 3;
 }
 
 message TokenClassificationResult {

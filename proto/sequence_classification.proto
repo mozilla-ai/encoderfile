@@ -9,7 +9,8 @@ message SequenceClassificationRequest {
 
 message SequenceClassificationResponse {
   repeated SequenceClassificationResult results = 1;
-  map<string, string> metadata = 2;
+  string model_id = 2;
+  map<string, string> metadata = 3;
 }
 
 message SequenceClassificationResult {

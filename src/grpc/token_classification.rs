@@ -33,6 +33,7 @@ impl TokenClassification for TokenClassificationService {
                 })
                 .collect(),
             metadata: request.metadata,
+            model_id: crate::assets::MODEL_ID.to_string(),
         }))
     }
 }
