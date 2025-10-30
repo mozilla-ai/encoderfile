@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::{
     error::ApiError,
     inference::{
-        self, inference::get_model, token_classification::TokenClassificationResult,
+        self, model::get_model, token_classification::TokenClassificationResult,
         tokenizer::get_tokenizer,
     },
 };

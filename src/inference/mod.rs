@@ -1,5 +1,5 @@
 pub mod embedding;
-pub mod inference;
+pub mod model;
 pub mod sequence_classification;
 pub mod token_classification;
 pub mod tokenizer;

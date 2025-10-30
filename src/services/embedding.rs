@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{
     error::ApiError,
-    inference::{self, embedding::TokenEmbedding, inference::get_model, tokenizer::get_tokenizer},
+    inference::{self, embedding::TokenEmbedding, model::get_model, tokenizer::get_tokenizer},
 };
 
 pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingResponse, ApiError> {

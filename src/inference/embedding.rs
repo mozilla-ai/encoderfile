@@ -4,7 +4,7 @@ use tokenizers::Encoding;
 use crate::{error::ApiError, inference::utils::requires_token_type_ids};
 
 pub fn embedding<'a>(
-    mut session: super::inference::Model<'a>,
+    mut session: super::model::Model<'a>,
     encodings: Vec<Encoding>,
     normalize: bool,
 ) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {
