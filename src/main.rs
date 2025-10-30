@@ -1,6 +1,9 @@
-use clap::Parser;
 use anyhow::Result;
-use encoderfile::{cli::{Commands, ServeCommands}, config::get_model_type};
+use clap::Parser;
+use encoderfile::{
+    cli::{Commands, ServeCommands},
+    config::get_model_type,
+};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -16,22 +19,32 @@ async fn main() -> Result<()> {
     let cli = encoderfile::cli::Cli::parse();
 
     match &cli.command {
-        Commands::Serve { command } => {
-            match command {
-                ServeCommands::Grpc { hostname, port } => {
-                    let addr = format!("{}:{}", hostname, port).parse().unwrap();
+        Commands::Serve { command } => match command {
+            ServeCommands::Grpc { hostname, port } => {
+                let addr = format!("{}:{}", hostname, port);
 
-                    println!("{}", encoderfile::get_banner());
+                println!("{}", encoderfile::get_banner());
 
-                    tracing::info!("Serving {:?} model {} on gRPC {}", get_model_type(), encoderfile::MODEL_ID, &addr);
+                tracing::info!(
+                    "Serving {:?} model {} on gRPC {}",
+                    get_model_type(),
+                    encoderfile::MODEL_ID,
+                    &addr
+                );
 
-                    encoderfile::grpc::router()
-                        .serve(addr)
-                        .await?;
-                },
-                ServeCommands::Http { hostname, port } => {}
+                let router = encoderfile::grpc::router()
+                    .layer(tower_http::trace::TraceLayer::new_for_grpc());
+
+                let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+
+                axum::serve(
+                    listener,
+                    router.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+                )
+                .await?;
             }
-        }
+            ServeCommands::Http { hostname, port } => {}
+        },
     };
 
     Ok(())

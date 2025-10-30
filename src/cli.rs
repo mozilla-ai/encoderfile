@@ -3,15 +3,15 @@ use clap_derive::{Parser, Subcommand};
 #[derive(Parser)]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands
+    pub command: Commands,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
     Serve {
         #[command(subcommand)]
-        command: ServeCommands
-    }
+        command: ServeCommands,
+    },
 }
 
 #[derive(Subcommand)]
