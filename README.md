@@ -1,13 +1,13 @@
-# EncoderFile
+# Encoderfile
 
 ## 🚀 Overview
 
-EncoderFile packages transformer encoders—optionally with classification heads—into a single, self-contained executable.
+Encoderfile packages transformer encoders—optionally with classification heads—into a single, self-contained executable.
 No Python runtime, no dependencies, no network calls. Just a fast, portable binary that runs anywhere.
 
-While Llamafile focuses on generative models, EncoderFile is purpose-built for encoder architectures with optional classification heads. It supports embedding, sequence classification, and token classification models—covering most encoder-based NLP tasks, from text similarity to classification and tagging—all within one compact binary.
+While Llamafile focuses on generative models, Encoderfile is purpose-built for encoder architectures with optional classification heads. It supports embedding, sequence classification, and token classification models—covering most encoder-based NLP tasks, from text similarity to classification and tagging—all within one compact binary.
 
-Under the hood, EncoderFile uses ONNX Runtime for inference, ensuring compatibility with a wide range of transformer architectures.
+Under the hood, Encoderfile uses ONNX Runtime for inference, ensuring compatibility with a wide range of transformer architectures.
 
 **Why?**
 
@@ -15,7 +15,7 @@ Under the hood, EncoderFile uses ONNX Runtime for inference, ensuring compatibil
 - **Compliance-friendly:** deterministic, offline, security-boundary-safe
 - **Integration-ready:** drop into existing systems as a CLI, microservice, or API without refactoring your stack
 
-EncoderFiles can run as:
+Encoderfiles can run as:
 - REST API
 - gRPC microservice
 - CLI
@@ -42,9 +42,9 @@ If you are using VSCode with the `rust-analyzer` plugin, it will want to automat
 uv run -m encoderbuild.utils.create_dummy_env_file > .env
 ```
 
-## 🏗️ Building an EncoderFile
+## 🏗️ Building an Encoderfile
 
-To create an EncoderFile, you must have a HuggingFace model downloaded in an accessible directory. The model directory **must** have exported ONNX weights. It should look like this:
+To create an Encoderfile, you must have a HuggingFace model downloaded in an accessible directory. The model directory **must** have exported ONNX weights. It should look like this:
 
 ```
 my_model/
