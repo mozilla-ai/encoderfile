@@ -1,7 +1,7 @@
 use schemars::{schema_for, JsonSchema};
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelType {
     Embedding,
@@ -58,7 +58,7 @@ macro_rules! alt_path {
 pub struct ModelConfig {
     pub name: String,
     #[serde(rename = "type")]
-    pub type_: String,
+    pub type_: ModelType,
     pub path: Option<String>,
     model_weights_path: Option<String>,
     model_config_path: Option<String>,
@@ -98,7 +98,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
     let schema = schema_for!(BuildConfig);
-    std::fs::write("configs/build_config.schema.json", serde_json::to_string_pretty(&schema)?)?;
+    std::fs::write("config/build_config.schema.json", serde_json::to_string_pretty(&schema)?)?;
+
+    generate_pydantic_model()?;
 
     tonic_prost_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
@@ -123,8 +125,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "cargo:rustc-env=MODEL_CONFIG_PATH={}",
         &config.model.model_config_path()?
     );
-    println!("cargo:rustc-env=MODEL_TYPE={}", &config.model.type_);
+    println!("cargo:rustc-env=MODEL_TYPE={}", serde_json::json!(&config.model.type_).to_string());
     println!("cargo:rustc-env=MODEL_NAME={}", &config.model.name);
+
+    Ok(())
+}
+
+fn generate_pydantic_model() -> Result<(), std::io::Error> {
+    std::process::Command::new("uv")
+        .arg("run")
+        .arg("datamodel-codegen")
+        .arg("--input")
+        .arg("config/build_config.schema.json")
+        .arg("--input-file-type")
+        .arg("jsonschema")
+        .arg("--output")
+        .arg("encoderbuild/config_model.py")
+        .output()
+        .unwrap();
 
     Ok(())
 }

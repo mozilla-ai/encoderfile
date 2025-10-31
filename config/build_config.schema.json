@@ -42,12 +42,20 @@
           ]
         },
         "type": {
-          "type": "string"
+          "$ref": "#/$defs/ModelType"
         }
       },
       "required": [
         "name",
         "type"
+      ]
+    },
+    "ModelType": {
+      "type": "string",
+      "enum": [
+        "embedding",
+        "sequence_classification",
+        "token_classification"
       ]
     }
   }
