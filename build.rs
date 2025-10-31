@@ -1,3 +1,11 @@
+const BUILD_VARS: &[&'static str] = &[
+    "MODEL_WEIGHTS_PATH",
+    "TOKENIZER_PATH",
+    "MODEL_CONFIG_PATH",
+    "MODEL_TYPE",
+    "MODEL_NAME",
+];
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
@@ -7,20 +15,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .out_dir("src/generated")
         .compile_protos(&["proto/encoderfile.proto"], &["proto/encoderfile"])?;
 
-    println!(
-        "cargo:rustc-env=MODEL_WEIGHTS_PATH={}",
-        std::env::var("MODEL_WEIGHTS_PATH").unwrap()
-    );
-    println!(
-        "cargo:rustc-env=TOKENIZER_PATH={}",
-        std::env::var("TOKENIZER_PATH").unwrap()
-    );
-    println!(
-        "cargo:rustc-env=MODEL_CONFIG_PATH={}",
-        std::env::var("MODEL_CONFIG_PATH").unwrap()
-    );
-    println!("cargo:rustc-env=MODEL_TYPE={}", std::env::var("MODEL_TYPE").unwrap());
-    println!("cargo:rustc-env=MODEL_NAME={}", std::env::var("MODEL_NAME").unwrap());
+    for var in BUILD_VARS {
+        let val = std::env::var(var)
+            .unwrap_or_else(|_| panic!("Missing required environment variable: {var}"));
+        println!("cargo:rustc-env={}={}", var, val);
+    }
 
     Ok(())
 }
