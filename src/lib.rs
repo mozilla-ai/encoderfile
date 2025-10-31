@@ -6,6 +6,7 @@ pub mod generated;
 pub mod grpc;
 pub mod http;
 pub mod inference;
+pub mod server;
 pub mod services;
 
 pub use assets::get_banner;
