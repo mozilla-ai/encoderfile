@@ -1,4 +1,0 @@
-[model]
-name = "tabularisai/multilingual-sentiment-analysis"
-type = "sequence_classification"
-path = "models/sequence_classification"
