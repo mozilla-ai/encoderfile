@@ -7,16 +7,25 @@ use crate::{
     },
 };
 use anyhow::Result;
-use clap_derive::{Parser, Subcommand};
-use serde_json::json;
+use clap_derive::{Parser, Subcommand, ValueEnum};
+use std::io::Write;
 
 macro_rules! generate_cli_route {
-    ($req:ident, $fn:path) => {
-        match $fn($req) {
-            Ok(r) => println!("{}", json!(r).to_string()),
-            Err(e) => println!("{}", json!(e).to_string()),
+    ($req:ident, $fn:path, $format:ident, $out_dir:expr) => {{
+        let result = $fn($req)?;
+
+        let serialized = match $format {
+            Format::Json => serde_json::to_string_pretty(&result)?,
+        };
+
+        match $out_dir {
+            Some(o) => {
+                let mut file = std::fs::File::create(o)?;
+                file.write_all(serialized.as_bytes())?;
+            },
+            None => println!("{}", serialized)
         }
-    };
+    }};
 }
 
 #[derive(Parser)]
@@ -46,6 +55,10 @@ pub enum Commands {
         inputs: Vec<String>,
         #[arg(long, default_value_t = true)]
         normalize: bool,
+        #[arg(short, long, default_value_t = Format::Json)]
+        format: Format,
+        #[arg(short)]
+        out_dir: Option<String>
     },
 }
 
@@ -80,7 +93,12 @@ impl Commands {
 
                 let _ = tokio::join!(grpc_process, http_process);
             }
-            Commands::Infer { inputs, normalize } => {
+            Commands::Infer {
+                    inputs,
+                    normalize,
+                    format,
+                    out_dir
+                } => {
                 let metadata = None;
 
                 match get_model_type() {
@@ -91,21 +109,34 @@ impl Commands {
                             metadata,
                         };
 
-                        generate_cli_route!(request, embedding)
+                        generate_cli_route!(request, embedding, format, out_dir)
                     }
                     ModelType::SequenceClassification => {
                         let request = SequenceClassificationRequest { inputs, metadata };
 
-                        generate_cli_route!(request, sequence_classification)
+                        generate_cli_route!(request, sequence_classification, format, out_dir)
                     }
                     ModelType::TokenClassification => {
                         let request = TokenClassificationRequest { inputs, metadata };
 
-                        generate_cli_route!(request, token_classification)
+                        generate_cli_route!(request, token_classification, format, out_dir)
                     }
                 }
             }
         }
         Ok(())
+    }
+}
+
+#[derive(Clone, ValueEnum)]
+pub enum Format {
+    Json,
+}
+
+impl ToString for Format {
+    fn to_string(&self) -> String {
+        match self {
+            Format::Json => "json"
+        }.to_string()
     }
 }
