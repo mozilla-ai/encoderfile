@@ -1,4 +1,0 @@
-[model]
-name = "microsoft/MiniLM-L12-H384-uncased"
-type = "embedding"
-path = "models/embedding"
