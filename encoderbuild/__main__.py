@@ -8,6 +8,9 @@ import click
 
 from .env import create_env_vars
 
+with open("assets/banner.txt") as f:
+    BANNER = f"{f.read()}\nBuild Utilities\n"
+
 
 class ModelType(StrEnum):
     EMBEDDING = "embedding"
@@ -19,10 +22,10 @@ class BuildError(Exception):
     """Raised when the model build process fails."""
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 def cli():
     """Model build utility CLI."""
-    pass
+    click.echo(BANNER)
 
 
 @cli.command()
