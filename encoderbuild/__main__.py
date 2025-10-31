@@ -6,6 +6,8 @@ import os
 import sys
 import click
 
+from .env import create_env_vars
+
 
 class ModelType(StrEnum):
     EMBEDDING = "embedding"
@@ -59,32 +61,12 @@ def build(
 
     model_dir_abs = os.path.abspath(model_dir)
 
-    # --- Validate expected files ---
-    required_files = {
-        "model weights": os.path.join(model_dir_abs, "model.onnx"),
-        "tokenizer json": os.path.join(model_dir_abs, "tokenizer.json"),
-        "model config": os.path.join(model_dir_abs, "config.json"),
-    }
-
-    missing = [
-        f"{label}: {path}"
-        for label, path in required_files.items()
-        if not os.path.exists(path)
-    ]
-    if missing:
-        raise BuildError(
-            "Missing required files:\n" + "\n".join(f"  - {m}" for m in missing)
-        )
-
-    # --- Prepare environment ---
-    env = {
-        **os.environ,
-        "MODEL_WEIGHTS_PATH": required_files["model weights"],
-        "TOKENIZER_PATH": required_files["tokenizer json"],
-        "MODEL_CONFIG_PATH": required_files["model config"],
-        "MODEL_TYPE": (type_ or "").lower(),
-        "MODEL_NAME": (name or ""),
-    }
+    env = create_env_vars(
+        model_dir_abs,
+        name,
+        type_,
+        with_env=True
+    )
 
     if print_build_env_vars:
         print("\n".join(f"{k}={v}" for k, v in env.items() if k not in os.environ))
