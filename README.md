@@ -20,7 +20,7 @@ EncoderFiles can run as:
 - gRPC microservice
 - CLI
 - (Future) MCP server
-- (Future) ABI for near-universal cross-language embedding
+- (Future) FFI support for near-universal cross-language embedding
 
 ## 🧰 Setup
 
