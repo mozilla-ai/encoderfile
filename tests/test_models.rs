@@ -86,6 +86,7 @@ fn test_tokenizers() {
 fn test_embedding_model() {
     let tokenizer = get_tokenizer(EMBEDDING_DIR);
     let session = get_model(EMBEDDING_DIR);
+    let config = get_config(EMBEDDING_DIR);
 
     let encodings = encode_text(
         &tokenizer,
@@ -99,7 +100,7 @@ fn test_embedding_model() {
     let session_lock = session.lock();
 
     let results =
-        embedding(session_lock, encodings.clone(), true).expect("Failed to compute results");
+        embedding(session_lock, &config, encodings.clone(), true).expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -108,6 +109,7 @@ fn test_embedding_model() {
 fn test_sequence_classification_model() {
     let tokenizer = get_tokenizer(SEQUENCE_CLASSIFICATION_DIR);
     let session = get_model(SEQUENCE_CLASSIFICATION_DIR);
+    let config = get_config(SEQUENCE_CLASSIFICATION_DIR);
 
     let encodings = encode_text(
         &tokenizer,
@@ -120,7 +122,7 @@ fn test_sequence_classification_model() {
 
     let session_lock = session.lock();
 
-    let results = sequence_classification(session_lock, encodings.clone())
+    let results = sequence_classification(session_lock, &config, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -130,6 +132,7 @@ fn test_sequence_classification_model() {
 fn test_token_classification_model() {
     let tokenizer = get_tokenizer(TOKEN_CLASSIFICATION_DIR);
     let session = get_model(TOKEN_CLASSIFICATION_DIR);
+    let config = get_config(TOKEN_CLASSIFICATION_DIR);
 
     let encodings = encode_text(
         &tokenizer,
@@ -143,7 +146,7 @@ fn test_token_classification_model() {
     let session_lock = session.lock();
 
     let results =
-        token_classification(session_lock, encodings.clone()).expect("Failed to compute results");
+        token_classification(session_lock, &config, encodings.clone()).expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }

@@ -1,10 +1,11 @@
-use crate::{config::get_model_config, error::ApiError, inference::utils::softmax};
+use crate::{config::ModelConfig, error::ApiError, inference::utils::softmax};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
 pub fn token_classification<'a>(
     mut session: super::model::Model<'a>,
+    config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -40,8 +41,6 @@ pub fn token_classification<'a>(
 
         let mut results = Vec::new();
 
-        let model_config = get_model_config();
-
         while let (
             Some(token_id),
             Some(token),
@@ -59,7 +58,12 @@ pub fn token_classification<'a>(
         ) {
             let argmax = scores.argmax().unwrap();
             let score = scores[argmax];
-            let label = model_config.id2label(argmax as u32).unwrap().to_string();
+            let label = match config.id2label(argmax as u32) {
+                Some(l) => l.to_string(),
+                None => {
+                    panic!("FATAL: No label found for ID {}. Check to make sure that your config is correct.", argmax)
+                }
+            };
 
             let (start, end) = *offset;
 

@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-    error::ApiError,
-    inference::{self, embedding::TokenEmbedding, model::get_model, tokenizer::get_tokenizer},
+    config::get_model_config, error::ApiError, inference::{self, embedding::TokenEmbedding, model::get_model, tokenizer::get_tokenizer}
 };
 
 pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingResponse, ApiError> {
@@ -11,10 +10,11 @@ pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingRespon
 
     let tokenizer = get_tokenizer();
     let session = get_model();
+    let config = get_model_config();
 
     let encodings = inference::tokenizer::encode_text(tokenizer, request.inputs)?;
 
-    let results = inference::embedding::embedding(session, encodings, request.normalize)?;
+    let results = inference::embedding::embedding(session, config, encodings, request.normalize)?;
 
     Ok(EmbeddingResponse {
         results,

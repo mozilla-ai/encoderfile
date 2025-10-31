@@ -2,11 +2,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-    error::ApiError,
-    inference::{
+    config::get_model_config, error::ApiError, inference::{
         self, model::get_model, token_classification::TokenClassificationResult,
         tokenizer::get_tokenizer,
-    },
+    }
 };
 
 pub fn token_classification(
@@ -15,10 +14,11 @@ pub fn token_classification(
     let request = request.into();
     let tokenizer = get_tokenizer();
     let session = get_model();
+    let config = get_model_config();
 
     let encodings = inference::tokenizer::encode_text(tokenizer, request.inputs)?;
 
-    let results = inference::token_classification::token_classification(session, encodings)?;
+    let results = inference::token_classification::token_classification(session, config, encodings)?;
 
     Ok(TokenClassificationResponse {
         results,

@@ -1,10 +1,11 @@
 use ndarray::{Axis, Ix2};
 use tokenizers::Encoding;
 
-use crate::{error::ApiError, inference::utils::requires_token_type_ids};
+use crate::{config::ModelConfig, error::ApiError, inference::utils::requires_token_type_ids};
 
 pub fn embedding<'a>(
     mut session: super::model::Model<'a>,
+    _config: &ModelConfig,
     encodings: Vec<Encoding>,
     normalize: bool,
 ) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {

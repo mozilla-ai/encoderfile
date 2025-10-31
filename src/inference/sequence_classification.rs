@@ -1,10 +1,11 @@
-use crate::{config::get_model_config, error::ApiError, inference::utils::requires_token_type_ids};
+use crate::{config::ModelConfig, error::ApiError, inference::utils::requires_token_type_ids};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
 pub fn sequence_classification<'a>(
     mut session: super::model::Model<'a>,
+    config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -31,8 +32,6 @@ pub fn sequence_classification<'a>(
 
     let probabilities = super::utils::softmax(&outputs, Axis(1));
 
-    let model_config = get_model_config();
-
     let results = outputs
         .axis_iter(Axis(0))
         .zip(probabilities.axis_iter(Axis(0)))
@@ -42,7 +41,7 @@ pub fn sequence_classification<'a>(
                 logits: logs.iter().map(|i| *i).collect(),
                 scores: probs.iter().map(|i| *i).collect(),
                 predicted_index: (predicted_index as u32),
-                predicted_label: model_config
+                predicted_label: config
                     .id2label(predicted_index as u32)
                     .map(|i| i.to_string()),
             }
