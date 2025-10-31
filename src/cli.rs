@@ -22,8 +22,8 @@ macro_rules! generate_cli_route {
             Some(o) => {
                 let mut file = std::fs::File::create(o)?;
                 file.write_all(serialized.as_bytes())?;
-            },
-            None => println!("{}", serialized)
+            }
+            None => println!("{}", serialized),
         }
     }};
 }
@@ -58,7 +58,7 @@ pub enum Commands {
         #[arg(short, long, default_value_t = Format::Json)]
         format: Format,
         #[arg(short)]
-        out_dir: Option<String>
+        out_dir: Option<String>,
     },
 }
 
@@ -94,11 +94,11 @@ impl Commands {
                 let _ = tokio::join!(grpc_process, http_process);
             }
             Commands::Infer {
-                    inputs,
-                    normalize,
-                    format,
-                    out_dir
-                } => {
+                inputs,
+                normalize,
+                format,
+                out_dir,
+            } => {
                 let metadata = None;
 
                 match get_model_type() {
@@ -136,7 +136,8 @@ pub enum Format {
 impl ToString for Format {
     fn to_string(&self) -> String {
         match self {
-            Format::Json => "json"
-        }.to_string()
+            Format::Json => "json",
+        }
+        .to_string()
     }
 }

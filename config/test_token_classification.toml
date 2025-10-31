@@ -1,0 +1,4 @@
+[model]
+name = "mozilla-ai/electra-small-tiny-pii"
+type = "token_classification"
+path = "models/token_classification"
