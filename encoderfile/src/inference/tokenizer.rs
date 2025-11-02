@@ -84,10 +84,7 @@ mod tests {
     #[test]
     fn test_empty_string_encode() {
         let tokenizer = get_tokenizer();
-        let encoding = encode_text(
-            tokenizer,
-            vec!["hello, world!".to_string(), "".to_string()]
-        );
+        let encoding = encode_text(tokenizer, vec!["hello, world!".to_string(), "".to_string()]);
 
         assert!(
             encoding.is_err(),
