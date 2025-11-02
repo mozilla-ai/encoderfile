@@ -2,10 +2,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-    config::get_model_config, error::ApiError, inference::{
+    config::get_model_config,
+    error::ApiError,
+    inference::{
         self, model::get_model, sequence_classification::SequenceClassificationResult,
         tokenizer::get_tokenizer,
-    }
+    },
 };
 
 pub fn sequence_classification(
@@ -18,7 +20,8 @@ pub fn sequence_classification(
 
     let encodings = inference::tokenizer::encode_text(tokenizer, request.inputs)?;
 
-    let results = inference::sequence_classification::sequence_classification(session, config, encodings)?;
+    let results =
+        inference::sequence_classification::sequence_classification(session, config, encodings)?;
 
     Ok(SequenceClassificationResponse {
         results,

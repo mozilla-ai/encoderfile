@@ -61,7 +61,10 @@ pub fn token_classification<'a>(
             let label = match config.id2label(argmax as u32) {
                 Some(l) => l.to_string(),
                 None => {
-                    panic!("FATAL: No label found for ID {}. Check to make sure that your config is correct.", argmax)
+                    panic!(
+                        "FATAL: No label found for ID {}. Check to make sure that your config is correct.",
+                        argmax
+                    )
                 }
             };
 

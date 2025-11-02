@@ -59,12 +59,7 @@ def build(
 
     model_dir_abs = os.path.abspath(model_dir)
 
-    env = create_env_vars(
-        model_dir_abs,
-        name,
-        type_,
-        with_env=True
-    )
+    env = create_env_vars(model_dir_abs, name, type_, with_env=True)
 
     if print_build_env_vars:
         click.echo("\n".join(f"{k}={v}" for k, v in env.items() if k not in os.environ))

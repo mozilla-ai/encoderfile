@@ -1,6 +1,9 @@
 import os
 
-def create_env_vars(model_dir: str, model_name: str, model_type: str, with_env: bool = True) -> dict[str, str]:
+
+def create_env_vars(
+    model_dir: str, model_name: str, model_type: str, with_env: bool = True
+) -> dict[str, str]:
     """Create env vars for build config."""
     required_files = {
         "model weights": os.path.join(model_dir, "model.onnx"),

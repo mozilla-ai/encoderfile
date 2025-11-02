@@ -99,8 +99,8 @@ fn test_embedding_model() {
 
     let session_lock = session.lock();
 
-    let results =
-        embedding(session_lock, &config, encodings.clone(), true).expect("Failed to compute results");
+    let results = embedding(session_lock, &config, encodings.clone(), true)
+        .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -145,8 +145,8 @@ fn test_token_classification_model() {
 
     let session_lock = session.lock();
 
-    let results =
-        token_classification(session_lock, &config, encodings.clone()).expect("Failed to compute results");
+    let results = token_classification(session_lock, &config, encodings.clone())
+        .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
