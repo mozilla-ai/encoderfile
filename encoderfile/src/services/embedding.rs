@@ -11,7 +11,8 @@ pub fn embedding(request: impl Into<EmbeddingRequest>) -> Result<EmbeddingRespon
     let request = request.into();
 
     let tokenizer = get_tokenizer();
-    let session = get_model();
+    let session_arc = get_model();
+    let session = session_arc.lock();
     let config = get_model_config();
 
     let encodings = inference::tokenizer::encode_text(tokenizer, request.inputs)?;
