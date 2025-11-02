@@ -2,7 +2,6 @@ use encoderfile::config::ModelConfig;
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader};
-use tokenizers::{PaddingDirection, PaddingParams, PaddingStrategy};
 
 pub const EMBEDDING_DIR: &'static str = "../models/embedding";
 pub const SEQUENCE_CLASSIFICATION_DIR: &'static str = "../models/sequence_classification";
@@ -18,34 +17,10 @@ pub fn get_config(dir: &str) -> ModelConfig {
 
 pub fn get_tokenizer(dir: &str) -> tokenizers::Tokenizer {
     let config = get_config(dir);
-    let pad_token_id = config.pad_token_id;
+    let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
+        .expect("Tokenizer json not found");
 
-    let mut tokenizer = tokenizers::Tokenizer::from_file(format!("{}/{}", dir, "tokenizer.json"))
-        .expect("Failed to load tokenizer");
-
-    let pad_token = match tokenizer.id_to_token(pad_token_id) {
-        Some(tok) => tok,
-        None => panic!("Model requires a padding token."),
-    };
-
-    if tokenizer.get_padding().is_none() {
-        let params = PaddingParams {
-            strategy: PaddingStrategy::BatchLongest,
-            direction: PaddingDirection::Right,
-            pad_to_multiple_of: None,
-            pad_id: pad_token_id,
-            pad_type_id: 0,
-            pad_token,
-        };
-
-        tracing::warn!(
-            "No padding strategy specified in tokenizer config. Setting default: {:?}",
-            &params
-        );
-        tokenizer.with_padding(Some(params));
-    }
-
-    tokenizer
+    encoderfile::tokenizer::get_tokenizer_from_string(tokenizer_str.as_str(), &config)
 }
 
 pub fn get_model<'a>(dir: &str) -> Mutex<Session> {
