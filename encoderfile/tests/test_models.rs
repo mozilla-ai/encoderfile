@@ -1,3 +1,4 @@
+use encoderfile::config::ModelType;
 use encoderfile::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
@@ -10,14 +11,15 @@ use model_utils::*;
 
 #[test]
 fn test_tokenizers() {
-    for model in vec![
-        EMBEDDING_DIR,
-        SEQUENCE_CLASSIFICATION_DIR,
-        TOKEN_CLASSIFICATION_DIR,
+    for (dir, model_type) in vec![
+        (EMBEDDING_DIR, ModelType::Embedding),
+        (SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification),
+        (TOKEN_CLASSIFICATION_DIR, ModelType::TokenClassification),
     ] {
-        let tokenizer = get_tokenizer(model);
+        let state = get_state(dir, model_type);
+
         encode_text(
-            &tokenizer,
+            &state.tokenizer,
             vec![
                 "hello world".to_string(),
                 "the quick brown fox jumps over the lazy dog".to_string(),
@@ -29,12 +31,10 @@ fn test_tokenizers() {
 
 #[test]
 fn test_embedding_model() {
-    let tokenizer = get_tokenizer(EMBEDDING_DIR);
-    let session = get_model(EMBEDDING_DIR);
-    let config = get_config(EMBEDDING_DIR);
+    let state = get_state(EMBEDDING_DIR, ModelType::Embedding);
 
     let encodings = encode_text(
-        &tokenizer,
+        &state.tokenizer,
         vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
@@ -42,9 +42,9 @@ fn test_embedding_model() {
     )
     .expect("Failed to encode text");
 
-    let session_lock = session.lock();
+    let session_lock = state.session.lock();
 
-    let results = embedding(session_lock, &config, encodings.clone(), true)
+    let results = embedding(session_lock, &state.config, encodings.clone(), true)
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -53,12 +53,10 @@ fn test_embedding_model() {
 #[test]
 #[should_panic]
 fn test_embedding_inference_with_bad_model() {
-    let tokenizer = get_tokenizer(SEQUENCE_CLASSIFICATION_DIR);
-    let session = get_model(SEQUENCE_CLASSIFICATION_DIR);
-    let config = get_config(SEQUENCE_CLASSIFICATION_DIR);
+    let state = get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification);
 
     let encodings = encode_text(
-        &tokenizer,
+        &state.tokenizer,
         vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
@@ -66,19 +64,17 @@ fn test_embedding_inference_with_bad_model() {
     )
     .expect("Failed to encode text");
 
-    let session_lock = session.lock();
+    let session_lock = state.session.lock();
 
-    embedding(session_lock, &config, encodings.clone(), true).expect("Failed to compute results");
+    embedding(session_lock, &state.config, encodings.clone(), true).expect("Failed to compute results");
 }
 
 #[test]
 fn test_sequence_classification_model() {
-    let tokenizer = get_tokenizer(SEQUENCE_CLASSIFICATION_DIR);
-    let session = get_model(SEQUENCE_CLASSIFICATION_DIR);
-    let config = get_config(SEQUENCE_CLASSIFICATION_DIR);
+    let state = get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification);
 
     let encodings = encode_text(
-        &tokenizer,
+        &state.tokenizer,
         vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
@@ -86,9 +82,9 @@ fn test_sequence_classification_model() {
     )
     .expect("Failed to encode text");
 
-    let session_lock = session.lock();
+    let session_lock = state.session.lock();
 
-    let results = sequence_classification(session_lock, &config, encodings.clone())
+    let results = sequence_classification(session_lock, &state.config, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -97,12 +93,10 @@ fn test_sequence_classification_model() {
 #[test]
 #[should_panic]
 fn test_sequence_classification_inference_with_bad_model() {
-    let tokenizer = get_tokenizer(EMBEDDING_DIR);
-    let session = get_model(EMBEDDING_DIR);
-    let config = get_config(EMBEDDING_DIR);
+    let state = get_state(EMBEDDING_DIR, ModelType::Embedding);
 
     let encodings = encode_text(
-        &tokenizer,
+        &state.tokenizer,
         vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
@@ -110,20 +104,18 @@ fn test_sequence_classification_inference_with_bad_model() {
     )
     .expect("Failed to encode text");
 
-    let session_lock = session.lock();
+    let session_lock = state.session.lock();
 
-    sequence_classification(session_lock, &config, encodings.clone())
+    sequence_classification(session_lock, &state.config, encodings.clone())
         .expect("Failed to compute results");
 }
 
 #[test]
 fn test_token_classification_model() {
-    let tokenizer = get_tokenizer(TOKEN_CLASSIFICATION_DIR);
-    let session = get_model(TOKEN_CLASSIFICATION_DIR);
-    let config = get_config(TOKEN_CLASSIFICATION_DIR);
+    let state = get_state(TOKEN_CLASSIFICATION_DIR, ModelType::TokenClassification);
 
     let encodings = encode_text(
-        &tokenizer,
+        &state.tokenizer,
         vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
@@ -131,9 +123,9 @@ fn test_token_classification_model() {
     )
     .expect("Failed to encode text");
 
-    let session_lock = session.lock();
+    let session_lock = state.session.lock();
 
-    let results = token_classification(session_lock, &config, encodings.clone())
+    let results = token_classification(session_lock, &state.config, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -142,12 +134,10 @@ fn test_token_classification_model() {
 #[test]
 #[should_panic]
 fn test_token_classification_inference_with_bad_model() {
-    let tokenizer = get_tokenizer(EMBEDDING_DIR);
-    let session = get_model(EMBEDDING_DIR);
-    let config = get_config(EMBEDDING_DIR);
+    let state = get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification);
 
     let encodings = encode_text(
-        &tokenizer,
+        &state.tokenizer,
         vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
@@ -155,8 +145,8 @@ fn test_token_classification_inference_with_bad_model() {
     )
     .expect("Failed to encode text");
 
-    let session_lock = session.lock();
+    let session_lock = state.session.lock();
 
-    token_classification(session_lock, &config, encodings.clone())
+    token_classification(session_lock, &state.config, encodings.clone())
         .expect("Failed to compute results");
 }

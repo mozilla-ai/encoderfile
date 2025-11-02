@@ -1,31 +1,31 @@
-use std::{collections::HashMap, sync::OnceLock};
+use std::{collections::HashMap, sync::{OnceLock, Arc}};
 
 use crate::assets::{MODEL_CONFIG_JSON, MODEL_TYPE_STR};
 
 use serde::{Deserialize, Serialize};
 
-static MODEL_CONFIG: OnceLock<ModelConfig> = OnceLock::new();
+static MODEL_CONFIG: OnceLock<Arc<ModelConfig>> = OnceLock::new();
 static MODEL_TYPE: OnceLock<ModelType> = OnceLock::new();
 
-pub fn get_model_config() -> &'static ModelConfig {
+pub fn get_model_config() -> Arc<ModelConfig> {
     MODEL_CONFIG.get_or_init(
         || match serde_json::from_str::<ModelConfig>(MODEL_CONFIG_JSON) {
-            Ok(c) => c,
+            Ok(c) => Arc::new(c),
             Err(e) => panic!("FATAL: Error loading model config: {e:?}"),
         },
-    )
+    ).clone()
 }
 
-pub fn get_model_type() -> &'static ModelType {
+pub fn get_model_type() -> ModelType {
     MODEL_TYPE.get_or_init(|| match MODEL_TYPE_STR {
         "embedding" => ModelType::Embedding,
         "sequence_classification" => ModelType::SequenceClassification,
         "token_classification" => ModelType::TokenClassification,
         other => panic!("Invalid model type: {}", other),
-    })
+    }).clone()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ModelType {
     Embedding,
     SequenceClassification,

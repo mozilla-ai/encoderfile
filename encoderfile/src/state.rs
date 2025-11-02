@@ -13,9 +13,9 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub session: Arc<Mutex<Session>>,
-    pub tokenizer: &'static Tokenizer,
-    pub config: &'static ModelConfig,
-    pub model_type: &'static ModelType,
+    pub tokenizer: Arc<Tokenizer>,
+    pub config: Arc<ModelConfig>,
+    pub model_type: ModelType,
 }
 
 impl Default for AppState {
