@@ -4,9 +4,9 @@ use parking_lot::Mutex;
 use std::{fs::File, io::BufReader};
 use tokenizers::{PaddingDirection, PaddingParams, PaddingStrategy};
 
-pub const EMBEDDING_DIR: &'static str = "./models/embedding";
-pub const SEQUENCE_CLASSIFICATION_DIR: &'static str = "./models/sequence_classification";
-pub const TOKEN_CLASSIFICATION_DIR: &'static str = "./models/token_classification";
+pub const EMBEDDING_DIR: &'static str = "../models/embedding";
+pub const SEQUENCE_CLASSIFICATION_DIR: &'static str = "../models/sequence_classification";
+pub const TOKEN_CLASSIFICATION_DIR: &'static str = "../models/token_classification";
 
 pub fn get_config(dir: &str) -> ModelConfig {
     let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
