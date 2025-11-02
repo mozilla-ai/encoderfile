@@ -1,3 +1,0 @@
-[env]
-
-RUST_LOG = "info,ort=warn,encoderfile=debug,tower_http=debug"
