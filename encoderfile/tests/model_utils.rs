@@ -21,6 +21,18 @@ pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
 
 }
 
+pub fn embedding_state() -> AppState {
+    get_state(EMBEDDING_DIR, ModelType::Embedding)
+}
+
+pub fn sequence_classification_state() -> AppState {
+    get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification)
+}
+
+pub fn token_classification_state() -> AppState {
+    get_state(TOKEN_CLASSIFICATION_DIR, ModelType::TokenClassification)
+}
+
 fn get_config(dir: &str) -> ModelConfig {
     let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
     let reader = BufReader::new(file);

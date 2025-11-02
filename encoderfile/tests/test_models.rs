@@ -1,4 +1,3 @@
-use encoderfile::config::ModelType;
 use encoderfile::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
@@ -10,28 +9,8 @@ mod model_utils;
 use model_utils::*;
 
 #[test]
-fn test_tokenizers() {
-    for (dir, model_type) in vec![
-        (EMBEDDING_DIR, ModelType::Embedding),
-        (SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification),
-        (TOKEN_CLASSIFICATION_DIR, ModelType::TokenClassification),
-    ] {
-        let state = get_state(dir, model_type);
-
-        encode_text(
-            &state.tokenizer,
-            vec![
-                "hello world".to_string(),
-                "the quick brown fox jumps over the lazy dog".to_string(),
-            ],
-        )
-        .expect("Failed to encode text");
-    }
-}
-
-#[test]
 fn test_embedding_model() {
-    let state = get_state(EMBEDDING_DIR, ModelType::Embedding);
+    let state = embedding_state();
 
     let encodings = encode_text(
         &state.tokenizer,
@@ -53,7 +32,7 @@ fn test_embedding_model() {
 #[test]
 #[should_panic]
 fn test_embedding_inference_with_bad_model() {
-    let state = get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification);
+    let state = token_classification_state();
 
     let encodings = encode_text(
         &state.tokenizer,
@@ -71,7 +50,7 @@ fn test_embedding_inference_with_bad_model() {
 
 #[test]
 fn test_sequence_classification_model() {
-    let state = get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification);
+    let state = sequence_classification_state();
 
     let encodings = encode_text(
         &state.tokenizer,
@@ -93,7 +72,7 @@ fn test_sequence_classification_model() {
 #[test]
 #[should_panic]
 fn test_sequence_classification_inference_with_bad_model() {
-    let state = get_state(EMBEDDING_DIR, ModelType::Embedding);
+    let state = embedding_state();
 
     let encodings = encode_text(
         &state.tokenizer,
@@ -112,7 +91,7 @@ fn test_sequence_classification_inference_with_bad_model() {
 
 #[test]
 fn test_token_classification_model() {
-    let state = get_state(TOKEN_CLASSIFICATION_DIR, ModelType::TokenClassification);
+    let state = token_classification_state();
 
     let encodings = encode_text(
         &state.tokenizer,
@@ -134,7 +113,7 @@ fn test_token_classification_model() {
 #[test]
 #[should_panic]
 fn test_token_classification_inference_with_bad_model() {
-    let state = get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification);
+    let state = sequence_classification_state();
 
     let encodings = encode_text(
         &state.tokenizer,
