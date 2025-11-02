@@ -49,10 +49,10 @@ impl From<crate::generated::sequence_classification::SequenceClassificationReque
 
 #[derive(Debug, Serialize)]
 pub struct SequenceClassificationResponse {
-    results: Vec<SequenceClassificationResult>,
-    model_id: String,
+    pub results: Vec<SequenceClassificationResult>,
+    pub model_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    metadata: Option<HashMap<String, String>>,
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 impl From<SequenceClassificationResponse>

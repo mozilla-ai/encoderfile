@@ -4,8 +4,8 @@ use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};
 
 pub const EMBEDDING_DIR: &'static str = "../models/embedding";
-pub const SEQUENCE_CLASSIFICATION_DIR: &'static str = "../models/sequence_classification";
-pub const TOKEN_CLASSIFICATION_DIR: &'static str = "../models/token_classification";
+const SEQUENCE_CLASSIFICATION_DIR: &'static str = "../models/sequence_classification";
+const TOKEN_CLASSIFICATION_DIR: &'static str = "../models/token_classification";
 
 pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
     let config = Arc::new(get_config(dir));

@@ -46,10 +46,10 @@ impl From<crate::generated::token_classification::TokenClassificationRequest>
 
 #[derive(Debug, Serialize)]
 pub struct TokenClassificationResponse {
-    results: Vec<TokenClassificationResult>,
-    model_id: String,
+    pub results: Vec<TokenClassificationResult>,
+    pub model_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    metadata: Option<HashMap<String, String>>,
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 impl From<TokenClassificationResponse>
