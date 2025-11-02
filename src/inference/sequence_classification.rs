@@ -1,4 +1,4 @@
-use crate::{config::ModelConfig, error::ApiError, inference::utils::requires_token_type_ids};
+use crate::{config::ModelConfig, error::ApiError};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
@@ -10,14 +10,7 @@ pub fn sequence_classification<'a>(
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = match requires_token_type_ids(&session) {
-        true => session.run(ort::inputs!(a_ids, a_mask, a_type_ids)),
-        false => session.run(ort::inputs!(a_ids, a_mask)),
-    }
-    .map_err(|e| {
-        tracing::error!("Error running model: {:?}", e);
-        ApiError::InternalError("Error running model")
-    })?;
+    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?;
 
     // get logits
     // will be in shape [N, L]

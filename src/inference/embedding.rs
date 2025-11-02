@@ -1,7 +1,7 @@
 use ndarray::{Axis, Ix2};
 use tokenizers::Encoding;
 
-use crate::{config::ModelConfig, error::ApiError, inference::utils::requires_token_type_ids};
+use crate::{config::ModelConfig, error::ApiError};
 
 pub fn embedding<'a>(
     mut session: super::model::Model<'a>,
@@ -11,14 +11,7 @@ pub fn embedding<'a>(
 ) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = match requires_token_type_ids(&session) {
-        true => session.run(ort::inputs!(a_ids, a_mask, a_type_ids)),
-        false => session.run(ort::inputs!(a_ids, a_mask)),
-    }
-    .map_err(|e| {
-        tracing::error!("Error running model: {:?}", e);
-        ApiError::InternalError("Error running model")
-    })?;
+    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?;
 
     let outputs = outputs
         .get("last_hidden_state")

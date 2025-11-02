@@ -10,14 +10,7 @@ pub fn token_classification<'a>(
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = match super::utils::requires_token_type_ids(&session) {
-        true => session.run(ort::inputs!(a_ids, a_mask, a_type_ids)),
-        false => session.run(ort::inputs!(a_ids, a_mask)),
-    }
-    .map_err(|e| {
-        tracing::error!("Error running model: {:?}", e);
-        ApiError::InternalError("Error running model")
-    })?;
+    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?;
 
     let outputs = outputs
         .get("logits")
