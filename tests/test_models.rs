@@ -67,8 +67,7 @@ fn test_embedding_inference_with_bad_model() {
 
     let session_lock = session.lock();
 
-    embedding(session_lock, &config, encodings.clone(), true)
-        .expect("Failed to compute results");
+    embedding(session_lock, &config, encodings.clone(), true).expect("Failed to compute results");
 }
 
 #[test]

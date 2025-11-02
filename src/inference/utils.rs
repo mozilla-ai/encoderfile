@@ -72,16 +72,14 @@ pub fn requires_token_type_ids<'a>(session: &MutexGuard<'a, Session>) -> bool {
 
 #[macro_export]
 macro_rules! run_model {
-    ($session:expr, $a_ids:expr, $a_mask:expr, $a_type_ids:expr) => {
-        {
-            match crate::inference::utils::requires_token_type_ids(&$session) {
-                true => $session.run(ort::inputs!($a_ids, $a_mask, $a_type_ids)),
-                false => $session.run(ort::inputs!($a_ids, $a_mask))
-            }
-            .map_err(|e| {
-                tracing::error!("Error running model: {:?}", e);
-                crate::error::ApiError::InternalError("Error running model")
-            })
+    ($session:expr, $a_ids:expr, $a_mask:expr, $a_type_ids:expr) => {{
+        match crate::inference::utils::requires_token_type_ids(&$session) {
+            true => $session.run(ort::inputs!($a_ids, $a_mask, $a_type_ids)),
+            false => $session.run(ort::inputs!($a_ids, $a_mask)),
         }
-    }
+        .map_err(|e| {
+            tracing::error!("Error running model: {:?}", e);
+            crate::error::ApiError::InternalError("Error running model")
+        })
+    }};
 }
