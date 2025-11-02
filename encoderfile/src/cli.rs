@@ -12,7 +12,8 @@ use std::io::Write;
 
 macro_rules! generate_cli_route {
     ($req:ident, $fn:path, $format:ident, $out_dir:expr) => {{
-        let result = $fn($req)?;
+        let state = $crate::state::AppState::default();
+        let result = $fn($req, &state)?;
 
         let serialized = match $format {
             Format::Json => serde_json::to_string_pretty(&result)?,

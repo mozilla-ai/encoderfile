@@ -2,27 +2,23 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-    config::get_model_config,
     error::ApiError,
     inference::{
-        self, model::get_model, token_classification::TokenClassificationResult,
-        tokenizer::get_tokenizer,
-    },
+        self, token_classification::TokenClassificationResult,
+    }, state::AppState,
 };
 
 pub fn token_classification(
     request: impl Into<TokenClassificationRequest>,
+    state: &AppState
 ) -> Result<TokenClassificationResponse, ApiError> {
     let request = request.into();
-    let tokenizer = get_tokenizer();
-    let session_arc = get_model();
-    let session = session_arc.lock();
-    let config = get_model_config();
+    let session = state.session.lock();
 
-    let encodings = inference::tokenizer::encode_text(tokenizer, request.inputs)?;
+    let encodings = inference::tokenizer::encode_text(state.tokenizer, request.inputs)?;
 
     let results =
-        inference::token_classification::token_classification(session, config, encodings)?;
+        inference::token_classification::token_classification(session, state.config, encodings)?;
 
     Ok(TokenClassificationResponse {
         results,

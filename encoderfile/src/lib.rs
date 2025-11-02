@@ -9,5 +9,6 @@ pub mod http;
 pub mod inference;
 pub mod server;
 pub mod services;
+pub mod state;
 
 pub use assets::get_banner;

@@ -22,9 +22,13 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
 
 #[cfg(not(tarpaulin_include))]
 pub async fn run_http(hostname: String, port: String) -> Result<()> {
+    use crate::state::AppState;
+
     let addr = format!("{}:{}", &hostname, &port);
 
-    let router = crate::http::router()
+    let state = AppState::default();
+
+    let router = crate::http::router(state)
         .layer(tower_http::trace::TraceLayer::new_for_http())
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
