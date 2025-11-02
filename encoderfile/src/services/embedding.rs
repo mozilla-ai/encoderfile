@@ -3,17 +3,22 @@ use std::collections::HashMap;
 
 use crate::{
     error::ApiError,
-    inference::{self, embedding::TokenEmbedding}, state::AppState,
+    inference::{self, embedding::TokenEmbedding},
+    state::AppState,
 };
 
-pub fn embedding(request: impl Into<EmbeddingRequest>, state: &AppState) -> Result<EmbeddingResponse, ApiError> {
+pub fn embedding(
+    request: impl Into<EmbeddingRequest>,
+    state: &AppState,
+) -> Result<EmbeddingResponse, ApiError> {
     let request = request.into();
 
     let session = state.session.lock();
 
-    let encodings = inference::tokenizer::encode_text(state.tokenizer, request.inputs)?;
+    let encodings = crate::tokenizer::encode_text(state.tokenizer, request.inputs)?;
 
-    let results = inference::embedding::embedding(session, state.config, encodings, request.normalize)?;
+    let results =
+        inference::embedding::embedding(session, state.config, encodings, request.normalize)?;
 
     Ok(EmbeddingResponse {
         results,

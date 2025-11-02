@@ -1,8 +1,6 @@
 pub mod embedding;
-pub mod model;
 pub mod sequence_classification;
 pub mod token_classification;
-pub mod tokenizer;
 pub mod utils;
 
 pub mod token_info {

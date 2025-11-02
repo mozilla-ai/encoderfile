@@ -7,8 +7,10 @@ pub mod generated;
 pub mod grpc;
 pub mod http;
 pub mod inference;
+pub mod model;
 pub mod server;
 pub mod services;
 pub mod state;
+pub mod tokenizer;
 
 pub use assets::get_banner;

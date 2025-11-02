@@ -4,7 +4,7 @@ use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
 pub fn sequence_classification<'a>(
-    mut session: super::model::Model<'a>,
+    mut session: crate::model::Model<'a>,
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {

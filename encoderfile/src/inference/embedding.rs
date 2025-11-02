@@ -4,7 +4,7 @@ use tokenizers::Encoding;
 use crate::{config::ModelConfig, error::ApiError};
 
 pub fn embedding<'a>(
-    mut session: super::model::Model<'a>,
+    mut session: crate::model::Model<'a>,
     _config: &ModelConfig,
     encodings: Vec<Encoding>,
     normalize: bool,

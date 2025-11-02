@@ -1,6 +1,6 @@
 use ort::session::Session;
 use parking_lot::{Mutex, MutexGuard};
-use std::sync::{OnceLock, Arc};
+use std::sync::{Arc, OnceLock};
 
 use crate::assets::MODEL_WEIGHTS;
 

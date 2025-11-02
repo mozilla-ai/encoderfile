@@ -17,13 +17,15 @@ pub fn router() -> axum::Router {
     let builder = tonic::service::Routes::builder().routes();
 
     match get_model_type() {
-        ModelType::Embedding => builder.add_service(EmbeddingServer::new(EmbeddingService::default())),
+        ModelType::Embedding => {
+            builder.add_service(EmbeddingServer::new(EmbeddingService::default()))
+        }
         ModelType::SequenceClassification => builder.add_service(
             SequenceClassificationServer::new(SequenceClassificationService::default()),
         ),
-        ModelType::TokenClassification => {
-            builder.add_service(TokenClassificationServer::new(TokenClassificationService::default()))
-        }
+        ModelType::TokenClassification => builder.add_service(TokenClassificationServer::new(
+            TokenClassificationService::default(),
+        )),
     }
     .into_axum_router()
 }

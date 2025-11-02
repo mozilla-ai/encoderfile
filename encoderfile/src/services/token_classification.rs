@@ -3,19 +3,18 @@ use std::collections::HashMap;
 
 use crate::{
     error::ApiError,
-    inference::{
-        self, token_classification::TokenClassificationResult,
-    }, state::AppState,
+    inference::{self, token_classification::TokenClassificationResult},
+    state::AppState,
 };
 
 pub fn token_classification(
     request: impl Into<TokenClassificationRequest>,
-    state: &AppState
+    state: &AppState,
 ) -> Result<TokenClassificationResponse, ApiError> {
     let request = request.into();
     let session = state.session.lock();
 
-    let encodings = inference::tokenizer::encode_text(state.tokenizer, request.inputs)?;
+    let encodings = crate::tokenizer::encode_text(state.tokenizer, request.inputs)?;
 
     let results =
         inference::token_classification::token_classification(session, state.config, encodings)?;
