@@ -71,7 +71,7 @@ def build(
     # --- Run cargo build ---
     click.echo("🚀 Building with Cargo (release mode)...")
     result = subprocess.run(
-        ["cargo", "build", "--release"],
+        ["cargo", "build", "-p", "encoderfile", "--release"],
         env=env,
         capture_output=True,
         text=True,

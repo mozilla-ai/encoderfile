@@ -1,0 +1,40 @@
+[package]
+name = "encoderfile"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+axum = "0.8.6"
+clap = "4.5.51"
+clap_derive = "4.5.49"
+ndarray = "0.16.1"
+ndarray-stats = "0.6.0"
+parking_lot = "0.12.5"
+prost = "0.14.1"
+serde = { version = "1.0.228", features = ["serde_derive"] }
+serde_json = "1.0.145"
+thiserror = "2.0.17"
+tokenizers = "0.22.1"
+tokio = { version = "1.48.0", features = ["full"] }
+tonic = { version = "0.14.2", features = ["router"] }
+tonic-prost = "0.14.2"
+tonic-types = "0.14.2"
+tonic-web = "0.14.2"
+tower-http = { version = "0.6.6", features = ["trace"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["fmt", "env-filter"] }
+
+[dependencies.ort]
+version = "=2.0.0-rc.10"
+# default-features = false # Disables the `download-binaries` feature since we don't need it
+features = [
+    # "alternative-backend",
+    "std",
+    "tracing",
+    "ndarray"
+]
+
+[build-dependencies]
+dotenv = "0.15.0"
+tonic-prost-build = "0.14.2"
