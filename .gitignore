@@ -1,3 +1,6 @@
+# cargo tarpaulin
+*.profraw
+
 models/
 
 # Byte-compiled / optimized / DLL files

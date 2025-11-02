@@ -71,6 +71,31 @@ mod tests {
     }
 
     #[test]
+    fn test_empty_encode() {
+        let tokenizer = get_tokenizer();
+        let encoding = encode_text(tokenizer, vec![]);
+
+        assert!(
+            encoding.is_err(),
+            "Encoder did not return error on empty input"
+        );
+    }
+
+    #[test]
+    fn test_empty_string_encode() {
+        let tokenizer = get_tokenizer();
+        let encoding = encode_text(
+            tokenizer,
+            vec!["hello, world!".to_string(), "".to_string()]
+        );
+
+        assert!(
+            encoding.is_err(),
+            "Encoder did not return error on empty string"
+        );
+    }
+
+    #[test]
     fn test_encode_text_basic() {
         let text = "Hello world!".to_string();
         let tokenizer = get_tokenizer();

@@ -2,6 +2,7 @@ mod assets;
 pub mod cli;
 pub mod config;
 pub mod error;
+#[cfg(not(tarpaulin_include))]
 pub mod generated;
 pub mod grpc;
 pub mod http;

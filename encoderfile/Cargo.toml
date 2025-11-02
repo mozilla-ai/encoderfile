@@ -38,3 +38,7 @@ features = [
 [build-dependencies]
 dotenv = "0.15.0"
 tonic-prost-build = "0.14.2"
+
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)'] }

@@ -1,6 +1,7 @@
 use crate::config::get_model_type;
 use anyhow::Result;
 
+#[cfg(not(tarpaulin_include))]
 pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
@@ -19,6 +20,7 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(tarpaulin_include))]
 pub async fn run_http(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
