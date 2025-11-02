@@ -1,21 +1,16 @@
 from __future__ import annotations
 from typing import Optional
-from enum import StrEnum
 import subprocess
 import os
 import sys
 import click
 
 from .env import create_env_vars
+from .enums import ModelType
+from .validation import validate_model
 
 with open("assets/banner.txt") as f:
     BANNER = f"{f.read()}\nBuild Utilities\n"
-
-
-class ModelType(StrEnum):
-    EMBEDDING = "embedding"
-    SEQUENCE_CLASSIFICATION = "sequence_classification"
-    TOKEN_CLASSIFICATION = "token_classification"
 
 
 class BuildError(Exception):
@@ -72,10 +67,14 @@ def build(
     )
 
     if print_build_env_vars:
-        print("\n".join(f"{k}={v}" for k, v in env.items() if k not in os.environ))
+        click.echo("\n".join(f"{k}={v}" for k, v in env.items() if k not in os.environ))
+
+    # validate model weights
+    click.echo("‼️ Checking model weights...")
+    validate_model(env["MODEL_WEIGHTS_PATH"], type_)
 
     # --- Run cargo build ---
-    print("🚀 Building with Cargo (release mode)...")
+    click.echo("🚀 Building with Cargo (release mode)...")
     result = subprocess.run(
         ["cargo", "build", "--release"],
         env=env,
@@ -84,11 +83,11 @@ def build(
     )
 
     if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr, file=sys.stderr)
+        click.echo(result.stdout)
+        click.echo(result.stderr, file=sys.stderr)
         raise BuildError("❌ Cargo build failed. See output above.")
 
-    print("✅ Build completed successfully.")
+    click.echo("✅ Build completed successfully.")
 
 
 if __name__ == "__main__":
