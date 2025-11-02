@@ -1,5 +1,5 @@
 use crate::{config::ModelConfig, error::ApiError, inference::utils::softmax};
-use ndarray::{Axis, Ix2};
+use ndarray::{Axis, Ix3};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
@@ -14,14 +14,16 @@ pub fn token_classification<'a>(
 
     let outputs = outputs
         .get("logits")
-        .unwrap()
+        .expect("Model does not return logits")
         .try_extract_array::<f32>()
-        .unwrap();
+        .expect("Model does not return tensor extractable to f32")
+        .into_dimensionality::<Ix3>()
+        .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]");
 
     let mut predictions = Vec::new();
 
     for (encoding, logits) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
-        let logits = logits.into_dimensionality::<Ix2>().unwrap().to_owned();
+        let logits = logits.to_owned();
 
         let scores = softmax(&logits, Axis(1));
 
@@ -49,7 +51,7 @@ pub fn token_classification<'a>(
             logs_iter.next(),
             scores_iter.next(),
         ) {
-            let argmax = scores.argmax().unwrap();
+            let argmax = scores.argmax().expect("Model has 0 labels");
             let score = scores[argmax];
             let label = match config.id2label(argmax as u32) {
                 Some(l) => l.to_string(),

@@ -16,11 +16,11 @@ pub fn sequence_classification<'a>(
     // will be in shape [N, L]
     let outputs = outputs
         .get("logits")
-        .unwrap()
+        .expect("Model does not return logits")
         .try_extract_array::<f32>()
-        .unwrap()
+        .expect("Model does not return tensor extractable to f32")
         .into_dimensionality::<Ix2>()
-        .unwrap()
+        .expect("Model does not return tensor of shape [n_batch, n_labels]")
         .into_owned();
 
     let probabilities = super::utils::softmax(&outputs, Axis(1));
@@ -29,7 +29,7 @@ pub fn sequence_classification<'a>(
         .axis_iter(Axis(0))
         .zip(probabilities.axis_iter(Axis(0)))
         .map(|(logs, probs)| {
-            let predicted_index = probs.argmax().unwrap();
+            let predicted_index = probs.argmax().expect("Model has 0 labels");
             SequenceClassificationResult {
                 logits: logs.iter().map(|i| *i).collect(),
                 scores: probs.iter().map(|i| *i).collect(),

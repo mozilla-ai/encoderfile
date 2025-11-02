@@ -16,8 +16,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .compile_protos(&["proto/encoderfile.proto"], &["proto/encoderfile"])?;
 
     for var in BUILD_VARS {
-        let val = std::env::var(var)
-            .unwrap_or_else(|_| panic!("Missing required environment variable: {var}"));
+        let val = std::env::var(var).expect("Missing required environment variable: {var}");
+
         println!("cargo:rustc-env={}={}", var, val);
     }
 

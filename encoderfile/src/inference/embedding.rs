@@ -1,4 +1,4 @@
-use ndarray::{Axis, Ix2};
+use ndarray::{Axis, Ix3};
 use tokenizers::Encoding;
 
 use crate::{config::ModelConfig, error::ApiError};
@@ -15,18 +15,19 @@ pub fn embedding<'a>(
 
     let outputs = outputs
         .get("last_hidden_state")
-        .unwrap()
+        .expect("Model does not return last_hidden_state")
         .try_extract_array::<f32>()
-        .unwrap();
+        .expect("Model does not return tensor extractable to f32")
+        .into_dimensionality::<Ix3>()
+        .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]");
 
     let mut embeddings = Vec::new();
 
     for (encoding, embs) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
-        let mut transformed = embs.into_dimensionality::<Ix2>().unwrap().into_owned();
-
-        if normalize {
-            transformed = super::utils::l2_normalize(transformed, Axis(1));
-        }
+        let transformed = match normalize {
+            true => super::utils::l2_normalize(embs.into_owned(), Axis(1)),
+            false => embs.into_owned(),
+        };
 
         let mut token_ids = encoding.get_ids().iter();
         let mut tokens = encoding.get_tokens().iter();
