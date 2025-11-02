@@ -4,7 +4,7 @@ pub const TOKENIZER_JSON: &str = include_str!(env!("TOKENIZER_PATH"));
 pub const MODEL_CONFIG_JSON: &str = include_str!(env!("MODEL_CONFIG_PATH"));
 
 pub const BANNER: &'static str = include_str!("../../assets/banner.txt");
-pub const MODEL_ID: &'static str = env!("MODEL_NAME");
+const MODEL_ID: &'static str = env!("MODEL_NAME");
 
 pub fn get_banner() -> String {
     let model_id_len = MODEL_ID.len();
@@ -18,4 +18,8 @@ pub fn get_banner() -> String {
         "{}\nModel ID: {}{}{}\n",
         BANNER, MODEL_ID, spaces, signature
     )
+}
+
+pub fn get_model_id() -> String {
+    MODEL_ID.to_string()
 }

@@ -21,7 +21,7 @@ pub fn token_classification(
 
     Ok(TokenClassificationResponse {
         results,
-        model_id: crate::assets::MODEL_ID.to_string(),
+        model_id: state.model_id.clone(),
         metadata: request.metadata,
     })
 }
@@ -58,7 +58,7 @@ impl From<TokenClassificationResponse>
     fn from(val: TokenClassificationResponse) -> Self {
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
-            model_id: crate::assets::MODEL_ID.to_string(),
+            model_id: val.model_id,
             metadata: val.metadata.unwrap_or(HashMap::new()),
         }
     }

@@ -8,6 +8,7 @@ use crate::{
     config::{ModelConfig, ModelType, get_model_config, get_model_type},
     model::get_model,
     tokenizer::get_tokenizer,
+    assets::get_model_id,
 };
 
 #[derive(Debug, Clone)]
@@ -16,6 +17,7 @@ pub struct AppState {
     pub tokenizer: Arc<Tokenizer>,
     pub config: Arc<ModelConfig>,
     pub model_type: ModelType,
+    pub model_id: String,
 }
 
 impl Default for AppState {
@@ -25,6 +27,7 @@ impl Default for AppState {
             tokenizer: get_tokenizer(),
             config: get_model_config(),
             model_type: get_model_type(),
+            model_id: get_model_id(),
         }
     }
 }

@@ -16,7 +16,8 @@ pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
         session,
         tokenizer,
         config,
-        model_type
+        model_type,
+        model_id: "test-model".to_string()
     }
 
 }

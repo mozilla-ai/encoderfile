@@ -24,7 +24,7 @@ pub fn sequence_classification(
 
     Ok(SequenceClassificationResponse {
         results,
-        model_id: crate::assets::MODEL_ID.to_string(),
+        model_id: state.model_id.clone(),
         metadata: request.metadata,
     })
 }
