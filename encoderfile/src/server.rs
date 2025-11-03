@@ -7,9 +7,10 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
     let router = crate::grpc::router()
-        .layer(tower_http::trace::TraceLayer::new_for_grpc()
-            .make_span_with(crate::middleware::format_span)
-            .on_response(DefaultOnResponse::new().level(tracing::Level::INFO))
+        .layer(
+            tower_http::trace::TraceLayer::new_for_grpc()
+                .make_span_with(crate::middleware::format_span)
+                .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
@@ -33,9 +34,10 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
     let state = AppState::default();
 
     let router = crate::http::router(state)
-        .layer(tower_http::trace::TraceLayer::new_for_http()
-            .make_span_with(crate::middleware::format_span)
-            .on_response(DefaultOnResponse::new().level(tracing::Level::INFO))
+        .layer(
+            tower_http::trace::TraceLayer::new_for_http()
+                .make_span_with(crate::middleware::format_span)
+                .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
