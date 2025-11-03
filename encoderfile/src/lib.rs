@@ -4,6 +4,7 @@ pub mod cli;
 pub mod config;
 pub mod error;
 #[cfg(not(tarpaulin_include))]
+#[rustfmt::skip]
 pub mod generated;
 pub mod grpc;
 pub mod http;
