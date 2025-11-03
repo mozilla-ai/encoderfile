@@ -15,7 +15,8 @@ async fn main() -> Result<()> {
 fn init_tracing() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info,tower_http=debug,ort=warn")), // default to "info" level
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| EnvFilter::new("info,tower_http=debug,ort=warn")), // default to "info" level
         )
         .with_target(false) // hide module path
         .compact() // short, pretty output

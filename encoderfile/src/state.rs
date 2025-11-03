@@ -5,10 +5,10 @@ use parking_lot::Mutex;
 use tokenizers::Tokenizer;
 
 use crate::{
+    assets::get_model_id,
     config::{ModelConfig, ModelType, get_model_config, get_model_type},
     model::get_model,
     tokenizer::get_tokenizer,
-    assets::get_model_id,
 };
 
 #[derive(Debug, Clone)]

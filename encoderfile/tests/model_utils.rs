@@ -1,4 +1,7 @@
-use encoderfile::{config::{ModelConfig, ModelType}, state::AppState};
+use encoderfile::{
+    config::{ModelConfig, ModelType},
+    state::AppState,
+};
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};
@@ -11,15 +14,14 @@ pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
     let config = Arc::new(get_config(dir));
     let tokenizer = Arc::new(get_tokenizer(dir, &config));
     let session = Arc::new(get_model(dir));
-    
+
     AppState {
         session,
         tokenizer,
         config,
         model_type,
-        model_id: "test-model".to_string()
+        model_id: "test-model".to_string(),
     }
-
 }
 
 pub fn embedding_state() -> AppState {
@@ -27,7 +29,10 @@ pub fn embedding_state() -> AppState {
 }
 
 pub fn sequence_classification_state() -> AppState {
-    get_state(SEQUENCE_CLASSIFICATION_DIR, ModelType::SequenceClassification)
+    get_state(
+        SEQUENCE_CLASSIFICATION_DIR,
+        ModelType::SequenceClassification,
+    )
 }
 
 pub fn token_classification_state() -> AppState {

@@ -37,6 +37,12 @@ macro_rules! generate_grpc_server {
             state: $crate::state::AppState,
         }
 
+        impl $service_name {
+            pub fn new(state: $crate::state::AppState) -> Self {
+                Self { state }
+            }
+        }
+
         #[tonic::async_trait]
         impl $trait_path for $service_name {
             async fn predict(
@@ -47,6 +53,18 @@ macro_rules! generate_grpc_server {
                     $fn_path(request.into_inner(), &self.state)
                         .map_err(|e| e.to_tonic_status())?
                         .into(),
+                ))
+            }
+
+            async fn get_model_metadata(
+                &self,
+                _request: tonic::Request<crate::generated::encoderfile::GetModelMetadataRequest>,
+            ) -> Result<
+                tonic::Response<crate::generated::encoderfile::GetModelMetadataResponse>,
+                tonic::Status,
+            > {
+                Ok(tonic::Response::new(
+                    $crate::services::get_model_metadata(&self.state).into(),
                 ))
             }
         }

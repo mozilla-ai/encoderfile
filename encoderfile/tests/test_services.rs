@@ -1,6 +1,9 @@
 mod model_utils;
 
-use encoderfile::services::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest, embedding, sequence_classification, token_classification};
+use encoderfile::services::{
+    EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest, embedding,
+    sequence_classification, token_classification,
+};
 use model_utils::*;
 
 #[test]
@@ -12,11 +15,13 @@ pub fn test_embedding_service() {
         metadata: None,
     };
 
-    let response = embedding(request, &state)
-        .expect("Failed to compute embeddings");
+    let response = embedding(request, &state).expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
-    assert!(response.metadata == None, "Metadata should be returned None");
+    assert!(
+        response.metadata == None,
+        "Metadata should be returned None"
+    );
 }
 
 #[test]
@@ -27,11 +32,13 @@ pub fn test_sequence_classification_service() {
         metadata: None,
     };
 
-    let response = sequence_classification(request, &state)
-        .expect("Failed to compute embeddings");
+    let response = sequence_classification(request, &state).expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
-    assert!(response.metadata == None, "Metadata should be returned None");
+    assert!(
+        response.metadata == None,
+        "Metadata should be returned None"
+    );
 }
 
 #[test]
@@ -42,9 +49,11 @@ pub fn test_token_classification_service() {
         metadata: None,
     };
 
-    let response = token_classification(request, &state)
-        .expect("Failed to compute embeddings");
+    let response = token_classification(request, &state).expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
-    assert!(response.metadata == None, "Metadata should be returned None");
+    assert!(
+        response.metadata == None,
+        "Metadata should be returned None"
+    );
 }

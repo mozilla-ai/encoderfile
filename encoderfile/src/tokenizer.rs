@@ -5,7 +5,7 @@ use crate::{
 };
 use anyhow::Result;
 use std::str::FromStr;
-use std::sync::{OnceLock, Arc};
+use std::sync::{Arc, OnceLock};
 use tokenizers::{
     Encoding, PaddingDirection, PaddingParams, PaddingStrategy, tokenizer::Tokenizer,
 };
@@ -15,7 +15,9 @@ static TOKENIZER: OnceLock<Arc<Tokenizer>> = OnceLock::new();
 pub fn get_tokenizer() -> Arc<Tokenizer> {
     let model_config = get_model_config();
 
-    TOKENIZER.get_or_init(|| Arc::new(get_tokenizer_from_string(TOKENIZER_JSON, &model_config))).clone()
+    TOKENIZER
+        .get_or_init(|| Arc::new(get_tokenizer_from_string(TOKENIZER_JSON, &model_config)))
+        .clone()
 }
 
 pub fn get_tokenizer_from_string(s: &str, config: &Arc<ModelConfig>) -> Tokenizer {
@@ -80,7 +82,10 @@ mod tests {
     #[test]
     fn test_empty_string_encode() {
         let tokenizer = get_tokenizer();
-        let encoding = encode_text(&tokenizer, vec!["hello, world!".to_string(), "".to_string()]);
+        let encoding = encode_text(
+            &tokenizer,
+            vec!["hello, world!".to_string(), "".to_string()],
+        );
 
         assert!(
             encoding.is_err(),
