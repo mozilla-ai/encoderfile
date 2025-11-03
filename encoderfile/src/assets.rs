@@ -1,10 +1,72 @@
-pub const MODEL_TYPE_STR: &str = env!("MODEL_TYPE");
-pub const MODEL_WEIGHTS: &[u8] = include_bytes!(env!("MODEL_WEIGHTS_PATH"));
-pub const TOKENIZER_JSON: &str = include_str!(env!("TOKENIZER_PATH"));
-pub const MODEL_CONFIG_JSON: &str = include_str!(env!("MODEL_CONFIG_PATH"));
+macro_rules! embed_in_section {
+    ($name:ident, $path:expr, $section:expr, Bytes) => {
+        #[cfg(target_os = "macos")]
+        #[unsafe(link_section = concat!("__DATA,", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: [u8; include_bytes!(env!($path)).len()] = *include_bytes!(env!($path));
+
+        #[cfg(target_os = "linux")]
+        #[unsafe(link_section = concat!(".", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: [u8; include_bytes!(env!($path)).len()] = *include_bytes!(env!($path));
+
+        #[cfg(target_os = "windows")]
+        #[unsafe(link_section = concat!(".rdata$", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: [u8; include_bytes!(env!($path)).len()] = *include_bytes!(env!($path));
+    };
+
+    ($name:ident, $path:expr, $section:expr, String) => {
+        #[cfg(target_os = "macos")]
+        #[unsafe(link_section = concat!("__DATA,", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: &str = include_str!(env!($path));
+
+        #[cfg(target_os = "linux")]
+        #[unsafe(link_section = concat!(".", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: &str = include_str!(env!($path));
+
+        #[cfg(target_os = "windows")]
+        #[unsafe(link_section = concat!(".rdata$", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: &str = include_str!(env!($path));
+    };
+
+    ($name:ident, $path:expr, $section:expr, Env) => {
+        #[cfg(target_os = "macos")]
+        #[unsafe(link_section = concat!("__DATA,", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: &str = env!($path);
+
+        #[cfg(target_os = "linux")]
+        #[unsafe(link_section = concat!(".", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: &str = env!($path);
+
+        #[cfg(target_os = "windows")]
+        #[unsafe(link_section = concat!(".rdata$", $section))]
+        #[used]
+        #[unsafe(no_mangle)]
+        pub static $name: &str = env!($path);
+    };
+}
+
+embed_in_section!(MODEL_WEIGHTS, "MODEL_WEIGHTS_PATH", "model_weights", Bytes);
+embed_in_section!(TOKENIZER_JSON, "TOKENIZER_PATH", "model_tokenizer", String);
+embed_in_section!(MODEL_CONFIG_JSON, "MODEL_CONFIG_PATH", "model_config", String);
+embed_in_section!(MODEL_TYPE_STR, "MODEL_TYPE", "model_type", Env);
+embed_in_section!(MODEL_ID, "MODEL_NAME", "model_id", Env);
 
 pub const BANNER: &'static str = include_str!("../../assets/banner.txt");
-const MODEL_ID: &'static str = env!("MODEL_NAME");
 
 pub fn get_banner() -> String {
     let model_id_len = MODEL_ID.len();
