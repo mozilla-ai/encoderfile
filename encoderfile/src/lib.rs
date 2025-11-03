@@ -8,6 +8,7 @@ pub mod generated;
 pub mod grpc;
 pub mod http;
 pub mod inference;
+pub mod middleware;
 pub mod model;
 pub mod server;
 pub mod services;
