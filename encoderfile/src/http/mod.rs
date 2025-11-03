@@ -28,9 +28,7 @@ pub fn router(state: AppState) -> axum::Router {
     .with_state(state)
 }
 
-async fn get_model_metadata(
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+async fn get_model_metadata(State(state): State<AppState>) -> impl IntoResponse {
     Json(services::get_model_metadata(&state))
 }
 

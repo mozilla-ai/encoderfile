@@ -2,11 +2,14 @@ use std::collections::HashMap;
 
 use encoderfile::{
     generated::{
-        embedding::{EmbeddingRequest, EmbeddingResponse}, encoderfile::{
+        embedding::{EmbeddingRequest, EmbeddingResponse},
+        encoderfile::{
             GetModelMetadataRequest, GetModelMetadataResponse, embedding_server::Embedding,
             sequence_classification_server::SequenceClassification,
             token_classification_server::TokenClassification,
-            }, sequence_classification::{SequenceClassificationRequest, SequenceClassificationResponse}, token_classification::{TokenClassificationRequest, TokenClassificationResponse}
+        },
+        sequence_classification::{SequenceClassificationRequest, SequenceClassificationResponse},
+        token_classification::{TokenClassificationRequest, TokenClassificationResponse},
     },
     grpc::{EmbeddingService, SequenceClassificationService, TokenClassificationService},
 };
@@ -43,17 +46,15 @@ pub async fn test_embedding_service() {
         metadata: HashMap::new(),
     };
 
-    let response: EmbeddingResponse = service.predict(tonic::Request::new(request)).await.unwrap().into_inner();
+    let response: EmbeddingResponse = service
+        .predict(tonic::Request::new(request))
+        .await
+        .unwrap()
+        .into_inner();
 
-    assert!(
-        response.results.len() == 2,
-        "Mismatched number of results"
-    );
+    assert!(response.results.len() == 2, "Mismatched number of results");
 
-    assert!(
-        response.metadata.is_empty(),
-        "Metadata isn't empty"
-    );
+    assert!(response.metadata.is_empty(), "Metadata isn't empty");
 }
 
 #[tokio::test]
@@ -83,17 +84,15 @@ pub async fn test_sequence_service() {
         metadata: HashMap::new(),
     };
 
-    let response: SequenceClassificationResponse = service.predict(tonic::Request::new(request)).await.unwrap().into_inner();
+    let response: SequenceClassificationResponse = service
+        .predict(tonic::Request::new(request))
+        .await
+        .unwrap()
+        .into_inner();
 
-    assert!(
-        response.results.len() == 2,
-        "Mismatched number of results"
-    );
+    assert!(response.results.len() == 2, "Mismatched number of results");
 
-    assert!(
-        response.metadata.is_empty(),
-        "Metadata isn't empty"
-    );
+    assert!(response.metadata.is_empty(), "Metadata isn't empty");
 }
 
 #[tokio::test]
@@ -123,15 +122,13 @@ pub async fn test_token_cls_service() {
         metadata: HashMap::new(),
     };
 
-    let response: TokenClassificationResponse = service.predict(tonic::Request::new(request)).await.unwrap().into_inner();
+    let response: TokenClassificationResponse = service
+        .predict(tonic::Request::new(request))
+        .await
+        .unwrap()
+        .into_inner();
 
-    assert!(
-        response.results.len() == 2,
-        "Mismatched number of results"
-    );
+    assert!(response.results.len() == 2, "Mismatched number of results");
 
-    assert!(
-        response.metadata.is_empty(),
-        "Metadata isn't empty"
-    );
+    assert!(response.metadata.is_empty(), "Metadata isn't empty");
 }
