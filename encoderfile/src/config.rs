@@ -32,7 +32,8 @@ pub fn get_model_type() -> ModelType {
         .clone()
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ModelType {
     Embedding,
     SequenceClassification,

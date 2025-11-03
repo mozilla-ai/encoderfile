@@ -14,7 +14,9 @@ use crate::{
 const PREDICT_ROUTE: &'static str = "/predict";
 
 pub fn router(state: AppState) -> axum::Router {
-    let router = axum::Router::new().route("/health", get(|| async { "OK" }));
+    let router = axum::Router::new()
+        .route("/health", get(|| async { "OK" }))
+        .route("/model", get(get_model_metadata));
 
     match get_model_type() {
         ModelType::Embedding => router.route(PREDICT_ROUTE, post(embedding)),
@@ -24,6 +26,12 @@ pub fn router(state: AppState) -> axum::Router {
         ModelType::TokenClassification => router.route(PREDICT_ROUTE, post(token_classification)),
     }
     .with_state(state)
+}
+
+async fn get_model_metadata(
+    State(state): State<AppState>,
+) -> impl IntoResponse {
+    Json(services::get_model_metadata(&state))
 }
 
 macro_rules! generate_route {

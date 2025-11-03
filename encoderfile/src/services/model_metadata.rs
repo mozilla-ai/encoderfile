@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use serde::Serialize;
 
 use crate::{config::ModelType, state::AppState};
 
@@ -10,6 +11,7 @@ pub fn get_model_metadata(state: &AppState) -> GetModelMetadataResponse {
     }
 }
 
+#[derive(Debug, Serialize)]
 pub struct GetModelMetadataResponse {
     model_id: String,
     model_type: ModelType,
