@@ -1,3 +1,4 @@
+#[cfg(not(tarpaulin_include))]
 mod assets;
 pub mod cli;
 pub mod config;
