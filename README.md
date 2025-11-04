@@ -89,3 +89,24 @@ Your final binary is `target/release/encoderfile`. To run it as a server:
 chmod +x target/release/encoderfile
 ./target/release/encoderfile serve
 ```
+
+## 🔧 Example Usage — REST
+
+### Embedding Model
+
+```sh
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": ["this is a sentence"], "normalize": true}'
+```
+
+Extracts token-level embeddings. The normalize flag controls L2 vector normalization (set false to disable).
+
+### Sequence Classification / Token Classification
+```sh
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": ["this is a sentence"]}'
+```
+
+Returns predictions and logits.
