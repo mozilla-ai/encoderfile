@@ -22,13 +22,32 @@ Encoderfiles can run as:
 - (Future) MCP server
 - (Future) FFI support for near-universal cross-language embedding
 
+### Supported Architectures
+
+Encoderfile supports the following Hugging Face model classes (and their ONNX-exported equivalents):
+
+| Task                                | Supported classes                    | Examples models                                                          |
+| ----------------------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
+| **Embeddings / Feature Extraction** | `AutoModel`, `AutoModelForMaskedLM`  | `bert-base-uncased`, `distilbert-base-uncased`          |
+| **Sequence Classification**         | `AutoModelForSequenceClassification` | `distilbert-base-uncased-finetuned-sst-2-english`, `roberta-large-mnli` |
+| **Token Classification**            | `AutoModelForTokenClassification`    | `dslim/bert-base-NER`, `bert-base-cased-finetuned-conll03-english`      |
+
+- ✅ All architectures must be encoder-only transformers — no decoders, no encoder–decoder hybrids (so no T5, no BART).
+- ⚙️ Models must have ONNX-exported weights (`path/to/your/model/model.onnx`).
+- 🧠 The ONNX graph input must include `input_ids` and optionally `attention_mask`.
+- 🚫 Models relying on generation heads (AutoModelForSeq2SeqLM, AutoModelForCausalLM, etc.) are not supported.
+
+#### Gotchas
+- `XLNet`, `Transfomer XL`, and derivative architectures are not yet supported.
+
 ## 🧰 Setup
 
 Prerequisites:
-- Rust
-- Python
-- uv
-- protoc
+- [Rust](https://rust-lang.org/tools/install/)
+- [Python](https://www.python.org/downloads/)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- [protoc](https://protobuf.dev/installation/)
+
 
 To set up your dev environment, run the following:
 ```sh
@@ -70,3 +89,24 @@ Your final binary is `target/release/encoderfile`. To run it as a server:
 chmod +x target/release/encoderfile
 ./target/release/encoderfile serve
 ```
+
+## 🔧 Example Usage — REST
+
+### Embedding Model
+
+```sh
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": ["this is a sentence"], "normalize": true}'
+```
+
+Extracts token-level embeddings. The normalize flag controls L2 vector normalization (set false to disable).
+
+### Sequence Classification / Token Classification
+```sh
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": ["this is a sentence"]}'
+```
+
+Returns predictions and logits.
