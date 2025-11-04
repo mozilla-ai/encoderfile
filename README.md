@@ -43,7 +43,10 @@ Encoderfile supports the following Hugging Face model classes (and their ONNX-ex
 ## 🧰 Setup
 
 Prerequisites:
-- 🦀 Rust — install via https://rustup.rs/
+- 🦀  [Rust](https://rust-lang.org/tools/install/)
+- [Python](https://www.python.org/downloads/)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- [protoc](https://protobuf.dev/installation/)
 - 🐍 Python — any version >= 3.9
 - ⚡ uv — https://docs.astral.sh/uv/
 - 🧩 protoc — https://protobuf.dev/installation/
