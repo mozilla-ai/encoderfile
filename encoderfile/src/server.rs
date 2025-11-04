@@ -1,4 +1,7 @@
-use crate::config::get_model_type;
+use crate::{
+    config::get_model_type,
+    transport::{grpc, http},
+};
 use anyhow::Result;
 use tower_http::trace::DefaultOnResponse;
 
@@ -6,7 +9,7 @@ use tower_http::trace::DefaultOnResponse;
 pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let router = crate::grpc::router()
+    let router = grpc::router()
         .layer(
             tower_http::trace::TraceLayer::new_for_grpc()
                 .make_span_with(crate::middleware::format_span)
@@ -33,7 +36,7 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
 
     let state = AppState::default();
 
-    let router = crate::http::router(state)
+    let router = http::router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
                 .make_span_with(crate::middleware::format_span)

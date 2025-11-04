@@ -11,7 +11,9 @@ use encoderfile::{
         sequence_classification::{SequenceClassificationRequest, SequenceClassificationResponse},
         token_classification::{TokenClassificationRequest, TokenClassificationResponse},
     },
-    grpc::{EmbeddingService, SequenceClassificationService, TokenClassificationService},
+    transport::grpc::{
+        EmbeddingService, SequenceClassificationService, TokenClassificationService,
+    },
 };
 
 mod model_utils;
