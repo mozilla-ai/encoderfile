@@ -1,6 +1,8 @@
 use crate::{
-    common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
-    config::{ModelType, get_model_type},
+    common::{
+        EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
+    },
+    config::get_model_type,
     server::{run_grpc, run_http},
     services::{embedding, sequence_classification, token_classification},
 };

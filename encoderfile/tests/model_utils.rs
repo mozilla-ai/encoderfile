@@ -1,7 +1,4 @@
-use encoderfile::{
-    config::{ModelConfig, ModelType},
-    state::AppState,
-};
+use encoderfile::{common::ModelType, config::ModelConfig, state::AppState};
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};

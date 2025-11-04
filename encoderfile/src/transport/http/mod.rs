@@ -5,12 +5,7 @@ use axum::{
     routing::{get, post},
 };
 
-use crate::{
-    common,
-    config::{ModelType, get_model_type},
-    services,
-    state::AppState,
-};
+use crate::{common, config::get_model_type, services, state::AppState};
 
 const PREDICT_ROUTE: &'static str = "/predict";
 
@@ -20,11 +15,13 @@ pub fn router(state: AppState) -> axum::Router {
         .route("/model", get(get_model_metadata));
 
     match get_model_type() {
-        ModelType::Embedding => router.route(PREDICT_ROUTE, post(embedding)),
-        ModelType::SequenceClassification => {
+        common::ModelType::Embedding => router.route(PREDICT_ROUTE, post(embedding)),
+        common::ModelType::SequenceClassification => {
             router.route(PREDICT_ROUTE, post(sequence_classification))
         }
-        ModelType::TokenClassification => router.route(PREDICT_ROUTE, post(token_classification)),
+        common::ModelType::TokenClassification => {
+            router.route(PREDICT_ROUTE, post(token_classification))
+        }
     }
     .with_state(state)
 }

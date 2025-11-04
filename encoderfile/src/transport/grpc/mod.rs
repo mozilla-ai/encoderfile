@@ -1,5 +1,6 @@
 use crate::{
-    config::{ModelType, get_model_type},
+    common::ModelType,
+    config::get_model_type,
     generated::{
         embedding,
         encoderfile::{
