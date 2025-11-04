@@ -88,7 +88,7 @@ pub fn token_classification<'a>(
             })
         }
 
-        predictions.push(results);
+        predictions.push(TokenClassificationResult { tokens: results });
     }
 
     Ok(predictions)

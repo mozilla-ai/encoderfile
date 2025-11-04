@@ -21,7 +21,7 @@ impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
 
 #[derive(Debug, Serialize)]
 pub struct EmbeddingResponse {
-    pub results: Vec<Vec<TokenEmbedding>>,
+    pub results: Vec<TokenEmbeddingSequence>,
     pub model_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
@@ -38,6 +38,19 @@ impl From<EmbeddingResponse> for crate::generated::embedding::EmbeddingResponse 
 }
 
 #[derive(Debug, Serialize)]
+pub struct TokenEmbeddingSequence {
+    pub embeddings: Vec<TokenEmbedding>,
+}
+
+impl From<TokenEmbeddingSequence> for crate::generated::embedding::TokenEmbeddingSequence {
+    fn from(val: TokenEmbeddingSequence) -> Self {
+        Self {
+            embeddings: val.embeddings.into_iter().map(|i| i.into()).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
 pub struct TokenEmbedding {
     pub embedding: Vec<f32>,
     pub token_info: Option<super::token::TokenInfo>,
@@ -48,16 +61,6 @@ impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
         crate::generated::embedding::TokenEmbedding {
             embedding: val.embedding,
             token_info: val.token_info.map(|i| i.into()),
-        }
-    }
-}
-
-pub type TokenEmbeddingSequence = Vec<TokenEmbedding>;
-
-impl From<TokenEmbeddingSequence> for crate::generated::embedding::TokenEmbeddingSequence {
-    fn from(val: Vec<TokenEmbedding>) -> Self {
-        Self {
-            embeddings: val.into_iter().map(|i| i.into()).collect(),
         }
     }
 }

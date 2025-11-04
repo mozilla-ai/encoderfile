@@ -68,7 +68,9 @@ pub fn embedding<'a>(
             })
         }
 
-        embeddings.push(results)
+        embeddings.push(TokenEmbeddingSequence {
+            embeddings: results,
+        })
     }
 
     Ok(embeddings)

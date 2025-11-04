@@ -39,14 +39,17 @@ impl From<TokenClassificationResponse>
     }
 }
 
-pub type TokenClassificationResult = Vec<TokenClassification>;
+#[derive(Debug, Serialize)]
+pub struct TokenClassificationResult {
+    pub tokens: Vec<TokenClassification>,
+}
 
 impl From<TokenClassificationResult>
     for crate::generated::token_classification::TokenClassificationResult
 {
     fn from(val: TokenClassificationResult) -> Self {
         Self {
-            tokens: val.into_iter().map(|i| i.into()).collect(),
+            tokens: val.tokens.into_iter().map(|i| i.into()).collect(),
         }
     }
 }
