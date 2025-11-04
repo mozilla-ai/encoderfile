@@ -1,7 +1,11 @@
 use ndarray::{Axis, Ix3};
 use tokenizers::Encoding;
 
-use crate::{config::ModelConfig, error::ApiError};
+use crate::{
+    common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
+    config::ModelConfig,
+    error::ApiError,
+};
 
 pub fn embedding<'a>(
     mut session: crate::model::Model<'a>,
@@ -51,7 +55,7 @@ pub fn embedding<'a>(
             let (start, end) = *offset;
             let embedding: Vec<f32> = e.iter().map(|i| *i).collect();
 
-            let token_info = super::token_info::TokenInfo {
+            let token_info = TokenInfo {
                 token: token.clone(),
                 token_id: *token_id,
                 start,
@@ -70,29 +74,4 @@ pub fn embedding<'a>(
     Ok(embeddings)
 
     // Err(ApiError::InternalError("Not Implemented"))
-}
-
-#[derive(Debug, serde::Serialize)]
-pub struct TokenEmbedding {
-    pub embedding: Vec<f32>,
-    pub token_info: Option<super::token_info::TokenInfo>,
-}
-
-impl From<TokenEmbedding> for crate::generated::embedding::TokenEmbedding {
-    fn from(val: TokenEmbedding) -> Self {
-        crate::generated::embedding::TokenEmbedding {
-            embedding: val.embedding,
-            token_info: val.token_info.map(|i| i.into()),
-        }
-    }
-}
-
-pub type TokenEmbeddingSequence = Vec<TokenEmbedding>;
-
-impl From<TokenEmbeddingSequence> for crate::generated::embedding::TokenEmbeddingSequence {
-    fn from(val: Vec<TokenEmbedding>) -> Self {
-        Self {
-            embeddings: val.into_iter().map(|i| i.into()).collect(),
-        }
-    }
 }

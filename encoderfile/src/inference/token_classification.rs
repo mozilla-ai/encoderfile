@@ -1,4 +1,9 @@
-use crate::{config::ModelConfig, error::ApiError, inference::utils::softmax};
+use crate::{
+    common::{TokenClassification, TokenClassificationResult, TokenInfo},
+    config::ModelConfig,
+    error::ApiError,
+    inference::utils::softmax,
+};
 use ndarray::{Axis, Ix3};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
@@ -70,7 +75,7 @@ pub fn token_classification<'a>(
             }
 
             results.push(TokenClassification {
-                token_info: super::token_info::TokenInfo {
+                token_info: TokenInfo {
                     token_id: *token_id,
                     token: token.clone(),
                     start,
@@ -87,37 +92,4 @@ pub fn token_classification<'a>(
     }
 
     Ok(predictions)
-}
-
-pub type TokenClassificationResult = Vec<TokenClassification>;
-
-impl From<TokenClassificationResult>
-    for crate::generated::token_classification::TokenClassificationResult
-{
-    fn from(val: TokenClassificationResult) -> Self {
-        Self {
-            tokens: val.into_iter().map(|i| i.into()).collect(),
-        }
-    }
-}
-
-#[derive(Debug, serde::Serialize)]
-pub struct TokenClassification {
-    pub token_info: super::token_info::TokenInfo,
-    pub logits: Vec<f32>,
-    pub scores: Vec<f32>,
-    pub label: String,
-    pub score: f32,
-}
-
-impl From<TokenClassification> for crate::generated::token_classification::TokenClassification {
-    fn from(val: TokenClassification) -> Self {
-        Self {
-            token_info: Some(val.token_info.into()),
-            logits: val.logits,
-            scores: val.scores,
-            label: val.label,
-            score: val.score,
-        }
-    }
 }

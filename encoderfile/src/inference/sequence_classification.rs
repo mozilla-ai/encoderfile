@@ -1,4 +1,4 @@
-use crate::{config::ModelConfig, error::ApiError};
+use crate::{common::SequenceClassificationResult, config::ModelConfig, error::ApiError};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
@@ -42,25 +42,4 @@ pub fn sequence_classification<'a>(
         .collect();
 
     Ok(results)
-}
-
-#[derive(Debug, serde::Serialize)]
-pub struct SequenceClassificationResult {
-    pub logits: Vec<f32>,
-    pub scores: Vec<f32>,
-    pub predicted_index: u32,
-    pub predicted_label: Option<String>,
-}
-
-impl From<SequenceClassificationResult>
-    for crate::generated::sequence_classification::SequenceClassificationResult
-{
-    fn from(val: SequenceClassificationResult) -> Self {
-        Self {
-            logits: val.logits,
-            scores: val.scores,
-            predicted_index: val.predicted_index,
-            predicted_label: val.predicted_label,
-        }
-    }
 }

@@ -62,7 +62,12 @@ macro_rules! embed_in_section {
 
 embed_in_section!(MODEL_WEIGHTS, "MODEL_WEIGHTS_PATH", "model_weights", Bytes);
 embed_in_section!(TOKENIZER_JSON, "TOKENIZER_PATH", "model_tokenizer", String);
-embed_in_section!(MODEL_CONFIG_JSON, "MODEL_CONFIG_PATH", "model_config", String);
+embed_in_section!(
+    MODEL_CONFIG_JSON,
+    "MODEL_CONFIG_PATH",
+    "model_config",
+    String
+);
 embed_in_section!(MODEL_TYPE_STR, "MODEL_TYPE", "model_type", Env);
 embed_in_section!(MODEL_ID, "MODEL_NAME", "model_id", Env);
 

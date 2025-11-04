@@ -1,8 +1,8 @@
 mod model_utils;
 
-use encoderfile::services::{
-    EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest, embedding,
-    sequence_classification, token_classification,
+use encoderfile::{
+    common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
+    services::{embedding, sequence_classification, token_classification},
 };
 use model_utils::*;
 

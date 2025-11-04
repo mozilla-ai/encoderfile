@@ -6,6 +6,7 @@ use axum::{
 };
 
 use crate::{
+    common,
     config::{ModelType, get_model_type},
     services,
     state::AppState,
@@ -45,14 +46,14 @@ macro_rules! generate_route {
     };
 }
 
-generate_route!(embedding, services::EmbeddingRequest, services::embedding);
+generate_route!(embedding, common::EmbeddingRequest, services::embedding);
 generate_route!(
     sequence_classification,
-    services::SequenceClassificationRequest,
+    common::SequenceClassificationRequest,
     services::sequence_classification
 );
 generate_route!(
     token_classification,
-    services::TokenClassificationRequest,
+    common::TokenClassificationRequest,
     services::token_classification
 );

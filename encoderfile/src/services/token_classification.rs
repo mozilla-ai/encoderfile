@@ -1,9 +1,7 @@
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
 use crate::{
+    common::{TokenClassificationRequest, TokenClassificationResponse},
     error::ApiError,
-    inference::{self, token_classification::TokenClassificationResult},
+    inference,
     state::AppState,
 };
 
@@ -24,42 +22,4 @@ pub fn token_classification(
         model_id: state.model_id.clone(),
         metadata: request.metadata,
     })
-}
-
-#[derive(Debug, Deserialize)]
-pub struct TokenClassificationRequest {
-    pub inputs: Vec<String>,
-    #[serde(default)]
-    pub metadata: Option<HashMap<String, String>>,
-}
-
-impl From<crate::generated::token_classification::TokenClassificationRequest>
-    for TokenClassificationRequest
-{
-    fn from(val: crate::generated::token_classification::TokenClassificationRequest) -> Self {
-        Self {
-            inputs: val.inputs,
-            metadata: Some(val.metadata),
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
-pub struct TokenClassificationResponse {
-    pub results: Vec<TokenClassificationResult>,
-    pub model_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<HashMap<String, String>>,
-}
-
-impl From<TokenClassificationResponse>
-    for crate::generated::token_classification::TokenClassificationResponse
-{
-    fn from(val: TokenClassificationResponse) -> Self {
-        Self {
-            results: val.results.into_iter().map(|i| i.into()).collect(),
-            model_id: val.model_id,
-            metadata: val.metadata.unwrap_or(HashMap::new()),
-        }
-    }
 }

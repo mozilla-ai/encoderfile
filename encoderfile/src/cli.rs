@@ -1,10 +1,8 @@
 use crate::{
+    common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
     config::{ModelType, get_model_type},
     server::{run_grpc, run_http},
-    services::{
-        SequenceClassificationRequest, TokenClassificationRequest, embedding,
-        sequence_classification, token_classification,
-    },
+    services::{embedding, sequence_classification, token_classification},
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
@@ -104,7 +102,7 @@ impl Commands {
 
                 match get_model_type() {
                     ModelType::Embedding => {
-                        let request = crate::services::EmbeddingRequest {
+                        let request = EmbeddingRequest {
                             inputs,
                             normalize,
                             metadata,

@@ -1,9 +1,7 @@
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
 use crate::{
+    common::{EmbeddingRequest, EmbeddingResponse},
     error::ApiError,
-    inference::{self, embedding::TokenEmbedding},
+    inference,
     state::AppState,
 };
 
@@ -25,40 +23,4 @@ pub fn embedding(
         model_id: state.model_id.clone(),
         metadata: request.metadata,
     })
-}
-
-#[derive(Debug, Deserialize)]
-pub struct EmbeddingRequest {
-    pub inputs: Vec<String>,
-    pub normalize: bool,
-    #[serde(default)]
-    pub metadata: Option<HashMap<String, String>>,
-}
-
-impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
-    fn from(val: crate::generated::embedding::EmbeddingRequest) -> Self {
-        Self {
-            inputs: val.inputs,
-            normalize: val.normalize,
-            metadata: Some(val.metadata),
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
-pub struct EmbeddingResponse {
-    pub results: Vec<Vec<TokenEmbedding>>,
-    pub model_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<HashMap<String, String>>,
-}
-
-impl From<EmbeddingResponse> for crate::generated::embedding::EmbeddingResponse {
-    fn from(val: EmbeddingResponse) -> Self {
-        Self {
-            results: val.results.into_iter().map(|embs| embs.into()).collect(),
-            model_id: val.model_id,
-            metadata: val.metadata.unwrap_or(HashMap::new()),
-        }
-    }
 }
