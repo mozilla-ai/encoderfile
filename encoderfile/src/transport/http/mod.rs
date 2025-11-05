@@ -1,56 +1,86 @@
-use axum::{
-    Json,
-    extract::State,
-    response::IntoResponse,
-    routing::{get, post},
-};
+use crate::{common::ModelType, config::get_model_type, state::AppState};
 
-use crate::{common, config::get_model_type, services, state::AppState};
+mod base;
 
-const PREDICT_ROUTE: &'static str = "/predict";
-
-pub fn router(state: AppState) -> axum::Router {
-    let router = axum::Router::new()
-        .route("/health", get(|| async { "OK" }))
-        .route("/model", get(get_model_metadata));
-
-    match get_model_type() {
-        common::ModelType::Embedding => router.route(PREDICT_ROUTE, post(embedding)),
-        common::ModelType::SequenceClassification => {
-            router.route(PREDICT_ROUTE, post(sequence_classification))
-        }
-        common::ModelType::TokenClassification => {
-            router.route(PREDICT_ROUTE, post(token_classification))
-        }
-    }
-    .with_state(state)
-}
-
-async fn get_model_metadata(State(state): State<AppState>) -> impl IntoResponse {
-    Json(services::get_model_metadata(&state))
-}
-
+#[rustfmt::skip]
 macro_rules! generate_route {
-    ($fn_name:ident, $request_path:path, $fn_path:path) => {
-        async fn $fn_name(
-            State(state): State<AppState>,
-            Json(req): Json<$request_path>,
-        ) -> impl IntoResponse {
-            $fn_path(req, &state)
-                .map(|r| Json(r))
-                .map_err(|e| e.to_axum_status())
+    ($fn_name:ident, $request_body:ident, $return_model:ident, $fn_path:path) => {
+        mod $fn_name {
+            use axum::{Json, extract::State, response::IntoResponse};
+            use $crate::common::{$request_body, $return_model};
+
+            #[derive(Debug, utoipa::OpenApi)]
+            #[openapi(paths(
+                super::base::health,
+                super::base::get_model_metadata,
+                $fn_name,
+                openapi
+            ))]
+            pub struct ApiDoc;
+
+            pub fn get_router() -> axum::Router<crate::state::AppState> {
+                super::base::get_base_router()
+                    .route("/predict", axum::routing::post($fn_name))
+                    .route("/openapi.json", axum::routing::get(openapi))
+            }
+
+            #[utoipa::path(
+                get,
+                path = "/openapi.json",
+                responses(
+                    (status = 200, description = "Successful")
+                )
+            )]
+            pub async fn openapi() -> impl IntoResponse {
+                use utoipa::OpenApi;
+
+                Json(ApiDoc::openapi())
+            }
+
+            #[utoipa::path(
+                post,
+                path = "/predict",
+                request_body = $request_body,
+                responses(
+                    (status = 200, response = $return_model)
+                )
+            )]
+            pub async fn $fn_name(
+                State(state): State<$crate::state::AppState>,
+                Json(req): Json<$request_body>,
+            ) -> impl IntoResponse {
+                $fn_path(req, &state)
+                    .map(|r| Json(r))
+                    .map_err(|e| e.to_axum_status())
+            }
         }
     };
 }
 
-generate_route!(embedding, common::EmbeddingRequest, services::embedding);
+pub fn router(state: AppState) -> axum::Router {
+    match get_model_type() {
+        ModelType::Embedding => embedding::get_router(),
+        ModelType::SequenceClassification => sequence_classification::get_router(),
+        ModelType::TokenClassification => token_classification::get_router(),
+    }
+    .with_state(state)
+}
+
+generate_route!(
+    embedding,
+    EmbeddingRequest,
+    EmbeddingResponse,
+    crate::services::embedding
+);
 generate_route!(
     sequence_classification,
-    common::SequenceClassificationRequest,
-    services::sequence_classification
+    SequenceClassificationRequest,
+    SequenceClassificationResponse,
+    crate::services::sequence_classification
 );
 generate_route!(
     token_classification,
-    common::TokenClassificationRequest,
-    services::token_classification
+    TokenClassificationRequest,
+    TokenClassificationResponse,
+    crate::services::token_classification
 );
