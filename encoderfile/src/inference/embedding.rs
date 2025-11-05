@@ -7,6 +7,7 @@ use crate::{
     error::ApiError,
 };
 
+#[tracing::instrument(skip_all)]
 pub fn embedding<'a>(
     mut session: crate::model::model::Model<'a>,
     _config: &ModelConfig,

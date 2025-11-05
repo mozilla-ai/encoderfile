@@ -5,6 +5,7 @@ use crate::{
     state::AppState,
 };
 
+#[tracing::instrument(skip_all)]
 pub fn sequence_classification(
     request: impl Into<SequenceClassificationRequest>,
     state: &AppState,

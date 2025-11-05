@@ -8,6 +8,7 @@ use ndarray::{Axis, Ix3};
 use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
+#[tracing::instrument(skip_all)]
 pub fn token_classification<'a>(
     mut session: crate::model::model::Model<'a>,
     config: &ModelConfig,

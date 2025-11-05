@@ -5,6 +5,7 @@ use crate::{
     state::AppState,
 };
 
+#[tracing::instrument(skip_all)]
 pub fn token_classification(
     request: impl Into<TokenClassificationRequest>,
     state: &AppState,
