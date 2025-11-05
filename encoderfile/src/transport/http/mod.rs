@@ -3,7 +3,7 @@ use crate::{common::ModelType, config::get_model_type, state::AppState};
 mod base;
 
 #[rustfmt::skip]
-macro_rules! generate_route {
+macro_rules! generate_http {
     ($fn_name:ident, $request_body:ident, $return_model:ident, $fn_path:path) => {
         mod $fn_name {
             use axum::{Json, extract::State, response::IntoResponse};
@@ -66,19 +66,19 @@ pub fn router(state: AppState) -> axum::Router {
     .with_state(state)
 }
 
-generate_route!(
+generate_http!(
     embedding,
     EmbeddingRequest,
     EmbeddingResponse,
     crate::services::embedding
 );
-generate_route!(
+generate_http!(
     sequence_classification,
     SequenceClassificationRequest,
     SequenceClassificationResponse,
     crate::services::sequence_classification
 );
-generate_route!(
+generate_http!(
     token_classification,
     TokenClassificationRequest,
     TokenClassificationResponse,
