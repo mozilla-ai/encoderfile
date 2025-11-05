@@ -7,15 +7,23 @@ macro_rules! generate_http {
     ($fn_name:ident, $request_body:ident, $return_model:ident, $fn_path:path) => {
         mod $fn_name {
             use axum::{Json, extract::State, response::IntoResponse};
-            use $crate::common::{$request_body, $return_model};
+            use $crate::common::{$request_body, $return_model, GetModelMetadataResponse};
 
             #[derive(Debug, utoipa::OpenApi)]
-            #[openapi(paths(
-                super::base::health,
-                super::base::get_model_metadata,
-                $fn_name,
-                openapi
-            ))]
+            #[openapi(
+                paths(
+                    super::base::health,
+                    super::base::get_model_metadata,
+                    $fn_name,
+                    openapi
+                ),
+                components(
+                    responses(
+                        $return_model,
+                        GetModelMetadataResponse,
+                    )
+                )
+            )]
             pub struct ApiDoc;
 
             pub fn get_router() -> axum::Router<crate::state::AppState> {
