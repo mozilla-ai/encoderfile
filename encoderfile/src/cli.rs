@@ -160,12 +160,13 @@ impl ToString for Format {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
     if let Some(otlp_exporter_url) = otlp_exporter_url {
 
         let exporter = opentelemetry_otlp::SpanExporter::builder()
             .with_tonic()
-            .with_protocol(Protocol::HttpBinary)
+            .with_protocol(Protocol::Grpc)
             .with_endpoint(otlp_exporter_url)
             .build()?;
 
