@@ -187,7 +187,7 @@ fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
 
         let fmt_layer = tracing_subscriber::fmt::layer();
         let filter_layer = tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,tower_http=debug,ort=warn"));
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
 
         tracing_subscriber::registry()
             .with(filter_layer)
