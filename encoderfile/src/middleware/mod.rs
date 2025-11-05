@@ -1,17 +1,36 @@
-use axum::http::Request;
-use tracing::{Span, info_span};
+use axum::{
+    body::Body,
+    http::{HeaderValue, Request},
+    middleware::Next,
+    response::Response,
+};
+use tracing::info_span;
 
-pub fn format_span<T>(req: &Request<T>) -> Span {
-    let req_id = req
-        .headers()
+pub async fn request_id(req: Request<Body>, next: Next) -> Response {
+    // check for incoming header
+    let headers = req.headers();
+    let uuid_now = uuid::Uuid::now_v7().to_string();
+    let req_id = headers
         .get("x-request-id")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("no-id");
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or_else(|| {
+            uuid_now.as_str()
+        })
+        .to_string();
 
-    info_span!(
-        "request",
-        method = %req.method(),
-        uri = %req.uri(),
-        request_id = %req_id,
-    )
+    // attach to tracing span
+    let span = info_span!("request", %req_id);
+    let _enter = span.enter();
+
+    // put it in request extensions so handlers can use it
+    let mut req = req;
+    req.extensions_mut().insert(req_id.clone());
+
+    let mut res = next.run(req).await;
+
+    // echo it back in response
+    res.headers_mut()
+        .insert("x-request-id", HeaderValue::from_str(&req_id).unwrap());
+
+    res
 }
