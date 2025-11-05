@@ -1,4 +1,4 @@
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct TokenInfo {
     pub token: String,
     pub token_id: u32,

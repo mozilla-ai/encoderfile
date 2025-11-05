@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct SequenceClassificationRequest {
     pub inputs: Vec<String>,
     #[serde(default)]
@@ -19,7 +20,7 @@ impl From<crate::generated::sequence_classification::SequenceClassificationReque
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema, utoipa::ToResponse)]
 pub struct SequenceClassificationResponse {
     pub results: Vec<SequenceClassificationResult>,
     pub model_id: String,
@@ -39,7 +40,7 @@ impl From<SequenceClassificationResponse>
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SequenceClassificationResult {
     pub logits: Vec<f32>,
     pub scores: Vec<f32>,

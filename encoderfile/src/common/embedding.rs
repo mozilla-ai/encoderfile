@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct EmbeddingRequest {
     pub inputs: Vec<String>,
     pub normalize: bool,
@@ -19,7 +20,7 @@ impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema, utoipa::ToResponse)]
 pub struct EmbeddingResponse {
     pub results: Vec<TokenEmbeddingSequence>,
     pub model_id: String,
@@ -37,7 +38,7 @@ impl From<EmbeddingResponse> for crate::generated::embedding::EmbeddingResponse 
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct TokenEmbeddingSequence {
     pub embeddings: Vec<TokenEmbedding>,
 }
@@ -50,7 +51,7 @@ impl From<TokenEmbeddingSequence> for crate::generated::embedding::TokenEmbeddin
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct TokenEmbedding {
     pub embedding: Vec<f32>,
     pub token_info: Option<super::token::TokenInfo>,
