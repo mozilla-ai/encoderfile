@@ -43,8 +43,7 @@ pub fn token_classification<'a>(
                 Some(l) => l.to_string(),
                 None => {
                     panic!(
-                        "FATAL: No label found for ID {}. Check to make sure that your config is correct.",
-                        argmax
+                        "FATAL: No label found for ID {argmax}. Check to make sure that your config is correct."
                     )
                 }
             };
@@ -61,7 +60,7 @@ pub fn token_classification<'a>(
                     start,
                     end,
                 },
-                score: score,
+                score,
                 label,
                 logits: logits
                     .index_axis(Axis(0), i)

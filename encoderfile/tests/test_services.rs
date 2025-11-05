@@ -19,7 +19,7 @@ pub fn test_embedding_service() {
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(
-        response.metadata == None,
+        response.metadata.is_none(),
         "Metadata should be returned None"
     );
 }
@@ -36,7 +36,7 @@ pub fn test_sequence_classification_service() {
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(
-        response.metadata == None,
+        response.metadata.is_none(),
         "Metadata should be returned None"
     );
 }
@@ -53,7 +53,7 @@ pub fn test_token_classification_service() {
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(
-        response.metadata == None,
+        response.metadata.is_none(),
         "Metadata should be returned None"
     );
 }

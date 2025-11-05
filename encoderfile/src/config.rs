@@ -30,7 +30,7 @@ pub fn get_model_type() -> ModelType {
             "embedding" => ModelType::Embedding,
             "sequence_classification" => ModelType::SequenceClassification,
             "token_classification" => ModelType::TokenClassification,
-            other => panic!("Invalid model type: {}", other),
+            other => panic!("Invalid model type: {other}"),
         })
         .clone()
 }
@@ -49,6 +49,6 @@ impl ModelConfig {
     }
 
     pub fn label2id(&self, label: &str) -> Option<u32> {
-        self.label2id.as_ref()?.get(label).map(|i| *i)
+        self.label2id.as_ref()?.get(label).copied()
     }
 }

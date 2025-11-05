@@ -1,4 +1,4 @@
-const BUILD_VARS: &[&'static str] = &[
+const BUILD_VARS: &[&str] = &[
     "MODEL_WEIGHTS_PATH",
     "TOKENIZER_PATH",
     "MODEL_CONFIG_PATH",
@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for var in BUILD_VARS {
         let val = std::env::var(var).expect("Missing required environment variable: {var}");
 
-        println!("cargo:rustc-env={}={}", var, val);
+        println!("cargo:rustc-env={var}={val}");
     }
 
     Ok(())

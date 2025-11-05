@@ -35,7 +35,7 @@ impl From<SequenceClassificationResponse>
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
             model_id: val.model_id,
-            metadata: val.metadata.unwrap_or(HashMap::new()),
+            metadata: val.metadata.unwrap_or_default(),
         }
     }
 }

@@ -3,9 +3,9 @@ use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};
 
-pub const EMBEDDING_DIR: &'static str = "../models/embedding";
-const SEQUENCE_CLASSIFICATION_DIR: &'static str = "../models/sequence_classification";
-const TOKEN_CLASSIFICATION_DIR: &'static str = "../models/token_classification";
+pub const EMBEDDING_DIR: &str = "../models/embedding";
+const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
+const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
 pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
     let config = Arc::new(get_config(dir));
@@ -48,7 +48,7 @@ fn get_tokenizer(dir: &str, config: &Arc<ModelConfig>) -> tokenizers::Tokenizer 
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
-    encoderfile::tokenizer::get_tokenizer_from_string(tokenizer_str.as_str(), &config)
+    encoderfile::tokenizer::get_tokenizer_from_string(tokenizer_str.as_str(), config)
 }
 
 fn get_model<'a>(dir: &str) -> Mutex<Session> {
