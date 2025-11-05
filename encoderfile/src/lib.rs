@@ -8,7 +8,6 @@ pub mod error;
 #[rustfmt::skip]
 pub mod generated;
 pub mod inference;
-pub mod middleware;
 pub mod model;
 pub mod server;
 pub mod services;
