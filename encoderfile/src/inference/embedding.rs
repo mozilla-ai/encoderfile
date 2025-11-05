@@ -33,39 +33,26 @@ pub fn embedding<'a>(
             false => embs.into_owned(),
         };
 
-        let mut token_ids = encoding.get_ids().iter();
-        let mut tokens = encoding.get_tokens().iter();
-        let mut special_tokens_mask = encoding.get_special_tokens_mask().iter();
-        let mut offsets = encoding.get_offsets().iter();
-        let mut embeddings_iter = transformed.axis_iter(Axis(0));
-
         let mut results = Vec::new();
 
-        while let (Some(token_id), Some(token), Some(special_tokens_mask), Some(offset), Some(e)) = (
-            token_ids.next(),
-            tokens.next(),
-            special_tokens_mask.next(),
-            offsets.next(),
-            embeddings_iter.next(),
-        ) {
-            if *special_tokens_mask == 1 {
+        for i in 0..encoding.len() {
+            if encoding.get_special_tokens_mask()[i] == 1 {
                 continue;
             }
 
-            let (start, end) = *offset;
-            let embedding: Vec<f32> = e.iter().map(|i| *i).collect();
-
+            let (start, end) = encoding.get_offsets()[i];
             let token_info = TokenInfo {
-                token: token.clone(),
-                token_id: *token_id,
+                token: encoding.get_tokens()[i].clone(),
+                token_id: encoding.get_ids()[i],
                 start,
                 end,
             };
 
+            let e = transformed.index_axis(Axis(0), i);
             results.push(TokenEmbedding {
-                embedding,
+                embedding: e.to_owned().into_raw_vec_and_offset().0,
                 token_info: Some(token_info),
-            })
+            });
         }
 
         embeddings.push(TokenEmbeddingSequence {
@@ -74,6 +61,4 @@ pub fn embedding<'a>(
     }
 
     Ok(embeddings)
-
-    // Err(ApiError::InternalError("Not Implemented"))
 }
