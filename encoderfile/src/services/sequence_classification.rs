@@ -12,7 +12,7 @@ pub fn sequence_classification(
     let request = request.into();
     let session = state.session.lock();
 
-    let encodings = crate::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
+    let encodings = crate::model::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
 
     let results = inference::sequence_classification::sequence_classification(
         session,

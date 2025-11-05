@@ -1,6 +1,6 @@
 use crate::{
     assets::TOKENIZER_JSON,
-    config::{ModelConfig, get_model_config},
+    model::config::{ModelConfig, get_model_config},
     error::ApiError,
 };
 use anyhow::Result;

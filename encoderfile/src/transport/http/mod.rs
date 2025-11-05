@@ -1,4 +1,4 @@
-use crate::{common::ModelType, config::get_model_type, state::AppState};
+use crate::{common::ModelType, model::config::get_model_type, state::AppState};
 
 mod base;
 

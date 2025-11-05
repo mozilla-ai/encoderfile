@@ -3,12 +3,12 @@ use tokenizers::Encoding;
 
 use crate::{
     common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
-    config::ModelConfig,
+    model::config::ModelConfig,
     error::ApiError,
 };
 
 pub fn embedding<'a>(
-    mut session: crate::model::Model<'a>,
+    mut session: crate::model::model::Model<'a>,
     _config: &ModelConfig,
     encodings: Vec<Encoding>,
     normalize: bool,

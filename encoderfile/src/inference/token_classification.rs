@@ -1,6 +1,6 @@
 use crate::{
     common::{TokenClassification, TokenClassificationResult, TokenInfo},
-    config::ModelConfig,
+    model::config::ModelConfig,
     error::ApiError,
     inference::utils::softmax,
 };
@@ -9,7 +9,7 @@ use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
 pub fn token_classification<'a>(
-    mut session: crate::model::Model<'a>,
+    mut session: crate::model::model::Model<'a>,
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {

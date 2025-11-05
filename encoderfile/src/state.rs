@@ -7,9 +7,9 @@ use tokenizers::Tokenizer;
 use crate::{
     assets::get_model_id,
     common::ModelType,
-    config::{ModelConfig, get_model_config, get_model_type},
-    model::get_model,
-    tokenizer::get_tokenizer,
+    model::config::{ModelConfig, get_model_config, get_model_type},
+    model::model::get_model,
+    model::tokenizer::get_tokenizer,
 };
 
 #[derive(Debug, Clone)]
