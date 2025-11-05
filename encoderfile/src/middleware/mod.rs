@@ -9,12 +9,12 @@ use tracing::info_span;
 pub async fn request_id(req: Request<Body>, next: Next) -> Response {
     // check for incoming header
     let headers = req.headers();
-    let uuid_now = uuid::Uuid::now_v7().to_string();
     let req_id = headers
         .get("x-request-id")
         .and_then(|h| h.to_str().ok())
+        .and_then(sanitize_request_id)
         .unwrap_or_else(|| {
-            uuid_now.as_str()
+            uuid::Uuid::now_v7().to_string()
         })
         .to_string();
 
@@ -33,4 +33,18 @@ pub async fn request_id(req: Request<Body>, next: Next) -> Response {
         .insert("x-request-id", HeaderValue::from_str(&req_id).unwrap());
 
     res
+}
+
+fn sanitize_request_id(header_val: &str) -> Option<String> {
+    if header_val.len() > 64 {
+        return None;
+    }
+    let is_valid = header_val
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
+    if !is_valid {
+        tracing::warn!("Invalid X-Request-ID, generating new one");
+        return None;
+    }
+    Some(header_val.to_string())
 }
