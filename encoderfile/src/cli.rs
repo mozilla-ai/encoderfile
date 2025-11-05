@@ -198,7 +198,7 @@ fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
         tracing_subscriber::fmt()
             .with_env_filter(
                 tracing_subscriber::EnvFilter::try_from_default_env()
-                    .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,tower_http=debug,ort=warn")), // default to "info" level
+                    .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,ort=warn")), // default to "info" level
             )
             .with_target(false) // hide module path
             .compact() // short, pretty output
