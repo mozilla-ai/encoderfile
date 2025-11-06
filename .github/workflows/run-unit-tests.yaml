@@ -25,8 +25,8 @@ jobs:
       
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install -y protobuf-compiler libssl-dev pkg-config cmake zlib1g-dev libdw-dev binutils-dev libelf-dev
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler libssl-dev pkg-config cmake zlib1g-dev libdw-dev binutils-dev libelf-dev
           curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall cargo-tarpaulin --no-confirm
 
