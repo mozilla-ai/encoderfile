@@ -1,0 +1,66 @@
+name: Run Unit Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  run_unit_tests:
+    runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:develop-nightly
+      options: --security-opt seccomp=unconfined
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          protoc --version
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Cache uv environments
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            .venv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock', 'pyproject.toml') }}
+          restore-keys: |
+            uv-${{ runner.os }}-
+      
+      - name: Run project setup
+        run: make setup
+
+      - name: Generate dummy env file
+        run: uv run -m encoderbuild.utils.create_dummy_env_file > .env
+      
+      - name: Install cargo tarpaulin
+        run: cargo install cargo-tarpaulin
+      
+      - name: Generate code coverage
+        run: |
+          cargo \
+            +nightly \
+            tarpaulin \
+            --verbose \
+            --all-features \
+            --workspace \
+            --timeout 180 \
+            --out xml
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
