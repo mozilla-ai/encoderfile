@@ -11,7 +11,7 @@ use crate::{
         },
         sequence_classification, token_classification,
     },
-    model::config::get_model_type,
+    runtime::config::get_model_type,
 };
 
 pub fn router() -> axum::Router {

@@ -13,7 +13,7 @@ pub fn token_classification(
     let request = request.into();
     let session = state.session.lock();
 
-    let encodings = crate::model::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
+    let encodings = crate::runtime::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
 
     let results =
         inference::token_classification::token_classification(session, &state.config, encodings)?;

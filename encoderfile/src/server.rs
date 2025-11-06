@@ -1,5 +1,5 @@
 use crate::{
-    model::config::get_model_type,
+    runtime::config::get_model_type,
     transport::{grpc, http},
 };
 use anyhow::Result;

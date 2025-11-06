@@ -7,7 +7,7 @@ pub mod error;
 #[rustfmt::skip]
 pub mod generated;
 pub mod inference;
-pub mod model;
+pub mod runtime;
 pub mod server;
 pub mod services;
 pub mod state;

@@ -2,7 +2,7 @@ use crate::{
     common::{
         EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
     },
-    model::config::get_model_type,
+    runtime::config::get_model_type,
     server::{run_grpc, run_http},
     services::{embedding, sequence_classification, token_classification},
 };
