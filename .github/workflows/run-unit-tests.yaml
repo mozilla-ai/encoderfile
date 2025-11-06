@@ -29,25 +29,12 @@ jobs:
 
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
-
-      - name: Cache uv environments
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/uv
-            .venv
-          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock', 'pyproject.toml') }}
-          restore-keys: |
-            uv-${{ runner.os }}-
       
       - name: Run project setup
         run: make setup
 
       - name: Generate dummy env file
         run: uv run -m encoderbuild.utils.create_dummy_env_file > .env
-      
-      - name: Install cargo tarpaulin
-        run: cargo install cargo-tarpaulin
       
       - name: Generate code coverage
         run: |
