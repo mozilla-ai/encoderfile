@@ -33,7 +33,7 @@ impl From<EmbeddingResponse> for crate::generated::embedding::EmbeddingResponse 
         Self {
             results: val.results.into_iter().map(|embs| embs.into()).collect(),
             model_id: val.model_id,
-            metadata: val.metadata.unwrap_or(HashMap::new()),
+            metadata: val.metadata.unwrap_or_default(),
         }
     }
 }

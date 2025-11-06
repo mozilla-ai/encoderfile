@@ -18,3 +18,7 @@ format:
 licenses:
 	@echo "Generating licenses..."
 	@cargo bundle-licenses --format yaml --output THIRDPARTY.yml
+
+.PHONY: pre-commit
+pre-commit:
+	@uv run pre-commit run --all-files

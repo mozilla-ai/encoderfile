@@ -2,10 +2,10 @@ use crate::{
     common::{TokenClassification, TokenClassificationResult, TokenInfo},
     model::config::ModelConfig,
     error::ApiError,
-    inference::utils::softmax,
 };
 use ndarray::{Axis, Ix3};
 use ndarray_stats::QuantileExt;
+use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
 #[tracing::instrument(skip_all)]
@@ -30,62 +30,49 @@ pub fn token_classification<'a>(
 
     for (encoding, logits) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
         let logits = logits.to_owned();
-
-        let scores = softmax(&logits, Axis(1));
-
-        let mut token_ids = encoding.get_ids().iter();
-        let mut tokens = encoding.get_tokens().iter();
-        let mut special_tokens_mask = encoding.get_special_tokens_mask().iter();
-        let mut offsets = encoding.get_offsets().iter();
-        let mut logs_iter = logits.axis_iter(Axis(0));
-        let mut scores_iter = scores.axis_iter(Axis(0));
+        let scores = logits.softmax(Axis(1));
 
         let mut results = Vec::new();
 
-        while let (
-            Some(token_id),
-            Some(token),
-            Some(special_tokens_mask),
-            Some(offset),
-            Some(logs),
-            Some(scores),
-        ) = (
-            token_ids.next(),
-            tokens.next(),
-            special_tokens_mask.next(),
-            offsets.next(),
-            logs_iter.next(),
-            scores_iter.next(),
-        ) {
-            let argmax = scores.argmax().expect("Model has 0 labels");
-            let score = scores[argmax];
+        for i in 0..encoding.len() {
+            let argmax = scores
+                .index_axis(Axis(0), i)
+                .argmax()
+                .expect("Model has 0 labels");
+            let score = scores.index_axis(Axis(0), i)[argmax];
             let label = match config.id2label(argmax as u32) {
                 Some(l) => l.to_string(),
                 None => {
                     panic!(
-                        "FATAL: No label found for ID {}. Check to make sure that your config is correct.",
-                        argmax
+                        "FATAL: No label found for ID {argmax}. Check to make sure that your config is correct."
                     )
                 }
             };
+            let (start, end) = encoding.get_offsets()[i];
 
-            let (start, end) = *offset;
-
-            if *special_tokens_mask == 1 {
+            if encoding.get_special_tokens_mask()[i] == 1 {
                 continue;
             }
 
             results.push(TokenClassification {
                 token_info: TokenInfo {
-                    token_id: *token_id,
-                    token: token.clone(),
+                    token_id: encoding.get_ids()[i],
+                    token: encoding.get_tokens()[i].clone(),
                     start,
                     end,
                 },
-                score: score,
+                score,
                 label,
-                logits: logs.iter().map(|i| *i).collect(),
-                scores: scores.iter().map(|i| *i).collect(),
+                logits: logits
+                    .index_axis(Axis(0), i)
+                    .to_owned()
+                    .into_raw_vec_and_offset()
+                    .0,
+                scores: scores
+                    .index_axis(Axis(0), i)
+                    .to_owned()
+                    .into_raw_vec_and_offset()
+                    .0,
             })
         }
 

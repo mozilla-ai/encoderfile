@@ -1,6 +1,7 @@
 use crate::{common::SequenceClassificationResult, model::config::ModelConfig, error::ApiError};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
+use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
 #[tracing::instrument(skip_all)]
@@ -24,7 +25,7 @@ pub fn sequence_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_labels]")
         .into_owned();
 
-    let probabilities = super::utils::softmax(&outputs, Axis(1));
+    let probabilities = outputs.softmax(Axis(1));
 
     let results = outputs
         .axis_iter(Axis(0))
@@ -32,8 +33,8 @@ pub fn sequence_classification<'a>(
         .map(|(logs, probs)| {
             let predicted_index = probs.argmax().expect("Model has 0 labels");
             SequenceClassificationResult {
-                logits: logs.iter().map(|i| *i).collect(),
-                scores: probs.iter().map(|i| *i).collect(),
+                logits: logs.to_owned().into_raw_vec_and_offset().0,
+                scores: probs.to_owned().into_raw_vec_and_offset().0,
                 predicted_index: (predicted_index as u32),
                 predicted_label: config
                     .id2label(predicted_index as u32)

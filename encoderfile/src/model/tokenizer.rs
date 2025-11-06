@@ -25,7 +25,7 @@ pub fn get_tokenizer_from_string(s: &str, config: &Arc<ModelConfig>) -> Tokenize
 
     let mut tokenizer = match Tokenizer::from_str(s) {
         Ok(t) => t,
-        Err(e) => panic!("FATAL: Error loading tokenizer: {:?}", e),
+        Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
     };
 
     let pad_token = match tokenizer.id_to_token(pad_token_id) {

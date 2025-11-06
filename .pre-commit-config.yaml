@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: bash -c 'cargo fmt --all -- --check'
+        language: system
+        types: [rust]
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: bash -c 'cargo clippy --fix --allow-dirty -- -D warnings'
+        language: system
+        types: [rust]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9  # use the latest release tag
+    hooks:
+      - id: ruff
+        name: ruff check
+        args: [--fix]  # optional: auto-fix issues
+      - id: ruff-format
+        name: ruff format

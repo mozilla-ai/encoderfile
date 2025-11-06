@@ -13,7 +13,7 @@ impl From<GetModelMetadataResponse> for crate::generated::encoderfile::GetModelM
         Self {
             model_id: val.model_id,
             model_type: crate::generated::encoderfile::ModelType::from(val.model_type).into(),
-            id2label: val.id2label.unwrap_or(HashMap::new()),
+            id2label: val.id2label.unwrap_or_default(),
         }
     }
 }

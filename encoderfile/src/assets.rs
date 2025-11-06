@@ -71,7 +71,7 @@ embed_in_section!(
 embed_in_section!(MODEL_TYPE_STR, "MODEL_TYPE", "model_type", Env);
 embed_in_section!(MODEL_ID, "MODEL_NAME", "model_id", Env);
 
-pub const BANNER: &'static str = include_str!("../../assets/banner.txt");
+pub const BANNER: &str = include_str!("../../assets/banner.txt");
 
 pub fn get_banner() -> String {
     let model_id_len = MODEL_ID.len();
@@ -81,10 +81,7 @@ pub fn get_banner() -> String {
 
     let spaces = " ".repeat(remaining_len);
 
-    format!(
-        "{}\nModel ID: {}{}{}\n",
-        BANNER, MODEL_ID, spaces, signature
-    )
+    format!("{BANNER}\nModel ID: {MODEL_ID}{spaces}{signature}\n")
 }
 
 pub fn get_model_id() -> String {
