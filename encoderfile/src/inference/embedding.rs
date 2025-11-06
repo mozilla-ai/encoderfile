@@ -3,8 +3,8 @@ use tokenizers::Encoding;
 
 use crate::{
     common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
-    model::config::ModelConfig,
     error::ApiError,
+    model::config::ModelConfig,
 };
 
 #[tracing::instrument(skip_all)]

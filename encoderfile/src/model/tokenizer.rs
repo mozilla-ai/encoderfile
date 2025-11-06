@@ -1,7 +1,7 @@
 use crate::{
     assets::TOKENIZER_JSON,
-    model::config::{ModelConfig, get_model_config},
     error::ApiError,
+    model::config::{ModelConfig, get_model_config},
 };
 use anyhow::Result;
 use std::str::FromStr;

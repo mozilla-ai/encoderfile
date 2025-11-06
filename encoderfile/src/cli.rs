@@ -8,11 +8,11 @@ use crate::{
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
-use std::io::Write;
-use opentelemetry_sdk::trace::SdkTracerProvider;
 use opentelemetry::trace::TracerProvider as _;
+use opentelemetry_otlp::{Protocol, WithExportConfig};
+use opentelemetry_sdk::trace::SdkTracerProvider;
+use std::io::Write;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use opentelemetry_otlp::{WithExportConfig, Protocol};
 
 macro_rules! generate_cli_route {
     ($req:ident, $fn:path, $format:ident, $out_dir:expr) => {{
@@ -92,7 +92,7 @@ impl Commands {
 
                 match enable_otel {
                     true => setup_tracing(Some(otel_exporter_url.as_str())),
-                    false => setup_tracing(None)
+                    false => setup_tracing(None),
                 }?;
 
                 let grpc_process = match disable_grpc {
@@ -163,7 +163,6 @@ impl ToString for Format {
 #[cfg(not(tarpaulin_include))]
 fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
     if let Some(otlp_exporter_url) = otlp_exporter_url {
-
         let exporter = opentelemetry_otlp::SpanExporter::builder()
             .with_tonic()
             .with_protocol(Protocol::Grpc)
@@ -171,9 +170,10 @@ fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
             .build()?;
 
         let resource = opentelemetry_sdk::Resource::builder()
-            .with_attributes(vec![
-                opentelemetry::KeyValue::new(opentelemetry_semantic_conventions::resource::SERVICE_NAME, "encoderfile"),
-            ])
+            .with_attributes(vec![opentelemetry::KeyValue::new(
+                opentelemetry_semantic_conventions::resource::SERVICE_NAME,
+                "encoderfile",
+            )])
             .build();
 
         let provider = SdkTracerProvider::builder()
@@ -188,7 +188,7 @@ fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
 
         let fmt_layer = tracing_subscriber::fmt::layer();
         let filter_layer = tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,ort=warn"));
+            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,ort=warn"));
 
         tracing_subscriber::registry()
             .with(filter_layer)
