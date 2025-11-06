@@ -47,7 +47,7 @@ jobs:
             --timeout 180 \
             --out xml
 
-      - name: Upload to codecov.io
+      - name: Upload to codecov
         uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
