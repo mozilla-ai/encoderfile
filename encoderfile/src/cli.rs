@@ -54,7 +54,7 @@ pub enum Commands {
         disable_grpc: bool,
         #[arg(long, default_value_t = false)]
         disable_http: bool,
-        #[arg(long, default_value_t = true)]
+        #[arg(long, default_value_t = false)]
         enable_otel: bool,
         #[arg(long, default_value = "http://localhost:4317")]
         otel_exporter_url: String,
