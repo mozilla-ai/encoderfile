@@ -41,7 +41,6 @@ jobs:
           cargo \
             +nightly \
             tarpaulin \
-            --verbose \
             --all-features \
             --workspace \
             --timeout 180 \
