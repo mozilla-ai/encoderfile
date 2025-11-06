@@ -1,5 +1,5 @@
 use crate::{
-    config::get_model_type,
+    runtime::config::get_model_type,
     transport::{grpc, http},
 };
 use anyhow::Result;
@@ -12,7 +12,6 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let router = grpc::router()
         .layer(
             tower_http::trace::TraceLayer::new_for_grpc()
-                .make_span_with(crate::middleware::format_span)
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
@@ -39,7 +38,6 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
     let router = http::router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
-                .make_span_with(crate::middleware::format_span)
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();

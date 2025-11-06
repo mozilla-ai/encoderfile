@@ -1,11 +1,12 @@
-use crate::{common::SequenceClassificationResult, config::ModelConfig, error::ApiError};
+use crate::{common::SequenceClassificationResult, error::ApiError, runtime::config::ModelConfig};
 use ndarray::{Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
+#[tracing::instrument(skip_all)]
 pub fn sequence_classification<'a>(
-    mut session: crate::model::Model<'a>,
+    mut session: crate::runtime::model::Model<'a>,
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {

@@ -1,6 +1,5 @@
 use crate::{
     common::ModelType,
-    config::get_model_type,
     generated::{
         embedding,
         encoderfile::{
@@ -12,6 +11,7 @@ use crate::{
         },
         sequence_classification, token_classification,
     },
+    runtime::config::get_model_type,
 };
 
 pub fn router() -> axum::Router {

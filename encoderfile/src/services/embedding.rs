@@ -5,6 +5,7 @@ use crate::{
     state::AppState,
 };
 
+#[tracing::instrument(skip_all)]
 pub fn embedding(
     request: impl Into<EmbeddingRequest>,
     state: &AppState,
@@ -13,7 +14,7 @@ pub fn embedding(
 
     let session = state.session.lock();
 
-    let encodings = crate::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
+    let encodings = crate::runtime::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
 
     let results =
         inference::embedding::embedding(session, &state.config, encodings, request.normalize)?;

@@ -1,4 +1,4 @@
-use encoderfile::{common::ModelType, config::ModelConfig, state::AppState};
+use encoderfile::{common::ModelType, runtime::config::ModelConfig, state::AppState};
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};
@@ -48,7 +48,7 @@ fn get_tokenizer(dir: &str, config: &Arc<ModelConfig>) -> tokenizers::Tokenizer 
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
-    encoderfile::tokenizer::get_tokenizer_from_string(tokenizer_str.as_str(), config)
+    encoderfile::runtime::tokenizer::get_tokenizer_from_string(tokenizer_str.as_str(), config)
 }
 
 fn get_model<'a>(dir: &str) -> Mutex<Session> {

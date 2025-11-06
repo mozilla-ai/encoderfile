@@ -1,15 +1,16 @@
 use crate::{
     common::{TokenClassification, TokenClassificationResult, TokenInfo},
-    config::ModelConfig,
     error::ApiError,
+    runtime::config::ModelConfig,
 };
 use ndarray::{Axis, Ix3};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
+#[tracing::instrument(skip_all)]
 pub fn token_classification<'a>(
-    mut session: crate::model::Model<'a>,
+    mut session: crate::runtime::model::Model<'a>,
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
