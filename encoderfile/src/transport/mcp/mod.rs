@@ -28,6 +28,7 @@ use rmcp::{
     },
     tool, tool_handler, tool_router
 };
+use serde_json::value::Value::String as SerdeString;
 
 #[derive(Clone)]
 pub struct Encoder {
@@ -35,6 +36,7 @@ pub struct Encoder {
     tool_router: ToolRouter<Encoder>,
 }
 
+const ENCODER_DESER_ERROR_MSG: &'static str = "Encoder response deserialization error";
 
 impl From<ApiError> for McpError {
      fn from(api_error: ApiError) -> McpError {
@@ -47,7 +49,11 @@ impl From<ApiError> for McpError {
 }
 
 fn to_mcp_error(serde_err: serde_json::Error) -> McpError {
-    return McpError {code: ErrorCode::INVALID_REQUEST, message: serde_err.to_string(), data: None};
+    return McpError {
+        code: ErrorCode::INVALID_REQUEST,
+        message: std::borrow::Cow::Borrowed(ENCODER_DESER_ERROR_MSG),
+        data: Some(SerdeString(serde_err.to_string()))
+    };
 }
 
 #[tool_router]
@@ -68,7 +74,7 @@ impl Encoder {
     #[tool(description = "Run the embedded encoder")]
     fn run_encoder(&self, Parameters(object): Parameters<EmbeddingRequest>) -> Result<CallToolResult, McpError> {
         let response = embedding(object, &self.state)?;
-        let result = CallToolResult::structured(serde_json::to_value(response).map_err(to_mcp_error));
+        let result = CallToolResult::structured(serde_json::to_value(response).map_err(to_mcp_error)?);
         return Ok(result);
     }
 }

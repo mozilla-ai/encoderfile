@@ -71,16 +71,20 @@ pub async fn run_mcp(hostname: String, port: String) -> Result<()> {
     // FIXME add otel around here
 
     let service = StreamableHttpService::new(
-        move || Ok(Encoder::new(AppState::default())),
+        || Ok(Encoder::new(AppState::default())),
         LocalSessionManager::default().into(),
         Default::default(),
     );
 
     // FIXME consolidate routes with existing axum
-    let router = axum::Router::new().nest_service("/mcp", service);
-    let tcp_listener = tokio::net::TcpListener::bind(addr).await?;
-    let _ = axum::serve(tcp_listener, router)
-        .with_graceful_shutdown(async { tokio::signal::ctrl_c().await.unwrap() })
-        .await;
+    let router = axum::Router::new().nest_service("/mcp", service)
+        .layer(
+        tower_http::trace::TraceLayer::new_for_http()
+            .make_span_with(crate::middleware::format_span)
+            .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
+        );
+    tracing::info!("Running {:?} MCP server on {}", get_model_type(), &addr);
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    let _ = axum::serve(listener, router).await?;
     Ok(())
 }
