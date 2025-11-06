@@ -81,9 +81,7 @@ pub fn get_banner() -> String {
 
     let spaces = " ".repeat(remaining_len);
 
-    format!(
-        "{BANNER}\nModel ID: {MODEL_ID}{spaces}{signature}\n"
-    )
+    format!("{BANNER}\nModel ID: {MODEL_ID}{spaces}{signature}\n")
 }
 
 pub fn get_model_id() -> String {
