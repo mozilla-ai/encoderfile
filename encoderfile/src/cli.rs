@@ -2,8 +2,8 @@ use crate::{
     common::{
         EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
     },
+    server::{run_grpc, run_http, run_mcp},
     config::get_model_type,
-    server::{run_grpc, run_http},
     services::{embedding, sequence_classification, token_classification},
 };
 use anyhow::Result;
@@ -50,6 +50,12 @@ pub enum Commands {
         disable_grpc: bool,
         #[arg(long, default_value_t = false)]
         disable_http: bool,
+        #[arg(long, default_value = "0.0.0.0")]
+        mcp_hostname: String,
+        #[arg(long, default_value = "9100")]
+        mcp_port: String,
+        #[arg(long, default_value_t = false)]
+        disable_mcp: bool,
     },
     Infer {
         #[arg(required = true)]
@@ -73,6 +79,9 @@ impl Commands {
                 http_port,
                 disable_grpc,
                 disable_http,
+                mcp_hostname,
+                mcp_port,
+                disable_mcp,
             } => {
                 if disable_grpc && disable_http {
                     return Err(crate::error::ApiError::ConfigError(
@@ -88,6 +97,11 @@ impl Commands {
                 let http_process = match disable_http {
                     true => tokio::spawn(async { Ok(()) }),
                     false => tokio::spawn(run_http(http_hostname, http_port)),
+                };
+
+                let mcp_process = match disable_mcp {
+                    true => tokio::spawn(async { Ok(()) }),
+                    false => tokio::spawn(run_mcp(mcp_hostname, mcp_port)),
                 };
 
                 println!("{}", crate::get_banner());

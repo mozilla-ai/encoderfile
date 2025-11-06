@@ -54,3 +54,33 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
 
     Ok(())
 }
+
+
+
+#[cfg(not(tarpaulin_include))]
+pub async fn run_mcp(hostname: String, port: String) -> Result<()> {
+    use rmcp::transport::streamable_http_server::{
+        StreamableHttpService,
+        session::local::LocalSessionManager,
+    };
+    use crate::state::AppState;
+    use crate::transport::mcp::Encoder;
+
+    let addr = format!("{}:{}", &hostname, &port);
+
+    // FIXME add otel around here
+
+    let service = StreamableHttpService::new(
+        move || Ok(Encoder::new(AppState::default())),
+        LocalSessionManager::default().into(),
+        Default::default(),
+    );
+
+    // FIXME consolidate routes with existing axum
+    let router = axum::Router::new().nest_service("/mcp", service);
+    let tcp_listener = tokio::net::TcpListener::bind(addr).await?;
+    let _ = axum::serve(tcp_listener, router)
+        .with_graceful_shutdown(async { tokio::signal::ctrl_c().await.unwrap() })
+        .await;
+    Ok(())
+}
