@@ -59,7 +59,10 @@ macro_rules! test_grpc_service {
                 let response: $predict_response_ty =
                     service.predict(request).await.unwrap().into_inner();
 
-                assert!(response.results.len() == n_inps, "Mismatched number of results");
+                assert!(
+                    response.results.len() == n_inps,
+                    "Mismatched number of results"
+                );
                 assert!(response.metadata.is_empty(), "Metadata isn't empty");
             }
 
