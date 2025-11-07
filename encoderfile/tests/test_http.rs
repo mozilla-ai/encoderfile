@@ -2,12 +2,8 @@ macro_rules! test_router_mod {
     ($mod_name:ident, $state_func:ident, $test_input:expr) => {
         mod $mod_name {
             use axum::http::{Request, StatusCode};
+            use encoderfile::{common::*, test_utils::*, transport::http::router};
             use tower::ServiceExt;
-            use encoderfile::{
-                common::*,
-                test_utils::*,
-                transport::http::router,
-            };
 
             #[tokio::test]
             async fn test_health_route() {
@@ -95,31 +91,31 @@ macro_rules! test_router_mod {
                 assert_eq!(resp.status(), StatusCode::UNPROCESSABLE_ENTITY);
             }
         }
-    }
+    };
 }
 
 test_router_mod!(
     embedding_tests,
     embedding_state,
     EmbeddingRequest {
-            inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
-            normalize: true,
-            metadata: None,
-        }
+        inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
+        normalize: true,
+        metadata: None,
+    }
 );
 test_router_mod!(
     sequence_classification_tests,
     sequence_classification_state,
     SequenceClassificationRequest {
-            inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
-            metadata: None,
-        }
+        inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
+        metadata: None,
+    }
 );
 test_router_mod!(
     token_classification_tests,
     token_classification_state,
     TokenClassificationRequest {
-            inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
-            metadata: None,
-        }
+        inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
+        metadata: None,
+    }
 );
