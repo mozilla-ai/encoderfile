@@ -3,6 +3,10 @@ name = "encoderfile"
 version = "0.1.0"
 edition = "2024"
 
+[[bench]]
+name = "l2_norm"
+harness = false
+
 [dependencies]
 anyhow = "1.0.100"
 axum = "0.8.6"
