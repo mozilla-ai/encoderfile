@@ -11,10 +11,10 @@ use encoderfile::{
         sequence_classification::{SequenceClassificationRequest, SequenceClassificationResponse},
         token_classification::{TokenClassificationRequest, TokenClassificationResponse},
     },
+    test_utils::*,
     transport::grpc::{
         EmbeddingService, SequenceClassificationService, TokenClassificationService,
     },
-    test_utils::*
 };
 
 macro_rules! assert_code {
