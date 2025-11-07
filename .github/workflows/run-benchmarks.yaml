@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run_unit_tests:
+  run_benchmarks:
     runs-on: ubuntu-latest
 
     steps:
