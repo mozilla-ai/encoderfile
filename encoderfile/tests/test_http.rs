@@ -1,10 +1,12 @@
-use axum::{Json, extract::State, http::{Request, StatusCode}};
+use axum::{
+    Json,
+    extract::State,
+    http::{Request, StatusCode},
+};
 use encoderfile::{
     common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
     test_utils::{embedding_state, sequence_classification_state, token_classification_state},
-    transport::http::{
-        embedding, router, sequence_classification, token_classification
-    },
+    transport::http::{embedding, router, sequence_classification, token_classification},
 };
 use tower::ServiceExt;
 
@@ -57,12 +59,12 @@ macro_rules! test_router {
             let request = Request::get("/predict")
                 .body(axum::body::Body::from("{}"))
                 .unwrap();
-            
+
             let resp = router.clone().oneshot(request).await.unwrap();
 
             assert_ne!(resp.status(), StatusCode::NOT_FOUND);
         }
-    }
+    };
 }
 
 macro_rules! test_successful_route {
