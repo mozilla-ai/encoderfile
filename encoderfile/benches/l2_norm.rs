@@ -1,6 +1,6 @@
+use divan::Bencher;
 use encoderfile::inference::utils::l2_normalize;
 use ndarray::{Array2, Axis};
-use divan::Bencher;
 
 fn main() {
     divan::main();
