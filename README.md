@@ -1,5 +1,12 @@
 # Encoderfile
 
+<div align="center">
+
+[![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge)
+[![codecov](https://codecov.io/gh/mozilla-ai/encoderfile/graph/badge.svg?token=45KUDEYD8Z)](https://codecov.io/gh/mozilla-ai/encoderfile)
+
+</div>
+
 ## 🚀 Overview
 
 Encoderfile packages transformer encoders—optionally with classification heads—into a single, self-contained executable.
