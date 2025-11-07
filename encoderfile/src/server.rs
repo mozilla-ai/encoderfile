@@ -9,7 +9,9 @@ use tower_http::trace::DefaultOnResponse;
 pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let router = grpc::router()
+    let state = crate::state::AppState::default();
+
+    let router = grpc::router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_grpc()
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
