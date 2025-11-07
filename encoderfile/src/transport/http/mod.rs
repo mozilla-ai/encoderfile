@@ -1,4 +1,4 @@
-use crate::{common::ModelType, runtime::config::get_model_type, state::AppState};
+use crate::{common::ModelType, state::AppState};
 
 mod base;
 
@@ -26,10 +26,13 @@ macro_rules! generate_http {
             )]
             pub struct ApiDoc;
 
-            pub fn get_router() -> axum::Router<crate::state::AppState> {
-                super::base::get_base_router()
+            pub fn get_router(state: crate::state::AppState) -> axum::Router {
+                axum::Router::new()
+                    .route("/health", axum::routing::get(super::base::health))
+                    .route("/model", axum::routing::get(super::base::get_model_metadata))
                     .route("/predict", axum::routing::post($fn_name))
                     .route("/openapi.json", axum::routing::get(openapi))
+                    .with_state(state)
             }
 
             #[utoipa::path(
@@ -66,12 +69,11 @@ macro_rules! generate_http {
 }
 
 pub fn router(state: AppState) -> axum::Router {
-    match get_model_type() {
-        ModelType::Embedding => embedding::get_router(),
-        ModelType::SequenceClassification => sequence_classification::get_router(),
-        ModelType::TokenClassification => token_classification::get_router(),
+    match &state.model_type {
+        ModelType::Embedding => embedding::get_router(state),
+        ModelType::SequenceClassification => sequence_classification::get_router(state),
+        ModelType::TokenClassification => token_classification::get_router(state),
     }
-    .with_state(state)
 }
 
 generate_http!(
