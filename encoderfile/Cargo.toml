@@ -8,7 +8,7 @@ name = "l2_norm"
 harness = false
 
 [[bench]]
-name = "embedding_postprocessing"
+name = "postprocessing"
 harness = false
 
 [dependencies]

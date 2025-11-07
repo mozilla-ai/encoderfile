@@ -1,7 +1,9 @@
-use encoderfile::inference::embedding::postprocess;
+use encoderfile::{inference::embedding, runtime::tokenizer::{encode_text, get_tokenizer}};
 use ndarray::Array3;
 use tokenizers::Encoding;
 use divan::Bencher;
+
+const LORUM: &str = include_str!("lorum.txt");
 
 fn main() {
     divan::main()
@@ -11,7 +13,7 @@ fn main() {
 fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
     let (batch, tokens, hidden) = dim;
     let (outputs, encodings) = sample_inputs(batch, tokens, hidden);
-    b.bench(|| postprocess(outputs.clone(), encodings.clone(), false));
+    b.bench(|| embedding::postprocess(outputs.clone(), encodings.clone(), false));
 }
 
 fn sample_inputs(batch: usize, tokens: usize, hidden: usize) -> (Array3<f32>, Vec<Encoding>) {
@@ -26,11 +28,22 @@ fn sample_inputs(batch: usize, tokens: usize, hidden: usize) -> (Array3<f32>, Ve
     let outputs = Array::from_shape_vec((batch, tokens, hidden), data).unwrap();
 
     // Dummy encodings
-    let encodings = (0..batch)
-        .map(|_| {
-            Encoding::default()
-        })
-        .collect();
+    let encodings = generate_dummy_encodings(batch, tokens);
 
     (outputs, encodings)
+}
+
+fn generate_dummy_encodings(batch: usize, max_len: usize) -> Vec<Encoding> {
+    let tokenizer = get_tokenizer();
+
+    let inp = vec![LORUM.to_string(); batch];
+
+    encode_text(&tokenizer, inp)
+        .unwrap()
+        .into_iter()
+        .map(|mut enc| {
+            enc.truncate(max_len, 0, tokenizers::TruncationDirection::Right);
+            enc
+        })
+        .collect()
 }
