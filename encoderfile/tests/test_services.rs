@@ -1,10 +1,8 @@
-mod model_utils;
-
 use encoderfile::{
     common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
     services::{embedding, sequence_classification, token_classification},
+    test_utils::*,
 };
-use model_utils::*;
 
 #[test]
 pub fn test_embedding_service() {

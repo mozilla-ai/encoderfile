@@ -14,11 +14,8 @@ use encoderfile::{
     transport::grpc::{
         EmbeddingService, SequenceClassificationService, TokenClassificationService,
     },
+    test_utils::*
 };
-
-mod model_utils;
-
-use model_utils::*;
 
 macro_rules! assert_code {
     ($resp:ident, $code:ident) => {{

@@ -1,9 +1,8 @@
-mod model_utils;
-
 use divan::Bencher;
 use encoderfile::{
     inference::{embedding, sequence_classification, token_classification},
     runtime::tokenizer::encode_text,
+    test_utils::*
 };
 use ndarray::Array;
 use rand::Rng;
@@ -17,7 +16,7 @@ fn main() {
 
 #[divan::bench(args = [(8, 16, 384), (16, 128, 768), (64, 512, 1024)])]
 fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
-    let tokenizer = model_utils::embedding_state().tokenizer;
+    let tokenizer = embedding_state().tokenizer;
     let (batch, tokens, hidden) = dim;
 
     // Random embeddings
@@ -35,7 +34,7 @@ fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
 
 #[divan::bench(args = [8, 16, 64])]
 fn sequence_classification_postprocess(b: Bencher, batch: usize) {
-    let state = model_utils::sequence_classification_state();
+    let state = sequence_classification_state();
     let config = state.config;
     let n_labels = config.id2label.clone().unwrap().len();
 
@@ -51,11 +50,11 @@ fn sequence_classification_postprocess(b: Bencher, batch: usize) {
 
 #[divan::bench(args = [(8, 16), (16, 128), (64, 512)])]
 fn token_classification_postprocess(b: Bencher, dim: (usize, usize)) {
-    let state = model_utils::token_classification_state();
+    let state = token_classification_state();
     let config = state.config;
     let n_labels = config.id2label.clone().unwrap().len();
 
-    let tokenizer = model_utils::embedding_state().tokenizer;
+    let tokenizer = embedding_state().tokenizer;
     let (batch, tokens) = dim;
 
     // Random embeddings

@@ -11,6 +11,9 @@ harness = false
 name = "postprocessing"
 harness = false
 
+[features]
+bench = []
+
 [dependencies]
 anyhow = "1.0.100"
 axum = "0.8.6"

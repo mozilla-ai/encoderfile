@@ -13,4 +13,7 @@ pub mod services;
 pub mod state;
 pub mod transport;
 
+#[cfg(any(test, feature = "bench"))]
+pub mod test_utils;
+
 pub use assets::get_banner;

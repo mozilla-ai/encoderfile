@@ -3,10 +3,7 @@ use encoderfile::inference::{
     token_classification::token_classification,
 };
 use encoderfile::runtime::tokenizer::encode_text;
-
-mod model_utils;
-
-use model_utils::*;
+use encoderfile::test_utils::*;
 
 #[test]
 fn test_embedding_model() {

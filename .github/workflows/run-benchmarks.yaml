@@ -41,7 +41,7 @@ jobs:
         run: uv run -m encoderbuild.utils.create_dummy_env_file > .env
 
       - name: Build the benchmark target(s)
-        run: cargo codspeed build
+        run: cargo codspeed build --all-features
 
       - name: Run the benchmarks
         uses: CodSpeedHQ/action@v4
