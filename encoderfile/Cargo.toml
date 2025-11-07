@@ -50,3 +50,6 @@ tonic-prost-build = "0.14.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)'] }
+
+[dev-dependencies]
+divan = { version = "4.0.5", package = "codspeed-divan-compat" }
