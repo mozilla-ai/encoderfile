@@ -5,7 +5,7 @@ mod base;
 #[rustfmt::skip]
 macro_rules! generate_http {
     ($fn_name:ident, $request_body:ident, $return_model:ident, $fn_path:path) => {
-        mod $fn_name {
+        pub mod $fn_name {
             use axum::{Json, extract::State, response::IntoResponse};
             use $crate::common::{$request_body, $return_model, GetModelMetadataResponse};
 
@@ -56,7 +56,7 @@ macro_rules! generate_http {
             pub async fn $fn_name(
                 State(state): State<$crate::state::AppState>,
                 Json(req): Json<$request_body>,
-            ) -> impl IntoResponse {
+            ) -> Result<Json<$return_model>, (axum::http::StatusCode, &'static str)> {
                 $fn_path(req, &state)
                     .map(|r| Json(r))
                     .map_err(|e| e.to_axum_status())
