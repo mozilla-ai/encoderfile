@@ -31,7 +31,7 @@ pub fn embedding<'a>(
 }
 
 #[tracing::instrument(skip_all)]
-fn postprocess(
+pub fn postprocess(
     outputs: Array3<f32>,
     encodings: Vec<Encoding>,
     normalize: bool,

@@ -27,7 +27,7 @@ pub fn sequence_classification<'a>(
 }
 
 #[tracing::instrument(skip_all)]
-fn postprocess(outputs: Array2<f32>, config: &ModelConfig) -> Vec<SequenceClassificationResult> {
+pub fn postprocess(outputs: Array2<f32>, config: &ModelConfig) -> Vec<SequenceClassificationResult> {
     let probabilities = outputs.softmax(Axis(1));
 
     outputs
