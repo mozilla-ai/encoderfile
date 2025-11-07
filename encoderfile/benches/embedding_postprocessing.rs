@@ -8,7 +8,7 @@ fn main() {
 }
 
 #[divan::bench(args = [(8, 16, 384), (16, 128, 768), (64, 512, 1024)])]
-fn postprocess_large(b: Bencher, dim: (usize, usize, usize)) {
+fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
     let (batch, tokens, hidden) = dim;
     let (outputs, encodings) = sample_inputs(batch, tokens, hidden);
     b.bench(|| postprocess(outputs.clone(), encodings.clone(), false));
