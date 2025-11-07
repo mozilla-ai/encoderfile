@@ -1,15 +1,15 @@
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{Json, extract::State, http::{Request, StatusCode}};
 use encoderfile::{
     common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
     test_utils::{embedding_state, sequence_classification_state, token_classification_state},
     transport::http::{
-        embedding::embedding, sequence_classification::sequence_classification,
-        token_classification::token_classification,
+        embedding, router, sequence_classification, token_classification
     },
 };
+use tower::ServiceExt;
 
 macro_rules! test_empty_input {
-    ($state:expr, $req:expr, $route_fn:ident) => {{
+    ($state:expr, $req:expr, $route_fn:expr) => {{
         let (code, _msg) = $route_fn(State($state), Json($req))
             .await
             .err()
@@ -19,8 +19,54 @@ macro_rules! test_empty_input {
     }};
 }
 
+macro_rules! test_router {
+    ($fn_name:ident, $state_func:ident) => {
+        #[tokio::test]
+        async fn $fn_name() {
+            let state = $state_func();
+            let router = router(state);
+
+            // health should exist
+            let request = Request::get("/health")
+                .body(axum::body::Body::from("{}"))
+                .unwrap();
+
+            let resp = router.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(resp.status(), StatusCode::OK);
+
+            // openapi should exist
+            let request = Request::get("/openapi.json")
+                .body(axum::body::Body::from("{}"))
+                .unwrap();
+
+            let resp = router.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(resp.status(), StatusCode::OK);
+
+            // model should exist
+            let request = Request::get("/model")
+                .body(axum::body::Body::from("{}"))
+                .unwrap();
+
+            let resp = router.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(resp.status(), StatusCode::OK);
+
+            // predict route should exist
+            let request = Request::get("/predict")
+                .body(axum::body::Body::from("{}"))
+                .unwrap();
+            
+            let resp = router.clone().oneshot(request).await.unwrap();
+
+            assert_ne!(resp.status(), StatusCode::NOT_FOUND);
+        }
+    }
+}
+
 macro_rules! test_successful_route {
-    ($state:expr, $req:expr, $route_fn:ident) => {{
+    ($state:expr, $req:expr, $route_fn:expr) => {{
         let req = $req;
         let n_inputs = req.inputs.len();
         let metadata_is_none = req.metadata.is_none();
@@ -46,7 +92,7 @@ async fn test_embedding_route() {
             normalize: true,
             metadata: None,
         },
-        embedding
+        embedding::embedding
     );
 }
 
@@ -59,7 +105,7 @@ async fn test_embedding_route_empty() {
             normalize: true,
             metadata: None,
         },
-        embedding
+        embedding::embedding
     );
 }
 
@@ -74,7 +120,7 @@ async fn test_sequence_classification_route() {
             ],
             metadata: None,
         },
-        sequence_classification
+        sequence_classification::sequence_classification
     )
 }
 
@@ -86,7 +132,7 @@ async fn test_sequence_classification_route_empty() {
             inputs: vec![],
             metadata: None,
         },
-        sequence_classification
+        sequence_classification::sequence_classification
     );
 }
 
@@ -101,7 +147,7 @@ async fn test_token_classification_route() {
             ],
             metadata: None,
         },
-        token_classification
+        token_classification::token_classification
     )
 }
 
@@ -113,6 +159,10 @@ async fn test_token_classification_route_empty() {
             inputs: vec![],
             metadata: None,
         },
-        token_classification
+        token_classification::token_classification
     );
 }
+
+test_router!(test_embedding_router, embedding_state);
+test_router!(test_sequence_cls_router, sequence_classification_state);
+test_router!(test_token_cls_router, token_classification_state);
