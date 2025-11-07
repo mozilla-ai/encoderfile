@@ -1,11 +1,11 @@
-use crate::{common::ModelType, runtime::config::get_model_type, state::AppState};
+use crate::{common::ModelType, state::AppState};
 
 mod base;
 
 #[rustfmt::skip]
 macro_rules! generate_http {
     ($fn_name:ident, $request_body:ident, $return_model:ident, $fn_path:path) => {
-        mod $fn_name {
+        pub mod $fn_name {
             use axum::{Json, extract::State, response::IntoResponse};
             use $crate::common::{$request_body, $return_model, GetModelMetadataResponse};
 
@@ -26,10 +26,13 @@ macro_rules! generate_http {
             )]
             pub struct ApiDoc;
 
-            pub fn get_router() -> axum::Router<crate::state::AppState> {
-                super::base::get_base_router()
+            pub fn get_router(state: crate::state::AppState) -> axum::Router {
+                axum::Router::new()
+                    .route("/health", axum::routing::get(super::base::health))
+                    .route("/model", axum::routing::get(super::base::get_model_metadata))
                     .route("/predict", axum::routing::post($fn_name))
                     .route("/openapi.json", axum::routing::get(openapi))
+                    .with_state(state)
             }
 
             #[utoipa::path(
@@ -56,7 +59,7 @@ macro_rules! generate_http {
             pub async fn $fn_name(
                 State(state): State<$crate::state::AppState>,
                 Json(req): Json<$request_body>,
-            ) -> impl IntoResponse {
+            ) -> Result<Json<$return_model>, (axum::http::StatusCode, &'static str)> {
                 $fn_path(req, &state)
                     .map(|r| Json(r))
                     .map_err(|e| e.to_axum_status())
@@ -66,12 +69,11 @@ macro_rules! generate_http {
 }
 
 pub fn router(state: AppState) -> axum::Router {
-    match get_model_type() {
-        ModelType::Embedding => embedding::get_router(),
-        ModelType::SequenceClassification => sequence_classification::get_router(),
-        ModelType::TokenClassification => token_classification::get_router(),
+    match &state.model_type {
+        ModelType::Embedding => embedding::get_router(state),
+        ModelType::SequenceClassification => sequence_classification::get_router(state),
+        ModelType::TokenClassification => token_classification::get_router(state),
     }
-    .with_state(state)
 }
 
 generate_http!(
