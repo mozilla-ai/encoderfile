@@ -3,6 +3,14 @@ name = "encoderfile"
 version = "0.1.0"
 edition = "2024"
 
+[[bench]]
+name = "l2_norm"
+harness = false
+
+[[bench]]
+name = "postprocessing"
+harness = false
+
 [dependencies]
 anyhow = "1.0.100"
 axum = "0.8.6"
@@ -50,3 +58,7 @@ tonic-prost-build = "0.14.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)'] }
+
+[dev-dependencies]
+divan = { version = "4.0.5", package = "codspeed-divan-compat" }
+rand = "0.9.2"
