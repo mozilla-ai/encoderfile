@@ -53,12 +53,13 @@ macro_rules! test_grpc_service {
             #[tokio::test]
             async fn test_predict() {
                 let service = $create_service;
+                let n_inps = $predict_request.inputs.len();
                 let request = tonic::Request::new($predict_request);
 
                 let response: $predict_response_ty =
                     service.predict(request).await.unwrap().into_inner();
 
-                assert!(response.results.len() == 2, "Mismatched number of results");
+                assert!(response.results.len() == n_inps, "Mismatched number of results");
                 assert!(response.metadata.is_empty(), "Metadata isn't empty");
             }
 
