@@ -11,7 +11,7 @@ use crate::{
         },
         sequence_classification, token_classification,
     },
-    state::AppState,
+    runtime::AppState,
 };
 
 #[cfg(not(tarpaulin_include))]
@@ -36,11 +36,11 @@ macro_rules! generate_grpc_server {
     ($service_name:ident, $request_path:path, $response_path:path, $trait_path:path, $fn_path:path) => {
         #[derive(Debug)]
         pub struct $service_name {
-            state: $crate::state::AppState,
+            state: $crate::runtime::AppState,
         }
 
         impl $service_name {
-            pub fn new(state: $crate::state::AppState) -> Self {
+            pub fn new(state: $crate::runtime::AppState) -> Self {
                 Self { state }
             }
         }

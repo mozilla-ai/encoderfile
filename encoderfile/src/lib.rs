@@ -10,7 +10,6 @@ pub mod inference;
 pub mod runtime;
 pub mod server;
 pub mod services;
-pub mod state;
 pub mod transport;
 
 #[cfg(any(test, feature = "bench"))]

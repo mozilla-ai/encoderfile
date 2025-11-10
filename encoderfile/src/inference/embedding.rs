@@ -4,12 +4,12 @@ use tokenizers::Encoding;
 use crate::{
     common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
     error::ApiError,
-    runtime::config::ModelConfig,
+    runtime::ModelConfig,
 };
 
 #[tracing::instrument(skip_all)]
 pub fn embedding<'a>(
-    mut session: crate::runtime::model::Model<'a>,
+    mut session: crate::runtime::Model<'a>,
     _config: &ModelConfig,
     encodings: Vec<Encoding>,
     normalize: bool,

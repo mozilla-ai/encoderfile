@@ -1,7 +1,7 @@
 use divan::Bencher;
 use encoderfile::{
     inference::{embedding, sequence_classification, token_classification},
-    runtime::tokenizer::encode_text,
+    runtime::encode_text,
     test_utils::*,
 };
 use ndarray::Array;

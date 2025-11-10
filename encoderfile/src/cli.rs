@@ -2,7 +2,7 @@ use crate::{
     common::{
         EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
     },
-    runtime::config::get_model_type,
+    runtime::AppState,
     server::{run_grpc, run_http},
     services::{embedding, sequence_classification, token_classification},
 };
@@ -15,9 +15,8 @@ use std::io::Write;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 macro_rules! generate_cli_route {
-    ($req:ident, $fn:path, $format:ident, $out_dir:expr) => {{
-        let state = $crate::state::AppState::default();
-        let result = $fn($req, &state)?;
+    ($req:ident, $fn:path, $format:ident, $out_dir:expr, $state:expr) => {{
+        let result = $fn($req, &$state)?;
 
         let serialized = match $format {
             Format::Json => serde_json::to_string_pretty(&result)?,
@@ -119,7 +118,9 @@ impl Commands {
 
                 let metadata = None;
 
-                match get_model_type() {
+                let state = AppState::default();
+
+                match state.model_type {
                     ModelType::Embedding => {
                         let request = EmbeddingRequest {
                             inputs,
@@ -127,17 +128,23 @@ impl Commands {
                             metadata,
                         };
 
-                        generate_cli_route!(request, embedding, format, out_dir)
+                        generate_cli_route!(request, embedding, format, out_dir, state)
                     }
                     ModelType::SequenceClassification => {
                         let request = SequenceClassificationRequest { inputs, metadata };
 
-                        generate_cli_route!(request, sequence_classification, format, out_dir)
+                        generate_cli_route!(
+                            request,
+                            sequence_classification,
+                            format,
+                            out_dir,
+                            state
+                        )
                     }
                     ModelType::TokenClassification => {
                         let request = TokenClassificationRequest { inputs, metadata };
 
-                        generate_cli_route!(request, token_classification, format, out_dir)
+                        generate_cli_route!(request, token_classification, format, out_dir, state)
                     }
                 }
             }

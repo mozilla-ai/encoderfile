@@ -1,7 +1,4 @@
-use crate::{
-    runtime::config::get_model_type,
-    transport::{grpc, http},
-};
+use crate::transport::{grpc, http};
 use anyhow::Result;
 use tower_http::trace::DefaultOnResponse;
 
@@ -9,7 +6,8 @@ use tower_http::trace::DefaultOnResponse;
 pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let state = crate::state::AppState::default();
+    let state = crate::runtime::AppState::default();
+    let model_type = state.model_type.clone();
 
     let router = grpc::router(state)
         .layer(
@@ -22,7 +20,7 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
         .await
         .expect("Invalid address: {addr}");
 
-    tracing::info!("Running {:?} gRPC server on {}", get_model_type(), &addr);
+    tracing::info!("Running {:?} gRPC server on {}", model_type, &addr);
 
     axum::serve(listener, router).await?;
 
@@ -31,11 +29,12 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
 
 #[cfg(not(tarpaulin_include))]
 pub async fn run_http(hostname: String, port: String) -> Result<()> {
-    use crate::state::AppState;
+    use crate::runtime::AppState;
 
     let addr = format!("{}:{}", &hostname, &port);
 
     let state = AppState::default();
+    let model_type = state.model_type.clone();
 
     let router = http::router(state)
         .layer(
@@ -48,7 +47,7 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
         .await
         .expect("Invalid address: {addr}");
 
-    tracing::info!("Running {:?} HTTP server on {}", get_model_type(), &addr);
+    tracing::info!("Running {:?} HTTP server on {}", model_type, &addr);
 
     axum::serve(listener, router).await?;
 
