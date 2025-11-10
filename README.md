@@ -1,4 +1,9 @@
-# Encoderfile
+<p align="center">
+  <picture>
+    <img src="https://github.com/user-attachments/assets/3916a870-378a-4bad-b819-04fd3c92040a"" width="50%" alt="Project logo"/>
+  </picture>
+</p>
+
 
 <div align="center">
 
