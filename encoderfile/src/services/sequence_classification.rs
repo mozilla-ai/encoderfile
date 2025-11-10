@@ -2,7 +2,7 @@ use crate::{
     common::{SequenceClassificationRequest, SequenceClassificationResponse},
     error::ApiError,
     inference,
-    state::AppState,
+    runtime::AppState,
 };
 
 #[tracing::instrument(skip_all)]
@@ -13,7 +13,7 @@ pub fn sequence_classification(
     let request = request.into();
     let session = state.session.lock();
 
-    let encodings = crate::runtime::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
+    let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
 
     let results = inference::sequence_classification::sequence_classification(
         session,

@@ -1,4 +1,4 @@
-use crate::{common::ModelType, state::AppState};
+use crate::{common::ModelType, runtime::AppState};
 
 mod base;
 
@@ -26,7 +26,7 @@ macro_rules! generate_http {
             )]
             pub struct ApiDoc;
 
-            pub fn get_router(state: crate::state::AppState) -> axum::Router {
+            pub fn get_router(state: crate::runtime::AppState) -> axum::Router {
                 axum::Router::new()
                     .route("/health", axum::routing::get(super::base::health))
                     .route("/model", axum::routing::get(super::base::get_model_metadata))
@@ -57,7 +57,7 @@ macro_rules! generate_http {
                 )
             )]
             pub async fn $fn_name(
-                State(state): State<$crate::state::AppState>,
+                State(state): State<$crate::runtime::AppState>,
                 Json(req): Json<$request_body>,
             ) -> Result<Json<$return_model>, (axum::http::StatusCode, &'static str)> {
                 $fn_path(req, &state)

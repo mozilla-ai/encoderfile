@@ -2,7 +2,7 @@ use crate::{
     common::{TokenClassificationRequest, TokenClassificationResponse},
     error::ApiError,
     inference,
-    state::AppState,
+    runtime::AppState,
 };
 
 #[tracing::instrument(skip_all)]
@@ -13,7 +13,7 @@ pub fn token_classification(
     let request = request.into();
     let session = state.session.lock();
 
-    let encodings = crate::runtime::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
+    let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
 
     let results =
         inference::token_classification::token_classification(session, &state.config, encodings)?;

@@ -2,7 +2,7 @@ use encoderfile::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
 };
-use encoderfile::runtime::tokenizer::encode_text;
+use encoderfile::runtime::encode_text;
 use encoderfile::test_utils::*;
 
 #[test]
