@@ -52,10 +52,15 @@ impl LuaUserData for Tensor {
         methods.add_method("mean", |_, this, _: ()| this.mean());
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
+        methods.add_method("transpose", |_, this, _: ()| this.transpose());
     }
 }
 
 impl Tensor {
+    pub fn transpose(&self) -> Result<Self, LuaError> {
+        Ok(Self(self.0.t().to_owned()))
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
