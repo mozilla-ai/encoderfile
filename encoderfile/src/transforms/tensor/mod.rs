@@ -53,6 +53,7 @@ impl LuaUserData for Tensor {
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("transpose", |_, this, _: ()| this.transpose());
+        methods.add_method("axis_map", |_, this, (axis, func)| this.axis_map(axis, &func));
     }
 }
 
@@ -69,6 +70,25 @@ impl Tensor {
         }
 
         Ok(Axis(axis_index))
+    }
+
+    pub fn axis_map(&self, axis: isize, func: &LuaFunction) -> Result<Self, LuaError> {
+        let axis = self.axis1(axis)?;
+
+        let results= self.0
+            .axis_iter(axis.clone())
+            .map(|i| {
+                let i_owned = i.into_owned();
+                func.call::<Tensor>(Self(i_owned)).map(|i| i.0)
+            })
+            .collect::<Result<Vec<ArrayD<f32>>, LuaError>>()?;
+
+        let results_refs: Vec<_> = results
+            .iter()
+            .map(|i| i.view())
+            .collect();
+
+        Ok(Self(ndarray::stack(axis, results_refs.as_slice()).unwrap()))
     }
 
     pub fn transpose(&self) -> Result<Self, LuaError> {

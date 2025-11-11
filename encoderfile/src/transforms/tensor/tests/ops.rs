@@ -3,6 +3,22 @@ use mlua::prelude::*;
 use ndarray::{Array0, Array2};
 
 #[test]
+fn test_len() {
+    let lua = load_env();
+    let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
+    let tensor_len = tensor.len();
+
+    let len = lua
+        .load("return function(x) return #x end")
+        .eval::<LuaFunction>()
+        .expect("Bad function")
+        .call::<usize>(tensor)
+        .expect("Function failed");
+
+    assert_eq!(tensor_len, len);
+}
+
+#[test]
 fn test_ndim() {
     let lua = load_env();
     let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
