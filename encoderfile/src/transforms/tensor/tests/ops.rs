@@ -7,7 +7,8 @@ fn test_ndim() {
     let lua = load_env();
     let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
 
-    let ndim = lua.load("return function(x) return x:ndim() end")
+    let ndim = lua
+        .load("return function(x) return x:ndim() end")
         .eval::<LuaFunction>()
         .unwrap()
         .call::<usize>(tensor)
@@ -21,7 +22,8 @@ fn test_ndim_0() {
     let lua = load_env();
     let tensor = Tensor(Array0::<f32>::zeros(()).into_dyn());
 
-    let ndim = lua.load("return function(x) return x:ndim() end")
+    let ndim = lua
+        .load("return function(x) return x:ndim() end")
         .eval::<LuaFunction>()
         .unwrap()
         .call::<usize>(tensor)
