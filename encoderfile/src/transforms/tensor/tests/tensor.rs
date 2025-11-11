@@ -16,7 +16,7 @@ fn test_from_lua_create_table() {
 fn test_from_lua_ragged() {
     let lua = load_env();
 
-    let tbl: LuaTable = get_function(&lua, "CreateRaggedTable").call(()).unwrap();
+    let tbl: LuaTable = lua.load("return {{1, 1, 1}, {1, 1, 1}, {1, 1}}").eval().unwrap();
 
     let tensor = Tensor::from_lua(LuaValue::Table(tbl), &lua);
 
@@ -27,9 +27,9 @@ fn test_from_lua_ragged() {
 fn test_from_lua_bad_type() {
     let lua = load_env();
 
-    let tbl: LuaTable = get_function(&lua, "CreateStringTable").call(()).unwrap();
+    let tbl: LuaString = lua.load("return \"i am not a table\"").eval().unwrap();
 
-    let tensor = Tensor::from_lua(LuaValue::Table(tbl), &lua);
+    let tensor = Tensor::from_lua(LuaValue::String(tbl), &lua);
 
     assert!(tensor.is_err());
 }

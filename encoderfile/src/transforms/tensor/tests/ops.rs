@@ -1,9 +1,9 @@
-use super::{Tensor, add, div, get_function, load_env, mul, sub};
+use super::{Tensor, add, div, load_env, mul, sub};
 use mlua::prelude::*;
 use ndarray::Array2;
 
 macro_rules! generate_ops_test {
-    ($mod_name:ident, $op:tt, $rust_fn:ident, $lua_name:expr) => {
+    ($mod_name:ident, $op:tt, $rust_fn:ident, $lua_op:expr) => {
         mod $mod_name {
             use super::*;
 
@@ -18,8 +18,8 @@ macro_rules! generate_ops_test {
                     LuaValue::UserData(lua.create_userdata(arr2.clone()).unwrap())
                 ).expect("Failed to compute");
 
-                let result: Tensor = lua.globals()
-                    .get::<LuaFunction>($lua_name)
+                let result: Tensor = lua.load(format!("return function(x, y) return x {} y end", $lua_op))
+                    .eval::<LuaFunction>()
                     .unwrap()
                     .call((arr1, arr2))
                     .expect("Binding failed");
@@ -76,19 +76,19 @@ macro_rules! generate_ops_test {
 }
 
 generate_ops_test!(
-    test_addition, +, add, "TestAddition"
+    test_addition, +, add, "+"
 );
 
 generate_ops_test!(
-    test_subtraction, -, sub, "TestSubtraction"
+    test_subtraction, -, sub, "-"
 );
 
 generate_ops_test!(
-    test_multiplication, *, mul, "TestMultiplication"
+    test_multiplication, *, mul, "*"
 );
 
 generate_ops_test!(
-    test_division, /, div, "TestDivision"
+    test_division, /, div, "/"
 );
 
 #[test]
@@ -100,7 +100,9 @@ fn test_eq_simple() {
 
     assert!(arr1 == arr2);
 
-    let result: bool = get_function(&lua, "TestEq")
+    let result: bool = lua.load("return function(x, y) return x == y end")
+        .eval::<LuaFunction>()
+        .unwrap()
         .call((arr1, arr2))
         .expect("Failed to evaluate");
 
@@ -116,7 +118,9 @@ fn test_neq_simple() {
 
     assert!(arr1 != arr2);
 
-    let result: bool = get_function(&lua, "TestEq")
+    let result: bool = lua.load("return function(x, y) return x == y end")
+        .eval::<LuaFunction>()
+        .unwrap()
         .call((arr1, arr2))
         .expect("Failed to evaluate");
 
