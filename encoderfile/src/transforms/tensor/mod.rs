@@ -1,8 +1,8 @@
 use super::utils::table_to_vec;
 use mlua::prelude::*;
 use ndarray::{ArrayD, Axis};
-use ort::tensor::ArrayExtensions;
 use ndarray_stats::QuantileExt;
+use ort::tensor::ArrayExtensions;
 
 #[cfg(test)]
 mod tests;
@@ -80,9 +80,7 @@ impl Tensor {
     }
 
     fn exp(&self) -> Result<Self, LuaError> {
-        Ok(Self(self.0
-            .exp()
-            ))
+        Ok(Self(self.0.exp()))
     }
 
     fn lp_norm(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
