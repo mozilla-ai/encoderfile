@@ -81,62 +81,26 @@ impl Tensor {
     }
 }
 
-fn add(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
-    let new = match other {
-        LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
+macro_rules! ops_fn {
+    ($fn_name:ident, $op:tt) => {
+        fn $fn_name(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
+            let new = match other {
+                LuaValue::UserData(user_data) => {
+                    let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
 
-            this + oth
+                    this $op oth
+                }
+                LuaValue::Number(n) => this $op (n as f32),
+                LuaValue::Integer(i) => this $op (i as f32),
+                _ => return Err(LuaError::external("Expected either number or Tensor.")),
+            };
+
+            Ok(Tensor(new))
         }
-        LuaValue::Number(n) => this + (n as f32),
-        LuaValue::Integer(i) => this + (i as f32),
-        _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    };
-
-    Ok(Tensor(new))
+    }
 }
 
-fn sub(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
-    let new = match other {
-        LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
-
-            this - oth
-        }
-        LuaValue::Number(n) => this - (n as f32),
-        LuaValue::Integer(i) => this - (i as f32),
-        _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    };
-
-    Ok(Tensor(new))
-}
-
-fn mul(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
-    let new = match other {
-        LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
-
-            this * oth
-        }
-        LuaValue::Number(n) => this * (n as f32),
-        LuaValue::Integer(i) => this * (i as f32),
-        _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    };
-
-    Ok(Tensor(new))
-}
-
-fn div(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
-    let new = match other {
-        LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
-
-            this / oth
-        }
-        LuaValue::Number(n) => this / (n as f32),
-        LuaValue::Integer(i) => this / (i as f32),
-        _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    };
-
-    Ok(Tensor(new))
-}
+ops_fn!(add, +);
+ops_fn!(sub, -);
+ops_fn!(mul, *);
+ops_fn!(div, /);
