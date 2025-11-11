@@ -1,27 +1,19 @@
 use super::{Tensor, load_env};
+use mlua::prelude::*;
 use ndarray::{Array3, ArrayD, Axis};
 use ort::tensor::ArrayExtensions;
-use mlua::prelude::*;
 
 #[test]
 fn test_axis_map() {
-    let vec: ArrayD<f32> = ndarray::array![
-        [1.0, 2.0],
-        [3.0, 4.0]
-    ].into_dyn();
+    let vec: ArrayD<f32> = ndarray::array![[1.0, 2.0], [3.0, 4.0]].into_dyn();
 
     let array_gold = vec
         .axis_iter(Axis(0))
-        .map(|i| {
-            i.to_owned() / i.mean().unwrap()
-        })
+        .map(|i| i.to_owned() / i.mean().unwrap())
         .collect::<Vec<ArrayD<f32>>>();
 
-    let array_gold_refs = array_gold
-        .iter()
-        .map(|i| i.view())
-        .collect::<Vec<_>>();
-    
+    let array_gold_refs = array_gold.iter().map(|i| i.view()).collect::<Vec<_>>();
+
     let Tensor(array_test) = load_env()
         .load("return function(x) return x / x:mean() end")
         .eval::<LuaFunction>()
@@ -31,10 +23,10 @@ fn test_axis_map() {
         })
         .expect("Failed to return test array");
 
-        assert_eq!(
-            ndarray::stack(Axis(0), array_gold_refs.as_slice()).unwrap(),
-            array_test
-        );
+    assert_eq!(
+        ndarray::stack(Axis(0), array_gold_refs.as_slice()).unwrap(),
+        array_test
+    );
 }
 
 #[test]

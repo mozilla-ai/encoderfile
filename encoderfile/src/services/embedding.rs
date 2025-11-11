@@ -16,8 +16,7 @@ pub fn embedding(
 
     let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
 
-    let results =
-        inference::embedding::embedding(session, &state.config, encodings)?;
+    let results = inference::embedding::embedding(session, &state.config, encodings)?;
 
     Ok(EmbeddingResponse {
         results,

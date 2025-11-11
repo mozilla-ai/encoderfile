@@ -13,10 +13,7 @@ impl TransformEngine {
 
         Ok(engine)
     }
-    pub fn postprocess(
-        &self,
-        data: Tensor,
-    ) -> Result<Tensor, LuaError> {
+    pub fn postprocess(&self, data: Tensor) -> Result<Tensor, LuaError> {
         let func: LuaFunction = self.lua.globals().get("Postprocess")?;
 
         func.call(data)

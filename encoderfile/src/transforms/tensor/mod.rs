@@ -53,7 +53,9 @@ impl LuaUserData for Tensor {
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("transpose", |_, this, _: ()| this.transpose());
-        methods.add_method("axis_map", |_, this, (axis, func)| this.axis_map(axis, &func));
+        methods.add_method("axis_map", |_, this, (axis, func)| {
+            this.axis_map(axis, &func)
+        });
         methods.add_method("lp_norm", |_, this, (p, axis)| this.lp_norm(p, axis))
     }
 }
@@ -61,18 +63,22 @@ impl LuaUserData for Tensor {
 impl Tensor {
     fn lp_norm(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
         if self.0.is_empty() {
-            return Err(LuaError::external("Cannot lp norm an empty matrix"))
+            return Err(LuaError::external("Cannot lp norm an empty matrix"));
         }
 
         let axis = self.axis1(axis)?;
 
         if p == 0.0 {
-            return Err(LuaError::external("p cannot equal 0.0"))
+            return Err(LuaError::external("p cannot equal 0.0"));
         }
 
         // Compute Lp norm along the specified axis
         let norms = self.0.map_axis(axis, |subview| {
-            subview.iter().map(|&v| v.abs().powf(p)).sum::<f32>().powf(1.0 / p)
+            subview
+                .iter()
+                .map(|&v| v.abs().powf(p))
+                .sum::<f32>()
+                .powf(1.0 / p)
         });
 
         // Clamp to avoid div-by-zero: add small epsilon
@@ -101,7 +107,8 @@ impl Tensor {
     pub fn axis_map(&self, axis: isize, func: &LuaFunction) -> Result<Self, LuaError> {
         let axis = self.axis1(axis)?;
 
-        let results= self.0
+        let results = self
+            .0
             .axis_iter(axis.clone())
             .map(|i| {
                 let i_owned = i.into_owned();
@@ -109,10 +116,7 @@ impl Tensor {
             })
             .collect::<Result<Vec<ArrayD<f32>>, LuaError>>()?;
 
-        let results_refs: Vec<_> = results
-            .iter()
-            .map(|i| i.view())
-            .collect();
+        let results_refs: Vec<_> = results.iter().map(|i| i.view()).collect();
 
         Ok(Self(ndarray::stack(axis, results_refs.as_slice()).unwrap()))
     }

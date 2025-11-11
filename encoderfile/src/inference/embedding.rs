@@ -30,10 +30,7 @@ pub fn embedding<'a>(
 }
 
 #[tracing::instrument(skip_all)]
-pub fn postprocess(
-    outputs: Array3<f32>,
-    encodings: Vec<Encoding>,
-) -> Vec<TokenEmbeddingSequence> {
+pub fn postprocess(outputs: Array3<f32>, encodings: Vec<Encoding>) -> Vec<TokenEmbeddingSequence> {
     let mut embeddings = Vec::new();
 
     for (encoding, embs) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {

@@ -119,10 +119,7 @@ impl Commands {
 
                 match state.model_type {
                     ModelType::Embedding => {
-                        let request = EmbeddingRequest {
-                            inputs,
-                            metadata,
-                        };
+                        let request = EmbeddingRequest { inputs, metadata };
 
                         generate_cli_route!(request, embedding, format, out_dir, state)
                     }
