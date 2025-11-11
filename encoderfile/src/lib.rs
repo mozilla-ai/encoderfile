@@ -11,6 +11,7 @@ pub mod runtime;
 pub mod server;
 pub mod services;
 pub mod transport;
+pub mod transforms;
 
 #[cfg(any(test, feature = "bench"))]
 pub mod test_utils;
