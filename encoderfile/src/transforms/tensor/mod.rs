@@ -41,6 +41,10 @@ impl LuaUserData for Tensor {
         methods.add_meta_method(LuaMetaMethod::Mul, |_, this, other| mul(this, other));
         methods.add_meta_method(LuaMetaMethod::Div, |_, this, other| div(this, other));
 
+        methods.add_meta_method(LuaMetaMethod::ToString, |_, this, _: ()| {
+            Ok(this.0.to_string())
+        });
+
         // tensor ops
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));

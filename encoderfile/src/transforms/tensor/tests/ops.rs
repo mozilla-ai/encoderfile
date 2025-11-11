@@ -158,3 +158,20 @@ fn test_neq_simple() {
 
     assert!(!result);
 }
+
+#[test]
+fn test_to_string() {
+    let lua = load_env();
+
+    let vec = Tensor(Array2::<f32>::ones((3, 3)).into_dyn());
+    let vec_str_gold = vec.0.to_string();
+
+    let vec_str: String = lua
+        .globals()
+        .get::<LuaFunction>("tostring")
+        .unwrap()
+        .call(vec)
+        .unwrap();
+
+    assert_eq!(vec_str, vec_str_gold);
+}
