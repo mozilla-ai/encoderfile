@@ -3,6 +3,44 @@ use mlua::prelude::*;
 use ndarray::{Array0, Array2};
 
 #[test]
+fn test_min() {
+    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+    assert_eq!(tensor.min().unwrap(), 1.0);
+}
+
+#[test]
+fn test_min_empty() {
+    let tensor = Tensor(ndarray::array![[[]]].into_dyn());
+    assert!(tensor.min().is_err())
+}
+
+#[test]
+fn test_max() {
+    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+    assert_eq!(tensor.max().unwrap(), 1.0);
+}
+
+#[test]
+fn test_max_empty() {
+    let tensor = Tensor(ndarray::array![[[]]].into_dyn());
+    assert!(tensor.max().is_err())
+}
+
+#[test]
+fn test_exp() {
+    let arr = Array2::ones((3, 3)).into_dyn();
+    let tensor = Tensor(arr.clone());
+    assert_eq!(tensor.exp().unwrap(), Tensor(arr.mapv(f32::exp)));
+}
+
+#[test]
+fn test_exp_empty() {
+    let tensor = Tensor(ndarray::array![[[]]].into_dyn());
+    let Tensor(exp) = tensor.exp().unwrap();
+    assert!(exp.is_empty());
+}
+
+#[test]
 fn test_len() {
     let lua = load_env();
     let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());

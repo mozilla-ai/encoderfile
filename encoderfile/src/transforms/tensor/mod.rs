@@ -2,6 +2,7 @@ use super::utils::table_to_vec;
 use mlua::prelude::*;
 use ndarray::{ArrayD, Axis};
 use ort::tensor::ArrayExtensions;
+use ndarray_stats::QuantileExt;
 
 #[cfg(test)]
 mod tests;
@@ -56,11 +57,34 @@ impl LuaUserData for Tensor {
         methods.add_method("axis_map", |_, this, (axis, func)| {
             this.axis_map(axis, &func)
         });
-        methods.add_method("lp_norm", |_, this, (p, axis)| this.lp_norm(p, axis))
+        methods.add_method("lp_norm", |_, this, (p, axis)| this.lp_norm(p, axis));
+        methods.add_method("min", |_, this, _: ()| this.min());
+        methods.add_method("max", |_, this, _: ()| this.max());
+        methods.add_method("exp", |_, this, _: ()| this.exp());
     }
 }
 
 impl Tensor {
+    fn min(&self) -> Result<f32, LuaError> {
+        self.0
+            .min()
+            .map(|i| *i)
+            .map_err(|e| LuaError::external(format!("Min max error: {e}")))
+    }
+
+    fn max(&self) -> Result<f32, LuaError> {
+        self.0
+            .max()
+            .map(|i| *i)
+            .map_err(|e| LuaError::external(format!("Min max error: {e}")))
+    }
+
+    fn exp(&self) -> Result<Self, LuaError> {
+        Ok(Self(self.0
+            .exp()
+            ))
+    }
+
     fn lp_norm(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
         if self.0.is_empty() {
             return Err(LuaError::external("Cannot lp norm an empty matrix"));
