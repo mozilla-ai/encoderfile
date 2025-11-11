@@ -4,8 +4,10 @@ use ort::tensor::ArrayExtensions;
 
 #[test]
 fn test_l2_normalization() {
-    let engine = TransformEngine::new(include_str!("../../transforms/l2_normalize_embeddings.lua"))
-        .expect("Failed to create engine");
+    let engine = TransformEngine::new(include_str!(
+        "../../transforms/embedding/l2_normalize_embeddings.lua"
+    ))
+    .expect("Failed to create engine");
 
     let test_arr = Array3::<f32>::from_elem((8, 16, 36), 1.0);
 
@@ -19,7 +21,7 @@ fn test_l2_normalization() {
 
     let Tensor(test) = engine
         .postprocess(Tensor(test_arr.into_dyn()))
-        .expect("../../transforms/l2_normalize_embeddings.lua");
+        .expect("Didn't read");
 
     assert_eq!(gold, test)
 }
@@ -27,7 +29,7 @@ fn test_l2_normalization() {
 #[test]
 fn test_softmax_sequence_cls() {
     let engine = TransformEngine::new(include_str!(
-        "../../transforms/softmax_sequence_cls_logits.lua"
+        "../../transforms/sequence_classification/softmax_logits.lua"
     ))
     .expect("Failed to create engine");
 
@@ -46,7 +48,7 @@ fn test_softmax_sequence_cls() {
 #[test]
 fn test_softmax_token_cls() {
     let engine = TransformEngine::new(include_str!(
-        "../../transforms/softmax_token_cls_logits.lua"
+        "../../transforms/token_classification/softmax_logits.lua"
     ))
     .expect("Failed to create engine");
 

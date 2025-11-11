@@ -54,7 +54,9 @@ impl LuaUserData for Tensor {
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("transpose", |_, this, _: ()| this.transpose());
-        methods.add_method("lp_normalize", |_, this, (p, axis)| this.lp_normalize(p, axis));
+        methods.add_method("lp_normalize", |_, this, (p, axis)| {
+            this.lp_normalize(p, axis)
+        });
         methods.add_method("min", |_, this, _: ()| this.min());
         methods.add_method("max", |_, this, _: ()| this.max());
         methods.add_method("exp", |_, this, _: ()| this.exp());
