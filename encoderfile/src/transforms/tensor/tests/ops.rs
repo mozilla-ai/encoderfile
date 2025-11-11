@@ -100,7 +100,8 @@ fn test_eq_simple() {
 
     assert!(arr1 == arr2);
 
-    let result: bool = lua.load("return function(x, y) return x == y end")
+    let result: bool = lua
+        .load("return function(x, y) return x == y end")
         .eval::<LuaFunction>()
         .unwrap()
         .call((arr1, arr2))
@@ -118,7 +119,8 @@ fn test_neq_simple() {
 
     assert!(arr1 != arr2);
 
-    let result: bool = lua.load("return function(x, y) return x == y end")
+    let result: bool = lua
+        .load("return function(x, y) return x == y end")
         .eval::<LuaFunction>()
         .unwrap()
         .call((arr1, arr2))

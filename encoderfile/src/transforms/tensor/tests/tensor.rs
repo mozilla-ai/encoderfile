@@ -4,7 +4,10 @@ use super::*;
 fn test_from_lua_create_table() {
     let lua = load_env();
 
-    let tbl: LuaTable = lua.load("return {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}").eval().unwrap();
+    let tbl: LuaTable = lua
+        .load("return {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}")
+        .eval()
+        .unwrap();
 
     let tensor = Tensor::from_lua(LuaValue::Table(tbl), &lua).expect("Failed to create tensor");
 
@@ -16,7 +19,10 @@ fn test_from_lua_create_table() {
 fn test_from_lua_ragged() {
     let lua = load_env();
 
-    let tbl: LuaTable = lua.load("return {{1, 1, 1}, {1, 1, 1}, {1, 1}}").eval().unwrap();
+    let tbl: LuaTable = lua
+        .load("return {{1, 1, 1}, {1, 1, 1}, {1, 1}}")
+        .eval()
+        .unwrap();
 
     let tensor = Tensor::from_lua(LuaValue::Table(tbl), &lua);
 
