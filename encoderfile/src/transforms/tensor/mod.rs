@@ -54,10 +54,36 @@ impl LuaUserData for Tensor {
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("transpose", |_, this, _: ()| this.transpose());
         methods.add_method("axis_map", |_, this, (axis, func)| this.axis_map(axis, &func));
+        methods.add_method("lp_norm", |_, this, (p, axis)| this.lp_norm(p, axis))
     }
 }
 
 impl Tensor {
+    fn lp_norm(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
+        if self.0.is_empty() {
+            return Err(LuaError::external("Cannot lp norm an empty matrix"))
+        }
+
+        let axis = self.axis1(axis)?;
+
+        if p == 0.0 {
+            return Err(LuaError::external("p cannot equal 0.0"))
+        }
+
+        // Compute Lp norm along the specified axis
+        let norms = self.0.map_axis(axis, |subview| {
+            subview.iter().map(|&v| v.abs().powf(p)).sum::<f32>().powf(1.0 / p)
+        });
+
+        // Clamp to avoid div-by-zero: add small epsilon
+        let eps = 1e-12;
+        let safe_norms = norms.clamp(eps, f32::INFINITY);
+
+        let expanded = safe_norms.insert_axis(axis);
+
+        Ok(Self(self.0.to_owned() / &expanded))
+    }
+
     fn axis1(&self, axis: isize) -> Result<Axis, LuaError> {
         if axis <= 0 {
             return Err(LuaError::external("Axis must be >= 1."));
@@ -91,11 +117,11 @@ impl Tensor {
         Ok(Self(ndarray::stack(axis, results_refs.as_slice()).unwrap()))
     }
 
-    pub fn transpose(&self) -> Result<Self, LuaError> {
+    fn transpose(&self) -> Result<Self, LuaError> {
         Ok(Self(self.0.t().to_owned()))
     }
 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.0.len()
     }
 

@@ -1,5 +1,5 @@
 use super::{Tensor, load_env};
-use ndarray::{ArrayD, Axis};
+use ndarray::{Array3, ArrayD, Axis};
 use ort::tensor::ArrayExtensions;
 use mlua::prelude::*;
 
@@ -66,4 +66,27 @@ fn test_softmax_fail() {
     assert!(ts.softmax(-1).is_err());
     assert!(ts.softmax(0).is_err());
     assert!(ts.softmax(3).is_err());
+}
+
+#[test]
+fn test_lp_norm_empty() {
+    let arr: ArrayD<f32> = ndarray::array![[[]]].into_dyn();
+
+    assert!(arr.is_empty());
+    assert!(Tensor(arr).lp_norm(1.0, 1).is_err())
+}
+
+#[test]
+fn test_lp_norm_zero() {
+    let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
+
+    assert!(Tensor(arr).lp_norm(0.0, 1).is_err())
+}
+
+#[test]
+fn test_lp_norm_nonexistent_dim() {
+    let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
+
+    assert!(Tensor(arr.clone()).lp_norm(1.0, 0).is_err()); // lua starts with 1
+    assert!(Tensor(arr.clone()).lp_norm(1.0, 4).is_err());
 }

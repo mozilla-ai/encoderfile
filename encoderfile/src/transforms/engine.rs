@@ -1,33 +1,38 @@
-use std::collections::HashMap;
-
 use super::tensor::Tensor;
 use mlua::prelude::*;
-use ndarray::Axis;
 
 pub struct TransformEngine {
     lua: Lua,
 }
 
 impl TransformEngine {
+    pub fn new(postprocessor: &str) -> Result<Self, LuaError> {
+        let engine = Self::default();
+
+        engine.lua.load(postprocessor).exec()?;
+
+        Ok(engine)
+    }
     pub fn postprocess(
         &self,
         data: Tensor,
-        metadata: HashMap<String, String>,
     ) -> Result<Tensor, LuaError> {
         let func: LuaFunction = self.lua.globals().get("Postprocess")?;
 
-        let mut results = Vec::with_capacity(data.len());
+        func.call(data)
 
-        for pred in data.0.axis_iter(Axis(0)) {
-            let result: Tensor = func.call((Tensor(pred.to_owned()), metadata.clone()))?;
-            results.push(result.0);
-        }
+        // let mut results = Vec::with_capacity(data.len());
 
-        let result_views = results.iter().map(|i| i.view()).collect::<Vec<_>>();
+        // for pred in data.0.axis_iter(Axis(0)) {
+        //     let result: Tensor = func.call((Tensor(pred.to_owned()), metadata.clone()))?;
+        //     results.push(result.0);
+        // }
 
-        Ok(Tensor(
-            ndarray::stack(Axis(0), result_views.as_slice()).unwrap(),
-        ))
+        // let result_views = results.iter().map(|i| i.view()).collect::<Vec<_>>();
+
+        // Ok(Tensor(
+        //     ndarray::stack(Axis(0), result_views.as_slice()).unwrap(),
+        // ))
     }
 }
 
