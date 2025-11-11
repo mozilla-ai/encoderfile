@@ -54,7 +54,7 @@ impl LuaUserData for Tensor {
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("transpose", |_, this, _: ()| this.transpose());
-        methods.add_method("lp_norm", |_, this, (p, axis)| this.lp_norm(p, axis));
+        methods.add_method("lp_normalize", |_, this, (p, axis)| this.lp_normalize(p, axis));
         methods.add_method("min", |_, this, _: ()| this.min());
         methods.add_method("max", |_, this, _: ()| this.max());
         methods.add_method("exp", |_, this, _: ()| this.exp());
@@ -80,7 +80,7 @@ impl Tensor {
         Ok(Self(self.0.exp()))
     }
 
-    fn lp_norm(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
+    fn lp_normalize(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
         if self.0.is_empty() {
             return Err(LuaError::external("Cannot lp norm an empty matrix"));
         }
