@@ -11,6 +11,10 @@ harness = false
 name = "postprocessing"
 harness = false
 
+[[bench]]
+name = "benchmark_transforms"
+harness = false
+
 [features]
 bench = []
 
