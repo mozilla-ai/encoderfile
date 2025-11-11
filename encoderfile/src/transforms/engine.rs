@@ -16,7 +16,11 @@ impl TransformEngine {
 
 impl Default for TransformEngine {
     fn default() -> Self {
-        let lua = Lua::new();
+        let lua = Lua::new_with(
+            mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH,
+            mlua::LuaOptions::default(),
+        ).unwrap();
+
         let globals = lua.globals();
         globals
             .set(
