@@ -58,10 +58,20 @@ impl LuaUserData for Tensor {
         methods.add_method("min", |_, this, _: ()| this.min());
         methods.add_method("max", |_, this, _: ()| this.max());
         methods.add_method("exp", |_, this, _: ()| this.exp());
+        methods.add_method("sum_axis", |_, this, axis| this.sum_axis(axis));
+        methods.add_method("sum", |_, this, _: ()| this.sum());
     }
 }
 
 impl Tensor {
+    fn sum(&self) -> Result<f32, LuaError> {
+        Ok(self.0.sum())
+    }
+
+    fn sum_axis(&self, axis: isize) -> Result<Self, LuaError> {
+        Ok(Self(self.0.sum_axis(self.axis1(axis)?)))
+    }
+
     fn min(&self) -> Result<f32, LuaError> {
         self.0
             .min()
