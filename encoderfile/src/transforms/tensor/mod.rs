@@ -94,31 +94,27 @@ impl Tensor {
 
     fn lp_normalize(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
         if self.0.is_empty() {
-            return Err(LuaError::external("Cannot lp norm an empty matrix"));
+            return Err(LuaError::external("Cannot normalize an empty tensor"));
         }
-
-        let axis = self.axis1(axis)?;
-
         if p == 0.0 {
             return Err(LuaError::external("p cannot equal 0.0"));
         }
 
-        // Compute Lp norm along the specified axis
-        let norms = self.0.map_axis(axis, |subview| {
-            subview
-                .iter()
-                .map(|&v| v.abs().powf(p))
-                .sum::<f32>()
-                .powf(1.0 / p)
+        let axis = self.axis1(axis)?;
+        let arr = &self.0;
+
+        // Compute Lp norm along axis
+        let norms = arr.map_axis(axis, |subview| {
+            subview.iter().map(|&v| v.abs().powf(p)).sum::<f32>().powf(1.0 / p)
         });
 
-        // Clamp to avoid div-by-zero: add small epsilon
-        let eps = 1e-12;
-        let safe_norms = norms.clamp(eps, f32::INFINITY);
+        // Avoid division by zero using in-place broadcast clamp
+        let norms = norms.mapv(|x| if x < 1e-12 { 1e-12 } else { x });
 
-        let expanded = safe_norms.insert_axis(axis);
+        // Broadcast division using ndarray’s broadcasting API
+        let normalized = arr / &norms.insert_axis(axis);
 
-        Ok(Self(self.0.to_owned() / &expanded))
+        Ok(Self(normalized))
     }
 
     fn axis1(&self, axis: isize) -> Result<Axis, LuaError> {
