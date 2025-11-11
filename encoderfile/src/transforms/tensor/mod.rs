@@ -36,6 +36,8 @@ impl LuaUserData for Tensor {
             Ok(this.0 == other.0)
         });
 
+        methods.add_meta_method(LuaMetaMethod::Len, |_, this, _: ()| Ok(this.len()));
+
         methods.add_meta_method(LuaMetaMethod::Add, |_, this, other| add(this, other));
         methods.add_meta_method(LuaMetaMethod::Sub, |_, this, other| sub(this, other));
         methods.add_meta_method(LuaMetaMethod::Mul, |_, this, other| mul(this, other));
@@ -46,7 +48,6 @@ impl LuaUserData for Tensor {
         });
 
         // tensor ops
-        methods.add_meta_method(LuaMetaMethod::Len, |_, this, _: ()| Ok(this.len()));
         methods.add_method("std", |_, this, ddof| this.std(ddof));
         methods.add_method("mean", |_, this, _: ()| this.mean());
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
