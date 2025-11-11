@@ -19,10 +19,7 @@ fn test_from_lua_create_table() {
 fn test_from_lua_empty_table() {
     let lua = load_env();
 
-    let tbl: LuaTable = lua
-        .load("return {}")
-        .eval()
-        .unwrap();
+    let tbl: LuaTable = lua.load("return {}").eval().unwrap();
 
     let Tensor(tensor) = Tensor::from_lua(LuaValue::Table(tbl), &lua).unwrap();
 
