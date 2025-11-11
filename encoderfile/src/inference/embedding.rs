@@ -12,7 +12,6 @@ pub fn embedding<'a>(
     mut session: crate::runtime::Model<'a>,
     _config: &ModelConfig,
     encodings: Vec<Encoding>,
-    normalize: bool,
 ) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
@@ -25,7 +24,7 @@ pub fn embedding<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
 
-    let embeddings = postprocess(outputs, encodings, normalize);
+    let embeddings = postprocess(outputs, encodings);
 
     Ok(embeddings)
 }
@@ -34,15 +33,11 @@ pub fn embedding<'a>(
 pub fn postprocess(
     outputs: Array3<f32>,
     encodings: Vec<Encoding>,
-    normalize: bool,
 ) -> Vec<TokenEmbeddingSequence> {
     let mut embeddings = Vec::new();
 
     for (encoding, embs) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
-        let transformed = match normalize {
-            true => super::utils::l2_normalize(embs.into_owned(), Axis(1)),
-            false => embs.into_owned(),
-        };
+        let transformed = embs.into_owned();
 
         let mut results = Vec::new();
 

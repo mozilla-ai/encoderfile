@@ -3,8 +3,6 @@
 pub struct EmbeddingRequest {
     #[prost(string, repeated, tag = "1")]
     pub inputs: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(bool, tag = "2")]
-    pub normalize: bool,
     #[prost(map = "string, string", tag = "3")]
     pub metadata: ::std::collections::HashMap<
         ::prost::alloc::string::String,

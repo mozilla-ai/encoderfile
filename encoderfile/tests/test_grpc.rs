@@ -95,7 +95,6 @@ test_grpc_service!(
     false,
     EmbeddingRequest {
         inputs: vec!["hello world".to_string(), "the quick brown fox".to_string()],
-        normalize: true,
         metadata: HashMap::new(),
     },
     EmbeddingResponse

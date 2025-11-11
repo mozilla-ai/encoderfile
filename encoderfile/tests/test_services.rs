@@ -9,7 +9,6 @@ pub fn test_embedding_service() {
     let state = embedding_state();
     let request = EmbeddingRequest {
         inputs: vec!["hello world".to_string()],
-        normalize: true,
         metadata: None,
     };
 

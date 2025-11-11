@@ -61,8 +61,6 @@ pub enum Commands {
     Infer {
         #[arg(required = true)]
         inputs: Vec<String>,
-        #[arg(long, default_value_t = true)]
-        normalize: bool,
         #[arg(short, long, default_value_t = Format::Json)]
         format: Format,
         #[arg(short)]
@@ -110,7 +108,6 @@ impl Commands {
             }
             Commands::Infer {
                 inputs,
-                normalize,
                 format,
                 out_dir,
             } => {
@@ -124,7 +121,6 @@ impl Commands {
                     ModelType::Embedding => {
                         let request = EmbeddingRequest {
                             inputs,
-                            normalize,
                             metadata,
                         };
 

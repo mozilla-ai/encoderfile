@@ -20,7 +20,7 @@ fn test_embedding_model() {
 
     let session_lock = state.session.lock();
 
-    let results = embedding(session_lock, &state.config, encodings.clone(), true)
+    let results = embedding(session_lock, &state.config, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -42,7 +42,7 @@ fn test_embedding_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    embedding(session_lock, &state.config, encodings.clone(), true)
+    embedding(session_lock, &state.config, encodings.clone())
         .expect("Failed to compute results");
 }
 

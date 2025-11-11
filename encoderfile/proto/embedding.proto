@@ -6,7 +6,6 @@ import "proto/token.proto";
 
 message EmbeddingRequest {
   repeated string inputs = 1;
-  bool normalize = 2;
   map<string, string> metadata = 3;
 }
 
