@@ -92,9 +92,7 @@ impl Tensor {
     }
 
     fn softmax(&self, axis: isize) -> Result<Self, LuaError> {
-        self.axis1(axis)
-            .map(|i| self.0.softmax(i))
-            .map(Self)
+        self.axis1(axis).map(|i| self.0.softmax(i)).map(Self)
     }
 }
 
