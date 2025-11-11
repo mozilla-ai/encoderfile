@@ -25,9 +25,7 @@ impl TransformEngine {
     }
 
     pub fn eval<T: FromLuaMulti>(&self, chunk: &str) -> Result<T, LuaError> {
-        self.lua
-            .load(chunk)
-            .eval()
+        self.lua.load(chunk).eval()
     }
 
     pub fn postprocess(&self, data: Tensor) -> Result<Tensor, LuaError> {
@@ -80,7 +78,9 @@ mod tests {
             )
             .unwrap();
 
-        let function= engine.get_function("MyTensor").expect("Failed to get MyTensor");
+        let function = engine
+            .get_function("MyTensor")
+            .expect("Failed to get MyTensor");
 
         assert!(function.call::<Tensor>(()).is_ok())
     }
@@ -114,9 +114,8 @@ mod sandbox_tests {
         let engine = TransformEngine::default();
 
         // `os.execute` shouldn't exist or be callable
-        let res = engine
-            .eval
-            ::<bool>("return type(os) == 'table' and type(os.execute) == 'function'");
+        let res =
+            engine.eval::<bool>("return type(os) == 'table' and type(os.execute) == 'function'");
 
         assert!(
             matches!(res, Ok(false) | Err(_)),
@@ -159,7 +158,8 @@ mod sandbox_tests {
 
         // string manipulation should work
         assert_eq!(
-            engine.eval::<String>("return string.upper('sandbox')")
+            engine
+                .eval::<String>("return string.upper('sandbox')")
                 .unwrap(),
             "SANDBOX"
         );
