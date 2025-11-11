@@ -1,6 +1,6 @@
 use super::{Tensor, add, div, load_env, mul, sub};
 use mlua::prelude::*;
-use ndarray::{Array0, Array2};
+use ndarray::{Array0, Array2, Axis};
 
 #[test]
 fn test_min() {
@@ -248,4 +248,75 @@ fn test_std() {
         tensor.std(1.0).expect("Failed to calculate mean"),
         tensor.0.std(1.0)
     );
+}
+
+#[test]
+fn test_sum() {
+    let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());
+    let expected = 2.0 * 9.0; // 3x3 of 2.0
+    assert_eq!(tensor.sum().unwrap(), expected);
+}
+
+#[test]
+fn test_sum_empty() {
+    let tensor = Tensor(ndarray::ArrayD::<f32>::zeros(vec![0]));
+    assert_eq!(tensor.sum().unwrap(), 0.0);
+}
+
+#[test]
+fn test_sum_axis_columns() {
+    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let result = tensor.sum_axis(2).unwrap();
+    let expected = Tensor(ndarray::array![6., 15.].into_dyn());
+    assert_eq!(result, expected);
+
+    let expected = tensor.0.sum_axis(Axis(1));
+    assert_eq!(result, Tensor(expected));
+}
+
+#[test]
+fn test_sum_axis_rows() {
+    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let result = tensor.sum_axis(1).unwrap();
+    let expected = Tensor(ndarray::array![5., 7., 9.].into_dyn());
+    assert_eq!(result, expected);
+
+    let expected = tensor.0.sum_axis(Axis(0));
+    assert_eq!(result, Tensor(expected));
+}
+
+#[test]
+fn test_sum_axis_invalid() {
+    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let result = tensor.sum_axis(3); // invalid axis (too large)
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_sum_axis_with_lua_binding() {
+    let lua = load_env();
+    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+
+    let func = lua
+        .load("return function(x) return x:sum_axis(2) end")
+        .eval::<LuaFunction>()
+        .unwrap();
+
+    let result: Tensor = func.call(tensor.clone()).unwrap();
+    let expected = Tensor(ndarray::array![6., 15.].into_dyn());
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_sum_with_lua_binding() {
+    let lua = load_env();
+    let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());
+
+    let func = lua
+        .load("return function(x) return x:sum() end")
+        .eval::<LuaFunction>()
+        .unwrap();
+
+    let result: f32 = func.call(tensor.clone()).unwrap();
+    assert_eq!(result, tensor.sum().unwrap());
 }
