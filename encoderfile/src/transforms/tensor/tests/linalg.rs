@@ -1,7 +1,6 @@
-use ndarray::{ArrayD, Axis};
 use super::Tensor;
+use ndarray::{ArrayD, Axis};
 use ort::tensor::ArrayExtensions;
-
 
 #[test]
 fn test_softmax() {

@@ -1,4 +1,4 @@
-use super::{Tensor, load_env, add, sub, div, mul, get_function};
+use super::{Tensor, add, div, get_function, load_env, mul, sub};
 use mlua::prelude::*;
 use ndarray::Array2;
 

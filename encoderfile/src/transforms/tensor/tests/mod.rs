@@ -1,8 +1,8 @@
 use super::*;
 
+mod linalg;
 mod ops;
 mod tensor;
-mod linalg;
 
 const UTILS: &str = include_str!("../../utils.lua");
 

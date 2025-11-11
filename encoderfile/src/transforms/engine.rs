@@ -19,7 +19,8 @@ impl Default for TransformEngine {
         let lua = Lua::new_with(
             mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH,
             mlua::LuaOptions::default(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let globals = lua.globals();
         globals
@@ -60,5 +61,93 @@ mod tests {
         let function: LuaFunction = engine.lua.globals().get("MyTensor").unwrap();
 
         assert!(function.call::<Tensor>(()).is_ok())
+    }
+}
+
+#[cfg(test)]
+mod sandbox_tests {
+    use super::*;
+
+    fn setup_engine() -> TransformEngine {
+        TransformEngine::default()
+    }
+
+    #[test]
+    fn test_no_unsafe_stdlibs_loaded() {
+        let engine = TransformEngine::default();
+        let lua = &engine.lua;
+
+        // Should evaluate to nil, not a table or function
+        let val: mlua::Value = lua.load("return os").eval().unwrap();
+        assert!(matches!(val, mlua::Value::Nil));
+
+        let val: mlua::Value = lua.load("return io").eval().unwrap();
+        assert!(matches!(val, mlua::Value::Nil));
+
+        let val: mlua::Value = lua.load("return debug").eval().unwrap();
+        assert!(matches!(val, mlua::Value::Nil));
+    }
+
+    #[test]
+    fn test_cannot_access_environment_or_execute_commands() {
+        let engine = TransformEngine::default();
+        let lua = &engine.lua;
+
+        // `os.execute` shouldn't exist or be callable
+        let res = lua
+            .load("return type(os) == 'table' and type(os.execute) == 'function'")
+            .eval::<bool>();
+        assert!(
+            matches!(res, Ok(false) | Err(_)),
+            "os.execute should not be callable"
+        );
+    }
+
+    #[test]
+    fn test_no_file_system_access_via_package() {
+        let engine = setup_engine();
+        let lua = &engine.lua;
+
+        // 'require' should not be usable
+        let res = lua.load("require('os')").exec();
+        assert!(res.is_err());
+
+        // 'package' table should not exist
+        let res = lua.load("package").eval::<mlua::Value>();
+        assert!(res.unwrap().is_nil())
+    }
+
+    #[test]
+    fn test_tensor_function_is_only_safe_binding() {
+        let engine = setup_engine();
+        let lua = &engine.lua;
+
+        // Tensor should exist
+        let tensor_res = lua.load("return Tensor").eval::<mlua::Value>();
+        assert!(tensor_res.is_ok());
+
+        // But nothing else custom
+        let res = lua.load("return DangerousFunction").eval::<mlua::Value>();
+        assert!(res.unwrap().is_nil());
+    }
+
+    #[test]
+    fn test_limited_math_and_string_stdlibs() {
+        let engine = setup_engine();
+        let lua = &engine.lua;
+
+        // math should work
+        assert_eq!(lua.load("return math.sqrt(9)").eval::<f64>().unwrap(), 3.0);
+
+        // string manipulation should work
+        assert_eq!(
+            lua.load("return string.upper('sandbox')")
+                .eval::<String>()
+                .unwrap(),
+            "SANDBOX"
+        );
+
+        // io.open should NOT exist
+        assert!(lua.load("return io.open").eval::<mlua::Value>().is_err());
     }
 }
