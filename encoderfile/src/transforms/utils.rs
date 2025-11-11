@@ -20,11 +20,13 @@ pub fn table_to_vec(t: &LuaTable, shape: &mut Vec<usize>) -> Result<Vec<f32>, Lu
             }
             LuaValue::Integer(i) => data.push(i as f32),
             LuaValue::Number(n) => data.push(n as f32),
-            _ => return Err(LuaError::FromLuaConversionError {
-                from: v.type_name(),
-                to: "f32 or nested table".to_string(),
-                message: Some("Invalid value in tensor table".into()),
-            }),
+            _ => {
+                return Err(LuaError::FromLuaConversionError {
+                    from: v.type_name(),
+                    to: "f32 or nested table".to_string(),
+                    message: Some("Invalid value in tensor table".into()),
+                });
+            }
         }
     }
 

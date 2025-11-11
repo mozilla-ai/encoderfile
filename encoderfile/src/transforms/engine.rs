@@ -1,8 +1,8 @@
-use mlua::prelude::*;
 use super::tensor::Tensor;
+use mlua::prelude::*;
 
 pub struct TransformEngine {
-    lua: Lua
+    lua: Lua,
 }
 
 impl TransformEngine {
@@ -18,9 +18,13 @@ impl Default for TransformEngine {
     fn default() -> Self {
         let lua = Lua::new();
         let globals = lua.globals();
-        globals.set("Tensor", lua.create_function(|lua, value| {
-            Tensor::from_lua(value, lua)
-            }).unwrap()).unwrap();
+        globals
+            .set(
+                "Tensor",
+                lua.create_function(|lua, value| Tensor::from_lua(value, lua))
+                    .unwrap(),
+            )
+            .unwrap();
         Self { lua }
     }
 }
@@ -37,20 +41,19 @@ mod tests {
     #[test]
     fn test_create_tensor() {
         let engine = TransformEngine::default();
-        engine.lua
-            .load(r#"
+        engine
+            .lua
+            .load(
+                r#"
             function MyTensor()
                 return Tensor({1, 2, 3})
             end
-            "#)
+            "#,
+            )
             .exec()
             .unwrap();
 
-        let function: LuaFunction = engine
-            .lua
-            .globals()
-            .get("MyTensor")
-            .unwrap();
+        let function: LuaFunction = engine.lua.globals().get("MyTensor").unwrap();
 
         assert!(function.call::<Tensor>(()).is_ok())
     }
