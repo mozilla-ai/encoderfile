@@ -7,7 +7,7 @@ use ort::tensor::ArrayExtensions;
 mod tests;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Tensor(ArrayD<f32>);
+pub struct Tensor(pub ArrayD<f32>);
 
 impl FromLua for Tensor {
     fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Self, LuaError> {
@@ -46,15 +46,19 @@ impl LuaUserData for Tensor {
         });
 
         // tensor ops
+        methods.add_meta_method(LuaMetaMethod::Len, |_, this, _: ()| Ok(this.len()));
         methods.add_method("std", |_, this, ddof| this.std(ddof));
         methods.add_method("mean", |_, this, _: ()| this.mean());
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
-        methods.add_method("lp_norm", |_, this, p: f32| this.lp_norm(p));
     }
 }
 
 impl Tensor {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     fn std(&self, ddof: f32) -> Result<f32, LuaError> {
         Ok(self.0.std(ddof))
     }
@@ -80,23 +84,6 @@ impl Tensor {
 
         let res = self.0.softmax(Axis(axis_index));
         Ok(Self(res))
-    }
-
-    fn lp_norm(&self, p: f32) -> Result<f32, LuaError> {
-        if p == 0.0 {
-            return Err(LuaError::external("P has to be larger than 0."));
-        }
-
-        if p.is_infinite() {
-            return Ok(self.0.iter().map(|v| v.abs()).fold(0.0, f32::max));
-        }
-
-        Ok(self
-            .0
-            .iter()
-            .map(|v| v.abs().powf(p))
-            .sum::<f32>()
-            .powf(1.0 / p))
     }
 }
 
