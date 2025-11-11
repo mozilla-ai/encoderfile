@@ -16,6 +16,21 @@ fn test_from_lua_create_table() {
 }
 
 #[test]
+fn test_from_lua_empty_table() {
+    let lua = load_env();
+
+    let tbl: LuaTable = lua
+        .load("return {}")
+        .eval()
+        .unwrap();
+
+    let Tensor(tensor) = Tensor::from_lua(LuaValue::Table(tbl), &lua).unwrap();
+
+    assert!(tensor.is_empty());
+    assert_eq!(tensor.ndim(), 1);
+}
+
+#[test]
 fn test_from_lua_ragged() {
     let lua = load_env();
 
