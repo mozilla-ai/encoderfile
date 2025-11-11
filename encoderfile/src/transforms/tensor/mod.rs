@@ -42,12 +42,17 @@ impl LuaUserData for Tensor {
         methods.add_meta_method(LuaMetaMethod::Div, |_, this, other| div(this, other));
 
         // tensor ops
+        methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("lp_norm", |_, this, p: f32| this.lp_norm(p));
     }
 }
 
 impl Tensor {
+    fn ndim(&self) -> Result<usize, LuaError> {
+        Ok(self.0.ndim())
+    }
+
     fn softmax(&self, axis: isize) -> Result<Self, LuaError> {
         if axis <= 0 {
             return Err(LuaError::external("Axis must be >= 1."));
