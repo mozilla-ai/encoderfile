@@ -57,6 +57,20 @@ impl LuaUserData for Tensor {
 }
 
 impl Tensor {
+    fn axis1(&self, axis: isize) -> Result<Axis, LuaError> {
+        if axis <= 0 {
+            return Err(LuaError::external("Axis must be >= 1."));
+        }
+
+        let axis_index = (axis - 1) as usize;
+
+        if axis_index >= self.0.ndim() {
+            return Err(LuaError::external("Axis out of range."));
+        }
+
+        Ok(Axis(axis_index))
+    }
+
     pub fn transpose(&self) -> Result<Self, LuaError> {
         Ok(Self(self.0.t().to_owned()))
     }
@@ -78,18 +92,9 @@ impl Tensor {
     }
 
     fn softmax(&self, axis: isize) -> Result<Self, LuaError> {
-        if axis <= 0 {
-            return Err(LuaError::external("Axis must be >= 1."));
-        }
-
-        let axis_index = (axis - 1) as usize;
-
-        if axis_index >= self.0.ndim() {
-            return Err(LuaError::external("Axis out of range."));
-        }
-
-        let res = self.0.softmax(Axis(axis_index));
-        Ok(Self(res))
+        self.axis1(axis)
+            .map(|i| self.0.softmax(i))
+            .map(Self)
     }
 }
 
