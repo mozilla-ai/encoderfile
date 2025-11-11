@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::tensor::Tensor;
 use mlua::prelude::*;
 
@@ -6,11 +8,11 @@ pub struct TransformEngine {
 }
 
 impl TransformEngine {
-    pub fn postprocess(&self, data: Tensor) -> Result<Tensor, LuaError> {
+    pub fn postprocess(&self, data: Tensor, metadata: HashMap<String, String>) -> Result<Tensor, LuaError> {
         self.lua
             .globals()
             .get::<LuaFunction>("Postprocess")?
-            .call(data)
+            .call((data, metadata))
     }
 }
 
