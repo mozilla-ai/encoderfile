@@ -8,7 +8,11 @@ pub struct TransformEngine {
 }
 
 impl TransformEngine {
-    pub fn postprocess(&self, data: Tensor, metadata: HashMap<String, String>) -> Result<Tensor, LuaError> {
+    pub fn postprocess(
+        &self,
+        data: Tensor,
+        metadata: HashMap<String, String>,
+    ) -> Result<Tensor, LuaError> {
         self.lua
             .globals()
             .get::<LuaFunction>("Postprocess")?

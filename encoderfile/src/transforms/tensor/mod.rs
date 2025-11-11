@@ -46,6 +46,8 @@ impl LuaUserData for Tensor {
         });
 
         // tensor ops
+        methods.add_method("std", |_, this, ddof| this.std(ddof));
+        methods.add_method("mean", |_, this, _: ()| this.mean());
         methods.add_method("ndim", |_, this, _: ()| this.ndim());
         methods.add_method("softmax", |_, this, axis: isize| this.softmax(axis));
         methods.add_method("lp_norm", |_, this, p: f32| this.lp_norm(p));
@@ -53,6 +55,14 @@ impl LuaUserData for Tensor {
 }
 
 impl Tensor {
+    fn std(&self, ddof: f32) -> Result<f32, LuaError> {
+        Ok(self.0.std(ddof))
+    }
+
+    fn mean(&self) -> Result<Option<f32>, LuaError> {
+        Ok(self.0.mean())
+    }
+
     fn ndim(&self) -> Result<usize, LuaError> {
         Ok(self.0.ndim())
     }

@@ -175,3 +175,23 @@ fn test_to_string() {
 
     assert_eq!(vec_str, vec_str_gold);
 }
+
+#[test]
+fn test_mean() {
+    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+
+    assert_eq!(
+        tensor.mean().expect("Failed to calculate mean"),
+        tensor.0.mean()
+    );
+}
+
+#[test]
+fn test_std() {
+    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+
+    assert_eq!(
+        tensor.std(1.0).expect("Failed to calculate mean"),
+        tensor.0.std(1.0)
+    );
+}
