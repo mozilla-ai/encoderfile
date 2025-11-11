@@ -13,23 +13,27 @@ impl TransformEngine {
 
         Ok(engine)
     }
+
+    pub fn get_function(&self, func: &str) -> Result<LuaFunction, LuaError> {
+        self.lua.globals().get(func)
+    }
+
+    pub fn load(&self, chunk: &str) -> Result<(), LuaError> {
+        self.lua.load(chunk).exec()?;
+
+        Ok(())
+    }
+
+    pub fn eval<T: FromLuaMulti>(&self, chunk: &str) -> Result<T, LuaError> {
+        self.lua
+            .load(chunk)
+            .eval()
+    }
+
     pub fn postprocess(&self, data: Tensor) -> Result<Tensor, LuaError> {
         let func: LuaFunction = self.lua.globals().get("Postprocess")?;
 
         func.call(data)
-
-        // let mut results = Vec::with_capacity(data.len());
-
-        // for pred in data.0.axis_iter(Axis(0)) {
-        //     let result: Tensor = func.call((Tensor(pred.to_owned()), metadata.clone()))?;
-        //     results.push(result.0);
-        // }
-
-        // let result_views = results.iter().map(|i| i.view()).collect::<Vec<_>>();
-
-        // Ok(Tensor(
-        //     ndarray::stack(Axis(0), result_views.as_slice()).unwrap(),
-        // ))
     }
 }
 
@@ -49,6 +53,7 @@ impl Default for TransformEngine {
                     .unwrap(),
             )
             .unwrap();
+
         Self { lua }
     }
 }
@@ -66,7 +71,6 @@ mod tests {
     fn test_create_tensor() {
         let engine = TransformEngine::default();
         engine
-            .lua
             .load(
                 r#"
             function MyTensor()
@@ -74,10 +78,9 @@ mod tests {
             end
             "#,
             )
-            .exec()
             .unwrap();
 
-        let function: LuaFunction = engine.lua.globals().get("MyTensor").unwrap();
+        let function= engine.get_function("MyTensor").expect("Failed to get MyTensor");
 
         assert!(function.call::<Tensor>(()).is_ok())
     }
@@ -94,28 +97,27 @@ mod sandbox_tests {
     #[test]
     fn test_no_unsafe_stdlibs_loaded() {
         let engine = TransformEngine::default();
-        let lua = &engine.lua;
 
         // Should evaluate to nil, not a table or function
-        let val: mlua::Value = lua.load("return os").eval().unwrap();
+        let val: mlua::Value = engine.eval("return os").unwrap();
         assert!(matches!(val, mlua::Value::Nil));
 
-        let val: mlua::Value = lua.load("return io").eval().unwrap();
+        let val: mlua::Value = engine.eval("return io").unwrap();
         assert!(matches!(val, mlua::Value::Nil));
 
-        let val: mlua::Value = lua.load("return debug").eval().unwrap();
+        let val: mlua::Value = engine.eval("return debug").unwrap();
         assert!(matches!(val, mlua::Value::Nil));
     }
 
     #[test]
     fn test_cannot_access_environment_or_execute_commands() {
         let engine = TransformEngine::default();
-        let lua = &engine.lua;
 
         // `os.execute` shouldn't exist or be callable
-        let res = lua
-            .load("return type(os) == 'table' and type(os.execute) == 'function'")
-            .eval::<bool>();
+        let res = engine
+            .eval
+            ::<bool>("return type(os) == 'table' and type(os.execute) == 'function'");
+
         assert!(
             matches!(res, Ok(false) | Err(_)),
             "os.execute should not be callable"
@@ -125,48 +127,44 @@ mod sandbox_tests {
     #[test]
     fn test_no_file_system_access_via_package() {
         let engine = setup_engine();
-        let lua = &engine.lua;
 
         // 'require' should not be usable
-        let res = lua.load("require('os')").exec();
+        let res = engine.load("require('os')");
         assert!(res.is_err());
 
         // 'package' table should not exist
-        let res = lua.load("package").eval::<mlua::Value>();
+        let res = engine.eval::<mlua::Value>("package");
         assert!(res.unwrap().is_nil())
     }
 
     #[test]
     fn test_tensor_function_is_only_safe_binding() {
         let engine = setup_engine();
-        let lua = &engine.lua;
 
         // Tensor should exist
-        let tensor_res = lua.load("return Tensor").eval::<mlua::Value>();
+        let tensor_res = engine.eval::<mlua::Value>("return Tensor");
         assert!(tensor_res.is_ok());
 
         // But nothing else custom
-        let res = lua.load("return DangerousFunction").eval::<mlua::Value>();
+        let res = engine.eval::<mlua::Value>("return DangerousFunction");
         assert!(res.unwrap().is_nil());
     }
 
     #[test]
     fn test_limited_math_and_string_stdlibs() {
         let engine = setup_engine();
-        let lua = &engine.lua;
 
         // math should work
-        assert_eq!(lua.load("return math.sqrt(9)").eval::<f64>().unwrap(), 3.0);
+        assert_eq!(engine.eval::<f64>("return math.sqrt(9)").unwrap(), 3.0);
 
         // string manipulation should work
         assert_eq!(
-            lua.load("return string.upper('sandbox')")
-                .eval::<String>()
+            engine.eval::<String>("return string.upper('sandbox')")
                 .unwrap(),
             "SANDBOX"
         );
 
         // io.open should NOT exist
-        assert!(lua.load("return io.open").eval::<mlua::Value>().is_err());
+        assert!(engine.eval::<mlua::Value>("return io.open").is_err());
     }
 }
