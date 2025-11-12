@@ -62,10 +62,33 @@ impl LuaUserData for Tensor {
         methods.add_method("exp", |_, this, _: ()| this.exp());
         methods.add_method("sum_axis", |_, this, axis| this.sum_axis(axis));
         methods.add_method("sum", |_, this, _: ()| this.sum());
+
+        methods.add_method("map_axis", |_, this, (axis, func)| this.map_axis(axis, func));
     }
 }
 
 impl Tensor {
+    fn map_axis(&self, axis: isize, func: LuaFunction) -> Result<Self, LuaError> {
+        let axis = self.axis1(axis)?;
+
+        let mut out = Vec::with_capacity(self.len());
+
+        for subview in self.0.axis_iter(axis) {
+            let sub = subview.to_owned();
+            match func.call::<Self>(Tensor(sub)) {
+                Ok(Tensor(v)) => out.push(v),
+                Err(e) => return Err(LuaError::external(e))
+            }
+        }
+
+        let views: Vec<_> = out
+            .iter()
+            .map(|i| i.view())
+            .collect();
+
+        Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap()))
+    }
+
     fn sum(&self) -> Result<f32, LuaError> {
         Ok(self.0.sum())
     }

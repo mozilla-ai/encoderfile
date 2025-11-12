@@ -1,6 +1,6 @@
 use super::{Tensor, add, div, load_env, mul, sub};
 use mlua::prelude::*;
-use ndarray::{Array0, Array2, Axis};
+use ndarray::{Array0, Array2, Array3, Axis};
 
 #[test]
 fn test_min() {
@@ -335,4 +335,34 @@ fn test_sum_with_lua_binding() {
 
     let result: f32 = func.call(tensor.clone()).unwrap();
     assert_eq!(result, tensor.sum().unwrap());
+}
+
+#[test]
+fn test_map_axis_zero_transform() {
+    let lua = load_env();
+    let tensor = Tensor(Array3::<f32>::from_elem((3, 6, 9), 1.0).into_dyn());
+
+    let func = lua
+        .load("return function(x) return x end")
+        .eval::<LuaFunction>()
+        .unwrap();
+
+    let result = tensor.map_axis(3, func).expect("Failed to map axis");
+
+    assert_eq!(tensor, result);
+}
+
+#[test]
+fn test_map_axis_double_values() {
+    let lua = load_env();
+    let tensor = Tensor(Array3::<f32>::from_shape_fn((2, 2, 2), |(i, j, k)| (i + j + k) as f32).into_dyn());
+
+    let func = lua
+        .load("return function(x) return x * 2 end")
+        .eval::<LuaFunction>()
+        .unwrap();
+
+    let result = tensor.map_axis(3, func).expect("Failed to map axis");
+
+    assert_eq!(result.0, tensor.0 * 2.0);
 }
