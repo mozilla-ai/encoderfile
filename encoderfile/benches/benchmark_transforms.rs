@@ -1,5 +1,5 @@
-use rand::Rng;
 use ndarray::{Array2, Array3, ArrayD};
+use rand::Rng;
 
 fn main() {
     divan::main()
@@ -9,21 +9,29 @@ fn get_random_2d(x: usize, y: usize) -> ArrayD<f32> {
     let mut rng = rand::rng();
     let vals: Vec<f32> = (0..(x * y)).map(|_| rng.random()).collect();
 
-    Array2::from_shape_vec((x, y), vals).expect("Failed to create shape vec").into_dyn()
+    Array2::from_shape_vec((x, y), vals)
+        .expect("Failed to create shape vec")
+        .into_dyn()
 }
 
 fn get_random_3d(x: usize, y: usize, z: usize) -> ArrayD<f32> {
     let mut rng = rand::rng();
     let vals: Vec<f32> = (0..(x * y * z)).map(|_| rng.random()).collect();
 
-    Array3::from_shape_vec((x, y, z), vals).expect("Failed to create shape vec").into_dyn()
+    Array3::from_shape_vec((x, y, z), vals)
+        .expect("Failed to create shape vec")
+        .into_dyn()
 }
 
 #[divan::bench(args = [(16, 16, 16), (32, 128, 384), (32, 256, 768)])]
 fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, usize, usize)) {
     let engine = encoderfile::transforms::TransformEngine::default();
 
-    engine.load(include_str!("../transforms/embedding/l2_normalize_embeddings.lua")).expect("Failed to load script");
+    engine
+        .load(include_str!(
+            "../transforms/embedding/l2_normalize_embeddings.lua"
+        ))
+        .expect("Failed to load script");
     let test_tensor = encoderfile::transforms::Tensor(get_random_3d(x, y, z));
 
     bencher.bench_local(|| {
@@ -35,7 +43,11 @@ fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, 
 fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
     let engine = encoderfile::transforms::TransformEngine::default();
 
-    engine.load(include_str!("../transforms/sequence_classification/softmax_logits.lua")).expect("Failed to load script");
+    engine
+        .load(include_str!(
+            "../transforms/sequence_classification/softmax_logits.lua"
+        ))
+        .expect("Failed to load script");
     let test_tensor = encoderfile::transforms::Tensor(get_random_2d(x, y));
 
     bencher.bench_local(|| {
@@ -47,7 +59,11 @@ fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
 fn bench_tok_cls_softmax(bencher: divan::Bencher, (x, y, z): (usize, usize, usize)) {
     let engine = encoderfile::transforms::TransformEngine::default();
 
-    engine.load(include_str!("../transforms/token_classification/softmax_logits.lua")).expect("Failed to load script");
+    engine
+        .load(include_str!(
+            "../transforms/token_classification/softmax_logits.lua"
+        ))
+        .expect("Failed to load script");
     let test_tensor = encoderfile::transforms::Tensor(get_random_3d(x, y, z));
 
     bencher.bench_local(|| {

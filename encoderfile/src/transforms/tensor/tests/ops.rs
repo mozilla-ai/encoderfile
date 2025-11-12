@@ -265,7 +265,11 @@ fn test_sum_empty() {
 
 #[test]
 fn test_sum_axis_columns() {
-    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let tensor = Tensor(
+        Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.])
+            .unwrap()
+            .into_dyn(),
+    );
     let result = tensor.sum_axis(2).unwrap();
     let expected = Tensor(ndarray::array![6., 15.].into_dyn());
     assert_eq!(result, expected);
@@ -276,7 +280,11 @@ fn test_sum_axis_columns() {
 
 #[test]
 fn test_sum_axis_rows() {
-    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let tensor = Tensor(
+        Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.])
+            .unwrap()
+            .into_dyn(),
+    );
     let result = tensor.sum_axis(1).unwrap();
     let expected = Tensor(ndarray::array![5., 7., 9.].into_dyn());
     assert_eq!(result, expected);
@@ -287,7 +295,11 @@ fn test_sum_axis_rows() {
 
 #[test]
 fn test_sum_axis_invalid() {
-    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let tensor = Tensor(
+        Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.])
+            .unwrap()
+            .into_dyn(),
+    );
     let result = tensor.sum_axis(3); // invalid axis (too large)
     assert!(result.is_err());
 }
@@ -295,7 +307,11 @@ fn test_sum_axis_invalid() {
 #[test]
 fn test_sum_axis_with_lua_binding() {
     let lua = load_env();
-    let tensor = Tensor(Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap().into_dyn());
+    let tensor = Tensor(
+        Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.])
+            .unwrap()
+            .into_dyn(),
+    );
 
     let func = lua
         .load("return function(x) return x:sum_axis(2) end")

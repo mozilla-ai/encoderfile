@@ -105,7 +105,11 @@ impl Tensor {
 
         // Compute Lp norm along axis
         let norms = arr.map_axis(axis, |subview| {
-            subview.iter().map(|&v| v.abs().powf(p)).sum::<f32>().powf(1.0 / p)
+            subview
+                .iter()
+                .map(|&v| v.abs().powf(p))
+                .sum::<f32>()
+                .powf(1.0 / p)
         });
 
         // Avoid division by zero using in-place broadcast clamp
