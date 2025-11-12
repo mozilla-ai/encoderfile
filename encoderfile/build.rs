@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_prost_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
         .build_server(true)
-        .out_dir("src/generated")
+        // .out_dir("src/generated")
         .compile_protos(&["proto/encoderfile.proto"], &["proto/encoderfile"])?;
 
     for var in BUILD_VARS {
