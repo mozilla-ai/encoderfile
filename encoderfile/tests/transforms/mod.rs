@@ -5,7 +5,7 @@ use ort::tensor::ArrayExtensions;
 #[test]
 fn test_l2_normalization() {
     let engine = TransformEngine::new(include_str!(
-        "../../transforms/embedding/l2_normalize_embeddings.lua"
+        "../../../transforms/embedding/l2_normalize_embeddings.lua"
     ))
     .expect("Failed to create engine");
 
@@ -29,7 +29,7 @@ fn test_l2_normalization() {
 #[test]
 fn test_softmax_sequence_cls() {
     let engine = TransformEngine::new(include_str!(
-        "../../transforms/sequence_classification/softmax_logits.lua"
+        "../../../transforms/sequence_classification/softmax_logits.lua"
     ))
     .expect("Failed to create engine");
 
@@ -48,7 +48,7 @@ fn test_softmax_sequence_cls() {
 #[test]
 fn test_softmax_token_cls() {
     let engine = TransformEngine::new(include_str!(
-        "../../transforms/token_classification/softmax_logits.lua"
+        "../../../transforms/token_classification/softmax_logits.lua"
     ))
     .expect("Failed to create engine");
 

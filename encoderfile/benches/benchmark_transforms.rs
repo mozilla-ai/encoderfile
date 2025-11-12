@@ -29,7 +29,7 @@ fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, 
 
     engine
         .exec(include_str!(
-            "../transforms/embedding/l2_normalize_embeddings.lua"
+            "../../transforms/embedding/l2_normalize_embeddings.lua"
         ))
         .expect("Failed to load script");
     let test_tensor = encoderfile::transforms::Tensor(get_random_3d(x, y, z));
@@ -45,7 +45,7 @@ fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
 
     engine
         .exec(include_str!(
-            "../transforms/sequence_classification/softmax_logits.lua"
+            "../../transforms/sequence_classification/softmax_logits.lua"
         ))
         .expect("Failed to load script");
     let test_tensor = encoderfile::transforms::Tensor(get_random_2d(x, y));
@@ -61,7 +61,7 @@ fn bench_tok_cls_softmax(bencher: divan::Bencher, (x, y, z): (usize, usize, usiz
 
     engine
         .exec(include_str!(
-            "../transforms/token_classification/softmax_logits.lua"
+            "../../transforms/token_classification/softmax_logits.lua"
         ))
         .expect("Failed to load script");
     let test_tensor = encoderfile::transforms::Tensor(get_random_3d(x, y, z));
