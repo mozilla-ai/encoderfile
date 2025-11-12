@@ -1,6 +1,6 @@
 use crate::{
     config::get_model_type,
-    transport::{grpc, http},
+    transport::{grpc, http, mcp},
 };
 use anyhow::Result;
 use tower_http::trace::DefaultOnResponse;
@@ -59,25 +59,13 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
 
 #[cfg(not(tarpaulin_include))]
 pub async fn run_mcp(hostname: String, port: String) -> Result<()> {
-    use rmcp::transport::streamable_http_server::{
-        StreamableHttpService,
-        session::local::LocalSessionManager,
-    };
     use crate::state::AppState;
-    use crate::transport::mcp::Encoder;
 
     let addr = format!("{}:{}", &hostname, &port);
 
     // FIXME add otel around here
 
-    let service = StreamableHttpService::new(
-        || Ok(Encoder::new(AppState::default())),
-        LocalSessionManager::default().into(),
-        Default::default(),
-    );
-
-    // FIXME consolidate routes with existing axum
-    let router = axum::Router::new().nest_service("/mcp", service)
+    let router = mcp::make_router(AppState::default())
         .layer(
         tower_http::trace::TraceLayer::new_for_http()
             .make_span_with(crate::middleware::format_span)
