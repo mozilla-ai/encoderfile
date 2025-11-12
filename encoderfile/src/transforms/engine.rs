@@ -18,7 +18,7 @@ impl TransformEngine {
         self.lua.globals().get(func)
     }
 
-    pub fn load(&self, chunk: &str) -> Result<(), LuaError> {
+    pub fn exec(&self, chunk: &str) -> Result<(), LuaError> {
         self.lua.load(chunk).exec()?;
 
         Ok(())
@@ -69,7 +69,7 @@ mod tests {
     fn test_create_tensor() {
         let engine = TransformEngine::default();
         engine
-            .load(
+            .exec(
                 r#"
             function MyTensor()
                 return Tensor({1, 2, 3})
@@ -128,7 +128,7 @@ mod sandbox_tests {
         let engine = setup_engine();
 
         // 'require' should not be usable
-        let res = engine.load("require('os')");
+        let res = engine.exec("require('os')");
         assert!(res.is_err());
 
         // 'package' table should not exist

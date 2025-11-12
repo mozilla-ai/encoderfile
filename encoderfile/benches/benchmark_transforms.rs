@@ -28,7 +28,7 @@ fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, 
     let engine = encoderfile::transforms::TransformEngine::default();
 
     engine
-        .load(include_str!(
+        .exec(include_str!(
             "../transforms/embedding/l2_normalize_embeddings.lua"
         ))
         .expect("Failed to load script");
@@ -44,7 +44,7 @@ fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
     let engine = encoderfile::transforms::TransformEngine::default();
 
     engine
-        .load(include_str!(
+        .exec(include_str!(
             "../transforms/sequence_classification/softmax_logits.lua"
         ))
         .expect("Failed to load script");
@@ -60,7 +60,7 @@ fn bench_tok_cls_softmax(bencher: divan::Bencher, (x, y, z): (usize, usize, usiz
     let engine = encoderfile::transforms::TransformEngine::default();
 
     engine
-        .load(include_str!(
+        .exec(include_str!(
             "../transforms/token_classification/softmax_logits.lua"
         ))
         .expect("Failed to load script");
