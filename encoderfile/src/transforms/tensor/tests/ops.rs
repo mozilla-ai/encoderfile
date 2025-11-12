@@ -355,7 +355,8 @@ fn test_map_axis_zero_transform() {
 #[test]
 fn test_map_axis_double_values() {
     let lua = load_env();
-    let tensor = Tensor(Array3::<f32>::from_shape_fn((2, 2, 2), |(i, j, k)| (i + j + k) as f32).into_dyn());
+    let tensor =
+        Tensor(Array3::<f32>::from_shape_fn((2, 2, 2), |(i, j, k)| (i + j + k) as f32).into_dyn());
 
     let func = lua
         .load("return function(x) return x * 2 end")
@@ -370,13 +371,16 @@ fn test_map_axis_double_values() {
 #[test]
 fn fold_axis_sum_rows() -> LuaResult<()> {
     let lua = load_env();
-    let arr = ndarray::array![[1.0, 2.0, 3.0],
-                        [4.0, 5.0, 6.0]].into_dyn();
+    let arr = ndarray::array![[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]].into_dyn();
     let t = Tensor(arr);
 
-    let func: LuaFunction = lua.load(r#"
+    let func: LuaFunction = lua
+        .load(
+            r#"
         return function(acc, x) return acc + x end
-    "#).eval()?;
+    "#,
+        )
+        .eval()?;
 
     let res = t.fold_axis(1, 0.0, func)?; // fold each row
     let v = res.0.into_dimensionality::<ndarray::Ix1>().unwrap();
@@ -388,13 +392,16 @@ fn fold_axis_sum_rows() -> LuaResult<()> {
 #[test]
 fn fold_axis_product() -> LuaResult<()> {
     let lua = Lua::new();
-    let arr = ndarray::array![[1.0, 2.0],
-                        [3.0, 4.0]].into_dyn();
+    let arr = ndarray::array![[1.0, 2.0], [3.0, 4.0]].into_dyn();
     let t = Tensor(arr);
 
-    let func: LuaFunction = lua.load(r#"
+    let func: LuaFunction = lua
+        .load(
+            r#"
         return function(acc, x) return acc * x end
-    "#).eval()?;
+    "#,
+        )
+        .eval()?;
 
     let res = t.fold_axis(1, 1.0, func)?; // multiply across each row
     let v = res.0.into_dimensionality::<ndarray::Ix1>().unwrap();

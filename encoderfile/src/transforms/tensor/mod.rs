@@ -63,8 +63,12 @@ impl LuaUserData for Tensor {
         methods.add_method("sum_axis", |_, this, axis| this.sum_axis(axis));
         methods.add_method("sum", |_, this, _: ()| this.sum());
 
-        methods.add_method("map_axis", |_, this, (axis, func)| this.map_axis(axis, func));
-        methods.add_method("fold_axis", |_, this, (axis, acc, func)| this.fold_axis(axis, acc, func));
+        methods.add_method("map_axis", |_, this, (axis, func)| {
+            this.map_axis(axis, func)
+        });
+        methods.add_method("fold_axis", |_, this, (axis, acc, func)| {
+            this.fold_axis(axis, acc, func)
+        });
     }
 }
 
@@ -81,7 +85,7 @@ impl Tensor {
             for &x in sub.iter() {
                 acc = match func.call((acc, x)) {
                     Ok(v) => v,
-                    Err(e) => return Err(LuaError::external(e))
+                    Err(e) => return Err(LuaError::external(e)),
                 }
             }
 
@@ -104,14 +108,11 @@ impl Tensor {
             let sub = subview.to_owned();
             match func.call::<Self>(Tensor(sub)) {
                 Ok(Tensor(v)) => out.push(v),
-                Err(e) => return Err(LuaError::external(e))
+                Err(e) => return Err(LuaError::external(e)),
             }
         }
 
-        let views: Vec<_> = out
-            .iter()
-            .map(|i| i.view())
-            .collect();
+        let views: Vec<_> = out.iter().map(|i| i.view()).collect();
 
         Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap()))
     }
