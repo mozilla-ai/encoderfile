@@ -1,39 +1,11 @@
 use crate::{
-    error::ApiError::{self, InputError, InternalError, ConfigError},
     common::ModelType,
 };
 use crate::runtime::AppState;
-use rmcp::{
-    ErrorData as McpError,
-    model::{
-        ErrorCode
-    }
-};
-use serde_json::value::Value::String as SerdeString;
 use rmcp::transport::streamable_http_server::{
     StreamableHttpService,
     session::local::LocalSessionManager,
 };
-const ENCODER_DESER_ERROR_MSG: &'static str = "Encoder response deserialization error";
-
-
-impl From<ApiError> for McpError {
-     fn from(api_error: ApiError) -> McpError {
-        match api_error {
-            InputError(str) => McpError {code: ErrorCode::INVALID_REQUEST, message: std::borrow::Cow::Borrowed(str), data: None},
-            InternalError(str) => McpError {code: ErrorCode::INTERNAL_ERROR, message: std::borrow::Cow::Borrowed(str), data: None},
-            ConfigError(str) => McpError {code: ErrorCode::INTERNAL_ERROR, message: std::borrow::Cow::Borrowed(str), data: None},
-        }
-     }
-}
-
-fn to_mcp_error(serde_err: serde_json::Error) -> McpError {
-    return McpError {
-        code: ErrorCode::INVALID_REQUEST,
-        message: std::borrow::Cow::Borrowed(ENCODER_DESER_ERROR_MSG),
-        data: Some(SerdeString(serde_err.to_string()))
-    };
-}
 
 // TODO figure out the lifetimes of a state so a ref can be safely passed
 pub fn make_router(state: AppState) -> axum::Router {
@@ -43,37 +15,23 @@ pub fn make_router(state: AppState) -> axum::Router {
                 move || Ok(embedding::EmbedderTool::new(state.clone())),
                 LocalSessionManager::default().into(),
                 Default::default());
-            return axum::Router::new().nest_service("/mcp", service);
-            /*
-                let service = StreamableHttpService::new(
-                    move || Ok(::::new(state.clone())),
-                    LocalSessionManager::default().into(),
-                    Default::default());
-                return axum::Router::new().nest_service("/mcp", service);
-                */
+            axum::Router::new().nest_service("/mcp", service)
         }
         ModelType::SequenceClassification => {
             let service = StreamableHttpService::new(
                 move || Ok(sequence_classification::SequenceClassificationTool::new(state.clone())),
                 LocalSessionManager::default().into(),
                 Default::default());
-            return axum::Router::new().nest_service("/mcp", service);
-            /*
-            let service = StreamableHttpService::new(
-                move || Ok(::::new(state.clone())),
-                LocalSessionManager::default().into(),
-                Default::default());
-            return axum::Router::new().nest_service("/mcp", service);
-            */
+            axum::Router::new().nest_service("/mcp", service)
         }
         ModelType::TokenClassification => {
             let service = StreamableHttpService::new(
                 move || Ok(token_classification::TokenClassificationTool::new(state.clone())),
                 LocalSessionManager::default().into(),
                 Default::default());
-            return axum::Router::new().nest_service("/mcp", service);
+            axum::Router::new().nest_service("/mcp", service)
         }
-    };
+    }
 }
 
 macro_rules! generate_mcp {
@@ -82,7 +40,7 @@ macro_rules! generate_mcp {
             use $crate::services::$fn_name;
             use $crate::common::$request_body;
             use $crate::runtime::AppState;
-            use $crate::transport::mcp::to_mcp_error;
+            use $crate::error::to_mcp_error;
             use rmcp::{
                 ErrorData as McpError,
                 ServerHandler,
@@ -112,10 +70,9 @@ macro_rules! generate_mcp {
 
             #[tool_router]
             impl $tool_name {
-                #[allow(dead_code)]
                 pub fn new(state: AppState) -> Self {
                     Self {
-                        state: state,
+                        state,
                         tool_router: Self::tool_router(),
                     }
                 }
