@@ -1,6 +1,6 @@
 use super::utils::table_to_vec;
 use mlua::prelude::*;
-use ndarray::{ArrayD, Axis};
+use ndarray::{Array1, ArrayD, Axis};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 
@@ -64,10 +64,37 @@ impl LuaUserData for Tensor {
         methods.add_method("sum", |_, this, _: ()| this.sum());
 
         methods.add_method("map_axis", |_, this, (axis, func)| this.map_axis(axis, func));
+        methods.add_method("fold_axis", |_, this, (axis, acc, func)| this.fold_axis(axis, acc, func));
     }
 }
 
 impl Tensor {
+    fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Self, LuaError> {
+        let axis = self.axis1(axis)?;
+
+        let mut out = Vec::new();
+
+        for subview in self.0.axis_iter(axis) {
+            let sub = subview.to_owned();
+            let mut acc = acc;
+
+            for &x in sub.iter() {
+                acc = match func.call((acc, x)) {
+                    Ok(v) => v,
+                    Err(e) => return Err(LuaError::external(e))
+                }
+            }
+
+            out.push(acc);
+        }
+
+        let result = Array1::from_shape_vec(out.len(), out)
+            .expect("Failed to recast results")
+            .into_dyn();
+
+        Ok(Tensor(result))
+    }
+
     fn map_axis(&self, axis: isize, func: LuaFunction) -> Result<Self, LuaError> {
         let axis = self.axis1(axis)?;
 
