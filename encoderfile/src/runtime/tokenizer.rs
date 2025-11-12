@@ -1,7 +1,7 @@
 use crate::{
     assets::TOKENIZER_JSON,
-    config::{ModelConfig, get_model_config},
     error::ApiError,
+    runtime::config::{ModelConfig, get_model_config},
 };
 use anyhow::Result;
 use std::str::FromStr;
@@ -53,6 +53,7 @@ pub fn get_tokenizer_from_string(s: &str, config: &Arc<ModelConfig>) -> Tokenize
     tokenizer
 }
 
+#[tracing::instrument(skip_all)]
 pub fn encode_text(tokenizer: &Tokenizer, text: Vec<String>) -> Result<Vec<Encoding>, ApiError> {
     if text.is_empty() || text.iter().any(|i| i.is_empty()) {
         return Err(ApiError::InputError("Cannot tokenize empty string"));

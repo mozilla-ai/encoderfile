@@ -18,3 +18,12 @@ pub fn get_model() -> Arc<Mutex<Session>> {
 
     model.clone()
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_get_model<'a>() {
+        super::get_model();
+        assert!(super::MODEL.get().is_some(), "Model not initialized");
+    }
+}

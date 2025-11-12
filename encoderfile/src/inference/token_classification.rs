@@ -1,34 +1,44 @@
 use crate::{
     common::{TokenClassification, TokenClassificationResult, TokenInfo},
-    config::ModelConfig,
     error::ApiError,
+    runtime::ModelConfig,
 };
-use ndarray::{Axis, Ix3};
+use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
+#[tracing::instrument(skip_all)]
 pub fn token_classification<'a>(
-    mut session: crate::model::Model<'a>,
+    mut session: crate::runtime::Model<'a>,
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?;
-
-    let outputs = outputs
+    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
         .get("logits")
         .expect("Model does not return logits")
         .try_extract_array::<f32>()
         .expect("Model does not return tensor extractable to f32")
         .into_dimensionality::<Ix3>()
-        .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]");
+        .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]")
+        .into_owned();
 
+    let predictions = postprocess(outputs, encodings, config);
+
+    Ok(predictions)
+}
+
+#[tracing::instrument(skip_all)]
+pub fn postprocess(
+    outputs: Array3<f32>,
+    encodings: Vec<Encoding>,
+    config: &ModelConfig,
+) -> Vec<TokenClassificationResult> {
     let mut predictions = Vec::new();
 
     for (encoding, logits) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
-        let logits = logits.to_owned();
         let scores = logits.softmax(Axis(1));
 
         let mut results = Vec::new();
@@ -78,5 +88,5 @@ pub fn token_classification<'a>(
         predictions.push(TokenClassificationResult { tokens: results });
     }
 
-    Ok(predictions)
+    predictions
 }

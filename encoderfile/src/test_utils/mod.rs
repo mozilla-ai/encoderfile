@@ -1,9 +1,9 @@
-use encoderfile::{common::ModelType, config::ModelConfig, state::AppState};
+use crate::{common::ModelType, runtime::AppState, runtime::ModelConfig};
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};
 
-pub const EMBEDDING_DIR: &str = "../models/embedding";
+const EMBEDDING_DIR: &str = "../models/embedding";
 const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
@@ -48,10 +48,10 @@ fn get_tokenizer(dir: &str, config: &Arc<ModelConfig>) -> tokenizers::Tokenizer 
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
-    encoderfile::tokenizer::get_tokenizer_from_string(tokenizer_str.as_str(), config)
+    crate::runtime::get_tokenizer_from_string(tokenizer_str.as_str(), config)
 }
 
-fn get_model<'a>(dir: &str) -> Mutex<Session> {
+fn get_model(dir: &str) -> Mutex<Session> {
     Mutex::new(
         ort::session::Session::builder()
             .expect("Failed to load session")

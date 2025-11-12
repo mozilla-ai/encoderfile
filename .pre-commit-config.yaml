@@ -8,7 +8,7 @@ repos:
         types: [rust]
       - id: cargo-clippy
         name: cargo clippy
-        entry: bash -c 'cargo clippy --fix --allow-dirty -- -D warnings'
+        entry: bash -c 'cargo clippy --all-features --fix --allow-dirty -- -D warnings'
         language: system
         types: [rust]
   - repo: https://github.com/astral-sh/ruff-pre-commit

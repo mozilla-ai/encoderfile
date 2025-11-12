@@ -1,21 +1,18 @@
-use crate::{common::SequenceClassificationResult, config::ModelConfig, error::ApiError};
-use ndarray::{Axis, Ix2};
+use crate::{common::SequenceClassificationResult, error::ApiError, runtime::ModelConfig};
+use ndarray::{Array2, Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
+#[tracing::instrument(skip_all)]
 pub fn sequence_classification<'a>(
-    mut session: crate::model::Model<'a>,
+    mut session: crate::runtime::Model<'a>,
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?;
-
-    // get logits
-    // will be in shape [N, L]
-    let outputs = outputs
+    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
         .get("logits")
         .expect("Model does not return logits")
         .try_extract_array::<f32>()
@@ -24,9 +21,19 @@ pub fn sequence_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_labels]")
         .into_owned();
 
+    let results = postprocess(outputs, config);
+
+    Ok(results)
+}
+
+#[tracing::instrument(skip_all)]
+pub fn postprocess(
+    outputs: Array2<f32>,
+    config: &ModelConfig,
+) -> Vec<SequenceClassificationResult> {
     let probabilities = outputs.softmax(Axis(1));
 
-    let results = outputs
+    outputs
         .axis_iter(Axis(0))
         .zip(probabilities.axis_iter(Axis(0)))
         .map(|(logs, probs)| {
@@ -40,7 +47,5 @@ pub fn sequence_classification<'a>(
                     .map(|i| i.to_string()),
             }
         })
-        .collect();
-
-    Ok(results)
+        .collect()
 }

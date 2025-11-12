@@ -26,7 +26,7 @@ impl ApiError {
 
     pub fn to_axum_status(&self) -> (StatusCode, &'static str) {
         match self {
-            Self::InputError(s) => (StatusCode::BAD_REQUEST, *s),
+            Self::InputError(s) => (StatusCode::UNPROCESSABLE_ENTITY, *s),
             Self::InternalError(s) => (StatusCode::INTERNAL_SERVER_ERROR, *s),
             Self::ConfigError(s) => (StatusCode::INTERNAL_SERVER_ERROR, *s),
         }

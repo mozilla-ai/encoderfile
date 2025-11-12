@@ -2,9 +2,10 @@ use crate::{
     common::{EmbeddingRequest, EmbeddingResponse},
     error::ApiError,
     inference,
-    state::AppState,
+    runtime::AppState,
 };
 
+#[tracing::instrument(skip_all)]
 pub fn embedding(
     request: impl Into<EmbeddingRequest>,
     state: &AppState,
@@ -13,7 +14,7 @@ pub fn embedding(
 
     let session = state.session.lock();
 
-    let encodings = crate::tokenizer::encode_text(&state.tokenizer, request.inputs)?;
+    let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
 
     let results =
         inference::embedding::embedding(session, &state.config, encodings, request.normalize)?;

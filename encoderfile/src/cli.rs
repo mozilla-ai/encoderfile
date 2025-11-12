@@ -8,12 +8,15 @@ use crate::{
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
+use opentelemetry::trace::TracerProvider as _;
+use opentelemetry_otlp::{Protocol, WithExportConfig};
+use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::io::Write;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 macro_rules! generate_cli_route {
-    ($req:ident, $fn:path, $format:ident, $out_dir:expr) => {{
-        let state = $crate::state::AppState::default();
-        let result = $fn($req, &state)?;
+    ($req:ident, $fn:path, $format:ident, $out_dir:expr, $state:expr) => {{
+        let result = $fn($req, &$state)?;
 
         let serialized = match $format {
             Format::Json => serde_json::to_string_pretty(&result)?,
@@ -50,6 +53,10 @@ pub enum Commands {
         disable_grpc: bool,
         #[arg(long, default_value_t = false)]
         disable_http: bool,
+        #[arg(long, default_value_t = false)]
+        enable_otel: bool,
+        #[arg(long, default_value = "http://localhost:4317")]
+        otel_exporter_url: String,
     },
     Infer {
         #[arg(required = true)]
@@ -79,12 +86,19 @@ impl Commands {
                 http_port,
                 disable_grpc,
                 disable_http,
+                enable_otel,
+                otel_exporter_url,
             } => {
                 if disable_grpc && disable_http {
                     return Err(crate::error::ApiError::ConfigError(
                         "Cannot disable both gRPC and HTTP",
                     ))?;
                 }
+
+                match enable_otel {
+                    true => setup_tracing(Some(otel_exporter_url.as_str())),
+                    false => setup_tracing(None),
+                }?;
 
                 let grpc_process = match disable_grpc {
                     true => tokio::spawn(async { Ok(()) }),
@@ -106,9 +120,13 @@ impl Commands {
                 format,
                 out_dir,
             } => {
+                setup_tracing(None)?;
+
                 let metadata = None;
 
-                match get_model_type() {
+                let state = AppState::default();
+
+                match state.model_type {
                     ModelType::Embedding => {
                         let request = EmbeddingRequest {
                             inputs,
@@ -116,17 +134,23 @@ impl Commands {
                             metadata,
                         };
 
-                        generate_cli_route!(request, embedding, format, out_dir)
+                        generate_cli_route!(request, embedding, format, out_dir, state)
                     }
                     ModelType::SequenceClassification => {
                         let request = SequenceClassificationRequest { inputs, metadata };
 
-                        generate_cli_route!(request, sequence_classification, format, out_dir)
+                        generate_cli_route!(
+                            request,
+                            sequence_classification,
+                            format,
+                            out_dir,
+                            state
+                        )
                     }
                     ModelType::TokenClassification => {
                         let request = TokenClassificationRequest { inputs, metadata };
 
-                        generate_cli_route!(request, token_classification, format, out_dir)
+                        generate_cli_route!(request, token_classification, format, out_dir, state)
                     }
                 }
             }
@@ -152,4 +176,53 @@ impl ToString for Format {
         }
         .to_string()
     }
+}
+
+#[cfg(not(tarpaulin_include))]
+fn setup_tracing(otlp_exporter_url: Option<&str>) -> anyhow::Result<()> {
+    if let Some(otlp_exporter_url) = otlp_exporter_url {
+        let exporter = opentelemetry_otlp::SpanExporter::builder()
+            .with_tonic()
+            .with_protocol(Protocol::Grpc)
+            .with_endpoint(otlp_exporter_url)
+            .build()?;
+
+        let resource = opentelemetry_sdk::Resource::builder()
+            .with_attributes(vec![opentelemetry::KeyValue::new(
+                opentelemetry_semantic_conventions::resource::SERVICE_NAME,
+                "encoderfile",
+            )])
+            .build();
+
+        let provider = SdkTracerProvider::builder()
+            .with_resource(resource)
+            .with_batch_exporter(exporter)
+            .build();
+
+        let tracer = provider.tracer("encoderfile");
+
+        // Create a tracing layer with the configured tracer
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
+        let fmt_layer = tracing_subscriber::fmt::layer();
+        let filter_layer = tracing_subscriber::EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,ort=warn"));
+
+        tracing_subscriber::registry()
+            .with(filter_layer)
+            .with(fmt_layer)
+            .with(telemetry)
+            .init();
+    } else {
+        tracing_subscriber::fmt()
+            .with_env_filter(
+                tracing_subscriber::EnvFilter::try_from_default_env()
+                    .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,ort=warn")), // default to "info" level
+            )
+            .with_target(false) // hide module path
+            .compact() // short, pretty output
+            .init();
+    }
+
+    Ok(())
 }

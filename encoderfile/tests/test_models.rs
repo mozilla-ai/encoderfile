@@ -2,11 +2,8 @@ use encoderfile::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
 };
-use encoderfile::tokenizer::encode_text;
-
-mod model_utils;
-
-use model_utils::*;
+use encoderfile::runtime::encode_text;
+use encoderfile::test_utils::*;
 
 #[test]
 fn test_embedding_model() {

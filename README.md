@@ -1,4 +1,20 @@
-# Encoderfile
+<p align="center">
+  <picture>
+    <img src="https://github.com/user-attachments/assets/3916a870-378a-4bad-b819-04fd3c92040a"" width="50%" alt="Project logo"/>
+  </picture>
+</p>
+
+
+<div align="center">
+
+[![pre-commit](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)
+[![unit_tests](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)
+[![benchmarks](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg)
+
+[![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge)
+[![codecov](https://codecov.io/gh/mozilla-ai/encoderfile/graph/badge.svg?token=45KUDEYD8Z)](https://codecov.io/gh/mozilla-ai/encoderfile)
+
+</div>
 
 ## 🚀 Overview
 

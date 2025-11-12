@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize, ToSchema, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct EmbeddingRequest {
     pub inputs: Vec<String>,
     pub normalize: bool,

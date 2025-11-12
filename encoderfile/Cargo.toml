@@ -3,6 +3,17 @@ name = "encoderfile"
 version = "0.1.0"
 edition = "2024"
 
+[[bench]]
+name = "l2_norm"
+harness = false
+
+[[bench]]
+name = "postprocessing"
+harness = false
+
+[features]
+bench = []
+
 [dependencies]
 anyhow = "1.0.100"
 axum = "0.8.6"
@@ -10,6 +21,11 @@ clap = "4.5.51"
 clap_derive = "4.5.49"
 ndarray = "0.16.1"
 ndarray-stats = "0.6.0"
+opentelemetry = "0.31.0"
+opentelemetry-otlp = { version = "0.31.0", features = ["grpc-tonic"] }
+opentelemetry-semantic-conventions = "0.31.0"
+opentelemetry-stdout = "0.31.0"
+opentelemetry_sdk = "0.31.0"
 parking_lot = "0.12.5"
 prost = "0.14.1"
 rmcp = { version = "0.8.0", features = [
@@ -29,6 +45,7 @@ tonic-types = "0.14.2"
 tonic-web = "0.14.2"
 tower-http = { version = "0.6.6", features = ["trace"] }
 tracing = "0.1.41"
+tracing-opentelemetry = "0.32.0"
 tracing-subscriber = { version = "0.3.20", features = ["fmt", "env-filter"] }
 utoipa = "5.4.0"
 utoipa-axum = "0.2.0"
@@ -50,3 +67,8 @@ tonic-prost-build = "0.14.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)'] }
+
+[dev-dependencies]
+divan = { version = "4.0.5", package = "codspeed-divan-compat" }
+rand = "0.9.2"
+tower = "0.5.2"

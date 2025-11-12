@@ -1,6 +1,5 @@
 use crate::{
     common::ModelType,
-    config::get_model_type,
     generated::{
         embedding,
         encoderfile::{
@@ -12,20 +11,22 @@ use crate::{
         },
         sequence_classification, token_classification,
     },
+    runtime::AppState,
 };
 
-pub fn router() -> axum::Router {
+#[cfg(not(tarpaulin_include))]
+pub fn router(state: AppState) -> axum::Router {
     let builder = tonic::service::Routes::builder().routes();
 
-    match get_model_type() {
+    match &state.model_type {
         ModelType::Embedding => {
-            builder.add_service(EmbeddingServer::new(EmbeddingService::default()))
+            builder.add_service(EmbeddingServer::new(EmbeddingService::new(state)))
         }
         ModelType::SequenceClassification => builder.add_service(
-            SequenceClassificationServer::new(SequenceClassificationService::default()),
+            SequenceClassificationServer::new(SequenceClassificationService::new(state)),
         ),
         ModelType::TokenClassification => builder.add_service(TokenClassificationServer::new(
-            TokenClassificationService::default(),
+            TokenClassificationService::new(state),
         )),
     }
     .into_axum_router()
@@ -33,13 +34,13 @@ pub fn router() -> axum::Router {
 
 macro_rules! generate_grpc_server {
     ($service_name:ident, $request_path:path, $response_path:path, $trait_path:path, $fn_path:path) => {
-        #[derive(Debug, Default)]
+        #[derive(Debug)]
         pub struct $service_name {
-            state: $crate::state::AppState,
+            state: $crate::runtime::AppState,
         }
 
         impl $service_name {
-            pub fn new(state: $crate::state::AppState) -> Self {
+            pub fn new(state: $crate::runtime::AppState) -> Self {
                 Self { state }
             }
         }
