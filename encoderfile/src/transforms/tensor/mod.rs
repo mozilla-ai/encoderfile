@@ -76,15 +76,13 @@ impl Tensor {
 
     fn min(&self) -> Result<f32, LuaError> {
         self.0
-            .min()
-            .map(|i| *i)
+            .min().copied()
             .map_err(|e| LuaError::external(format!("Min max error: {e}")))
     }
 
     fn max(&self) -> Result<f32, LuaError> {
         self.0
-            .max()
-            .map(|i| *i)
+            .max().copied()
             .map_err(|e| LuaError::external(format!("Min max error: {e}")))
     }
 
