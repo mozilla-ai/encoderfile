@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler libssl-dev pkg-config cmake zlib1g-dev libdw-dev binutils-dev libelf-dev
           curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall cargo-codspeed --no-confirm
+          cargo binstall cargo-codspeed --force --no-confirm
 
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
