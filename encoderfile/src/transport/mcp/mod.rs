@@ -1,9 +1,8 @@
 use crate::{
     error::ApiError::{self, InputError, InternalError, ConfigError},
-    config::get_model_type,
     common::ModelType,
 };
-use crate::state::AppState;
+use crate::runtime::AppState;
 use rmcp::{
     ErrorData as McpError,
     model::{
@@ -38,7 +37,7 @@ fn to_mcp_error(serde_err: serde_json::Error) -> McpError {
 
 // TODO figure out the lifetimes of a state so a ref can be safely passed
 pub fn make_router(state: AppState) -> axum::Router {
-    match get_model_type() {
+    match state.model_type {
         ModelType::Embedding => {
             let service = StreamableHttpService::new(
                 move || Ok(embedding::EmbedderTool::new(state.clone())),
@@ -82,7 +81,7 @@ macro_rules! generate_mcp {
         mod $fn_name {
             use $crate::services::$fn_name;
             use $crate::common::$request_body;
-            use $crate::state::AppState;
+            use $crate::runtime::AppState;
             use $crate::transport::mcp::to_mcp_error;
             use rmcp::{
                 ErrorData as McpError,

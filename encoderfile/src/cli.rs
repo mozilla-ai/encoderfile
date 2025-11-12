@@ -2,8 +2,8 @@ use crate::{
     common::{
         EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
     },
+    runtime::AppState,
     server::{run_grpc, run_http, run_mcp},
-    config::get_model_type,
     services::{embedding, sequence_classification, token_classification},
 };
 use anyhow::Result;
