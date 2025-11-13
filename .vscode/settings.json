@@ -5,5 +5,10 @@
   "rust-analyzer.linkedProjects": [
     "Cargo.toml"
   ],
-  "rust-analyzer.workspace.symbol.search.scope": "workspace"
+  "rust-analyzer.workspace.symbol.search.scope": "workspace",
+  "Lua.workspace.library": [
+    "${workspaceFolder}/encoderfile/stubs/lua"
+  ],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.hint.enable": true,
 }
