@@ -6,7 +6,7 @@ repos:
         entry: bash -c 'cargo fmt --all -- --check'
         language: system
         types: [rust]
-      - id: cargo-clippy
+      - id: cargo-check
         name: cargo clippy
         entry: bash -c 'cargo check --all-features'
         language: system
