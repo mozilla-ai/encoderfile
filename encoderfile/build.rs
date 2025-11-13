@@ -42,8 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let dir = out_dir.join("generated/transform");
     // std::fs::create_dir_all(&dir).unwrap();
 
-    let write_dir = std::path::Path::new(&out_dir)
-        .join("generated/transform.rs");
+    let write_dir = std::path::Path::new(&out_dir).join("generated/transform.rs");
 
     if let Ok(transform_path) = std::env::var("TRANSFORM_PATH") {
         println!("cargo:rustc-env=TRANSFORM_PATH={transform_path}");

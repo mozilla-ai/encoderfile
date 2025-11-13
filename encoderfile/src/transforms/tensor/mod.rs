@@ -10,7 +10,10 @@ mod tests;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tensor<D: Dimension>(pub Array<f32, D>);
 
-impl<D: Dimension + 'static> FromLua for Tensor<D> {
+impl<D> FromLua for Tensor<D>
+where
+    D: Dimension + 'static,
+{
     fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Tensor<D>, LuaError> {
         match value {
             LuaValue::Table(tbl) => {
@@ -34,7 +37,10 @@ impl<D: Dimension + 'static> FromLua for Tensor<D> {
     }
 }
 
-impl<D: Dimension + RemoveAxis + 'static> LuaUserData for Tensor<D> {
+impl<D> LuaUserData for Tensor<D>
+where
+    D: Dimension + RemoveAxis + 'static,
+{
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         // syntactic sugar
         methods.add_meta_method(LuaMetaMethod::Eq, |_, this, other: Tensor<D>| {
@@ -76,7 +82,11 @@ impl<D: Dimension + RemoveAxis + 'static> LuaUserData for Tensor<D> {
     }
 }
 
-impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
+impl<D> Tensor<D>
+where
+    D: Dimension + RemoveAxis + 'static,
+{
+    #[tracing::instrument(skip_all)]
     fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Tensor<Ix1>, LuaError> {
         let axis = self.axis1(axis)?;
 
@@ -101,6 +111,7 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
         Ok(Tensor(result))
     }
 
+    #[tracing::instrument(skip_all)]
     fn map_axis(&self, axis: isize, func: LuaFunction) -> Result<Self, LuaError> {
         let axis = self.axis1(axis)?;
 
@@ -124,15 +135,18 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
         ))
     }
 
+    #[tracing::instrument(skip_all)]
     fn sum(&self) -> Result<f32, LuaError> {
         Ok(self.0.sum())
     }
 
+    #[tracing::instrument(skip_all)]
     fn sum_axis(&self, axis: isize) -> Result<Self, LuaError> {
         let sum = self.0.sum_axis(self.axis1(axis)?);
         Ok(Self(sum.into_dimensionality::<D>().unwrap()))
     }
 
+    #[tracing::instrument(skip_all)]
     fn min(&self) -> Result<f32, LuaError> {
         self.0
             .min()
@@ -140,6 +154,7 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
             .map_err(|e| LuaError::external(format!("Min max error: {e}")))
     }
 
+    #[tracing::instrument(skip_all)]
     fn max(&self) -> Result<f32, LuaError> {
         self.0
             .max()
@@ -147,10 +162,12 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
             .map_err(|e| LuaError::external(format!("Min max error: {e}")))
     }
 
+    #[tracing::instrument(skip_all)]
     fn exp(&self) -> Result<Self, LuaError> {
         Ok(Self(self.0.exp()))
     }
 
+    #[tracing::instrument(skip_all)]
     fn lp_normalize(&self, p: f32, axis: isize) -> Result<Self, LuaError> {
         if self.0.is_empty() {
             return Err(LuaError::external("Cannot normalize an empty tensor"));
@@ -194,31 +211,38 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
         Ok(Axis(axis_index))
     }
 
+    #[tracing::instrument(skip_all)]
     fn transpose(&self) -> Result<Self, LuaError> {
         Ok(Self(self.0.t().to_owned()))
     }
 
+    #[tracing::instrument(skip_all)]
     fn len(&self) -> usize {
         self.0.len()
     }
 
+    #[tracing::instrument(skip_all)]
     fn std(&self, ddof: f32) -> Result<f32, LuaError> {
         Ok(self.0.std(ddof))
     }
 
+    #[tracing::instrument(skip_all)]
     fn mean(&self) -> Result<Option<f32>, LuaError> {
         Ok(self.0.mean())
     }
 
+    #[tracing::instrument(skip_all)]
     fn ndim(&self) -> Result<usize, LuaError> {
         Ok(self.0.ndim())
     }
 
+    #[tracing::instrument(skip_all)]
     fn softmax(&self, axis: isize) -> Result<Self, LuaError> {
         self.axis1(axis).map(|i| self.0.softmax(i)).map(Self)
     }
 }
 
+#[tracing::instrument(skip_all)]
 fn add<D: Dimension + 'static>(
     Tensor(this): &Tensor<D>,
     other: LuaValue,
@@ -247,6 +271,7 @@ fn add<D: Dimension + 'static>(
     Ok(Tensor(new))
 }
 
+#[tracing::instrument(skip_all)]
 fn sub<D: Dimension + 'static>(
     Tensor(this): &Tensor<D>,
     other: LuaValue,
@@ -275,6 +300,7 @@ fn sub<D: Dimension + 'static>(
     Ok(Tensor(new))
 }
 
+#[tracing::instrument(skip_all)]
 fn mul<D: Dimension + 'static>(
     Tensor(this): &Tensor<D>,
     other: LuaValue,
@@ -303,6 +329,7 @@ fn mul<D: Dimension + 'static>(
     Ok(Tensor(new))
 }
 
+#[tracing::instrument(skip_all)]
 fn div<D: Dimension + 'static>(
     Tensor(this): &Tensor<D>,
     other: LuaValue,
@@ -331,6 +358,7 @@ fn div<D: Dimension + 'static>(
     Ok(Tensor(new))
 }
 
+#[tracing::instrument(skip_all)]
 fn is_broadcastable(a: &[usize], b: &[usize]) -> bool {
     let ndim = a.len().max(b.len());
 
