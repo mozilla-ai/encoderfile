@@ -26,6 +26,9 @@
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg" />
   </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml/badge.svg" />
+  </a>
 </p>
 
 <p align="center">
