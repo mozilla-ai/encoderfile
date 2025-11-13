@@ -2,14 +2,18 @@ use std::collections::HashMap;
 
 use encoderfile::{
     generated::{
-        embedding::{EmbeddingRequest, EmbeddingResponse},
-        encoderfile::{
-            GetModelMetadataRequest, GetModelMetadataResponse, embedding_server::Embedding,
-            sequence_classification_server::SequenceClassification,
-            token_classification_server::TokenClassification,
+        embedding::{
+            EmbeddingRequest, EmbeddingResponse, embedding_inference_server::EmbeddingInference,
         },
-        sequence_classification::{SequenceClassificationRequest, SequenceClassificationResponse},
-        token_classification::{TokenClassificationRequest, TokenClassificationResponse},
+        metadata::{GetModelMetadataRequest, GetModelMetadataResponse},
+        sequence_classification::{
+            SequenceClassificationRequest, SequenceClassificationResponse,
+            sequence_classification_inference_server::SequenceClassificationInference,
+        },
+        token_classification::{
+            TokenClassificationRequest, TokenClassificationResponse,
+            token_classification_inference_server::TokenClassificationInference,
+        },
     },
     test_utils::*,
     transport::grpc::{

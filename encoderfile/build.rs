@@ -27,7 +27,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .protoc_arg("--experimental_allow_proto3_optional")
         .build_server(true)
         // .out_dir("src/generated")
-        .compile_protos(&["proto/encoderfile.proto"], &["proto/encoderfile"])?;
+        .compile_protos(
+            &[
+                "proto/embedding.proto",
+                "proto/sequence_classification.proto",
+                "proto/token_classification.proto",
+            ],
+            &[
+                "proto/embedding",
+                "proto/sequence_classification",
+                "proto/token_classification",
+            ],
+        )?;
 
     for var in BUILD_VARS {
         let val = std::env::var(var).expect("Missing required environment variable: {var}");
