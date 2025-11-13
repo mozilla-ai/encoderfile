@@ -54,8 +54,6 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
     Ok(())
 }
 
-
-
 #[cfg(not(tarpaulin_include))]
 pub async fn run_mcp(hostname: String, port: String) -> Result<()> {
     use crate::runtime::AppState;
@@ -66,15 +64,14 @@ pub async fn run_mcp(hostname: String, port: String) -> Result<()> {
     let state = AppState::default();
     let model_type = state.model_type.clone();
 
-    let router = mcp::make_router(state)
-        .layer(
+    let router = mcp::make_router(state).layer(
         tower_http::trace::TraceLayer::new_for_http()
             // TODO check if otel is enabled
             // .make_span_with(crate::middleware::format_span)
             .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
-        );
+    );
     tracing::info!("Running {:?} MCP server on {}", model_type, &addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    let _ = axum::serve(listener, router).await?;
+    axum::serve(listener, router).await?;
     Ok(())
 }

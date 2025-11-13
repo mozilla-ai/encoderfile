@@ -1,10 +1,7 @@
-use crate::{
-    common::ModelType,
-};
+use crate::common::ModelType;
 use crate::runtime::AppState;
 use rmcp::transport::streamable_http_server::{
-    StreamableHttpService,
-    session::local::LocalSessionManager,
+    StreamableHttpService, session::local::LocalSessionManager,
 };
 
 // TODO figure out the lifetimes of a state so a ref can be safely passed
@@ -14,21 +11,32 @@ pub fn make_router(state: AppState) -> axum::Router {
             let service = StreamableHttpService::new(
                 move || Ok(embedding::EmbedderTool::new(state.clone())),
                 LocalSessionManager::default().into(),
-                Default::default());
+                Default::default(),
+            );
             axum::Router::new().nest_service("/mcp", service)
         }
         ModelType::SequenceClassification => {
             let service = StreamableHttpService::new(
-                move || Ok(sequence_classification::SequenceClassificationTool::new(state.clone())),
+                move || {
+                    Ok(sequence_classification::SequenceClassificationTool::new(
+                        state.clone(),
+                    ))
+                },
                 LocalSessionManager::default().into(),
-                Default::default());
+                Default::default(),
+            );
             axum::Router::new().nest_service("/mcp", service)
         }
         ModelType::TokenClassification => {
             let service = StreamableHttpService::new(
-                move || Ok(token_classification::TokenClassificationTool::new(state.clone())),
+                move || {
+                    Ok(token_classification::TokenClassificationTool::new(
+                        state.clone(),
+                    ))
+                },
                 LocalSessionManager::default().into(),
-                Default::default());
+                Default::default(),
+            );
             axum::Router::new().nest_service("/mcp", service)
         }
     }
