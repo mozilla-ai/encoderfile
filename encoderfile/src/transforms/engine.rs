@@ -2,7 +2,7 @@ use crate::error::ApiError;
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
-use ndarray::Array;
+use ndarray::{Array, IxDyn};
 
 #[derive(Debug)]
 pub struct Transform {
@@ -40,7 +40,7 @@ impl Transform {
         let tensor = Tensor(data.into_dyn());
 
         let Tensor(result) = func
-            .call::<Tensor>(tensor)
+            .call::<Tensor<IxDyn>>(tensor)
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
         if data_shape.as_slice() != result.shape() {
@@ -71,7 +71,7 @@ fn new_lua() -> Lua {
     globals
         .set(
             "Tensor",
-            lua.create_function(|lua, value| Tensor::from_lua(value, lua))
+            lua.create_function(|lua, value| Tensor::<IxDyn>::from_lua(value, lua))
                 .unwrap(),
         )
         .unwrap();
@@ -101,7 +101,7 @@ mod tests {
             .get::<LuaFunction>("MyTensor")
             .expect("Failed to get MyTensor");
 
-        assert!(function.call::<Tensor>(()).is_ok())
+        assert!(function.call::<Tensor<IxDyn>>(()).is_ok())
     }
 }
 

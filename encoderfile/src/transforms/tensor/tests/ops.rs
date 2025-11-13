@@ -1,6 +1,6 @@
 use super::{Tensor, add, div, load_env, mul, sub};
 use mlua::prelude::*;
-use ndarray::{Array0, Array2, Array3, Axis};
+use ndarray::{Array0, Array2, Array3, Axis, IxDyn};
 
 #[test]
 fn test_min() {
@@ -102,7 +102,7 @@ macro_rules! generate_ops_test {
                     LuaValue::UserData(lua.create_userdata(arr2.clone()).unwrap())
                 ).expect("Failed to compute");
 
-                let result: Tensor = lua.load(format!("return function(x, y) return x {} y end", $lua_op))
+                let result: Tensor<IxDyn> = lua.load(format!("return function(x, y) return x {} y end", $lua_op))
                     .eval::<LuaFunction>()
                     .unwrap()
                     .call((arr1, arr2))
@@ -151,7 +151,7 @@ macro_rules! generate_ops_test {
             fn test_bad_dtype() {
                 let arr1 = Tensor(Array2::<f32>::ones((3, 3)).into_dyn());
 
-                let result: Result<Tensor, LuaError> = $rust_fn(&arr1, LuaValue::Boolean(false));
+                let result: Result<Tensor<IxDyn>, LuaError> = $rust_fn(&arr1, LuaValue::Boolean(false));
 
                 assert!(result.is_err());
             }
@@ -318,7 +318,7 @@ fn test_sum_axis_with_lua_binding() {
         .eval::<LuaFunction>()
         .unwrap();
 
-    let result: Tensor = func.call(tensor.clone()).unwrap();
+    let result: Tensor<IxDyn> = func.call(tensor.clone()).unwrap();
     let expected = Tensor(ndarray::array![6., 15.].into_dyn());
     assert_eq!(result, expected);
 }

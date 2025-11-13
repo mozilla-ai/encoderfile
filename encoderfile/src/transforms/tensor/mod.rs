@@ -1,6 +1,6 @@
 use super::utils::table_to_vec;
 use mlua::prelude::*;
-use ndarray::{Array1, ArrayD, Axis};
+use ndarray::{Array, Array1, ArrayD, Axis, Dimension, Ix1, RemoveAxis};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 
@@ -8,10 +8,10 @@ use ort::tensor::ArrayExtensions;
 mod tests;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Tensor(pub ArrayD<f32>);
+pub struct Tensor<D: Dimension>(pub Array<f32, D>);
 
-impl FromLua for Tensor {
-    fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Self, LuaError> {
+impl<D: Dimension + 'static> FromLua for Tensor<D> {
+    fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Tensor<D>, LuaError> {
         match value {
             LuaValue::Table(tbl) => {
                 let mut shape = Vec::new();
@@ -19,10 +19,12 @@ impl FromLua for Tensor {
                 let vec = table_to_vec(&tbl, &mut shape)?;
 
                 ArrayD::from_shape_vec(shape.as_slice(), vec)
+                    .and_then(|a| a.into_dimensionality::<D>())
+                    .map_err(|e| LuaError::external(format!("Failed to cast to dimensionality: {e}")))
                     .map(Self)
                     .map_err(|e| LuaError::external(format!("Shape error: {e}")))
             }
-            LuaValue::UserData(data) => data.borrow::<Tensor>().map(|i| i.to_owned()),
+            LuaValue::UserData(data) => data.borrow::<Tensor<D>>().map(|i| i.to_owned()),
             _ => Err(LuaError::external(
                 format!("Unknown type: {}", value.type_name()).as_str(),
             )),
@@ -30,10 +32,10 @@ impl FromLua for Tensor {
     }
 }
 
-impl LuaUserData for Tensor {
+impl<D: Dimension + RemoveAxis + 'static> LuaUserData for Tensor<D> {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         // syntactic sugar
-        methods.add_meta_method(LuaMetaMethod::Eq, |_, this, other: Tensor| {
+        methods.add_meta_method(LuaMetaMethod::Eq, |_, this, other: Tensor<D>| {
             Ok(this.0 == other.0)
         });
 
@@ -72,8 +74,8 @@ impl LuaUserData for Tensor {
     }
 }
 
-impl Tensor {
-    fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Self, LuaError> {
+impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
+    fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Tensor<Ix1>, LuaError> {
         let axis = self.axis1(axis)?;
 
         let mut out = Vec::new();
@@ -93,8 +95,7 @@ impl Tensor {
         }
 
         let result = Array1::from_shape_vec(out.len(), out)
-            .expect("Failed to recast results")
-            .into_dyn();
+            .expect("Failed to recast results");
 
         Ok(Tensor(result))
     }
@@ -106,7 +107,7 @@ impl Tensor {
 
         for subview in self.0.axis_iter(axis) {
             let sub = subview.to_owned();
-            match func.call::<Self>(Tensor(sub)) {
+            match func.call::<Self>(Tensor(sub.into_dyn())) {
                 Ok(Tensor(v)) => out.push(v),
                 Err(e) => return Err(LuaError::external(e)),
             }
@@ -114,7 +115,7 @@ impl Tensor {
 
         let views: Vec<_> = out.iter().map(|i| i.view()).collect();
 
-        Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap()))
+        Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap().into_dimensionality().unwrap()))
     }
 
     fn sum(&self) -> Result<f32, LuaError> {
@@ -122,7 +123,8 @@ impl Tensor {
     }
 
     fn sum_axis(&self, axis: isize) -> Result<Self, LuaError> {
-        Ok(Self(self.0.sum_axis(self.axis1(axis)?)))
+        let sum = self.0.sum_axis(self.axis1(axis)?);
+        Ok(Self(sum.into_dimensionality::<D>().unwrap()))
     }
 
     fn min(&self) -> Result<f32, LuaError> {
@@ -167,7 +169,7 @@ impl Tensor {
         let norms = norms.mapv(|x| if x < 1e-12 { 1e-12 } else { x });
 
         // Broadcast division using ndarray’s broadcasting API
-        let normalized = arr / &norms.insert_axis(axis);
+        let normalized = arr / &norms.insert_axis(axis).into_dimensionality::<D>().unwrap();
 
         Ok(Self(normalized))
     }
@@ -213,10 +215,10 @@ impl Tensor {
 
 macro_rules! ops_fn {
     ($fn_name:ident, $op:tt) => {
-        fn $fn_name(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
+        fn $fn_name<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<D>, LuaError> {
             let new = match other {
                 LuaValue::UserData(user_data) => {
-                    let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
+                    let Tensor(oth) = user_data.borrow::<Tensor<D>>()?.to_owned();
 
                     this $op oth
                 }
