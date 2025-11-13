@@ -409,3 +409,162 @@ fn fold_axis_product() -> LuaResult<()> {
     assert_eq!(v.as_slice().unwrap(), &[2.0, 12.0]);
     Ok(())
 }
+
+fn tensor(data: Vec<f32>, shape: &[usize]) -> Tensor<ndarray::IxDyn> {
+    Tensor(ndarray::ArrayD::from_shape_vec(shape, data).unwrap())
+}
+
+fn lua_number(n: f64) -> LuaValue {
+    LuaValue::Number(n)
+}
+
+fn lua_tensor(t: Tensor<ndarray::IxDyn>, lua: &Lua) -> LuaValue {
+    mlua::Value::UserData(lua.create_userdata(t).unwrap())
+}
+
+#[test]
+fn test_add_broadcast_success() {
+    let lua = Lua::new();
+
+    // (2, 3) + (3,) → OK via broadcasting
+    let a = tensor(vec![1., 2., 3., 4., 5., 6.], &[2, 3]);
+    let b = tensor(vec![10., 20., 30.], &[3]);
+
+    let res = add(&a, lua_tensor(b, &lua)).unwrap();
+    assert_eq!(
+        res.0,
+        ndarray::arr2(&[
+            [11., 22., 33.],
+            [14., 25., 36.]
+        ])
+        .into_dyn()
+    );
+}
+
+#[test]
+fn test_add_broadcast_failure() {
+    let lua = Lua::new();
+
+    // (2, 3) + (2,) → NOT broadcastable because trailing dims mismatch
+    let a = tensor(vec![1., 2., 3., 4., 5., 6.], &[2, 3]);
+    let b = tensor(vec![1., 2.], &[2]);
+
+    let err = add(&a, lua_tensor(b, &lua)).unwrap_err();
+    let msg = format!("{}", err);
+    assert!(msg.contains("not broadcastable"), "Got: {msg}");
+}
+
+#[test]
+fn test_sub_broadcast_success() {
+    let lua = Lua::new();
+
+    // (3, 1) - (3,) → OK (result is (3,3))
+    let a = tensor(vec![1., 2., 3.], &[3, 1]);
+    let b = tensor(vec![1., 10., 100.], &[3]);
+
+    let res = sub(&a, lua_tensor(b, &lua)).unwrap();
+    assert_eq!(
+        res.0,
+        ndarray::arr2(&[
+            [0., -9., -99.],
+            [1., -8., -98.],
+            [2., -7., -97.]
+        ])
+        .into_dyn()
+    );
+}
+
+#[test]
+fn test_sub_broadcast_failure() {
+    let lua = Lua::new();
+
+    // (3,2) - (3,) → failure: trailing dim (2 vs 3)
+    let a = tensor(vec![1.,2.,3.,4.,5.,6.], &[3,2]);
+    let b = tensor(vec![1.,2.,3.], &[3]);
+
+    let err = sub(&a, lua_tensor(b, &lua)).unwrap_err();
+    assert!(format!("{}", err).contains("not broadcastable"));
+}
+
+#[test]
+fn test_mul_broadcast_success() {
+    // (2,3) * scalar → always OK
+    let a = tensor(vec![1.,2.,3.,4.,5.,6.], &[2,3]);
+    let res = mul(&a, lua_number(2.0)).unwrap();
+
+    assert_eq!(
+        res.0,
+        ndarray::arr2(&[
+            [2.,4.,6.],
+            [8.,10.,12.]
+        ])
+        .into_dyn()
+    );
+}
+
+#[test]
+fn test_mul_broadcast_shape_success() {
+    let lua = Lua::new();
+
+    // (4,1) * (1,3) → → (4,3)
+    let a = tensor(vec![1.,2.,3.,4.], &[4,1]);
+    let b = tensor(vec![10.,20.,30.], &[1,3]);
+
+    let res = mul(&a, lua_tensor(b, &lua)).unwrap();
+
+    assert_eq!(
+        res.0,
+        ndarray::arr2(&[
+            [10.,20.,30.],
+            [20.,40.,60.],
+            [30.,60.,90.],
+            [40.,80.,120.]
+        ])
+        .into_dyn()
+    );
+}
+
+#[test]
+fn test_mul_broadcast_fail() {
+    let lua = Lua::new();
+
+    // (2,2) * (3,) → cannot broadcast trailing dims
+    let a = tensor(vec![1.,2.,3.,4.], &[2,2]);
+    let b = tensor(vec![1.,2.,3.], &[3]);
+
+    let err = mul(&a, lua_tensor(b, &lua)).unwrap_err();
+    assert!(format!("{}", err).contains("not broadcastable"));
+}
+
+#[test]
+fn test_div_broadcast_success() {
+    let lua = Lua::new();
+
+    // (3,3) / (3,) → OK
+    let a = tensor((1..=9).map(|x| x as f32).collect(), &[3,3]);
+    let b = tensor(vec![1.,2.,3.], &[3]);
+
+    let res = div(&a, lua_tensor(b, &lua)).unwrap();
+
+    assert_eq!(
+        res.0,
+        ndarray::arr2(&[
+            [1.0/1., 2.0/2., 3.0/3.],
+            [4.0/1., 5.0/2., 6.0/3.],
+            [7.0/1., 8.0/2., 9.0/3.],
+        ])
+        .into_dyn()
+    );
+}
+
+#[test]
+fn test_div_broadcast_fail() {
+    let lua = Lua::new();
+
+    // (2,3) vs (2,) again → nope
+    let a = tensor(vec![1.,2.,3.,4.,5.,6.], &[2,3]);
+    let b = tensor(vec![1.,2.], &[2]);
+
+    let err = div(&a, lua_tensor(b, &lua)).unwrap_err();
+    assert!(format!("{}", err).contains("not broadcastable"));
+}

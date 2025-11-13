@@ -224,7 +224,7 @@ fn add<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if this.broadcast(oth.raw_dim()).is_none() && oth.broadcast(this.raw_dim()).is_none() {
+            if !is_broadcastable(this.shape(), oth.shape()) && !is_broadcastable(oth.shape(), this.shape()) {
                 return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
             }
 
@@ -243,7 +243,7 @@ fn sub<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if oth.broadcast(this.raw_dim()).is_none() {
+            if !is_broadcastable(oth.shape(), this.shape()) {
                 return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
             }
 
@@ -262,7 +262,7 @@ fn mul<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if this.broadcast(oth.raw_dim()).is_none() && oth.broadcast(this.raw_dim()).is_none() {
+            if !is_broadcastable(this.shape(), oth.shape()) && !is_broadcastable(oth.shape(), this.shape()) {
                 return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
             }
 
@@ -281,7 +281,7 @@ fn div<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if oth.broadcast(this.raw_dim()).is_none() {
+            if !is_broadcastable(oth.shape(), this.shape()) {
                 return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
             }
 
@@ -293,4 +293,18 @@ fn div<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
     }.into_dimensionality().unwrap();
 
     Ok(Tensor(new))
+}
+
+fn is_broadcastable(a: &[usize], b: &[usize]) -> bool {
+    let ndim = a.len().max(b.len());
+
+    for i in 0..ndim {
+        let ad = *a.get(a.len().wrapping_sub(i+1)).unwrap_or(&1);
+        let bd = *b.get(b.len().wrapping_sub(i+1)).unwrap_or(&1);
+
+        if ad != bd && ad != 1 && bd != 1 {
+            return false;
+        }
+    }
+    true
 }
