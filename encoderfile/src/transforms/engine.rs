@@ -38,7 +38,7 @@ impl Transform {
             None => return Ok(data),
         };
 
-        let data_shape: Vec<usize> = data.shape().iter().copied().collect();
+        let data_shape: Vec<usize> = data.shape().to_vec();
         let tensor = Tensor(data.into_dyn());
 
         let Tensor(result) = func

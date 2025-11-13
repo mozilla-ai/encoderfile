@@ -16,7 +16,7 @@ pub fn sequence_classification(
     let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
 
     let results =
-        inference::sequence_classification::sequence_classification(session, &state, encodings)?;
+        inference::sequence_classification::sequence_classification(session, state, encodings)?;
 
     Ok(SequenceClassificationResponse {
         results,

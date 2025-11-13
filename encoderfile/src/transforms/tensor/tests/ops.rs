@@ -446,7 +446,7 @@ fn test_add_broadcast_failure() {
     let b = tensor(vec![1., 2.], &[2]);
 
     let err = add(&a, lua_tensor(b, &lua)).unwrap_err();
-    let msg = format!("{}", err);
+    let msg = format!("{err}");
     assert!(msg.contains("not broadcastable"), "Got: {msg}");
 }
 
@@ -474,7 +474,7 @@ fn test_sub_broadcast_failure() {
     let b = tensor(vec![1., 2., 3.], &[3]);
 
     let err = sub(&a, lua_tensor(b, &lua)).unwrap_err();
-    assert!(format!("{}", err).contains("not broadcastable"));
+    assert!(format!("{err}").contains("not broadcastable"));
 }
 
 #[test]
@@ -520,7 +520,7 @@ fn test_mul_broadcast_fail() {
     let b = tensor(vec![1., 2., 3.], &[3]);
 
     let err = mul(&a, lua_tensor(b, &lua)).unwrap_err();
-    assert!(format!("{}", err).contains("not broadcastable"));
+    assert!(format!("{err}").contains("not broadcastable"));
 }
 
 #[test]
@@ -553,5 +553,5 @@ fn test_div_broadcast_fail() {
     let b = tensor(vec![1., 2.], &[2]);
 
     let err = div(&a, lua_tensor(b, &lua)).unwrap_err();
-    assert!(format!("{}", err).contains("not broadcastable"));
+    assert!(format!("{err}").contains("not broadcastable"));
 }
