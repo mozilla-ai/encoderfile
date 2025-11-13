@@ -11,34 +11,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: nightly
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler libssl-dev pkg-config cmake zlib1g-dev libdw-dev binutils-dev libelf-dev
-          curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall cargo-codspeed --force --no-confirm
+      - uses: actions/checkout@v4
 
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      
-      - name: Run project setup
-        run: make setup
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Generate dummy env file
-        run: uv run -m encoderbuild.utils.create_dummy_env_file > .env
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
+
+      - name: Cache cargo binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bins
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
 
       - name: Build the benchmark target(s)
         run: cargo codspeed build --all-features
