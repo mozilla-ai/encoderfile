@@ -227,9 +227,7 @@ fn add<D: Dimension + 'static>(
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if !is_broadcastable(this.shape(), oth.shape())
-                && !is_broadcastable(oth.shape(), this.shape())
-            {
+            if !is_broadcastable(this.shape(), oth.shape()) {
                 return Err(LuaError::external(format!(
                     "Shape {:?} not broadcastable to {:?}",
                     this.shape(),
@@ -285,9 +283,7 @@ fn mul<D: Dimension + 'static>(
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if !is_broadcastable(this.shape(), oth.shape())
-                && !is_broadcastable(oth.shape(), this.shape())
-            {
+            if !is_broadcastable(this.shape(), oth.shape()) {
                 return Err(LuaError::external(format!(
                     "Shape {:?} not broadcastable to {:?}",
                     this.shape(),
