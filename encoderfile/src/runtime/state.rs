@@ -26,6 +26,12 @@ pub struct AppState {
     pub transform_factory: fn() -> Option<Transform>,
 }
 
+impl AppState {
+    pub fn transform(&self) -> Option<Transform> {
+        (self.transform_factory)()
+    }
+}
+
 impl Default for AppState {
     fn default() -> Self {
         Self {

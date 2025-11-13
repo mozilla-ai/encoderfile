@@ -1,7 +1,7 @@
 use crate::{
     common::{TokenClassification, TokenClassificationResult, TokenInfo},
     error::ApiError,
-    runtime::ModelConfig,
+    runtime::{AppState, ModelConfig},
 };
 use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;
@@ -11,12 +11,12 @@ use tokenizers::Encoding;
 #[tracing::instrument(skip_all)]
 pub fn token_classification<'a>(
     mut session: crate::runtime::Model<'a>,
-    config: &ModelConfig,
+    state: &AppState,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
+    let mut outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
         .get("logits")
         .expect("Model does not return logits")
         .try_extract_array::<f32>()
@@ -25,7 +25,11 @@ pub fn token_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]")
         .into_owned();
 
-    let predictions = postprocess(outputs, encodings, config);
+    if let Some(transform) = state.transform() {
+        outputs = transform.postprocess(outputs)?;
+    }
+
+    let predictions = postprocess(outputs, encodings, &state.config);
 
     Ok(predictions)
 }

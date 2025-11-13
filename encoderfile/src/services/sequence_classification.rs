@@ -17,7 +17,7 @@ pub fn sequence_classification(
 
     let results = inference::sequence_classification::sequence_classification(
         session,
-        &state.config,
+        &state,
         encodings,
     )?;
 

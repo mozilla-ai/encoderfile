@@ -16,7 +16,7 @@ pub fn token_classification(
     let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
 
     let results =
-        inference::token_classification::token_classification(session, &state.config, encodings)?;
+        inference::token_classification::token_classification(session, &state, encodings)?;
 
     Ok(TokenClassificationResponse {
         results,
