@@ -32,6 +32,9 @@
 </p>
 
 <p align="center">
+  <a href="https://discord.com/invite/KTA26kGRyv">
+    <img src="https://img.shields.io/discord/1089876418936180786" />
+  </a>
   <a href="https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge">
     <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" />
   </a>
