@@ -25,14 +25,12 @@ fn get_random_3d(x: usize, y: usize, z: usize) -> ArrayD<f32> {
 
 #[divan::bench(args = [(16, 16, 16), (32, 128, 384), (32, 256, 768)])]
 fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, usize, usize)) {
-    let engine = encoderfile::transforms::TransformEngine::default();
+    let engine = encoderfile::transforms::Transform::new(include_str!(
+        "../../transforms/embedding/l2_normalize_embeddings.lua"
+    ))
+    .unwrap();
 
-    engine
-        .exec(include_str!(
-            "../../transforms/embedding/l2_normalize_embeddings.lua"
-        ))
-        .expect("Failed to load script");
-    let test_tensor = encoderfile::transforms::Tensor(get_random_3d(x, y, z));
+    let test_tensor = get_random_3d(x, y, z);
 
     bencher.bench_local(|| {
         engine.postprocess(test_tensor.clone()).unwrap();
@@ -41,14 +39,12 @@ fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, 
 
 #[divan::bench(args = [(16, 2), (32, 8), (128, 32)])]
 fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
-    let engine = encoderfile::transforms::TransformEngine::default();
+    let engine = encoderfile::transforms::Transform::new(include_str!(
+        "../../transforms/sequence_classification/softmax_logits.lua"
+    ))
+    .unwrap();
 
-    engine
-        .exec(include_str!(
-            "../../transforms/sequence_classification/softmax_logits.lua"
-        ))
-        .expect("Failed to load script");
-    let test_tensor = encoderfile::transforms::Tensor(get_random_2d(x, y));
+    let test_tensor = get_random_2d(x, y);
 
     bencher.bench_local(|| {
         engine.postprocess(test_tensor.clone()).unwrap();
@@ -57,14 +53,12 @@ fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
 
 #[divan::bench(args = [(16, 16, 2), (32, 128, 8), (128, 256, 32)])]
 fn bench_tok_cls_softmax(bencher: divan::Bencher, (x, y, z): (usize, usize, usize)) {
-    let engine = encoderfile::transforms::TransformEngine::default();
+    let engine = encoderfile::transforms::Transform::new(include_str!(
+        "../../transforms/token_classification/softmax_logits.lua"
+    ))
+    .unwrap();
 
-    engine
-        .exec(include_str!(
-            "../../transforms/token_classification/softmax_logits.lua"
-        ))
-        .expect("Failed to load script");
-    let test_tensor = encoderfile::transforms::Tensor(get_random_3d(x, y, z));
+    let test_tensor = get_random_3d(x, y, z);
 
     bencher.bench_local(|| {
         engine.postprocess(test_tensor.clone()).unwrap();

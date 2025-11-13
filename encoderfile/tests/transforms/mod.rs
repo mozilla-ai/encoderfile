@@ -1,10 +1,10 @@
-use encoderfile::transforms::{Tensor, TransformEngine};
+use encoderfile::{common::ModelType, transforms::Transform};
 use ndarray::{Array2, Array3, Axis};
 use ort::tensor::ArrayExtensions;
 
 #[test]
 fn test_l2_normalization() {
-    let engine = TransformEngine::new(include_str!(
+    let engine = Transform::new(include_str!(
         "../../../transforms/embedding/l2_normalize_embeddings.lua"
     ))
     .expect("Failed to create engine");
@@ -17,18 +17,16 @@ fn test_l2_normalization() {
 
     // Avoid divide-by-zero by adding small epsilon
     let eps = 1e-12;
-    let gold = (&test_arr / &(&norms + eps)).into_dyn();
+    let gold = &test_arr / &(&norms + eps);
 
-    let Tensor(test) = engine
-        .postprocess(Tensor(test_arr.into_dyn()))
-        .expect("Didn't read");
+    let test = engine.postprocess(test_arr).expect("Didn't read");
 
     assert_eq!(gold, test)
 }
 
 #[test]
 fn test_softmax_sequence_cls() {
-    let engine = TransformEngine::new(include_str!(
+    let engine = Transform::new(include_str!(
         "../../../transforms/sequence_classification/softmax_logits.lua"
     ))
     .expect("Failed to create engine");
@@ -36,10 +34,10 @@ fn test_softmax_sequence_cls() {
     // run on array of shape [batch_size, n_labels]
     let test_arr = Array2::<f32>::from_elem((8, 16), 1.0);
 
-    let softmax_gold = test_arr.softmax(Axis(1)).into_dyn();
+    let softmax_gold = test_arr.softmax(Axis(1));
 
-    let Tensor(softmax_test) = engine
-        .postprocess(Tensor(test_arr.into_dyn()))
+    let softmax_test = engine
+        .postprocess(test_arr)
         .expect("Failed to compute softmax");
 
     assert_eq!(softmax_gold, softmax_test);
@@ -47,7 +45,7 @@ fn test_softmax_sequence_cls() {
 
 #[test]
 fn test_softmax_token_cls() {
-    let engine = TransformEngine::new(include_str!(
+    let engine = Transform::new(include_str!(
         "../../../transforms/token_classification/softmax_logits.lua"
     ))
     .expect("Failed to create engine");
@@ -55,10 +53,10 @@ fn test_softmax_token_cls() {
     // run on array of shape [batch_size, n_tokens, n_labels]
     let test_arr = Array3::<f32>::from_elem((8, 16, 2), 1.0);
 
-    let softmax_gold = test_arr.softmax(Axis(2)).into_dyn();
+    let softmax_gold = test_arr.softmax(Axis(2));
 
-    let Tensor(softmax_test) = engine
-        .postprocess(Tensor(test_arr.into_dyn()))
+    let softmax_test = engine
+        .postprocess(test_arr)
         .expect("Failed to compute softmax");
 
     assert_eq!(softmax_gold, softmax_test);

@@ -1,59 +1,82 @@
+use crate::error::ApiError;
+
 use super::tensor::Tensor;
 use mlua::prelude::*;
+use ndarray::Array;
 
-pub struct TransformEngine {
+#[derive(Debug)]
+pub struct Transform {
+    #[allow(dead_code)]
     lua: Lua,
+    postprocessor: Option<LuaFunction>,
 }
 
-impl TransformEngine {
-    pub fn new(postprocessor: &str) -> Result<Self, LuaError> {
-        let engine = Self::default();
+impl Transform {
+    pub fn new(transform: &str) -> Result<Self, ApiError> {
+        let lua = new_lua();
 
-        engine.lua.load(postprocessor).exec()?;
+        lua.load(transform)
+            .exec()
+            .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-        Ok(engine)
+        let postprocessor = lua
+            .globals()
+            .get::<Option<LuaFunction>>("Postprocess")
+            .map_err(|e| ApiError::LuaError(e.to_string()))?;
+
+        Ok(Self { lua, postprocessor })
     }
 
-    pub fn get_function(&self, func: &str) -> Result<LuaFunction, LuaError> {
-        self.lua.globals().get(func)
-    }
+    pub fn postprocess<D: ndarray::Dimension>(
+        &self,
+        data: Array<f32, D>,
+    ) -> Result<Array<f32, D>, ApiError> {
+        let func = match &self.postprocessor {
+            Some(p) => p,
+            None => return Ok(data),
+        };
 
-    pub fn exec(&self, chunk: &str) -> Result<(), LuaError> {
-        self.lua.load(chunk).exec()?;
+        let data_shape: Vec<usize> = data.shape().iter().copied().collect();
+        let tensor = Tensor(data.into_dyn());
 
-        Ok(())
-    }
+        let Tensor(result) = func
+            .call::<Tensor>(tensor)
+            .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-    pub fn eval<T: FromLuaMulti>(&self, chunk: &str) -> Result<T, LuaError> {
-        self.lua.load(chunk).eval()
-    }
+        if data_shape.as_slice() != result.shape() {
+            return Err(ApiError::LuaError(format!(
+                "Postprocess function returned tensor of dim {:?}, expected {:?}",
+                result.shape(),
+                data_shape
+            )));
+        }
 
-    pub fn postprocess(&self, data: Tensor) -> Result<Tensor, LuaError> {
-        let func: LuaFunction = self.lua.globals().get("Postprocess")?;
-
-        func.call(data)
+        result.into_dimensionality::<D>().map_err(|e| {
+            tracing::error!("Failed to cast array into Ix3: {e}");
+            ApiError::InternalError(
+                "Failed to cast array into 3 dim. This is not supposed to happen.",
+            )
+        })
     }
 }
 
-impl Default for TransformEngine {
-    fn default() -> Self {
-        let lua = Lua::new_with(
-            mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH,
-            mlua::LuaOptions::default(),
+fn new_lua() -> Lua {
+    let lua = Lua::new_with(
+        mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH,
+        mlua::LuaOptions::default(),
+    )
+    .unwrap();
+
+    let globals = lua.globals();
+    globals
+        .set(
+            "Tensor",
+            lua.create_function(|lua, value| Tensor::from_lua(value, lua))
+                .unwrap(),
         )
         .unwrap();
 
-        let globals = lua.globals();
-        globals
-            .set(
-                "Tensor",
-                lua.create_function(|lua, value| Tensor::from_lua(value, lua))
-                    .unwrap(),
-            )
-            .unwrap();
-
-        Self { lua }
-    }
+    lua
 }
 
 #[cfg(test)]
@@ -61,25 +84,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_transform_engine_default() {
-        let _engine = TransformEngine::default();
-    }
-
-    #[test]
     fn test_create_tensor() {
-        let engine = TransformEngine::default();
-        engine
-            .exec(
-                r#"
+        let lua = new_lua();
+        lua.load(
+            r#"
             function MyTensor()
                 return Tensor({1, 2, 3})
             end
             "#,
-            )
-            .unwrap();
+        )
+        .exec()
+        .unwrap();
 
-        let function = engine
-            .get_function("MyTensor")
+        let function = lua
+            .globals()
+            .get::<LuaFunction>("MyTensor")
             .expect("Failed to get MyTensor");
 
         assert!(function.call::<Tensor>(()).is_ok())
@@ -90,32 +109,29 @@ mod tests {
 mod sandbox_tests {
     use super::*;
 
-    fn setup_engine() -> TransformEngine {
-        TransformEngine::default()
-    }
-
     #[test]
     fn test_no_unsafe_stdlibs_loaded() {
-        let engine = TransformEngine::default();
+        let engine = new_lua();
 
         // Should evaluate to nil, not a table or function
-        let val: mlua::Value = engine.eval("return os").unwrap();
+        let val: mlua::Value = engine.load("return os").eval().unwrap();
         assert!(matches!(val, mlua::Value::Nil));
 
-        let val: mlua::Value = engine.eval("return io").unwrap();
+        let val: mlua::Value = engine.load("return io").eval().unwrap();
         assert!(matches!(val, mlua::Value::Nil));
 
-        let val: mlua::Value = engine.eval("return debug").unwrap();
+        let val: mlua::Value = engine.load("return debug").eval().unwrap();
         assert!(matches!(val, mlua::Value::Nil));
     }
 
     #[test]
     fn test_cannot_access_environment_or_execute_commands() {
-        let engine = TransformEngine::default();
+        let lua = new_lua();
 
         // `os.execute` shouldn't exist or be callable
-        let res =
-            engine.eval::<bool>("return type(os) == 'table' and type(os.execute) == 'function'");
+        let res = lua
+            .load("return type(os) == 'table' and type(os.execute) == 'function'")
+            .eval::<bool>();
 
         assert!(
             matches!(res, Ok(false) | Err(_)),
@@ -125,46 +141,46 @@ mod sandbox_tests {
 
     #[test]
     fn test_no_file_system_access_via_package() {
-        let engine = setup_engine();
+        let lua = new_lua();
 
         // 'require' should not be usable
-        let res = engine.exec("require('os')");
+        let res = lua.load("require('os')").exec();
         assert!(res.is_err());
 
         // 'package' table should not exist
-        let res = engine.eval::<mlua::Value>("package");
+        let res = lua.load("package").eval::<mlua::Value>();
         assert!(res.unwrap().is_nil())
     }
 
     #[test]
     fn test_tensor_function_is_only_safe_binding() {
-        let engine = setup_engine();
+        let lua = new_lua();
 
         // Tensor should exist
-        let tensor_res = engine.eval::<mlua::Value>("return Tensor");
+        let tensor_res = lua.load("return Tensor").eval::<mlua::Value>();
         assert!(tensor_res.is_ok());
 
         // But nothing else custom
-        let res = engine.eval::<mlua::Value>("return DangerousFunction");
+        let res = lua.load("return DangerousFunction").eval::<mlua::Value>();
         assert!(res.unwrap().is_nil());
     }
 
     #[test]
     fn test_limited_math_and_string_stdlibs() {
-        let engine = setup_engine();
+        let lua = new_lua();
 
         // math should work
-        assert_eq!(engine.eval::<f64>("return math.sqrt(9)").unwrap(), 3.0);
+        assert_eq!(lua.load("return math.sqrt(9)").eval::<f64>().unwrap(), 3.0);
 
         // string manipulation should work
         assert_eq!(
-            engine
-                .eval::<String>("return string.upper('sandbox')")
+            lua.load("return string.upper('sandbox')")
+                .eval::<String>()
                 .unwrap(),
             "SANDBOX"
         );
 
         // io.open should NOT exist
-        assert!(engine.eval::<mlua::Value>("return io.open").is_err());
+        assert!(lua.load("return io.open").eval::<mlua::Value>().is_err());
     }
 }
