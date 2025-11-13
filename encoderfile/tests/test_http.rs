@@ -99,7 +99,6 @@ test_router_mod!(
     embedding_state,
     EmbeddingRequest {
         inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
-        normalize: true,
         metadata: None,
     }
 );

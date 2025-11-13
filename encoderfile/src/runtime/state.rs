@@ -7,9 +7,13 @@ use tokenizers::Tokenizer;
 use crate::{
     assets::get_model_id,
     common::ModelType,
-    runtime::config::{ModelConfig, get_model_config, get_model_type},
-    runtime::model::get_model,
-    runtime::tokenizer::get_tokenizer,
+    runtime::{
+        config::{ModelConfig, get_model_config, get_model_type},
+        model::get_model,
+        tokenizer::get_tokenizer,
+        transform::get_transform,
+    },
+    transforms::Transform,
 };
 
 #[derive(Debug, Clone)]
@@ -19,6 +23,13 @@ pub struct AppState {
     pub config: Arc<ModelConfig>,
     pub model_type: ModelType,
     pub model_id: String,
+    pub transform_factory: fn() -> Option<Transform>,
+}
+
+impl AppState {
+    pub fn transform(&self) -> Option<Transform> {
+        (self.transform_factory)()
+    }
 }
 
 impl Default for AppState {
@@ -29,6 +40,7 @@ impl Default for AppState {
             config: get_model_config(),
             model_type: get_model_type(),
             model_id: get_model_id(),
+            transform_factory: get_transform,
         }
     }
 }

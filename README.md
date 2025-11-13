@@ -137,10 +137,10 @@ chmod +x target/release/encoderfile
 ```sh
 curl -X POST http://localhost:8080/predict \
   -H "Content-Type: application/json" \
-  -d '{"inputs": ["this is a sentence"], "normalize": true}'
+  -d '{"inputs": ["this is a sentence"]}'
 ```
 
-Extracts token-level embeddings. The normalize flag controls L2 vector normalization (set false to disable).
+Extracts token-level embeddings
 
 ### Sequence Classification / Token Classification
 ```sh

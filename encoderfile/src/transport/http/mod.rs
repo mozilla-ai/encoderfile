@@ -59,7 +59,7 @@ macro_rules! generate_http {
             pub async fn $fn_name(
                 State(state): State<$crate::runtime::AppState>,
                 Json(req): Json<$request_body>,
-            ) -> Result<Json<$return_model>, (axum::http::StatusCode, &'static str)> {
+            ) -> Result<Json<$return_model>, (axum::http::StatusCode, std::borrow::Cow<'static, str>)> {
                 $fn_path(req, &state)
                     .map(|r| Json(r))
                     .map_err(|e| e.to_axum_status())

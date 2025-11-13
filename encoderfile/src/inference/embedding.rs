@@ -4,19 +4,18 @@ use tokenizers::Encoding;
 use crate::{
     common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
     error::ApiError,
-    runtime::ModelConfig,
+    runtime::AppState,
 };
 
 #[tracing::instrument(skip_all)]
 pub fn embedding<'a>(
     mut session: crate::runtime::Model<'a>,
-    _config: &ModelConfig,
+    state: &AppState,
     encodings: Vec<Encoding>,
-    normalize: bool,
 ) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
 
-    let outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
+    let mut outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
         .get("last_hidden_state")
         .expect("Model does not return last_hidden_state")
         .try_extract_array::<f32>()
@@ -25,24 +24,21 @@ pub fn embedding<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
 
-    let embeddings = postprocess(outputs, encodings, normalize);
+    if let Some(transform) = state.transform() {
+        outputs = transform.postprocess(outputs)?;
+    }
+
+    let embeddings = postprocess(outputs, encodings);
 
     Ok(embeddings)
 }
 
 #[tracing::instrument(skip_all)]
-pub fn postprocess(
-    outputs: Array3<f32>,
-    encodings: Vec<Encoding>,
-    normalize: bool,
-) -> Vec<TokenEmbeddingSequence> {
+pub fn postprocess(outputs: Array3<f32>, encodings: Vec<Encoding>) -> Vec<TokenEmbeddingSequence> {
     let mut embeddings = Vec::new();
 
     for (encoding, embs) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
-        let transformed = match normalize {
-            true => super::utils::l2_normalize(embs.into_owned(), Axis(1)),
-            false => embs.into_owned(),
-        };
+        let transformed = embs.into_owned();
 
         let mut results = Vec::new();
 
