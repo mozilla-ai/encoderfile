@@ -1,4 +1,8 @@
-use crate::{common::SequenceClassificationResult, error::ApiError, runtime::{AppState, ModelConfig}};
+use crate::{
+    common::SequenceClassificationResult,
+    error::ApiError,
+    runtime::{AppState, ModelConfig},
+};
 use ndarray::{Array2, Axis, Ix2};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;

@@ -20,8 +20,8 @@ fn test_embedding_model() {
 
     let session_lock = state.session.lock();
 
-    let results = embedding(session_lock, &state, encodings.clone())
-        .expect("Failed to compute results");
+    let results =
+        embedding(session_lock, &state, encodings.clone()).expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
