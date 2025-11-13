@@ -219,26 +219,78 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
     }
 }
 
-macro_rules! ops_fn {
-    ($fn_name:ident, $op:tt) => {
-        fn $fn_name<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
-            let new = match other {
-                LuaValue::UserData(user_data) => {
-                    let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+fn add<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+    let new = match other {
+        LuaValue::UserData(user_data) => {
+            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-                    this.clone() $op oth
-                }
-                LuaValue::Number(n) => this.clone().into_dyn() $op (n as f32),
-                LuaValue::Integer(i) => this.clone().into_dyn() $op (i as f32),
-                _ => return Err(LuaError::external("Expected either number or Tensor.")),
-            }.into_dimensionality().unwrap();
+            if this.broadcast(oth.raw_dim()).is_none() && oth.broadcast(this.raw_dim()).is_none() {
+                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+            }
 
-            Ok(Tensor(new))
+            this.clone() + oth
         }
-    }
+        LuaValue::Number(n) => this.clone().into_dyn() + (n as f32),
+        LuaValue::Integer(i) => this.clone().into_dyn() + (i as f32),
+        _ => return Err(LuaError::external("Expected either number or Tensor.")),
+    }.into_dimensionality().unwrap();
+
+    Ok(Tensor(new))
 }
 
-ops_fn!(add, +);
-ops_fn!(sub, -);
-ops_fn!(mul, *);
-ops_fn!(div, /);
+fn sub<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+    let new = match other {
+        LuaValue::UserData(user_data) => {
+            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+
+            if oth.broadcast(this.raw_dim()).is_none() {
+                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+            }
+
+            this.clone() - oth
+        }
+        LuaValue::Number(n) => this.clone().into_dyn() - (n as f32),
+        LuaValue::Integer(i) => this.clone().into_dyn() - (i as f32),
+        _ => return Err(LuaError::external("Expected either number or Tensor.")),
+    }.into_dimensionality().unwrap();
+
+    Ok(Tensor(new))
+}
+
+fn mul<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+    let new = match other {
+        LuaValue::UserData(user_data) => {
+            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+
+            if this.broadcast(oth.raw_dim()).is_none() && oth.broadcast(this.raw_dim()).is_none() {
+                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+            }
+
+            this.clone() * oth
+        }
+        LuaValue::Number(n) => this.clone().into_dyn() * (n as f32),
+        LuaValue::Integer(i) => this.clone().into_dyn() * (i as f32),
+        _ => return Err(LuaError::external("Expected either number or Tensor.")),
+    }.into_dimensionality().unwrap();
+
+    Ok(Tensor(new))
+}
+
+fn div<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+    let new = match other {
+        LuaValue::UserData(user_data) => {
+            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+
+            if oth.broadcast(this.raw_dim()).is_none() {
+                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+            }
+
+            this.clone() / oth
+        }
+        LuaValue::Number(n) => this.clone().into_dyn() / (n as f32),
+        LuaValue::Integer(i) => this.clone().into_dyn() / (i as f32),
+        _ => return Err(LuaError::external("Expected either number or Tensor.")),
+    }.into_dimensionality().unwrap();
+
+    Ok(Tensor(new))
+}
