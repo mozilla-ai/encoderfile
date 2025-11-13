@@ -26,4 +26,4 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - run: pip install uv
-      - run: uv run -m mkdocs gh-deploy --force
+      - run: uv run --group docs -m mkdocs gh-deploy --force
