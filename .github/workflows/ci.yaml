@@ -80,16 +80,14 @@ jobs:
       - name: Project setup
         uses: ./.github/actions/project-setup
       
-      - name: Install codspeed
-        run: cargo binstall cargo-tarpaulin --no-confirm --force
-      
-      - name: Generate code coverage
-        run: |
-          cargo tarpaulin \
-            --all-features \
-            --workspace \
-            --timeout 180 \
-            --out xml
+      - name: Install llvm-tools-preview
+        run: rustup component add llvm-tools-preview
+
+      - name: Install cargo-llvm-cov
+        run: cargo binstall cargo-llvm-cov --force --no-confirm
+
+      - name: Generate coverage
+        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
 
       - name: Upload to codecov
         uses: codecov/codecov-action@v2
