@@ -5,7 +5,7 @@
 </p>
 
 
-<div align="center">
+<!-- <div align="center">
 
 [![pre-commit](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)
 [![unit_tests](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)
@@ -14,7 +14,29 @@
 [![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge)
 [![codecov](https://codecov.io/gh/mozilla-ai/encoderfile/graph/badge.svg?token=45KUDEYD8Z)](https://codecov.io/gh/mozilla-ai/encoderfile)
 
-</div>
+</div> -->
+
+<p align="center">
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge">
+    <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" />
+  </a>
+  <a href="https://codecov.io/gh/mozilla-ai/encoderfile">
+    <img src="https://codecov.io/gh/mozilla-ai/encoderfile/graph/badge.svg?token=45KUDEYD8Z" />
+  </a>
+</p>
+
 
 ## 🚀 Overview
 
@@ -32,6 +54,7 @@ Under the hood, Encoderfile uses ONNX Runtime for inference, ensuring compatibil
 - **Integration-ready:** drop into existing systems as a CLI, microservice, or API without refactoring your stack
 
 Encoderfiles can run as:
+
 - REST API
 - gRPC microservice
 - CLI
