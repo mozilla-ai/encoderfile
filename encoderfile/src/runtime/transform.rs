@@ -5,7 +5,6 @@ include!(concat!(
     "/generated/transform/transform.rs"
 ));
 
-#[allow(dead_code)]
 pub fn get_transform() -> Option<Transform> {
     if let Some(script) = TRANSFORM {
         let engine = Transform::new(script).expect("Failed to create transform");

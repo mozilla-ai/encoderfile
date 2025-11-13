@@ -219,13 +219,22 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
     }
 }
 
-fn add<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn add<D: Dimension + 'static>(
+    Tensor(this): &Tensor<D>,
+    other: LuaValue,
+) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if !is_broadcastable(this.shape(), oth.shape()) && !is_broadcastable(oth.shape(), this.shape()) {
-                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+            if !is_broadcastable(this.shape(), oth.shape())
+                && !is_broadcastable(oth.shape(), this.shape())
+            {
+                return Err(LuaError::external(format!(
+                    "Shape {:?} not broadcastable to {:?}",
+                    this.shape(),
+                    oth.shape()
+                )));
             }
 
             this.clone() + oth
@@ -233,18 +242,27 @@ fn add<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::Number(n) => this.clone().into_dyn() + (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() + (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }.into_dimensionality().unwrap();
+    }
+    .into_dimensionality()
+    .unwrap();
 
     Ok(Tensor(new))
 }
 
-fn sub<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn sub<D: Dimension + 'static>(
+    Tensor(this): &Tensor<D>,
+    other: LuaValue,
+) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
             if !is_broadcastable(oth.shape(), this.shape()) {
-                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+                return Err(LuaError::external(format!(
+                    "Shape {:?} not broadcastable to {:?}",
+                    this.shape(),
+                    oth.shape()
+                )));
             }
 
             this.clone() - oth
@@ -252,18 +270,29 @@ fn sub<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::Number(n) => this.clone().into_dyn() - (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() - (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }.into_dimensionality().unwrap();
+    }
+    .into_dimensionality()
+    .unwrap();
 
     Ok(Tensor(new))
 }
 
-fn mul<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn mul<D: Dimension + 'static>(
+    Tensor(this): &Tensor<D>,
+    other: LuaValue,
+) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-            if !is_broadcastable(this.shape(), oth.shape()) && !is_broadcastable(oth.shape(), this.shape()) {
-                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+            if !is_broadcastable(this.shape(), oth.shape())
+                && !is_broadcastable(oth.shape(), this.shape())
+            {
+                return Err(LuaError::external(format!(
+                    "Shape {:?} not broadcastable to {:?}",
+                    this.shape(),
+                    oth.shape()
+                )));
             }
 
             this.clone() * oth
@@ -271,18 +300,27 @@ fn mul<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::Number(n) => this.clone().into_dyn() * (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() * (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }.into_dimensionality().unwrap();
+    }
+    .into_dimensionality()
+    .unwrap();
 
     Ok(Tensor(new))
 }
 
-fn div<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn div<D: Dimension + 'static>(
+    Tensor(this): &Tensor<D>,
+    other: LuaValue,
+) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
             let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
             if !is_broadcastable(oth.shape(), this.shape()) {
-                return Err(LuaError::external(format!("Shape {:?} not broadcastable to {:?}", this.shape(), oth.shape())));
+                return Err(LuaError::external(format!(
+                    "Shape {:?} not broadcastable to {:?}",
+                    this.shape(),
+                    oth.shape()
+                )));
             }
 
             this.clone() / oth
@@ -290,7 +328,9 @@ fn div<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Res
         LuaValue::Number(n) => this.clone().into_dyn() / (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() / (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }.into_dimensionality().unwrap();
+    }
+    .into_dimensionality()
+    .unwrap();
 
     Ok(Tensor(new))
 }
@@ -299,8 +339,8 @@ fn is_broadcastable(a: &[usize], b: &[usize]) -> bool {
     let ndim = a.len().max(b.len());
 
     for i in 0..ndim {
-        let ad = *a.get(a.len().wrapping_sub(i+1)).unwrap_or(&1);
-        let bd = *b.get(b.len().wrapping_sub(i+1)).unwrap_or(&1);
+        let ad = *a.get(a.len().wrapping_sub(i + 1)).unwrap_or(&1);
+        let bd = *b.get(b.len().wrapping_sub(i + 1)).unwrap_or(&1);
 
         if ad != bd && ad != 1 && bd != 1 {
             return false;
