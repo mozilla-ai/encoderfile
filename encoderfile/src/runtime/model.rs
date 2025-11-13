@@ -22,7 +22,7 @@ pub fn get_model() -> Arc<Mutex<Session>> {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_get_model<'a>() {
+    fn test_get_model() {
         super::get_model();
         assert!(super::MODEL.get().is_some(), "Model not initialized");
     }

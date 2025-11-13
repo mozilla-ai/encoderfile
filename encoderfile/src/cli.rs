@@ -11,7 +11,7 @@ use clap_derive::{Parser, Subcommand, ValueEnum};
 use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
-use std::io::Write;
+use std::{fmt::Display, io::Write};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 macro_rules! generate_cli_route {
@@ -162,12 +162,11 @@ pub enum Format {
     Json,
 }
 
-impl ToString for Format {
-    fn to_string(&self) -> String {
+impl Display for Format {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Format::Json => "json",
+            Format::Json => write!(f, "{}", "json")
         }
-        .to_string()
     }
 }
 
