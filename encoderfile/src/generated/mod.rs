@@ -1,19 +1,19 @@
-pub mod encoderfile {
-    tonic::include_proto!("encoderfile");
-}
-
 pub mod embedding{
-    tonic::include_proto!("embedding");
+    tonic::include_proto!("encoderfile.embedding");
 }
 
 pub mod sequence_classification {
-    tonic::include_proto!("sequence_classification");
+    tonic::include_proto!("encoderfile.sequence_classification");
 }
 
 pub mod token_classification {
-    tonic::include_proto!("token_classification");
+    tonic::include_proto!("encoderfile.token_classification");
 }
 
 pub mod token {
-    tonic::include_proto!("token");
+    tonic::include_proto!("encoderfile.token");
+}
+
+pub mod metadata {
+    tonic::include_proto!("encoderfile.metadata");
 }

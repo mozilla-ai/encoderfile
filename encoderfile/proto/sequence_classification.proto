@@ -1,6 +1,13 @@
 syntax = "proto3";
 
-package sequence_classification;
+package encoderfile.sequence_classification;
+
+import "proto/metadata.proto";
+
+service SequenceClassificationInference {
+  rpc Predict(SequenceClassificationRequest) returns (SequenceClassificationResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
 
 message SequenceClassificationRequest {
   repeated string inputs = 1;

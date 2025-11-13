@@ -1,8 +1,14 @@
 syntax = "proto3";
 
-package embedding;
+package encoderfile.embedding;
 
 import "proto/token.proto";
+import "proto/metadata.proto";
+
+service EmbeddingInference {
+  rpc Predict(EmbeddingRequest) returns (EmbeddingResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
 
 message EmbeddingRequest {
   repeated string inputs = 1;
@@ -23,5 +29,5 @@ message TokenEmbeddingSequence {
 
 message TokenEmbedding {
   repeated float embedding = 1;
-  token.TokenInfo token_info = 2;
+  encoderfile.token.TokenInfo token_info = 2;
 }
