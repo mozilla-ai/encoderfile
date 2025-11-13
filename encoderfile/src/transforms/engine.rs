@@ -53,10 +53,11 @@ impl Transform {
             )));
         }
 
+        #[cfg(not(tarpaulin_include))]
         result.into_dimensionality::<D>().map_err(|e| {
             tracing::error!("Failed to cast array into Ix3: {e}");
             ApiError::InternalError(
-                "Failed to cast array into 3 dim. This is not supposed to happen.",
+                "Failed to cast array into correct dim. This is not supposed to happen.",
             )
         })
     }
@@ -104,6 +105,61 @@ mod tests {
             .expect("Failed to get MyTensor");
 
         assert!(function.call::<Tensor>(()).is_ok())
+    }
+
+    #[test]
+    fn test_no_transform_postprocessing() {
+        let engine = Transform::new("").expect("Failed to create Transform");
+
+        let arr = ndarray::Array2::<f32>::from_elem((3, 3), 2.0);
+
+        let result = engine.postprocess(arr.clone()).expect("Failed");
+
+        assert_eq!(arr, result);
+    }
+
+    #[test]
+    fn test_bad_output_transform_postprocessing() {
+        let engine = Transform::new(
+            r##"
+        function Postprocess(x)
+            return 1
+        end
+        "##,
+        )
+        .unwrap();
+
+        let arr = ndarray::Array2::<f32>::from_elem((3, 3), 2.0);
+
+        let result = engine.postprocess(arr.clone());
+
+        assert!(result.is_err())
+    }
+
+    #[test]
+    fn test_bad_dimensionality_transform_postprocessing() {
+        let engine = Transform::new(
+            r##"
+        function Postprocess(x)
+            return x:sum_axis(1)
+        end
+        "##,
+        )
+        .unwrap();
+
+        let arr = ndarray::Array2::<f32>::from_elem((3, 3), 2.0);
+        let result = engine.postprocess(arr.clone());
+
+        assert!(result.is_err());
+
+        if let Err(e) = result {
+            match e {
+                ApiError::LuaError(s) => {
+                    assert!(s.contains("Postprocess function returned tensor of dim"))
+                }
+                _ => panic!("Didn't return lua error"),
+            }
+        }
     }
 }
 
