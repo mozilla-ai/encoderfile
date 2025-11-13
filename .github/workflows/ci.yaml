@@ -127,6 +127,8 @@ jobs:
         uses: ./.github/actions/project-setup
         with:
           toolchain: nightly
+      
+      - run: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu clippy
 
       - name: Run Clippy
         run: cargo clippy --all-features --all-targets -- -D warnings
