@@ -20,3 +20,7 @@ dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.14.2",
 ]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.0",
+]
