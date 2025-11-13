@@ -5,7 +5,6 @@ use crate::{
 };
 use ndarray::{Array2, Axis, Ix2};
 use ndarray_stats::QuantileExt;
-use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
 #[tracing::instrument(skip_all)]
@@ -39,11 +38,9 @@ pub fn postprocess(
     outputs: Array2<f32>,
     config: &ModelConfig,
 ) -> Vec<SequenceClassificationResult> {
-    let probabilities = outputs.softmax(Axis(1));
-
     outputs
         .axis_iter(Axis(0))
-        .zip(probabilities.axis_iter(Axis(0)))
+        .zip(outputs.axis_iter(Axis(0)))
         .map(|(logs, probs)| {
             let predicted_index = probs.argmax().expect("Model has 0 labels");
             SequenceClassificationResult {

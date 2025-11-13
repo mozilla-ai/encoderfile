@@ -5,7 +5,6 @@ use crate::{
 };
 use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;
-use ort::tensor::ArrayExtensions;
 use tokenizers::Encoding;
 
 #[tracing::instrument(skip_all)]
@@ -43,16 +42,14 @@ pub fn postprocess(
     let mut predictions = Vec::new();
 
     for (encoding, logits) in encodings.iter().zip(outputs.axis_iter(Axis(0))) {
-        let scores = logits.softmax(Axis(1));
-
         let mut results = Vec::new();
 
         for i in 0..encoding.len() {
-            let argmax = scores
+            let argmax = logits
                 .index_axis(Axis(0), i)
                 .argmax()
                 .expect("Model has 0 labels");
-            let score = scores.index_axis(Axis(0), i)[argmax];
+            let score = logits.index_axis(Axis(0), i)[argmax];
             let label = match config.id2label(argmax as u32) {
                 Some(l) => l.to_string(),
                 None => {
@@ -76,12 +73,13 @@ pub fn postprocess(
                 },
                 score,
                 label,
+                // TODO: we only need to return one of these
                 logits: logits
                     .index_axis(Axis(0), i)
                     .to_owned()
                     .into_raw_vec_and_offset()
                     .0,
-                scores: scores
+                scores: logits
                     .index_axis(Axis(0), i)
                     .to_owned()
                     .into_raw_vec_and_offset()
