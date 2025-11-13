@@ -79,7 +79,26 @@ uv run -m encoderbuild.utils.create_dummy_env_file > .env
 
 ## 🏗️ Building an Encoderfile
 
-To create an Encoderfile, you must have a HuggingFace model downloaded in an accessible directory. The model directory **must** have exported ONNX weights. It should look like this:
+### Prepare your Model
+
+To create an Encoderfile, you must have a HuggingFace model downloaded in an accessible directory. The model directory **must** have exported ONNX weights. 
+
+#### Export a Model 
+```bash
+optimum-cli export onnx \
+  --model <model_id>  \
+  --task <task_type> \
+  <path_to_model_directory>
+```
+
+**Task types:** See [HuggingFace task guide](https://huggingface.co/docs/optimum/exporters/onnx/usage_guides/export_a_model) for available tasks (`feature-extraction`, `text-classification`, `token-classification`, etc.)
+
+#### Use a pre-exported model 
+
+Some models on HuggingFace already have ONNX weights in their repos.
+
+Your model directory should look like this:
+
 
 ```
 my_model/
@@ -91,7 +110,8 @@ my_model/
 └── vocab.txt
 ```
 
-Once you have this, run the following command:
+### Build the binary 
+
 ```sh
 uv run -m encoderbuild build \
     -n my-model-name \
@@ -99,16 +119,20 @@ uv run -m encoderbuild build \
     -m path/to/model/dir
 ```
 
+### Run REST Server 
+
 Your final binary is `target/release/encoderfile`. To run it as a server:
+**Default port:** 8080 (override with `--http-port`)
 
 ```
 chmod +x target/release/encoderfile
 ./target/release/encoderfile serve
 ```
 
-## 🔧 Example Usage — REST
+## REST API Usage 
 
-### Embedding Model
+
+### Embeddings  
 
 ```sh
 curl -X POST http://localhost:8080/predict \
@@ -126,3 +150,90 @@ curl -X POST http://localhost:8080/predict \
 ```
 
 Returns predictions and logits.
+
+## 🔧 Walkthrough Example - Sequence Classification
+
+Let's use encoderfile to perform sentiment analysis on a few input strings 
+
+We'll work with `distilbert-base-uncased-finetuned-sst-2-english`, which is a fine-tuned version of the DistilBERT model.  
+
+### Export Model to ONNX 
+```bash
+optimum-cli export onnx \
+  --model distilbert-base-uncased-finetuned-sst-2-english \
+  --task text-classification \
+  <path_to_model_directory>
+```
+
+### Build Encoderfile 
+```bash
+uv run -m encoderbuild build \
+  -n sentiment-analyzer \
+  -t sequence_classification \
+  -m <path_to_model_directory>
+```
+
+### Start Server 
+Use `--http-port` parameter to start the REST server on a specific port 
+
+```bash
+./target/release/encoderfile serve 
+``` 
+
+### Analyze Sentiment
+```bash
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": ["This is the cutest cat ever!", "Boring video, waste of time", "These cats are so funny!"]}'
+```
+
+### Expected Output 
+<details> 
+<summary> JSON Output </summary>  
+
+```json
+{
+    "results": [
+        {
+            "logits": [
+                -4.045369,
+                4.3970084
+            ],
+            "scores": [
+                0.00021549074,
+                0.9997845
+            ],
+            "predicted_index": 1,
+            "predicted_label": "POSITIVE"
+        },
+        {
+            "logits": [
+                4.7616825,
+                -3.8323877
+            ],
+            "scores": [
+                0.9998148,
+                0.0001851664
+            ],
+            "predicted_index": 0,
+            "predicted_label": "NEGATIVE"
+        },
+        {
+            "logits": [
+                -4.2407384,
+                4.565653
+            ],
+            "scores": [
+                0.00014975043,
+                0.9998503
+            ],
+            "predicted_index": 1,
+            "predicted_label": "POSITIVE"
+        }
+    ],
+    "model_id": "sentiment-analyzer"
+}
+```
+
+</details> 
+

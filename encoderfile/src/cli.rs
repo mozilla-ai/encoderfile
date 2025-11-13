@@ -3,7 +3,7 @@ use crate::{
         EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
     },
     runtime::AppState,
-    server::{run_grpc, run_http},
+    server::{run_grpc, run_http, run_mcp},
     services::{embedding, sequence_classification, token_classification},
 };
 use anyhow::Result;
@@ -65,6 +65,12 @@ pub enum Commands {
         format: Format,
         #[arg(short)]
         out_dir: Option<String>,
+    },
+    Mcp {
+        #[arg(long, default_value = "0.0.0.0")]
+        hostname: String,
+        #[arg(long, default_value = "9100")]
+        port: String,
     },
 }
 
@@ -140,6 +146,11 @@ impl Commands {
                         generate_cli_route!(request, token_classification, format, out_dir, state)
                     }
                 }
+            }
+            Commands::Mcp { hostname, port } => {
+                let mcp_process = tokio::spawn(run_mcp(hostname, port));
+                println!("{}", crate::get_banner());
+                let _ = tokio::join!(mcp_process);
             }
         }
         Ok(())
