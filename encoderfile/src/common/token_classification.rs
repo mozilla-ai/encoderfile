@@ -1,8 +1,9 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct TokenClassificationRequest {
     pub inputs: Vec<String>,
     #[serde(default)]
@@ -20,7 +21,7 @@ impl From<crate::generated::token_classification::TokenClassificationRequest>
     }
 }
 
-#[derive(Debug, Serialize, ToSchema, utoipa::ToResponse)]
+#[derive(Debug, Serialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct TokenClassificationResponse {
     pub results: Vec<TokenClassificationResult>,
     pub model_id: String,
@@ -40,7 +41,7 @@ impl From<TokenClassificationResponse>
     }
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToSchema, JsonSchema)]
 pub struct TokenClassificationResult {
     pub tokens: Vec<TokenClassification>,
 }
@@ -55,7 +56,7 @@ impl From<TokenClassificationResult>
     }
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToSchema, JsonSchema)]
 pub struct TokenClassification {
     pub token_info: super::token::TokenInfo,
     pub logits: Vec<f32>,
