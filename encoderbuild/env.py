@@ -3,7 +3,11 @@ import click
 
 
 def create_env_vars(
-    model_dir: str, model_name: str, model_type: str, transform_path: str | None, with_env: bool = True
+    model_dir: str,
+    model_name: str,
+    model_type: str,
+    transform_path: str | None,
+    with_env: bool = True,
 ) -> dict[str, str]:
     """Create env vars for build config."""
     required_files = {

@@ -44,16 +44,13 @@ def cli():
     is_flag=True,
     help="Print build environment vars (debug only)",
 )
-@click.option(
-    "--transform",
-    help="Path to transform file."
-)
+@click.option("--transform", help="Path to transform file.")
 def build(
     name: Optional[str],
     type_: Optional[str],
     model_dir: str,
     print_build_env_vars: bool,
-    transform: Optional[str]
+    transform: Optional[str],
 ):
     """
     Validate a model directory and build the Rust project with Cargo.
@@ -64,7 +61,9 @@ def build(
 
     model_dir_abs = os.path.abspath(model_dir)
 
-    env = create_env_vars(model_dir_abs, name, type_, transform_path=transform, with_env=True)
+    env = create_env_vars(
+        model_dir_abs, name, type_, transform_path=transform, with_env=True
+    )
 
     if print_build_env_vars:
         click.echo("\n".join(f"{k}={v}" for k, v in env.items() if k not in os.environ))
