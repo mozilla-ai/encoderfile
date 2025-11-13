@@ -20,7 +20,9 @@ impl<D: Dimension + 'static> FromLua for Tensor<D> {
 
                 ArrayD::from_shape_vec(shape.as_slice(), vec)
                     .and_then(|a| a.into_dimensionality::<D>())
-                    .map_err(|e| LuaError::external(format!("Failed to cast to dimensionality: {e}")))
+                    .map_err(|e| {
+                        LuaError::external(format!("Failed to cast to dimensionality: {e}"))
+                    })
                     .map(Self)
                     .map_err(|e| LuaError::external(format!("Shape error: {e}")))
             }
@@ -94,8 +96,7 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
             out.push(acc);
         }
 
-        let result = Array1::from_shape_vec(out.len(), out)
-            .expect("Failed to recast results");
+        let result = Array1::from_shape_vec(out.len(), out).expect("Failed to recast results");
 
         Ok(Tensor(result))
     }
@@ -115,7 +116,12 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
 
         let views: Vec<_> = out.iter().map(|i| i.view()).collect();
 
-        Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap().into_dimensionality().unwrap()))
+        Ok(Tensor(
+            ndarray::stack(axis, views.as_slice())
+                .unwrap()
+                .into_dimensionality()
+                .unwrap(),
+        ))
     }
 
     fn sum(&self) -> Result<f32, LuaError> {
@@ -215,17 +221,17 @@ impl<D: Dimension + RemoveAxis + 'static> Tensor<D> {
 
 macro_rules! ops_fn {
     ($fn_name:ident, $op:tt) => {
-        fn $fn_name<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<D>, LuaError> {
+        fn $fn_name<D: Dimension + 'static>(Tensor(this): &Tensor<D>, other: LuaValue) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
             let new = match other {
                 LuaValue::UserData(user_data) => {
-                    let Tensor(oth) = user_data.borrow::<Tensor<D>>()?.to_owned();
+                    let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
 
-                    this $op oth
+                    this.clone() $op oth
                 }
-                LuaValue::Number(n) => this $op (n as f32),
-                LuaValue::Integer(i) => this $op (i as f32),
+                LuaValue::Number(n) => this.clone().into_dyn() $op (n as f32),
+                LuaValue::Integer(i) => this.clone().into_dyn() $op (i as f32),
                 _ => return Err(LuaError::external("Expected either number or Tensor.")),
-            };
+            }.into_dimensionality().unwrap();
 
             Ok(Tensor(new))
         }

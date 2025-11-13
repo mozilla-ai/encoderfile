@@ -10,7 +10,8 @@ fn test_from_lua_create_table() {
         .eval()
         .unwrap();
 
-    let tensor = Tensor::<IxDyn>::from_lua(LuaValue::Table(tbl), &lua).expect("Failed to create tensor");
+    let tensor =
+        Tensor::<IxDyn>::from_lua(LuaValue::Table(tbl), &lua).expect("Failed to create tensor");
 
     assert_eq!(tensor.0.ndim(), 2);
     assert_eq!(tensor.0.shape(), [3, 3]);

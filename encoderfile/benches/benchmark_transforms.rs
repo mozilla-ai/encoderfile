@@ -9,16 +9,14 @@ fn get_random_2d(x: usize, y: usize) -> Array2<f32> {
     let mut rng = rand::rng();
     let vals: Vec<f32> = (0..(x * y)).map(|_| rng.random()).collect();
 
-    Array2::from_shape_vec((x, y), vals)
-        .expect("Failed to create shape vec")
+    Array2::from_shape_vec((x, y), vals).expect("Failed to create shape vec")
 }
 
 fn get_random_3d(x: usize, y: usize, z: usize) -> Array3<f32> {
     let mut rng = rand::rng();
     let vals: Vec<f32> = (0..(x * y * z)).map(|_| rng.random()).collect();
 
-    Array3::from_shape_vec((x, y, z), vals)
-        .expect("Failed to create shape vec")
+    Array3::from_shape_vec((x, y, z), vals).expect("Failed to create shape vec")
 }
 
 #[divan::bench(args = [(16, 16, 16), (32, 128, 384), (32, 256, 768)])]
