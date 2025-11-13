@@ -13,6 +13,8 @@ theme:
     scheme: slate
     primary: grey
     accent: deep orange
+  features:
+    - navigation.instant
 
 nav:
   - Home: index.md
