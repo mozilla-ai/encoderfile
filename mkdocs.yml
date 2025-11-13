@@ -1,3 +1,25 @@
-site_name: Encoderfile Docs
+site_name: Encoderfile
+site_url: https://mozilla-ai.github.io/encoderfile/
+repo_url: https://github.com/mozilla-ai/encoderfile
+
 theme:
+  logo: assets/favicon.svg
+  icon:
+    repo: fontawesome/brands/github
+  favicon: assets/favicon.svg
   name: material
+  language: en
+  palette:
+    scheme: slate
+    primary: grey
+    accent: deep orange
+
+nav:
+  - Home: index.md
+
+plugins:
+  - include-markdown
+
+markdown_extensions:
+  - pymdownx.snippets:
+      check_paths: true
