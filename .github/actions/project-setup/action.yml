@@ -24,6 +24,11 @@ runs:
     - name: Project setup
       shell: bash
       run: make setup
+    
+    - name: Install cargo-binstall
+      shell: bash
+      run: |
+        curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 
     - name: Generate dummy env file
       shell: bash
