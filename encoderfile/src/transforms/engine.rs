@@ -12,7 +12,7 @@ pub struct Transform {
 }
 
 impl Transform {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(name = "new_transform", skip_all)]
     pub fn new(transform: &str) -> Result<Self, ApiError> {
         let lua = new_lua();
 
@@ -28,7 +28,7 @@ impl Transform {
         Ok(Self { lua, postprocessor })
     }
 
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(name = "transform_postprocess", skip_all)]
     pub fn postprocess<D: ndarray::Dimension>(
         &self,
         data: Array<f32, D>,

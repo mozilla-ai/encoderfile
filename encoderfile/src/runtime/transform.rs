@@ -2,7 +2,7 @@ use crate::transforms::Transform;
 
 include!(concat!(
     env!("OUT_DIR"),
-    "/generated/transform/transform.rs"
+    "/generated/transform.rs"
 ));
 
 pub fn get_transform() -> Option<Transform> {
