@@ -63,8 +63,8 @@ impl From<ApiError> for McpError {
             ApiError::LuaError(str) => McpError {
                 code: ErrorCode::INTERNAL_ERROR,
                 message: std::borrow::Cow::Owned(str),
-                data :None
-            }
+                data: None,
+            },
         }
     }
 }
