@@ -1,11 +1,17 @@
 name: "Project Setup"
 description: "Shared environment setup for CI"
+inputs:
+  toolchain:
+    description: "Rust toolchain to install"
+    required: false
+    default: "stable"
+
 runs:
   using: "composite"
   steps:
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: ${{ inputs.toolchain }}
 
     - uses: actions/setup-python@v5
       with:

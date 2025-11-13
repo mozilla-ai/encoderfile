@@ -127,6 +127,8 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
+        with:
+          toolchain: nightly
 
       - name: Run Clippy
         run: cargo clippy --all-features --all-targets -- -D warnings
