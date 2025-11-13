@@ -1,5 +1,4 @@
 use super::*;
-use ndarray::IxDyn;
 
 #[test]
 fn test_from_lua_create_table() {
@@ -10,8 +9,7 @@ fn test_from_lua_create_table() {
         .eval()
         .unwrap();
 
-    let tensor =
-        Tensor::<IxDyn>::from_lua(LuaValue::Table(tbl), &lua).expect("Failed to create tensor");
+    let tensor = Tensor::from_lua(LuaValue::Table(tbl), &lua).expect("Failed to create tensor");
 
     assert_eq!(tensor.0.ndim(), 2);
     assert_eq!(tensor.0.shape(), [3, 3]);
@@ -23,7 +21,7 @@ fn test_from_lua_empty_table() {
 
     let tbl: LuaTable = lua.load("return {}").eval().unwrap();
 
-    let Tensor(tensor) = Tensor::<IxDyn>::from_lua(LuaValue::Table(tbl), &lua).unwrap();
+    let Tensor(tensor) = Tensor::from_lua(LuaValue::Table(tbl), &lua).unwrap();
 
     assert!(tensor.is_empty());
     assert_eq!(tensor.ndim(), 1);
@@ -38,7 +36,7 @@ fn test_from_lua_ragged() {
         .eval()
         .unwrap();
 
-    let tensor = Tensor::<IxDyn>::from_lua(LuaValue::Table(tbl), &lua);
+    let tensor = Tensor::from_lua(LuaValue::Table(tbl), &lua);
 
     assert!(tensor.is_err());
 }
@@ -49,7 +47,7 @@ fn test_from_lua_bad_type() {
 
     let tbl: LuaString = lua.load("return \"i am not a table\"").eval().unwrap();
 
-    let tensor = Tensor::<IxDyn>::from_lua(LuaValue::String(tbl), &lua);
+    let tensor = Tensor::from_lua(LuaValue::String(tbl), &lua);
 
     assert!(tensor.is_err());
 }
@@ -60,7 +58,7 @@ fn test_from_lua_bad_type_err() {
 
     let val = LuaValue::Boolean(false);
 
-    let tensor = Tensor::<IxDyn>::from_lua(val, &lua);
+    let tensor = Tensor::from_lua(val, &lua);
 
     assert!(tensor.is_err());
 }

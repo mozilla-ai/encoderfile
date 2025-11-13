@@ -1,6 +1,6 @@
 use super::utils::table_to_vec;
 use mlua::prelude::*;
-use ndarray::{Array, Array1, ArrayD, Axis, Dimension, Ix1, RemoveAxis};
+use ndarray::{Array1, ArrayD, Axis};
 use ndarray_stats::QuantileExt;
 use ort::tensor::ArrayExtensions;
 
@@ -8,13 +8,10 @@ use ort::tensor::ArrayExtensions;
 mod tests;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Tensor<D: Dimension>(pub Array<f32, D>);
+pub struct Tensor(pub ArrayD<f32>);
 
-impl<D> FromLua for Tensor<D>
-where
-    D: Dimension + 'static,
-{
-    fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Tensor<D>, LuaError> {
+impl FromLua for Tensor {
+    fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Tensor, LuaError> {
         match value {
             LuaValue::Table(tbl) => {
                 let mut shape = Vec::new();
@@ -22,14 +19,13 @@ where
                 let vec = table_to_vec(&tbl, &mut shape)?;
 
                 ArrayD::from_shape_vec(shape.as_slice(), vec)
-                    .and_then(|a| a.into_dimensionality::<D>())
                     .map_err(|e| {
                         LuaError::external(format!("Failed to cast to dimensionality: {e}"))
                     })
                     .map(Self)
                     .map_err(|e| LuaError::external(format!("Shape error: {e}")))
             }
-            LuaValue::UserData(data) => data.borrow::<Tensor<D>>().map(|i| i.to_owned()),
+            LuaValue::UserData(data) => data.borrow::<Tensor>().map(|i| i.to_owned()),
             _ => Err(LuaError::external(
                 format!("Unknown type: {}", value.type_name()).as_str(),
             )),
@@ -37,13 +33,10 @@ where
     }
 }
 
-impl<D> LuaUserData for Tensor<D>
-where
-    D: Dimension + RemoveAxis + 'static,
-{
+impl LuaUserData for Tensor {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         // syntactic sugar
-        methods.add_meta_method(LuaMetaMethod::Eq, |_, this, other: Tensor<D>| {
+        methods.add_meta_method(LuaMetaMethod::Eq, |_, this, other: Tensor| {
             Ok(this.0 == other.0)
         });
 
@@ -82,12 +75,9 @@ where
     }
 }
 
-impl<D> Tensor<D>
-where
-    D: Dimension + RemoveAxis + 'static,
-{
+impl Tensor {
     #[tracing::instrument(skip_all)]
-    fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Tensor<Ix1>, LuaError> {
+    fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Tensor, LuaError> {
         let axis = self.axis1(axis)?;
 
         let mut out = Vec::new();
@@ -106,7 +96,9 @@ where
             out.push(acc);
         }
 
-        let result = Array1::from_shape_vec(out.len(), out).expect("Failed to recast results");
+        let result = Array1::from_shape_vec(out.len(), out)
+            .expect("Failed to recast results")
+            .into_dyn();
 
         Ok(Tensor(result))
     }
@@ -127,12 +119,7 @@ where
 
         let views: Vec<_> = out.iter().map(|i| i.view()).collect();
 
-        Ok(Tensor(
-            ndarray::stack(axis, views.as_slice())
-                .unwrap()
-                .into_dimensionality()
-                .unwrap(),
-        ))
+        Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap()))
     }
 
     #[tracing::instrument(skip_all)]
@@ -142,8 +129,7 @@ where
 
     #[tracing::instrument(skip_all)]
     fn sum_axis(&self, axis: isize) -> Result<Self, LuaError> {
-        let sum = self.0.sum_axis(self.axis1(axis)?);
-        Ok(Self(sum.into_dimensionality::<D>().unwrap()))
+        Ok(Self(self.0.sum_axis(self.axis1(axis)?)))
     }
 
     #[tracing::instrument(skip_all)]
@@ -192,7 +178,7 @@ where
         let norms = norms.mapv(|x| if x < 1e-12 { 1e-12 } else { x });
 
         // Broadcast division using ndarray’s broadcasting API
-        let normalized = arr / &norms.insert_axis(axis).into_dimensionality::<D>().unwrap();
+        let normalized = arr / &norms.insert_axis(axis);
 
         Ok(Self(normalized))
     }
@@ -243,13 +229,10 @@ where
 }
 
 #[tracing::instrument(skip_all)]
-fn add<D: Dimension + 'static>(
-    Tensor(this): &Tensor<D>,
-    other: LuaValue,
-) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn add(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
 
             if !is_broadcastable(this.shape(), oth.shape()) {
                 return Err(LuaError::external(format!(
@@ -264,21 +247,16 @@ fn add<D: Dimension + 'static>(
         LuaValue::Number(n) => this.clone().into_dyn() + (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() + (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }
-    .into_dimensionality()
-    .unwrap();
+    };
 
     Ok(Tensor(new))
 }
 
 #[tracing::instrument(skip_all)]
-fn sub<D: Dimension + 'static>(
-    Tensor(this): &Tensor<D>,
-    other: LuaValue,
-) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn sub(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
 
             if !is_broadcastable(oth.shape(), this.shape()) {
                 return Err(LuaError::external(format!(
@@ -293,21 +271,16 @@ fn sub<D: Dimension + 'static>(
         LuaValue::Number(n) => this.clone().into_dyn() - (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() - (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }
-    .into_dimensionality()
-    .unwrap();
+    };
 
     Ok(Tensor(new))
 }
 
 #[tracing::instrument(skip_all)]
-fn mul<D: Dimension + 'static>(
-    Tensor(this): &Tensor<D>,
-    other: LuaValue,
-) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn mul(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
 
             if !is_broadcastable(this.shape(), oth.shape()) {
                 return Err(LuaError::external(format!(
@@ -322,21 +295,16 @@ fn mul<D: Dimension + 'static>(
         LuaValue::Number(n) => this.clone().into_dyn() * (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() * (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }
-    .into_dimensionality()
-    .unwrap();
+    };
 
     Ok(Tensor(new))
 }
 
 #[tracing::instrument(skip_all)]
-fn div<D: Dimension + 'static>(
-    Tensor(this): &Tensor<D>,
-    other: LuaValue,
-) -> Result<Tensor<ndarray::IxDyn>, LuaError> {
+fn div(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
     let new = match other {
         LuaValue::UserData(user_data) => {
-            let Tensor(oth) = user_data.borrow::<Tensor<ndarray::IxDyn>>()?.to_owned();
+            let Tensor(oth) = user_data.borrow::<Tensor>()?.to_owned();
 
             if !is_broadcastable(oth.shape(), this.shape()) {
                 return Err(LuaError::external(format!(
@@ -351,9 +319,7 @@ fn div<D: Dimension + 'static>(
         LuaValue::Number(n) => this.clone().into_dyn() / (n as f32),
         LuaValue::Integer(i) => this.clone().into_dyn() / (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
-    }
-    .into_dimensionality()
-    .unwrap();
+    };
 
     Ok(Tensor(new))
 }
