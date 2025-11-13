@@ -6,7 +6,6 @@ use utoipa::ToSchema;
 #[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct EmbeddingRequest {
     pub inputs: Vec<String>,
-    pub normalize: bool,
     #[serde(default)]
     pub metadata: Option<HashMap<String, String>>,
 }
@@ -15,7 +14,6 @@ impl From<crate::generated::embedding::EmbeddingRequest> for EmbeddingRequest {
     fn from(val: crate::generated::embedding::EmbeddingRequest) -> Self {
         Self {
             inputs: val.inputs,
-            normalize: val.normalize,
             metadata: Some(val.metadata),
         }
     }

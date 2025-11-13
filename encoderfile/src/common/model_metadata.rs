@@ -8,11 +8,11 @@ pub struct GetModelMetadataResponse {
     pub id2label: Option<HashMap<u32, String>>,
 }
 
-impl From<GetModelMetadataResponse> for crate::generated::encoderfile::GetModelMetadataResponse {
+impl From<GetModelMetadataResponse> for crate::generated::metadata::GetModelMetadataResponse {
     fn from(val: GetModelMetadataResponse) -> Self {
         Self {
             model_id: val.model_id,
-            model_type: crate::generated::encoderfile::ModelType::from(val.model_type).into(),
+            model_type: crate::generated::metadata::ModelType::from(val.model_type).into(),
             id2label: val.id2label.unwrap_or_default(),
         }
     }

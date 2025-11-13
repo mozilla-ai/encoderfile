@@ -1,15 +1,22 @@
 use crate::{
     common::ModelType,
     generated::{
-        embedding,
-        encoderfile::{
-            embedding_server::{Embedding, EmbeddingServer},
-            sequence_classification_server::{
-                SequenceClassification, SequenceClassificationServer,
-            },
-            token_classification_server::{TokenClassification, TokenClassificationServer},
+        embedding::{
+            self,
+            embedding_inference_server::{EmbeddingInference, EmbeddingInferenceServer},
         },
-        sequence_classification, token_classification,
+        sequence_classification::{
+            self,
+            sequence_classification_inference_server::{
+                SequenceClassificationInference, SequenceClassificationInferenceServer,
+            },
+        },
+        token_classification::{
+            self,
+            token_classification_inference_server::{
+                TokenClassificationInference, TokenClassificationInferenceServer,
+            },
+        },
     },
     runtime::AppState,
 };
@@ -20,14 +27,14 @@ pub fn router(state: AppState) -> axum::Router {
 
     match &state.model_type {
         ModelType::Embedding => {
-            builder.add_service(EmbeddingServer::new(EmbeddingService::new(state)))
+            builder.add_service(EmbeddingInferenceServer::new(EmbeddingService::new(state)))
         }
         ModelType::SequenceClassification => builder.add_service(
-            SequenceClassificationServer::new(SequenceClassificationService::new(state)),
+            SequenceClassificationInferenceServer::new(SequenceClassificationService::new(state)),
         ),
-        ModelType::TokenClassification => builder.add_service(TokenClassificationServer::new(
-            TokenClassificationService::new(state),
-        )),
+        ModelType::TokenClassification => builder.add_service(
+            TokenClassificationInferenceServer::new(TokenClassificationService::new(state)),
+        ),
     }
     .into_axum_router()
 }
@@ -60,9 +67,9 @@ macro_rules! generate_grpc_server {
 
             async fn get_model_metadata(
                 &self,
-                _request: tonic::Request<crate::generated::encoderfile::GetModelMetadataRequest>,
+                _request: tonic::Request<crate::generated::metadata::GetModelMetadataRequest>,
             ) -> Result<
-                tonic::Response<crate::generated::encoderfile::GetModelMetadataResponse>,
+                tonic::Response<crate::generated::metadata::GetModelMetadataResponse>,
                 tonic::Status,
             > {
                 Ok(tonic::Response::new(
@@ -77,7 +84,7 @@ generate_grpc_server!(
     EmbeddingService,
     embedding::EmbeddingRequest,
     embedding::EmbeddingResponse,
-    Embedding,
+    EmbeddingInference,
     crate::services::embedding
 );
 
@@ -85,7 +92,7 @@ generate_grpc_server!(
     SequenceClassificationService,
     sequence_classification::SequenceClassificationRequest,
     sequence_classification::SequenceClassificationResponse,
-    SequenceClassification,
+    SequenceClassificationInference,
     crate::services::sequence_classification
 );
 
@@ -93,6 +100,6 @@ generate_grpc_server!(
     TokenClassificationService,
     token_classification::TokenClassificationRequest,
     token_classification::TokenClassificationResponse,
-    TokenClassification,
+    TokenClassificationInference,
     crate::services::token_classification
 );

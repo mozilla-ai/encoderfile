@@ -29,7 +29,7 @@ fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
     // Dummy encodings
     let encodings = generate_dummy_encodings(&tokenizer, batch, tokens);
 
-    b.bench(|| embedding::postprocess(outputs.clone(), encodings.clone(), false));
+    b.bench(|| embedding::postprocess(outputs.clone(), encodings.clone()));
 }
 
 #[divan::bench(args = [8, 16, 64])]

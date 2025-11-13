@@ -6,7 +6,7 @@ pub enum ModelType {
     TokenClassification,
 }
 
-impl From<ModelType> for crate::generated::encoderfile::ModelType {
+impl From<ModelType> for crate::generated::metadata::ModelType {
     fn from(val: ModelType) -> Self {
         match val {
             ModelType::Embedding => Self::Embedding,

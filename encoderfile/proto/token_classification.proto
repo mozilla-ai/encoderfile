@@ -1,8 +1,14 @@
 syntax = "proto3";
 
-package token_classification;
+package encoderfile.token_classification;
 
 import "proto/token.proto";
+import "proto/metadata.proto";
+
+service TokenClassificationInference {
+  rpc Predict(TokenClassificationRequest) returns (TokenClassificationResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
 
 message TokenClassificationRequest {
   repeated string inputs = 1;
@@ -20,7 +26,7 @@ message TokenClassificationResult {
 }
 
 message TokenClassification {
-  token.TokenInfo token_info = 1;
+  encoderfile.token.TokenInfo token_info = 1;
   repeated float logits = 2;
   repeated float scores = 3;
   string label = 4;

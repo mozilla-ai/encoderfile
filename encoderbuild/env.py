@@ -1,8 +1,13 @@
 import os
+import click
 
 
 def create_env_vars(
-    model_dir: str, model_name: str, model_type: str, with_env: bool = True
+    model_dir: str,
+    model_name: str,
+    model_type: str,
+    transform_path: str | None,
+    with_env: bool = True,
 ) -> dict[str, str]:
     """Create env vars for build config."""
     required_files = {
@@ -30,5 +35,9 @@ def create_env_vars(
         "MODEL_TYPE": model_type,
         "MODEL_NAME": model_name,
     }
+
+    if transform_path:
+        click.echo(f"➡️ Using transform {transform_path}")
+        required_files["TRANSFORM_PATH"] = os.path.abspath(transform_path)
 
     return env

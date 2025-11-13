@@ -1,0 +1,10 @@
+services:
+  jaeger:
+    image: jaegertracing/jaeger:2.10.0
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "4317:4317"  # gRPC OTLP ingest
+      - "4318:4318"  # HTTP OTLP ingest

@@ -20,8 +20,8 @@ fn test_embedding_model() {
 
     let session_lock = state.session.lock();
 
-    let results = embedding(session_lock, &state.config, encodings.clone(), true)
-        .expect("Failed to compute results");
+    let results =
+        embedding(session_lock, &state, encodings.clone()).expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -42,8 +42,7 @@ fn test_embedding_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    embedding(session_lock, &state.config, encodings.clone(), true)
-        .expect("Failed to compute results");
+    embedding(session_lock, &state, encodings.clone()).expect("Failed to compute results");
 }
 
 #[test]
@@ -61,7 +60,7 @@ fn test_sequence_classification_model() {
 
     let session_lock = state.session.lock();
 
-    let results = sequence_classification(session_lock, &state.config, encodings.clone())
+    let results = sequence_classification(session_lock, &state, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -83,7 +82,7 @@ fn test_sequence_classification_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    sequence_classification(session_lock, &state.config, encodings.clone())
+    sequence_classification(session_lock, &state, encodings.clone())
         .expect("Failed to compute results");
 }
 
@@ -102,7 +101,7 @@ fn test_token_classification_model() {
 
     let session_lock = state.session.lock();
 
-    let results = token_classification(session_lock, &state.config, encodings.clone())
+    let results = token_classification(session_lock, &state, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -124,6 +123,6 @@ fn test_token_classification_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    token_classification(session_lock, &state.config, encodings.clone())
+    token_classification(session_lock, &state, encodings.clone())
         .expect("Failed to compute results");
 }
