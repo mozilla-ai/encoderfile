@@ -20,11 +20,8 @@
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg" />
   </a>
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg" />
-  </a>
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg" />
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml/badge.svg" />
   </a>
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml/badge.svg" />
