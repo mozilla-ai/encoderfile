@@ -60,6 +60,11 @@ impl From<ApiError> for McpError {
                 message: std::borrow::Cow::Borrowed(str),
                 data: None,
             },
+            ApiError::LuaError(str) => McpError {
+                code: ErrorCode::INTERNAL_ERROR,
+                message: std::borrow::Cow::Owned(str),
+                data :None
+            }
         }
     }
 }
