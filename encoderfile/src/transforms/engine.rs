@@ -2,13 +2,14 @@ use crate::error::ApiError;
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
-use ndarray::Array;
+use ndarray::{Array, Array2, Array3, Axis};
 
 #[derive(Debug)]
 pub struct Transform {
     #[allow(dead_code)]
     lua: Lua,
     postprocessor: Option<LuaFunction>,
+    pooler: Option<LuaFunction>,
 }
 
 impl Transform {
@@ -25,7 +26,71 @@ impl Transform {
             .get::<Option<LuaFunction>>("Postprocess")
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-        Ok(Self { lua, postprocessor })
+        let pooler = lua
+            .globals()
+            .get::<Option<LuaFunction>>("Pool")
+            .map_err(|e| ApiError::LuaError(e.to_string()))?;
+
+        Ok(Self {
+            lua,
+            postprocessor,
+            pooler,
+        })
+    }
+
+    pub fn pool(&self, data: Array3<f32>, mask: Array2<f32>) -> Result<Array2<f32>, ApiError> {
+        let func = match &self.pooler {
+            Some(p) => p,
+            None => {
+                let batch = data.len_of(Axis(0));
+                let hidden = data.len_of(Axis(2));
+
+                let mut out = Array2::<f32>::zeros((batch, hidden));
+
+                for b in 0..batch {
+                    let emb = data.slice(ndarray::s![b, .., ..]); // [seq_len, hidden]
+                    let m = mask.slice(ndarray::s![b, ..]); // [seq_len]
+
+                    // expand mask to [seq_len, hidden]
+                    let m2 = m.insert_axis(Axis(1));
+
+                    let weighted = &emb * &m2;                     // zero out padded tokens
+                    let sum = weighted.sum_axis(Axis(0));          // sum over seq_len
+                    let count = m.sum();                           // number of real tokens
+
+                    out.slice_mut(ndarray::s![b, ..]).assign(&(sum / count));
+                }
+
+                return Ok(out);
+            }
+        };
+
+        let data_shape: Vec<usize> = data.shape().to_vec();
+        let batch_size = data_shape[0];
+        let embedding_dim = data_shape[2];
+        let tensor = Tensor(data.into_dyn());
+
+        let Tensor(result) = func
+            .call::<Tensor>((tensor, Tensor(mask.into_dyn())))
+            .map_err(|e| ApiError::LuaError(e.to_string()))?;
+
+        // before pooling, input vector is shape [batch_size, n_tokens, embedding_dim]
+        // result should be [batch_size, embedding_dim]
+        if [batch_size, embedding_dim] != result.shape() {
+            return Err(ApiError::LuaError(format!(
+                "Postprocess function returned tensor of dim {:?}, expected {:?}",
+                result.shape(),
+                data_shape
+            )));
+        }
+
+        #[cfg(not(tarpaulin_include))]
+        result.into_dimensionality().map_err(|e| {
+            tracing::error!("Failed to cast array into Ix2: {e}");
+            ApiError::InternalError(
+                "Failed to cast array into correct dim. This is not supposed to happen.",
+            )
+        })
     }
 
     #[tracing::instrument(name = "transform_postprocess", skip_all)]
@@ -105,6 +170,59 @@ mod tests {
             .expect("Failed to get MyTensor");
 
         assert!(function.call::<Tensor>(()).is_ok())
+    }
+
+    #[test]
+    fn test_no_pooling() {
+        let engine = Transform::new("")
+            .expect("Failed to create engine");
+
+        let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
+        let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
+
+        let result = engine.pool(arr.clone(), mask)
+            .expect("Failed to compute pool");
+
+        assert_eq!(result.shape(), [16, 128]);
+
+        // if all elements are the same and all mask = 1, should return mean axis array
+        assert_eq!(arr.mean_axis(Axis(1)), Some(result));
+    }
+
+    #[test]
+    fn test_successful_pool() {
+        let engine = Transform::new(r##"
+        function Pool(arr, mask)
+            -- sum along second axis (lol)
+            return arr:sum_axis(2)
+        end
+        "##)
+        .expect("Failed to create engine");
+
+        let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
+        let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
+
+        let result = engine.pool(arr, mask)
+            .expect("Failed to compute pool");
+
+        assert_eq!(result.shape(), [16, 128])
+    }
+
+    #[test]
+    fn test_bad_dim_pool() {
+        let engine = Transform::new(r##"
+        function Pool(arr, mask)
+            return arr
+        end
+        "##)
+        .expect("Failed to create engine");
+
+        let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
+        let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
+
+        let result = engine.pool(arr, mask);
+
+        assert!(result.is_err());
     }
 
     #[test]
