@@ -24,9 +24,7 @@ pub fn token_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]")
         .into_owned();
 
-    if let Some(transform) = state.transform() {
-        outputs = transform.postprocess(outputs)?;
-    }
+    outputs = state.transform().postprocess(outputs)?;
 
     let predictions = postprocess(outputs, encodings, &state.config);
 

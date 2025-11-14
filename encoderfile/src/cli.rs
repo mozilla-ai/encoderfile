@@ -1,10 +1,11 @@
 use crate::{
     common::{
-        EmbeddingRequest, ModelType, SequenceClassificationRequest, TokenClassificationRequest,
+        EmbeddingRequest, ModelType, SentenceEmbeddingRequest, SequenceClassificationRequest,
+        TokenClassificationRequest,
     },
     runtime::AppState,
     server::{run_grpc, run_http, run_mcp},
-    services::{embedding, sequence_classification, token_classification},
+    services::{embedding, sentence_embedding, sequence_classification, token_classification},
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
@@ -144,6 +145,11 @@ impl Commands {
                         let request = TokenClassificationRequest { inputs, metadata };
 
                         generate_cli_route!(request, token_classification, format, out_dir, state)
+                    }
+                    ModelType::SentenceEmbedding => {
+                        let request = SentenceEmbeddingRequest { inputs, metadata };
+
+                        generate_cli_route!(request, sentence_embedding, format, out_dir, state)
                     }
                 }
             }

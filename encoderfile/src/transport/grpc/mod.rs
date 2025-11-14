@@ -5,6 +5,12 @@ use crate::{
             self,
             embedding_inference_server::{EmbeddingInference, EmbeddingInferenceServer},
         },
+        sentence_embedding::{
+            self,
+            sentence_embedding_inference_server::{
+                SentenceEmbeddingInference, SentenceEmbeddingInferenceServer,
+            },
+        },
         sequence_classification::{
             self,
             sequence_classification_inference_server::{
@@ -35,6 +41,9 @@ pub fn router(state: AppState) -> axum::Router {
         ModelType::TokenClassification => builder.add_service(
             TokenClassificationInferenceServer::new(TokenClassificationService::new(state)),
         ),
+        ModelType::SentenceEmbedding => builder.add_service(SentenceEmbeddingInferenceServer::new(
+            SentenceEmbeddingService::new(state),
+        )),
     }
     .into_axum_router()
 }
@@ -102,4 +111,12 @@ generate_grpc_server!(
     token_classification::TokenClassificationResponse,
     TokenClassificationInference,
     crate::services::token_classification
+);
+
+generate_grpc_server!(
+    SentenceEmbeddingService,
+    sentence_embedding::SentenceEmbeddingRequest,
+    sentence_embedding::SentenceEmbeddingResponse,
+    SentenceEmbeddingInference,
+    crate::services::sentence_embedding
 );

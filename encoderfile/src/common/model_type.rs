@@ -4,6 +4,7 @@ pub enum ModelType {
     Embedding,
     SequenceClassification,
     TokenClassification,
+    SentenceEmbedding,
 }
 
 impl From<ModelType> for crate::generated::metadata::ModelType {
@@ -12,6 +13,7 @@ impl From<ModelType> for crate::generated::metadata::ModelType {
             ModelType::Embedding => Self::Embedding,
             ModelType::SequenceClassification => Self::SequenceClassification,
             ModelType::TokenClassification => Self::TokenClassification,
+            ModelType::SentenceEmbedding => Self::SentenceEmbedding,
         }
     }
 }

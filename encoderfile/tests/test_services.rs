@@ -1,6 +1,9 @@
 use encoderfile::{
-    common::{EmbeddingRequest, SequenceClassificationRequest, TokenClassificationRequest},
-    services::{embedding, sequence_classification, token_classification},
+    common::{
+        EmbeddingRequest, SentenceEmbeddingRequest, SequenceClassificationRequest,
+        TokenClassificationRequest,
+    },
+    services::{embedding, sentence_embedding, sequence_classification, token_classification},
     test_utils::*,
 };
 
@@ -47,6 +50,23 @@ pub fn test_token_classification_service() {
     };
 
     let response = token_classification(request, &state).expect("Failed to compute embeddings");
+
+    assert!(response.results.len() == 1, "Didn't return one result");
+    assert!(
+        response.metadata.is_none(),
+        "Metadata should be returned None"
+    );
+}
+
+#[test]
+pub fn test_sentence_embedding_service() {
+    let state = sentence_embedding_state();
+    let request = SentenceEmbeddingRequest {
+        inputs: vec!["hello world".to_string()],
+        metadata: None,
+    };
+
+    let response = sentence_embedding(request, &state).expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(

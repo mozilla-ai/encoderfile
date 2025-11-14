@@ -1,4 +1,8 @@
-use crate::{common::ModelType, runtime::AppState, runtime::ModelConfig};
+use crate::{
+    common::ModelType,
+    runtime::{AppState, ModelConfig},
+    transforms::Transform,
+};
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::{fs::File, io::BufReader, sync::Arc};
@@ -18,12 +22,16 @@ pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
         config,
         model_type,
         model_id: "test-model".to_string(),
-        transform_factory: || None,
+        transform_factory: || Transform::new("").unwrap(),
     }
 }
 
 pub fn embedding_state() -> AppState {
     get_state(EMBEDDING_DIR, ModelType::Embedding)
+}
+
+pub fn sentence_embedding_state() -> AppState {
+    get_state(EMBEDDING_DIR, ModelType::SentenceEmbedding)
 }
 
 pub fn sequence_classification_state() -> AppState {

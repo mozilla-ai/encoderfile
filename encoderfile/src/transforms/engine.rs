@@ -54,9 +54,9 @@ impl Transform {
                     // expand mask to [seq_len, hidden]
                     let m2 = m.insert_axis(Axis(1));
 
-                    let weighted = &emb * &m2;                     // zero out padded tokens
-                    let sum = weighted.sum_axis(Axis(0));          // sum over seq_len
-                    let count = m.sum();                           // number of real tokens
+                    let weighted = &emb * &m2; // zero out padded tokens
+                    let sum = weighted.sum_axis(Axis(0)); // sum over seq_len
+                    let count = m.sum(); // number of real tokens
 
                     out.slice_mut(ndarray::s![b, ..]).assign(&(sum / count));
                 }
@@ -174,13 +174,13 @@ mod tests {
 
     #[test]
     fn test_no_pooling() {
-        let engine = Transform::new("")
-            .expect("Failed to create engine");
+        let engine = Transform::new("").expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
         let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
 
-        let result = engine.pool(arr.clone(), mask)
+        let result = engine
+            .pool(arr.clone(), mask)
             .expect("Failed to compute pool");
 
         assert_eq!(result.shape(), [16, 128]);
@@ -191,30 +191,33 @@ mod tests {
 
     #[test]
     fn test_successful_pool() {
-        let engine = Transform::new(r##"
+        let engine = Transform::new(
+            r##"
         function Pool(arr, mask)
             -- sum along second axis (lol)
             return arr:sum_axis(2)
         end
-        "##)
+        "##,
+        )
         .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
         let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
 
-        let result = engine.pool(arr, mask)
-            .expect("Failed to compute pool");
+        let result = engine.pool(arr, mask).expect("Failed to compute pool");
 
         assert_eq!(result.shape(), [16, 128])
     }
 
     #[test]
     fn test_bad_dim_pool() {
-        let engine = Transform::new(r##"
+        let engine = Transform::new(
+            r##"
         function Pool(arr, mask)
             return arr
         end
-        "##)
+        "##,
+        )
         .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);

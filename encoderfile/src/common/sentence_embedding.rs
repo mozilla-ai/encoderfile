@@ -29,25 +29,25 @@ pub struct SentenceEmbeddingResponse {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-impl From<crate::generated::sentence_embedding::SentenceEmbeddingResponse>
-    for SentenceEmbeddingResponse
+impl From<SentenceEmbeddingResponse>
+    for crate::generated::sentence_embedding::SentenceEmbeddingResponse
 {
-    fn from(val: crate::generated::sentence_embedding::SentenceEmbeddingResponse) -> Self {
+    fn from(val: SentenceEmbeddingResponse) -> Self {
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
             model_id: val.model_id,
-            metadata: Some(val.metadata),
+            metadata: val.metadata.unwrap_or(HashMap::new()),
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct SentenceEmbedding {
-    embedding: Vec<f32>,
+    pub embedding: Vec<f32>,
 }
 
-impl From<crate::generated::sentence_embedding::SentenceEmbedding> for SentenceEmbedding {
-    fn from(val: crate::generated::sentence_embedding::SentenceEmbedding) -> Self {
+impl From<SentenceEmbedding> for crate::generated::sentence_embedding::SentenceEmbedding {
+    fn from(val: SentenceEmbedding) -> Self {
         Self {
             embedding: val.embedding,
         }
