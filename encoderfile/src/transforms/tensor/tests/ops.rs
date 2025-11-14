@@ -661,11 +661,7 @@ fn assert_allclose(a: &ndarray::ArrayD<f32>, b: &ndarray::ArrayD<f32>) {
         let diff = (x - y).abs();
         assert!(
             diff <= tol,
-            "mismatch at index {}: {} vs {} (diff {})",
-            i,
-            x,
-            y,
-            diff
+            "mismatch at index {i}: {x} vs {y} (diff {diff})"
         );
     }
 }
