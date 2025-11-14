@@ -25,10 +25,7 @@ impl Transform {
             .get::<Option<LuaFunction>>("Postprocess")
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-        Ok(Self {
-            lua,
-            postprocessor,
-        })
+        Ok(Self { lua, postprocessor })
     }
 
     pub fn pool(&self, data: Array3<f32>, mask: Array2<f32>) -> Result<Array2<f32>, ApiError> {
