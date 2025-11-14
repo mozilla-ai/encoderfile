@@ -563,19 +563,13 @@ fn mean_pool_single_vector_no_mask() {
     let mask = Tensor(array![[1.0]].into_dyn());
 
     let pooled = x.mean_pool(mask).unwrap();
-    assert_eq!(
-        pooled.0,
-        array![[1.0, 2.0, 3.0]].into_dyn()
-    );
+    assert_eq!(pooled.0, array![[1.0, 2.0, 3.0]].into_dyn());
 }
 
 #[test]
 fn mean_pool_two_tokens_equal_weight() {
     // shape: (1, 2, 3)
-    let x = Tensor(array![
-        [[1.0, 2.0, 3.0],
-            [3.0, 2.0, 1.0]]
-    ].into_dyn());
+    let x = Tensor(array![[[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]]].into_dyn());
 
     let mask = Tensor(array![[1.0, 1.0]].into_dyn());
 
@@ -589,16 +583,19 @@ fn mean_pool_two_tokens_equal_weight() {
 fn mean_pool_ignores_masked_tokens() {
     // shape: (1, 3, 2)
     // Only the first and last token should count.
-    let x = Tensor(array![
-        [[10.0, 0.0],
-            [99.0, 99.0],  // masked out
-            [20.0, 0.0]]
-    ].into_dyn());
+    let x = Tensor(
+        array![[
+            [10.0, 0.0],
+            [99.0, 99.0], // masked out
+            [20.0, 0.0]
+        ]]
+        .into_dyn(),
+    );
 
     let mask = Tensor(array![[1.0, 0.0, 1.0]].into_dyn());
 
     let pooled = x.mean_pool(mask).unwrap();
-    let expected = array![[ (10.0 + 20.0)/2.0, 0.0 ]].into_dyn();
+    let expected = array![[(10.0 + 20.0) / 2.0, 0.0]].into_dyn();
 
     assert_allclose(&pooled.0, &expected);
 }
@@ -606,41 +603,34 @@ fn mean_pool_ignores_masked_tokens() {
 #[test]
 fn mean_pool_batch_mode() {
     // shape: (2, 2, 2)
-    let x = Tensor(array![
-        [[1.0, 1.0], [3.0, 3.0]],  // batch 0
-        [[2.0, 4.0], [4.0, 2.0]],  // batch 1
-    ].into_dyn());
+    let x = Tensor(
+        array![
+            [[1.0, 1.0], [3.0, 3.0]], // batch 0
+            [[2.0, 4.0], [4.0, 2.0]], // batch 1
+        ]
+        .into_dyn(),
+    );
 
-    let mask = Tensor(array![
-        [1.0, 1.0],
-        [1.0, 0.0],
-    ].into_dyn());
+    let mask = Tensor(array![[1.0, 1.0], [1.0, 0.0],].into_dyn());
 
     let pooled = x.mean_pool(mask).unwrap();
 
-    let expected = array![
-        [(1.0 + 3.0)/2.0, (1.0 + 3.0)/2.0],
-        [2.0, 4.0]
-    ].into_dyn();
+    let expected = array![[(1.0 + 3.0) / 2.0, (1.0 + 3.0) / 2.0], [2.0, 4.0]].into_dyn();
 
     assert_allclose(&pooled.0, &expected);
 }
 
 #[test]
 fn mean_pool_mask_broadcasting() {
-    let x = Tensor(array![
-        [
+    let x = Tensor(
+        array![[
             [[1.0, 1.0], [2.0, 2.0], [3.0, 3.0]],
             [[4.0, 4.0], [5.0, 5.0], [6.0, 6.0]]
-        ]
-    ].into_dyn());
+        ]]
+        .into_dyn(),
+    );
 
-    let mask = Tensor(array![
-        [
-            [1.0, 1.0, 0.0],
-            [1.0, 1.0, 0.0]
-        ]
-    ].into_dyn());
+    let mask = Tensor(array![[[1.0, 1.0, 0.0], [1.0, 1.0, 0.0]]].into_dyn());
 
     let pooled = x.mean_pool(mask).unwrap();
 
@@ -658,7 +648,13 @@ fn mean_pool_mask_broadcasting() {
 
 fn assert_allclose(a: &ndarray::ArrayD<f32>, b: &ndarray::ArrayD<f32>) {
     let tol = 1e-6;
-    assert_eq!(a.shape(), b.shape(), "shape mismatch: {:?} vs {:?}", a.shape(), b.shape());
+    assert_eq!(
+        a.shape(),
+        b.shape(),
+        "shape mismatch: {:?} vs {:?}",
+        a.shape(),
+        b.shape()
+    );
     let a_slice = a.as_slice().unwrap();
     let b_slice = b.as_slice().unwrap();
     for (i, (x, y)) in a_slice.iter().zip(b_slice.iter()).enumerate() {
