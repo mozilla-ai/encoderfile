@@ -1,6 +1,14 @@
 name: docs
 on:
   push:
+    paths:
+      - ".github/"
+      - "docs/"
+      - "mkdocs.yml"
+      - "*.lua"
+      - "*.proto"
+      - "*.md"
+      - "assets/"
     branches:
       - main
   workflow_dispatch:
