@@ -39,6 +39,18 @@ pub fn make_router(state: AppState) -> axum::Router {
             );
             axum::Router::new().nest_service("/mcp", service)
         }
+        ModelType::SentenceEmbedding => {
+            let service = StreamableHttpService::new(
+                move || {
+                    Ok(sentence_embedding::SentenceEmbeddingTool::new(
+                        state.clone(),
+                    ))
+                },
+                LocalSessionManager::default().into(),
+                Default::default(),
+            );
+            axum::Router::new().nest_service("/mcp", service)
+        }
     }
 }
 
@@ -147,4 +159,13 @@ generate_mcp!(
     TokenClassificationResponse,
     "Performs token classification of input text sequences.",
     "This tool will classify each token of an input text sequence."
+);
+
+generate_mcp!(
+    SentenceEmbeddingTool,
+    sentence_embedding,
+    SentenceEmbeddingRequest,
+    SentenceEmbeddingResponse,
+    "Performs sentence embedding of input text sequences.",
+    "This tool will embed a sequence of texts."
 );

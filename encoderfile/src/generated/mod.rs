@@ -10,6 +10,10 @@ pub mod token_classification {
     tonic::include_proto!("encoderfile.token_classification");
 }
 
+pub mod sentence_embedding {
+    tonic::include_proto!("encoderfile.sentence_embedding");
+}
+
 pub mod token {
     tonic::include_proto!("encoderfile.token");
 }

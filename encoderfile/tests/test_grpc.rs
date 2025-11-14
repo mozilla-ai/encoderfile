@@ -6,6 +6,10 @@ use encoderfile::{
             EmbeddingRequest, EmbeddingResponse, embedding_inference_server::EmbeddingInference,
         },
         metadata::{GetModelMetadataRequest, GetModelMetadataResponse},
+        sentence_embedding::{
+            SentenceEmbeddingRequest, SentenceEmbeddingResponse,
+            sentence_embedding_inference_server::SentenceEmbeddingInference,
+        },
         sequence_classification::{
             SequenceClassificationRequest, SequenceClassificationResponse,
             sequence_classification_inference_server::SequenceClassificationInference,
@@ -17,7 +21,8 @@ use encoderfile::{
     },
     test_utils::*,
     transport::grpc::{
-        EmbeddingService, SequenceClassificationService, TokenClassificationService,
+        EmbeddingService, SentenceEmbeddingService, SequenceClassificationService,
+        TokenClassificationService,
     },
 };
 
@@ -124,4 +129,15 @@ test_grpc_service!(
         metadata: HashMap::new(),
     },
     TokenClassificationResponse
+);
+
+test_grpc_service!(
+    sentence_embedding_tests,
+    { SentenceEmbeddingService::new(sentence_embedding_state()) },
+    false,
+    SentenceEmbeddingRequest {
+        inputs: vec!["hello world".to_string(), "the quick brown fox".to_string()],
+        metadata: HashMap::new(),
+    },
+    SentenceEmbeddingResponse
 );

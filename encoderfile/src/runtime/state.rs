@@ -23,11 +23,11 @@ pub struct AppState {
     pub config: Arc<ModelConfig>,
     pub model_type: ModelType,
     pub model_id: String,
-    pub transform_factory: fn() -> Option<Transform>,
+    pub transform_factory: fn() -> Transform,
 }
 
 impl AppState {
-    pub fn transform(&self) -> Option<Transform> {
+    pub fn transform(&self) -> Transform {
         (self.transform_factory)()
     }
 }

@@ -24,9 +24,7 @@ pub fn embedding<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
 
-    if let Some(transform) = state.transform() {
-        outputs = transform.postprocess(outputs)?;
-    }
+    outputs = state.transform().postprocess(outputs)?;
 
     let embeddings = postprocess(outputs, encodings);
 

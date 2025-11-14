@@ -118,3 +118,11 @@ test_router_mod!(
         metadata: None,
     }
 );
+test_router_mod!(
+    sentence_embedding_tests,
+    sentence_embedding_state,
+    SentenceEmbeddingRequest {
+        inputs: vec!["Test sentence 1".to_string(), "Test sentence 2".to_string()],
+        metadata: None,
+    }
+);

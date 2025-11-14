@@ -73,6 +73,7 @@ pub fn router(state: AppState) -> axum::Router {
         ModelType::Embedding => embedding::get_router(state),
         ModelType::SequenceClassification => sequence_classification::get_router(state),
         ModelType::TokenClassification => token_classification::get_router(state),
+        ModelType::SentenceEmbedding => sentence_embedding::get_router(state),
     }
 }
 
@@ -93,4 +94,10 @@ generate_http!(
     TokenClassificationRequest,
     TokenClassificationResponse,
     crate::services::token_classification
+);
+generate_http!(
+    sentence_embedding,
+    SentenceEmbeddingRequest,
+    SentenceEmbeddingResponse,
+    crate::services::sentence_embedding
 );

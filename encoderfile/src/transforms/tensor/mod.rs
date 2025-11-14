@@ -72,10 +72,55 @@ impl LuaUserData for Tensor {
         methods.add_method("fold_axis", |_, this, (axis, acc, func)| {
             this.fold_axis(axis, acc, func)
         });
+        methods.add_method("mean_pool", |_, this, mask| this.mean_pool(mask));
     }
 }
 
 impl Tensor {
+    #[tracing::instrument(skip_all)]
+    fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
+        assert_eq!(self.0.ndim(), mask.ndim() + 1);
+
+        let ndim = self.0.ndim();
+
+        // Expand mask by adding the last axis back
+        let mut mask_expanded = mask.clone();
+        mask_expanded = mask_expanded.insert_axis(Axis(ndim - 1));
+
+        // Broadcast mask to full data shape
+        let mask_broadcast = mask_expanded
+            .broadcast(self.0.shape())
+            .ok_or(LuaError::external(format!(
+                "cannot broadcast shape {:?} to {:?}",
+                mask_expanded.shape(),
+                self.0.shape()
+            )))?;
+
+        // Multiply and sum over sequence dims (axes 1..ndim-1)
+        let weighted = &self.0 * &mask_broadcast;
+
+        // All axes except the last one and the batch axis
+        let mut axes_to_reduce = Vec::new();
+        for ax in 1..(ndim - 1) {
+            axes_to_reduce.push(ax);
+        }
+
+        // Sum weighted values
+        let mut sum = weighted.clone();
+        for ax in axes_to_reduce.iter().rev() {
+            sum = sum.sum_axis(Axis(*ax));
+        }
+
+        // Sum mask the same way -> counts
+        let mut count = mask_expanded.clone();
+        for ax in axes_to_reduce.iter().rev() {
+            count = count.sum_axis(Axis(*ax));
+        }
+
+        // Final: divide elementwise
+        Ok(Self(&sum / &count))
+    }
+
     #[tracing::instrument(skip_all)]
     fn fold_axis(&self, axis: isize, acc: f32, func: LuaFunction) -> Result<Tensor, LuaError> {
         let axis = self.axis1(axis)?;
