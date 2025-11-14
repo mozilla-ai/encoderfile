@@ -9,7 +9,6 @@ pub struct Transform {
     #[allow(dead_code)]
     lua: Lua,
     postprocessor: Option<LuaFunction>,
-    pooler: Option<LuaFunction>,
 }
 
 impl Transform {
@@ -26,20 +25,14 @@ impl Transform {
             .get::<Option<LuaFunction>>("Postprocess")
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-        let pooler = lua
-            .globals()
-            .get::<Option<LuaFunction>>("Pool")
-            .map_err(|e| ApiError::LuaError(e.to_string()))?;
-
         Ok(Self {
             lua,
             postprocessor,
-            pooler,
         })
     }
 
     pub fn pool(&self, data: Array3<f32>, mask: Array2<f32>) -> Result<Array2<f32>, ApiError> {
-        let func = match &self.pooler {
+        let func = match &self.postprocessor {
             Some(p) => p,
             None => {
                 let batch = data.len_of(Axis(0));
@@ -193,7 +186,7 @@ mod tests {
     fn test_successful_pool() {
         let engine = Transform::new(
             r##"
-        function Pool(arr, mask)
+        function Postprocess(arr, mask)
             -- sum along second axis (lol)
             return arr:sum_axis(2)
         end
@@ -213,7 +206,7 @@ mod tests {
     fn test_bad_dim_pool() {
         let engine = Transform::new(
             r##"
-        function Pool(arr, mask)
+        function Postprocess(arr, mask)
             return arr
         end
         "##,

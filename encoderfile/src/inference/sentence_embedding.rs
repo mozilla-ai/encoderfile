@@ -32,7 +32,7 @@ pub fn sentence_embedding<'a>(
 
     let pooled_outputs = transform.pool(outputs, a_mask_arr)?;
 
-    let embeddings = postprocess(state.transform().postprocess(pooled_outputs)?, encodings);
+    let embeddings = postprocess(pooled_outputs, encodings);
 
     Ok(embeddings)
 }
