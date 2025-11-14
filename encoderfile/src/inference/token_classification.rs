@@ -73,12 +73,6 @@ pub fn postprocess(
                 },
                 score,
                 label,
-                // TODO: we only need to return one of these
-                logits: logits
-                    .index_axis(Axis(0), i)
-                    .to_owned()
-                    .into_raw_vec_and_offset()
-                    .0,
                 scores: logits
                     .index_axis(Axis(0), i)
                     .to_owned()
