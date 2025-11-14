@@ -59,7 +59,6 @@ impl From<TokenClassificationResult>
 #[derive(Debug, Serialize, ToSchema, JsonSchema)]
 pub struct TokenClassification {
     pub token_info: super::token::TokenInfo,
-    pub logits: Vec<f32>,
     pub scores: Vec<f32>,
     pub label: String,
     pub score: f32,
@@ -69,7 +68,6 @@ impl From<TokenClassification> for crate::generated::token_classification::Token
     fn from(val: TokenClassification) -> Self {
         Self {
             token_info: Some(val.token_info.into()),
-            logits: val.logits,
             scores: val.scores,
             label: val.label,
             score: val.score,

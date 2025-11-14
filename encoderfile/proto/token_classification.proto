@@ -27,8 +27,7 @@ message TokenClassificationResult {
 
 message TokenClassification {
   encoderfile.token.TokenInfo token_info = 1;
-  repeated float logits = 2;
-  repeated float scores = 3;
-  string label = 4;
-  float score = 5;
+  repeated float scores = 2;
+  string label = 3;
+  float score = 4;
 }
