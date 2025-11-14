@@ -15,9 +15,14 @@ theme:
     accent: deep orange
   features:
     - navigation.instant
+    - navigation.tabs
 
 nav:
   - Home: index.md
+  - Getting Started: getting_started.md
+  - Transforms:
+      - Transforms: transforms/index.md
+      - Reference: transforms/reference.md
 
 plugins:
   - include-markdown
