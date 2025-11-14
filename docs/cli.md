@@ -88,7 +88,6 @@ encoderfile infer <INPUTS>... [OPTIONS]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--normalize` | Boolean | `true` | Normalize embeddings (embedding models only) |
 | `-f, --format` | Enum | `json` | Output format (currently only JSON supported) |
 | `-o, --out-dir` | String | None | Output file path; if not provided, prints to stdout |
 
