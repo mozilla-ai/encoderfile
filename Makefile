@@ -21,11 +21,15 @@ licenses:
 
 .PHONY:
 clippy:
-	cargo clippy --fix --all-features --allow-dirty
+	@cargo clippy --fix --all-features --allow-dirty
 
 .PHONY: pre-commit
 pre-commit:
 	@uv run pre-commit run --all-files
+
+.PHONY: docs
+docs:
+	@uv run --group docs -m mkdocs serve
 
 # Size threshold in MB
 TARGET_MAX_MB ?= 2000
