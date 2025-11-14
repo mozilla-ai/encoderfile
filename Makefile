@@ -22,3 +22,21 @@ licenses:
 .PHONY: pre-commit
 pre-commit:
 	@uv run pre-commit run --all-files
+
+# Size threshold in MB
+TARGET_MAX_MB ?= 2000
+
+.PHONY: clean
+clean:
+	@if [ -d target ]; then \
+		TARGET_SIZE_MB=$$(du -sm target | cut -f1); \
+		echo "target/ size: $${TARGET_SIZE_MB} MB"; \
+		if [ "$${TARGET_SIZE_MB}" -gt "$(TARGET_MAX_MB)" ]; then \
+			echo "target/ exceeds $(TARGET_MAX_MB) MB — running cargo clean..."; \
+			cargo clean; \
+		else \
+			echo "target/ size within limits — skipping clean."; \
+		fi; \
+	else \
+		echo "target/ does not exist — skipping clean."; \
+	fi
