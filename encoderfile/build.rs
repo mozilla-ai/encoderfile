@@ -32,11 +32,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/embedding.proto",
                 "proto/sequence_classification.proto",
                 "proto/token_classification.proto",
+                "proto/sentence_embedding.proto",
             ],
             &[
                 "proto/embedding",
                 "proto/sequence_classification",
                 "proto/token_classification",
+                "proto/sentence_embedding",
             ],
         )?;
 

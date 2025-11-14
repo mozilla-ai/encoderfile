@@ -1,4 +1,4 @@
-use crate::{common::model_metadata::GetModelMetadataResponse, runtime::AppState};
+use crate::{common::GetModelMetadataResponse, runtime::AppState};
 
 pub fn get_model_metadata(state: &AppState) -> GetModelMetadataResponse {
     GetModelMetadataResponse {
