@@ -1,62 +1,33 @@
 macro_rules! embed_in_section {
     ($name:ident, $path:expr, $section:expr, Bytes) => {
-        #[cfg(target_os = "macos")]
-        #[unsafe(link_section = concat!("__DATA,", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: [u8; include_bytes!(env!($path)).len()] = *include_bytes!(env!($path));
-
-        #[cfg(target_os = "linux")]
-        #[unsafe(link_section = concat!(".", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: [u8; include_bytes!(env!($path)).len()] = *include_bytes!(env!($path));
-
-        #[cfg(target_os = "windows")]
-        #[unsafe(link_section = concat!(".rdata$", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: [u8; include_bytes!(env!($path)).len()] = *include_bytes!(env!($path));
+        embed_in_section!(
+            $name,
+            [u8; include_bytes!(env!($path)).len()],
+            $section,
+            *include_bytes!(env!($path))
+        );
     };
 
     ($name:ident, $path:expr, $section:expr, String) => {
-        #[cfg(target_os = "macos")]
-        #[unsafe(link_section = concat!("__DATA,", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: &str = include_str!(env!($path));
-
-        #[cfg(target_os = "linux")]
-        #[unsafe(link_section = concat!(".", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: &str = include_str!(env!($path));
-
-        #[cfg(target_os = "windows")]
-        #[unsafe(link_section = concat!(".rdata$", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: &str = include_str!(env!($path));
+        embed_in_section!($name, &str, $section, include_str!(env!($path)));
     };
 
     ($name:ident, $path:expr, $section:expr, Env) => {
-        #[cfg(target_os = "macos")]
-        #[unsafe(link_section = concat!("__DATA,", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: &str = env!($path);
+        embed_in_section!($name, &str, $section, env!($path));
+    };
 
-        #[cfg(target_os = "linux")]
-        #[unsafe(link_section = concat!(".", $section))]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: &str = env!($path);
+    ($name:ident, $dtype:ty, $section:expr, $res:expr) => {
+        embed_in_section!($name, $dtype, concat!("__DATA,", $section), $res, "macos");
+        embed_in_section!($name, $dtype, concat!(".", $section), $res, "linux");
+        embed_in_section!($name, $dtype, concat!(".rdata$", $section), $res, "windows");
+    };
 
-        #[cfg(target_os = "windows")]
-        #[unsafe(link_section = concat!(".rdata$", $section))]
+    ($name:ident, $dtype:ty, $section:expr, $res:expr, $target_os:expr) => {
+        #[cfg(target_os = $target_os)]
+        #[unsafe(link_section = $section)]
         #[used]
         #[unsafe(no_mangle)]
-        pub static $name: &str = env!($path);
+        pub static $name: $dtype = $res;
     };
 }
 
