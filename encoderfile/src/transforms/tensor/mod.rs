@@ -131,7 +131,7 @@ impl Tensor {
             let mut acc = acc;
 
             for &x in subview.iter() {
-                acc = func.call((acc, x)).map_err(|e| LuaError::external(e))?;
+                acc = func.call((acc, x)).map_err(LuaError::external)?;
             }
 
             out.push(acc);
@@ -155,7 +155,7 @@ impl Tensor {
         for subview in self.0.axis_iter(axis) {
             // Only ONE allocation: convert subview into Tensor for Lua
             let tensor_arg = Tensor(subview.to_owned().into_dyn());
-            let mapped: Tensor = func.call(tensor_arg).map_err(|e| LuaError::external(e))?;
+            let mapped: Tensor = func.call(tensor_arg).map_err(LuaError::external)?;
             out.push(mapped.0); // store raw ArrayD, not Tensor
         }
 
