@@ -131,8 +131,7 @@ impl Tensor {
             let mut acc = acc;
 
             for &x in subview.iter() {
-                acc = func.call((acc, x))
-                    .map_err(|e| LuaError::external(e))?;
+                acc = func.call((acc, x)).map_err(|e| LuaError::external(e))?;
             }
 
             out.push(acc);
@@ -147,28 +146,27 @@ impl Tensor {
 
     #[tracing::instrument]
     fn map_axis(&self, axis: isize, func: LuaFunction) -> Result<Self, LuaError> {
-    let axis = self.axis1(axis)?;
+        let axis = self.axis1(axis)?;
 
-    // Pre-size by number of subviews, NOT tensor length.
-    let out_len = self.0.shape()[axis.0];
-    let mut out = Vec::with_capacity(out_len);
+        // Pre-size by number of subviews, NOT tensor length.
+        let out_len = self.0.shape()[axis.0];
+        let mut out = Vec::with_capacity(out_len);
 
-    for subview in self.0.axis_iter(axis) {
-        // Only ONE allocation: convert subview into Tensor for Lua
-        let tensor_arg = Tensor(subview.to_owned().into_dyn());
-        let mapped: Tensor = func.call(tensor_arg)
-            .map_err(|e| LuaError::external(e))?;
-        out.push(mapped.0); // store raw ArrayD, not Tensor
+        for subview in self.0.axis_iter(axis) {
+            // Only ONE allocation: convert subview into Tensor for Lua
+            let tensor_arg = Tensor(subview.to_owned().into_dyn());
+            let mapped: Tensor = func.call(tensor_arg).map_err(|e| LuaError::external(e))?;
+            out.push(mapped.0); // store raw ArrayD, not Tensor
+        }
+
+        // Stack views without re-wrapping as Tensor
+        let views: Vec<_> = out.iter().map(|a| a.view()).collect();
+
+        let stacked = ndarray::stack(axis, &views)
+            .map_err(|e| LuaError::external(format!("stack error: {e}")))?;
+
+        Ok(Tensor(stacked))
     }
-
-    // Stack views without re-wrapping as Tensor
-    let views: Vec<_> = out.iter().map(|a| a.view()).collect();
-
-    let stacked = ndarray::stack(axis, &views)
-        .map_err(|e| LuaError::external(format!("stack error: {e}")))?;
-
-    Ok(Tensor(stacked))
-}
 
     #[tracing::instrument(skip_all)]
     fn sum(&self) -> Result<f32, LuaError> {
