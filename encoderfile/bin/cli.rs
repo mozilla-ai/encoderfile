@@ -53,7 +53,7 @@ fn main() -> Result<()> {
 fn render(
     template_name: &str,
     ctx: &tera::Context,
-    write_dir: &std::path::PathBuf,
+    write_dir: &std::path::Path,
     out_path: &str,
 ) -> Result<()> {
     let rendered = TEMPLATES.render(template_name, ctx)?;
