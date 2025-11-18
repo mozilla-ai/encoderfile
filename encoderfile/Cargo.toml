@@ -1,0 +1,35 @@
+[package]
+name = "encoderfile"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "cli"
+path = "bin/cli.rs"
+
+[[bin]]
+name = "generate-encoderfile-config-schema"
+path = "bin/generate_encoderfile_config_schema.rs"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = "4.5.52"
+clap_derive = "4.5.49"
+directories = "6.0.0"
+figment = {version = "0.10.19", features = ["env", "serde_yaml", "yaml"]}
+lazy_static = "1.5.0"
+schemars = "1.1.0"
+serde = { version = "1.0.228", features = ["serde_derive"] }
+serde_json = "1.0.145"
+sha2 = "0.10.9"
+tera = "1.20.1"
+
+[dependencies.ort]
+version = "=2.0.0-rc.10"
+
+[features]
+bench = []
+
+[dev-dependencies]
+tempfile = "3.23.0"
+uuid = { version = "1.18.1", features = ["v4"] }

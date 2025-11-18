@@ -1,12 +1,13 @@
+#[cfg(not(tarpaulin_include))]
+use crate::AppState;
 use crate::transport::{grpc, http, mcp};
 use anyhow::Result;
 use tower_http::trace::DefaultOnResponse;
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
+pub async fn run_grpc(hostname: String, port: String, state: AppState) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let state = crate::runtime::AppState::default();
     let model_type = state.model_type.clone();
 
     let router = grpc::router(state)
@@ -28,12 +29,9 @@ pub async fn run_grpc(hostname: String, port: String) -> Result<()> {
 }
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_http(hostname: String, port: String) -> Result<()> {
-    use crate::runtime::AppState;
-
+pub async fn run_http(hostname: String, port: String, state: AppState) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let state = AppState::default();
     let model_type = state.model_type.clone();
 
     let router = http::router(state)
@@ -55,13 +53,10 @@ pub async fn run_http(hostname: String, port: String) -> Result<()> {
 }
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_mcp(hostname: String, port: String) -> Result<()> {
-    use crate::runtime::AppState;
-
+pub async fn run_mcp(hostname: String, port: String, state: AppState) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
     // FIXME add otel around here
-    let state = AppState::default();
     let model_type = state.model_type.clone();
 
     let router = mcp::make_router(state).layer(

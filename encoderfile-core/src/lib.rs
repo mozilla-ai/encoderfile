@@ -6,6 +6,7 @@ pub mod error;
 #[cfg(not(tarpaulin_include))]
 #[rustfmt::skip]
 pub mod generated;
+pub mod factory;
 pub mod inference;
 pub mod runtime;
 pub mod server;
@@ -17,3 +18,4 @@ pub mod transport;
 pub mod test_utils;
 
 pub use assets::get_banner;
+pub use runtime::AppState;

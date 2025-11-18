@@ -17,11 +17,16 @@ format:
 ,PHONY: licenses
 licenses:
 	@echo "Generating licenses..."
-	@cargo bundle-licenses --format yaml --output THIRDPARTY.yml
+	@cargo bundle-licenses \
+		--format yaml \
+		--output THIRDPARTY.yml
 
 .PHONY:
 clippy:
-	@cargo clippy --fix --all-features --allow-dirty
+	@cargo clippy \
+		--fix \
+		--all-features \
+		--allow-dirty
 
 .PHONY: pre-commit
 pre-commit:
@@ -48,3 +53,8 @@ clean:
 	else \
 		echo "target/ does not exist — skipping clean."; \
 	fi
+
+.PHONY: generate-schemas
+generate-schemas:
+	@cargo run \
+		--bin generate-encoderfile-config-schema

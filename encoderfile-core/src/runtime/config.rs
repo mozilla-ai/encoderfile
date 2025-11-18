@@ -1,35 +1,29 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, OnceLock},
-};
-
-use crate::{
-    assets::{MODEL_CONFIG_JSON, MODEL_TYPE_STR},
-    common::ModelType,
-};
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-static MODEL_CONFIG: OnceLock<Arc<ModelConfig>> = OnceLock::new();
-static MODEL_TYPE: OnceLock<ModelType> = OnceLock::new();
+use crate::common::ModelType;
+use std::sync::{Arc, OnceLock};
 
-pub fn get_model_config() -> Arc<ModelConfig> {
+static MODEL_TYPE: OnceLock<ModelType> = OnceLock::new();
+static MODEL_CONFIG: OnceLock<Arc<ModelConfig>> = OnceLock::new();
+
+pub fn get_model_config(config_str: &str) -> Arc<ModelConfig> {
     MODEL_CONFIG
-        .get_or_init(
-            || match serde_json::from_str::<ModelConfig>(MODEL_CONFIG_JSON) {
-                Ok(c) => Arc::new(c),
-                Err(e) => panic!("FATAL: Error loading model config: {e:?}"),
-            },
-        )
+        .get_or_init(|| match serde_json::from_str::<ModelConfig>(config_str) {
+            Ok(c) => Arc::new(c),
+            Err(e) => panic!("FATAL: Error loading model config: {e:?}"),
+        })
         .clone()
 }
 
-pub fn get_model_type() -> ModelType {
+pub fn get_model_type(model_type: &str) -> ModelType {
     MODEL_TYPE
-        .get_or_init(|| match MODEL_TYPE_STR {
+        .get_or_init(|| match model_type {
             "embedding" => ModelType::Embedding,
             "sequence_classification" => ModelType::SequenceClassification,
             "token_classification" => ModelType::TokenClassification,
+            "sentence_embedding" => ModelType::SentenceEmbedding,
             other => panic!("Invalid model type: {other}"),
         })
         .clone()
