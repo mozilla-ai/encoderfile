@@ -11,7 +11,6 @@ dependencies = [
     "pip>=25.2",
     "protobuf>=6.33.0",
     "pydantic>=2.12.3",
-    "torch>=2.8.0",
     "transformers>=4.55.0",
 ]
 
