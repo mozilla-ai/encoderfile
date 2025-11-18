@@ -128,14 +128,10 @@ impl Tensor {
         let mut out = Vec::new();
 
         for subview in self.0.axis_iter(axis) {
-            let sub = subview.to_owned();
             let mut acc = acc;
 
-            for &x in sub.iter() {
-                acc = match func.call((acc, x)) {
-                    Ok(v) => v,
-                    Err(e) => return Err(LuaError::external(e)),
-                }
+            for &x in subview.iter() {
+                acc = func.call((acc, x)).map_err(LuaError::external)?;
             }
 
             out.push(acc);
@@ -148,23 +144,28 @@ impl Tensor {
         Ok(Tensor(result))
     }
 
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument]
     fn map_axis(&self, axis: isize, func: LuaFunction) -> Result<Self, LuaError> {
         let axis = self.axis1(axis)?;
 
-        let mut out = Vec::with_capacity(self.len());
+        // Pre-size by number of subviews, NOT tensor length.
+        let out_len = self.0.shape()[axis.0];
+        let mut out = Vec::with_capacity(out_len);
 
         for subview in self.0.axis_iter(axis) {
-            let sub = subview.to_owned();
-            match func.call::<Self>(Tensor(sub.into_dyn())) {
-                Ok(Tensor(v)) => out.push(v),
-                Err(e) => return Err(LuaError::external(e)),
-            }
+            // Only ONE allocation: convert subview into Tensor for Lua
+            let tensor_arg = Tensor(subview.to_owned().into_dyn());
+            let mapped: Tensor = func.call(tensor_arg).map_err(LuaError::external)?;
+            out.push(mapped.0); // store raw ArrayD, not Tensor
         }
 
-        let views: Vec<_> = out.iter().map(|i| i.view()).collect();
+        // Stack views without re-wrapping as Tensor
+        let views: Vec<_> = out.iter().map(|a| a.view()).collect();
 
-        Ok(Tensor(ndarray::stack(axis, views.as_slice()).unwrap()))
+        let stacked = ndarray::stack(axis, &views)
+            .map_err(|e| LuaError::external(format!("stack error: {e}")))?;
+
+        Ok(Tensor(stacked))
     }
 
     #[tracing::instrument(skip_all)]
@@ -287,10 +288,10 @@ fn add(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
                 )));
             }
 
-            this.clone() + oth
+            this + oth
         }
-        LuaValue::Number(n) => this.clone().into_dyn() + (n as f32),
-        LuaValue::Integer(i) => this.clone().into_dyn() + (i as f32),
+        LuaValue::Number(n) => this + (n as f32),
+        LuaValue::Integer(i) => this + (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
     };
 
@@ -311,10 +312,10 @@ fn sub(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
                 )));
             }
 
-            this.clone() - oth
+            this - oth
         }
-        LuaValue::Number(n) => this.clone().into_dyn() - (n as f32),
-        LuaValue::Integer(i) => this.clone().into_dyn() - (i as f32),
+        LuaValue::Number(n) => this - (n as f32),
+        LuaValue::Integer(i) => this - (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
     };
 
@@ -335,10 +336,10 @@ fn mul(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
                 )));
             }
 
-            this.clone() * oth
+            this * oth
         }
-        LuaValue::Number(n) => this.clone().into_dyn() * (n as f32),
-        LuaValue::Integer(i) => this.clone().into_dyn() * (i as f32),
+        LuaValue::Number(n) => this * (n as f32),
+        LuaValue::Integer(i) => this * (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
     };
 
@@ -359,10 +360,10 @@ fn div(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
                 )));
             }
 
-            this.clone() / oth
+            this / oth
         }
-        LuaValue::Number(n) => this.clone().into_dyn() / (n as f32),
-        LuaValue::Integer(i) => this.clone().into_dyn() / (i as f32),
+        LuaValue::Number(n) => this / (n as f32),
+        LuaValue::Integer(i) => this / (i as f32),
         _ => return Err(LuaError::external("Expected either number or Tensor.")),
     };
 
