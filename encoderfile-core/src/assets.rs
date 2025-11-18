@@ -1,46 +1,16 @@
-macro_rules! embed_in_section {
-    ($name:ident, $path:expr, $section:expr, Bytes) => {
-        embed_in_section!(
-            $name,
-            [u8; include_bytes!(env!($path)).len()],
-            $section,
-            *include_bytes!(env!($path))
-        );
-    };
-
-    ($name:ident, $path:expr, $section:expr, String) => {
-        embed_in_section!($name, &str, $section, include_str!(env!($path)));
-    };
-
-    ($name:ident, $path:expr, $section:expr, Env) => {
-        embed_in_section!($name, &str, $section, env!($path));
-    };
-
-    ($name:ident, $dtype:ty, $section:expr, $res:expr) => {
-        embed_in_section!($name, $dtype, concat!("__DATA,", $section), $res, "macos");
-        embed_in_section!($name, $dtype, concat!(".", $section), $res, "linux");
-        embed_in_section!($name, $dtype, concat!(".rdata$", $section), $res, "windows");
-    };
-
-    ($name:ident, $dtype:ty, $section:expr, $res:expr, $target_os:expr) => {
-        #[cfg(target_os = $target_os)]
-        #[unsafe(link_section = $section)]
-        #[used]
-        #[unsafe(no_mangle)]
-        pub static $name: $dtype = $res;
-    };
+crate::factory! {
+    env!("MODEL_WEIGHTS_PATH"),
+    env!("TOKENIZER_PATH"),
+    env!("MODEL_CONFIG_PATH"),
+    env!("MODEL_TYPE"),
+    env!("MODEL_NAME"),
+    Some(include_str!("/Users/rbesaleli/encoderfile/transforms/embedding/l2_normalize_embeddings.lua")),
 }
 
-embed_in_section!(MODEL_WEIGHTS, "MODEL_WEIGHTS_PATH", "model_weights", Bytes);
-embed_in_section!(TOKENIZER_JSON, "TOKENIZER_PATH", "model_tokenizer", String);
-embed_in_section!(
-    MODEL_CONFIG_JSON,
-    "MODEL_CONFIG_PATH",
-    "model_config",
-    String
-);
-embed_in_section!(MODEL_TYPE_STR, "MODEL_TYPE", "model_type", Env);
-embed_in_section!(MODEL_ID, "MODEL_NAME", "model_id", Env);
+pub use assets::{MODEL_ID, TRANSFORM};
+pub use config::{get_model_config, get_model_type};
+pub use model::get_model;
+pub use tokenizer::get_tokenizer;
 
 pub const BANNER: &str = include_str!("../../assets/banner.txt");
 

@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use anyhow::{Result, bail};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ macro_rules! asset_path {
 
             Ok(path)
         }
-    }
+    };
 }
 
 impl ModelPath {

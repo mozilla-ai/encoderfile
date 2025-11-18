@@ -2,7 +2,6 @@ mod config;
 mod model;
 mod state;
 mod tokenizer;
-mod transform;
 
 pub use config::ModelConfig;
 pub use model::Model;
