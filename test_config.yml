@@ -2,7 +2,6 @@ encoderfile:
   name: my-model
   path: models/embedding
   model_type: embedding
-  # cache_dir: ./.cache
   output_dir: .
   transform:
     path: transforms/embedding/l2_normalize_embeddings.lua
