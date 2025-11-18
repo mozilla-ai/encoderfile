@@ -1,6 +1,6 @@
 use anyhow::{Result, bail};
-use std::{io::Read, path::PathBuf};
 use schemars::JsonSchema;
+use std::{io::Read, path::PathBuf};
 
 use figment::{
     Figment,
