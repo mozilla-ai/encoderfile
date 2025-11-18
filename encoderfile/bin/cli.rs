@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use encoderfile::config;
 use lazy_static::lazy_static;
 use tera::Tera;
@@ -23,8 +23,10 @@ fn main() -> Result<()> {
 
     let config = config::Config::load(&path)?;
 
-    let write_dir = config.encoderfile.get_write_dir();
+    let write_dir = config.encoderfile.get_generated_dir();
     std::fs::create_dir_all(&write_dir)?;
+
+    println!("{:?}", &write_dir);
 
     // create src/ directory
     std::fs::create_dir_all(write_dir.join("src/"))?;
@@ -45,6 +47,21 @@ fn main() -> Result<()> {
             .arg("--manifest-path")
             .arg(manifest_dir)
             .status()?;
+
+        let generated_path = config
+            .encoderfile
+            .get_generated_dir()
+            .join("target/release/encoderfile");
+
+        if !generated_path.exists() {
+            bail!("ERROR: Generated path does not exist. This should not happen.")
+        }
+
+        // export encoderfile to output dir
+        std::fs::rename(
+            generated_path,
+            config.encoderfile.get_output_dir()?,
+        )?;
     }
 
     Ok(())

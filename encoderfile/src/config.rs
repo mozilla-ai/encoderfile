@@ -60,11 +60,18 @@ impl EncoderfileConfig {
         Ok(ctx)
     }
 
-    pub fn get_write_dir(&self) -> PathBuf {
+    pub fn get_generated_dir(&self) -> PathBuf {
         let filename_hash = Sha256::digest(self.name.as_bytes());
 
         self.cache_dir
             .join(format!("encoderfile-{:x}", filename_hash))
+    }
+
+    pub fn get_output_dir(&self) -> Result<PathBuf> {
+        Ok(self
+            .output_dir
+            .canonicalize()?
+            .join(format!("{}.encoderfile", &self.name)))
     }
 }
 

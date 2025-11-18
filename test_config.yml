@@ -1,7 +1,7 @@
 encoderfile:
   name: my-model
-  path: models/embedding
-  model_type: embedding
+  path: models/token_classification
+  model_type: token_classification
   output_dir: .
   transform:
-    path: transforms/embedding/l2_normalize_embeddings.lua
+    path: transforms/token_classification/softmax_logits.lua
