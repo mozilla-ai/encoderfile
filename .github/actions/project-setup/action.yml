@@ -35,7 +35,3 @@ runs:
       shell: bash
       run: |
         curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-
-    - name: Generate dummy env file
-      shell: bash
-      run: uv run -m encoderbuild.utils.create_dummy_env_file > .env
