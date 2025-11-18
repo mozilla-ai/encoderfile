@@ -102,7 +102,7 @@ impl Transform {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 #[serde(untagged)]
 pub enum ModelPath {
     Directory(PathBuf),

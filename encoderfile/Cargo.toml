@@ -14,6 +14,7 @@ path = "bin/generate_encoderfile_config_schema.rs"
 [dependencies]
 anyhow = "1.0.100"
 clap = "4.5.52"
+clap_derive = "4.5.49"
 directories = "6.0.0"
 figment = {version = "0.10.19", features = ["env", "serde_yaml", "yaml"]}
 lazy_static = "1.5.0"
