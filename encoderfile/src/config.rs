@@ -170,7 +170,6 @@ fn default_build() -> bool {
     true
 }
 
-
 fn encoderfile_core_version() -> String {
     let encoderfile_dev = std::env::var("ENCODERFILE_DEV")
         .unwrap_or("false".to_string())
@@ -202,8 +201,11 @@ mod tests {
 
     // Create a stable, normal directory under the system temp dir
     fn create_test_dir(name: &str) -> PathBuf {
-        let base = std::env::temp_dir()
-            .join(format!("encoderfile-test-{}-{}", name, uuid::Uuid::new_v4()));
+        let base = std::env::temp_dir().join(format!(
+            "encoderfile-test-{}-{}",
+            name,
+            uuid::Uuid::new_v4()
+        ));
         fs::create_dir_all(&base).unwrap();
         base
     }
@@ -286,7 +288,9 @@ mod tests {
     #[test]
     fn test_transform_missing_file() {
         let bogus = PathBuf::from("totally-does-not-exist.txt");
-        let t = Transform::Path { path: bogus.clone() };
+        let t = Transform::Path {
+            path: bogus.clone(),
+        };
 
         let err = t.transform().unwrap_err();
         assert!(err.to_string().contains("No such file"));
@@ -350,10 +354,7 @@ mod tests {
 
         let ctx = cfg.to_tera_ctx().expect("Tera ctx error");
 
-        assert_eq!(
-            ctx.get("model_name").unwrap().as_str().unwrap(),
-            "sadness"
-        );
+        assert_eq!(ctx.get("model_name").unwrap().as_str().unwrap(), "sadness");
 
         cleanup(&base);
     }
@@ -380,4 +381,3 @@ encoderfile:
         cleanup(&dir);
     }
 }
-

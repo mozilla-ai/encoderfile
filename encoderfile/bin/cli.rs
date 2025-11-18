@@ -58,10 +58,7 @@ fn main() -> Result<()> {
         }
 
         // export encoderfile to output dir
-        std::fs::rename(
-            generated_path,
-            config.encoderfile.get_output_dir()?,
-        )?;
+        std::fs::rename(generated_path, config.encoderfile.get_output_dir()?)?;
     }
 
     Ok(())
