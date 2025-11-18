@@ -1,0 +1,18 @@
+[package]
+name = "encoderfile"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "cli"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = "4.5.52"
+directories = "6.0.0"
+figment = {version = "0.10.19", features = ["env", "serde_json", "serde_yaml"]}
+serde = { version = "1.0.228", features = ["serde_derive"] }
+
+[features]
+bench = []
