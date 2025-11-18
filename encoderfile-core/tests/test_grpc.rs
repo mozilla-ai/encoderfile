@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use encoderfile::{
+use encoderfile_core::{
     generated::{
         embedding::{
             EmbeddingRequest, EmbeddingResponse, embedding_inference_server::EmbeddingInference,

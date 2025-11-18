@@ -1,4 +1,4 @@
-use encoderfile::transforms::Transform;
+use encoderfile_core::transforms::Transform;
 use ndarray::{Array2, Array3, Axis};
 use ort::tensor::ArrayExtensions;
 

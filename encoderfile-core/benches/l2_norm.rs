@@ -1,5 +1,5 @@
 use divan::Bencher;
-use encoderfile::inference::utils::l2_normalize;
+use encoderfile_core::inference::utils::l2_normalize;
 use ndarray::{Array2, Axis};
 
 fn main() {

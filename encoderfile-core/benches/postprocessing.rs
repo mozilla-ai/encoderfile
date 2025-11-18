@@ -1,5 +1,5 @@
 use divan::Bencher;
-use encoderfile::{
+use encoderfile_core::{
     inference::{embedding, sequence_classification, token_classification},
     runtime::encode_text,
     test_utils::*,

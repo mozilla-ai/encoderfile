@@ -3,7 +3,7 @@ use clap::Parser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = encoderfile::cli::Cli::parse();
+    let cli = encoderfile_core::cli::Cli::parse();
 
     cli.command.execute().await
 }

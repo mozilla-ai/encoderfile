@@ -1,4 +1,4 @@
-use encoderfile::{
+use encoderfile_core::{
     common::{
         EmbeddingRequest, SentenceEmbeddingRequest, SequenceClassificationRequest,
         TokenClassificationRequest,
