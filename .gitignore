@@ -1,3 +1,6 @@
+# encoderfile
+*.encoderfile
+
 # cargo tarpaulin
 *.profraw
 
