@@ -52,3 +52,7 @@ clean:
 .PHONY: generate-schemas
 generate-schemas:
 	@cargo run --bin generate-encoderfile-config-schema
+
+.PHONY: cov
+cov:
+	cargo llvm-cov --workspace --all-features
