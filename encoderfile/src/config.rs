@@ -2,6 +2,7 @@ use anyhow::{Result, bail};
 use schemars::JsonSchema;
 use std::{io::Read, path::PathBuf};
 
+use super::model::ModelType;
 use figment::{
     Figment,
     providers::{Format, Yaml},
@@ -139,15 +140,6 @@ impl ModelPath {
     asset_path!(model_config_path, "config.json", "model config");
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
     asset_path!(model_weights_path, "model.onnx", "model weights");
-}
-
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ModelType {
-    Embedding,
-    SequenceClassification,
-    TokenClassification,
-    SentenceEmbedding,
 }
 
 fn default_output_dir() -> PathBuf {

@@ -1,5 +1,5 @@
 encoderfile:
-  name: my-model
+  name: my-model-2
   path: models/token_classification
   model_type: token_classification
   output_dir: .

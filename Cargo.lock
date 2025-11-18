@@ -755,6 +755,7 @@ dependencies = [
  "directories",
  "figment",
  "lazy_static",
+ "ort",
  "schemars",
  "serde",
  "serde_json",

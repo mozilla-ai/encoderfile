@@ -13,14 +13,14 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     Build(BuildArgs),
-    Version{},
+    Version(()),
 }
 
 impl Commands {
     pub fn run(self) -> Result<()> {
         match self {
             Self::Build(args) => args.run(),
-            Self::Version {} => {
+            Self::Version(_) => {
                 println!("Encoderfile {}", env!("CARGO_PKG_VERSION"));
                 Ok(())
             }
@@ -56,12 +56,17 @@ impl BuildArgs {
             config.encoderfile.build = false;
         }
 
-        let write_dir = config.encoderfile.get_generated_dir();
-        std::fs::create_dir_all(&write_dir)?;
+        // validate model
+        config
+            .encoderfile
+            .model_type
+            .validate_model(&config.encoderfile.path.model_weights_path()?)?;
 
-        // create src/ directory
+        // handle dirs
+        let write_dir = config.encoderfile.get_generated_dir();
         std::fs::create_dir_all(write_dir.join("src/"))?;
 
+        // create context
         let ctx = config.encoderfile.to_tera_ctx()?;
 
         render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
