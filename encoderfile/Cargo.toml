@@ -25,3 +25,7 @@ tera = "1.20.1"
 
 [features]
 bench = []
+
+[dev-dependencies]
+tempfile = "3.23.0"
+uuid = { version = "1.18.1", features = ["v4"] }

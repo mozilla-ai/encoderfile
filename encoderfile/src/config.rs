@@ -170,13 +170,19 @@ fn default_build() -> bool {
     true
 }
 
+
 fn encoderfile_core_version() -> String {
     let encoderfile_dev = std::env::var("ENCODERFILE_DEV")
         .unwrap_or("false".to_string())
         .to_lowercase();
     match encoderfile_dev.as_str() {
         "true" => {
+            #[cfg(not(test))]
             let path = PathBuf::from("encoderfile-core").canonicalize().unwrap();
+
+            #[cfg(test)]
+            let path = PathBuf::from("../encoderfile-core").canonicalize().unwrap();
+
             format!(
                 "encoderfile-core = {{ path = \"{}\" }}",
                 path.to_str().unwrap()
@@ -188,3 +194,190 @@ fn encoderfile_core_version() -> String {
         _ => panic!("Unknown ENCODERFILE_DEV variable: {}", encoderfile_dev),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, path::PathBuf};
+
+    // Create a stable, normal directory under the system temp dir
+    fn create_test_dir(name: &str) -> PathBuf {
+        let base = std::env::temp_dir()
+            .join(format!("encoderfile-test-{}-{}", name, uuid::Uuid::new_v4()));
+        fs::create_dir_all(&base).unwrap();
+        base
+    }
+
+    // Create a model dir populated with the required files
+    fn create_model_dir() -> PathBuf {
+        let base = create_test_dir("model");
+        fs::write(base.join("config.json"), "{}").expect("Failed to create config.json");
+        fs::write(base.join("tokenizer.json"), "{}").expect("Failed to create tokenizer.json");
+        fs::write(base.join("model.onnx"), "onnx").expect("Failed to create model.onnx");
+        base
+    }
+
+    // Clean up (best-effort, don't panic)
+    fn cleanup(path: &PathBuf) {
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn test_get_encoderfile_core_version() {
+        encoderfile_core_version();
+    }
+
+    #[test]
+    fn test_modelpath_directory_valid() {
+        let base = create_model_dir();
+        let mp = ModelPath::Directory(base.clone());
+
+        assert!(mp.model_config_path().unwrap().ends_with("config.json"));
+        assert!(mp.tokenizer_path().unwrap().ends_with("tokenizer.json"));
+        assert!(mp.model_weights_path().unwrap().ends_with("model.onnx"));
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_modelpath_directory_missing_file() {
+        let base = create_test_dir("missing");
+        let mp = ModelPath::Directory(base.clone());
+
+        let err = mp.model_config_path().unwrap_err();
+        assert!(err.to_string().contains("model config"));
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_modelpath_explicit_paths() {
+        let base = create_model_dir();
+        let mp = ModelPath::Paths {
+            model_config_path: base.join("config.json"),
+            tokenizer_path: base.join("tokenizer.json"),
+            model_weights_path: base.join("model.onnx"),
+        };
+
+        assert!(mp.model_config_path().is_ok());
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_transform_inline() {
+        let t = Transform::Inline("  hello world   ".into());
+        assert_eq!(t.transform().unwrap(), "hello world");
+    }
+
+    #[test]
+    fn test_transform_path() {
+        let dir = create_test_dir("transform");
+        let file = dir.join("script.txt");
+
+        fs::write(&file, "   goodbye world ").unwrap();
+
+        let t = Transform::Path { path: file };
+        assert_eq!(t.transform().unwrap(), "goodbye world");
+
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn test_transform_missing_file() {
+        let bogus = PathBuf::from("totally-does-not-exist.txt");
+        let t = Transform::Path { path: bogus.clone() };
+
+        let err = t.transform().unwrap_err();
+        assert!(err.to_string().contains("No such file"));
+    }
+
+    #[test]
+    fn test_encoderfile_generated_dir() {
+        let base = create_model_dir();
+
+        let cfg = EncoderfileConfig {
+            name: "my-cool-model".into(),
+            version: "1.0".into(),
+            path: ModelPath::Directory(base.clone()),
+            model_type: ModelType::Embedding,
+            output_dir: base.clone(),
+            cache_dir: base.clone(),
+            transform: None,
+            build: true,
+        };
+
+        let generated = cfg.get_generated_dir();
+        assert!(generated.to_string_lossy().contains("encoderfile-"));
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_encoderfile_output_dir() {
+        let base = create_model_dir();
+
+        let cfg = EncoderfileConfig {
+            name: "bitter-end".into(),
+            version: "0.0.1".into(),
+            path: ModelPath::Directory(base.clone()),
+            model_type: ModelType::TokenClassification,
+            output_dir: base.clone(),
+            cache_dir: base.clone(),
+            transform: None,
+            build: true,
+        };
+
+        let out = cfg.get_output_dir().unwrap();
+        assert!(out.ends_with("bitter-end.encoderfile"));
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_encoderfile_to_tera_ctx() {
+        let base = create_model_dir();
+        let cfg = EncoderfileConfig {
+            name: "sadness".into(),
+            version: "0.1.0".into(),
+            path: ModelPath::Directory(base.clone()),
+            model_type: ModelType::SequenceClassification,
+            output_dir: base.clone(),
+            cache_dir: base.clone(),
+            transform: Some(Transform::Inline("1+1".into())),
+            build: true,
+        };
+
+        let ctx = cfg.to_tera_ctx().expect("Tera ctx error");
+
+        assert_eq!(
+            ctx.get("model_name").unwrap().as_str().unwrap(),
+            "sadness"
+        );
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_config_loading() {
+        let dir = create_test_dir("config");
+        let path = dir.join("config.yml");
+
+        let yaml = r#"
+encoderfile:
+  name: testy
+  version: "0.9.0"
+  path: "./"
+  model_type: embedding
+"#;
+
+        fs::write(&path, yaml).unwrap();
+
+        let cfg = Config::load(&path).unwrap();
+        assert_eq!(cfg.encoderfile.name, "testy");
+        assert_eq!(cfg.encoderfile.version, "0.9.0");
+
+        cleanup(&dir);
+    }
+}
+
