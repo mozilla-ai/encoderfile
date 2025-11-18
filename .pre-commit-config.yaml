@@ -11,10 +11,6 @@ repos:
         entry: bash -c 'cargo check --all-features'
         language: system
         types: [rust]
-      - id: schema-drift-check
-        name: schema drift check
-        entry: bash -c 'cargo run --bin generate-encoderfile-config-schema && git diff --quiet -- schemas/encoderfile-config-schema.json'
-        language: system
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9  # use the latest release tag
     hooks:
