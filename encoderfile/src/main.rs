@@ -27,13 +27,27 @@ fn main() -> Result<()> {
     let write_dir = config.encoderfile.get_write_dir();
     std::fs::create_dir_all(&write_dir)?;
 
-    // create src/ directory
+    // create src/ and target/ directory
     std::fs::create_dir(write_dir.join("src/"))?;
+    std::fs::create_dir(write_dir.join("target/"))?;
 
     let ctx = config.encoderfile.to_tera_ctx()?;
 
     render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
     render("Cargo.toml.tera", &ctx, &write_dir, "Cargo.toml")?;
+
+    if config.encoderfile.build {
+        let cargo_toml_path = write_dir.join("Cargo.toml").canonicalize()?;
+
+        let manifest_dir = cargo_toml_path.to_str().unwrap();
+
+        std::process::Command::new("cargo")
+            .arg("build")
+            .arg("--release")
+            .arg("--manifest-path")
+            .arg(manifest_dir)
+            .status()?;
+    }
 
     Ok(())
 }

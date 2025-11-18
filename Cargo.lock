@@ -757,7 +757,6 @@ dependencies = [
  "serde",
  "sha2",
  "tera",
- "uuid",
 ]
 
 [[package]]

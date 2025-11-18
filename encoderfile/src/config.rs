@@ -54,16 +54,15 @@ impl EncoderfileConfig {
         ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
         ctx.insert("model_config_path", &self.path.model_config_path()?);
         ctx.insert("transform", &transform);
+        ctx.insert("encoderfile_version", &encoderfile_core_version());
 
         Ok(ctx)
     }
 
     pub fn get_write_dir(&self) -> PathBuf {
-        let id = uuid::Uuid::new_v4().to_string();
-
         let filename_hash = Sha256::digest(self.name.as_bytes());
 
-        self.cache_dir.join(format!("encoderfile-{:x}-{}", filename_hash, id))
+        self.cache_dir.join(format!("encoderfile-{:x}", filename_hash))
     }
 }
 
@@ -160,4 +159,18 @@ fn default_version() -> String {
 
 fn default_build() -> bool {
     true
+}
+
+fn encoderfile_core_version() -> String {
+    let encoderfile_dev = std::env::var("ENCODERFILE_DEV").unwrap_or("false".to_string()).to_lowercase();
+    match encoderfile_dev.as_str() {
+        "true" => {
+            let path = PathBuf::from("encoderfile-core").canonicalize().unwrap();
+            format!("encoderfile-core = {{ path = \"{}\" }}", path.to_str().unwrap())
+        },
+        "false" => {
+            format!("encoderfile-core = {}", env!("CARGO_PKG_VERSION"))
+        },
+        _ => panic!("Unknown ENCODERFILE_DEV variable: {}", encoderfile_dev)
+    }
 }
