@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "encoderfile": {
+      "$ref": "#/$defs/EncoderfileConfig"
+    }
+  },
+  "required": [
+    "encoderfile"
+  ],
+  "$defs": {
+    "EncoderfileConfig": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "boolean",
+          "default": true
+        },
+        "cache_dir": {
+          "type": "string",
+          "default": "/Users/rbesaleli/Library/Caches/com.mozilla-ai.encoderfile"
+        },
+        "model_type": {
+          "$ref": "#/$defs/ModelType"
+        },
+        "name": {
+          "type": "string"
+        },
+        "output_dir": {
+          "type": "string",
+          "default": "/Users/rbesaleli/encoderfile"
+        },
+        "path": {
+          "$ref": "#/$defs/ModelPath"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "version": {
+          "type": "string",
+          "default": "0.1.0"
+        }
+      },
+      "required": [
+        "name",
+        "path",
+        "model_type"
+      ]
+    },
+    "ModelPath": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "model_config_path": {
+              "type": "string"
+            },
+            "model_weights_path": {
+              "type": "string"
+            },
+            "tokenizer_path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "model_config_path",
+            "model_weights_path",
+            "tokenizer_path"
+          ]
+        }
+      ]
+    },
+    "ModelType": {
+      "type": "string",
+      "enum": [
+        "embedding",
+        "sequence_classification",
+        "token_classification",
+        "sentence_embedding"
+      ]
+    },
+    "Transform": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  }
+}

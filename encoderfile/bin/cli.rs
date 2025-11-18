@@ -1,12 +1,11 @@
 use anyhow::Result;
 use lazy_static::lazy_static;
 use tera::Tera;
-
-mod config;
+use encoderfile::config;
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
-        
+
         // tera.autoescape_on(vec![".html", ".sql"]);
         // tera.register_filter("do_nothing", do_nothing_filter);
         match Tera::new("encoderfile/templates/*") {
@@ -27,9 +26,8 @@ fn main() -> Result<()> {
     let write_dir = config.encoderfile.get_write_dir();
     std::fs::create_dir_all(&write_dir)?;
 
-    // create src/ and target/ directory
-    std::fs::create_dir(write_dir.join("src/"))?;
-    std::fs::create_dir(write_dir.join("target/"))?;
+    // create src/ directory
+    std::fs::create_dir_all(write_dir.join("src/"))?;
 
     let ctx = config.encoderfile.to_tera_ctx()?;
 
@@ -52,7 +50,12 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn render(template_name: &str, ctx: &tera::Context, write_dir: &std::path::PathBuf, out_path: &str) -> Result<()> {
+fn render(
+    template_name: &str,
+    ctx: &tera::Context,
+    write_dir: &std::path::PathBuf,
+    out_path: &str,
+) -> Result<()> {
     let rendered = TEMPLATES.render(template_name, ctx)?;
 
     let file = write_dir.join(out_path);

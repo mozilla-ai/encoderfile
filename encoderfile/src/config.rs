@@ -1,15 +1,16 @@
 use anyhow::{Result, bail};
 use std::{io::Read, path::PathBuf};
+use schemars::JsonSchema;
 
 use figment::{
     Figment,
     providers::{Format, Yaml},
 };
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use tera::Context;
-use sha2::{Sha256, Digest};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Config {
     pub encoderfile: EncoderfileConfig,
 }
@@ -22,7 +23,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct EncoderfileConfig {
     pub name: String,
     #[serde(default = "default_version")]
@@ -35,7 +36,7 @@ pub struct EncoderfileConfig {
     pub cache_dir: PathBuf,
     pub transform: Option<Transform>,
     #[serde(default = "default_build")]
-    pub build: bool
+    pub build: bool,
 }
 
 impl EncoderfileConfig {
@@ -62,11 +63,12 @@ impl EncoderfileConfig {
     pub fn get_write_dir(&self) -> PathBuf {
         let filename_hash = Sha256::digest(self.name.as_bytes());
 
-        self.cache_dir.join(format!("encoderfile-{:x}", filename_hash))
+        self.cache_dir
+            .join(format!("encoderfile-{:x}", filename_hash))
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum Transform {
     Path { path: PathBuf },
@@ -93,7 +95,7 @@ impl Transform {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum ModelPath {
     Directory(PathBuf),
@@ -132,7 +134,7 @@ impl ModelPath {
     asset_path!(model_weights_path, "model.onnx", "model weights");
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelType {
     Embedding,
@@ -162,15 +164,20 @@ fn default_build() -> bool {
 }
 
 fn encoderfile_core_version() -> String {
-    let encoderfile_dev = std::env::var("ENCODERFILE_DEV").unwrap_or("false".to_string()).to_lowercase();
+    let encoderfile_dev = std::env::var("ENCODERFILE_DEV")
+        .unwrap_or("false".to_string())
+        .to_lowercase();
     match encoderfile_dev.as_str() {
         "true" => {
             let path = PathBuf::from("encoderfile-core").canonicalize().unwrap();
-            format!("encoderfile-core = {{ path = \"{}\" }}", path.to_str().unwrap())
-        },
+            format!(
+                "encoderfile-core = {{ path = \"{}\" }}",
+                path.to_str().unwrap()
+            )
+        }
         "false" => {
             format!("encoderfile-core = {}", env!("CARGO_PKG_VERSION"))
-        },
-        _ => panic!("Unknown ENCODERFILE_DEV variable: {}", encoderfile_dev)
+        }
+        _ => panic!("Unknown ENCODERFILE_DEV variable: {}", encoderfile_dev),
     }
 }

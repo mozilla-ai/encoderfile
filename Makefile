@@ -48,3 +48,7 @@ clean:
 	else \
 		echo "target/ does not exist — skipping clean."; \
 	fi
+
+.PHONY: generate-schemas
+generate-schemas:
+	@cargo run --bin generate-encoderfile-config-schema
