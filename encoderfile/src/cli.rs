@@ -13,12 +13,17 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     Build(BuildArgs),
+    Version{},
 }
 
 impl Commands {
     pub fn run(self) -> Result<()> {
         match self {
             Self::Build(args) => args.run(),
+            Self::Version {} => {
+                println!("Encoderfile {}", env!("CARGO_PKG_VERSION"));
+                Ok(())
+            }
         }
     }
 }
