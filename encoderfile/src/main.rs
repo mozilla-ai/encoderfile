@@ -23,20 +23,27 @@ fn main() -> Result<()> {
     let path = std::path::PathBuf::from("test_config.yml");
 
     let config = config::Config::load(&path)?;
-    println!("{:?}", config);
+
+    let write_dir = config.encoderfile.get_write_dir();
+    std::fs::create_dir_all(&write_dir)?;
+
+    // create src/ directory
+    std::fs::create_dir(write_dir.join("src/"))?;
 
     let ctx = config.encoderfile.to_tera_ctx()?;
 
-    println!("{:?}", ctx);
+    render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
+    render("Cargo.toml.tera", &ctx, &write_dir, "Cargo.toml")?;
 
-    println!(
-        "{:?}",
-        TEMPLATES.get_template_names().collect::<Vec<&str>>()
-    );
+    Ok(())
+}
 
-    let rendered = TEMPLATES.render("main.rs.tera", &ctx)?;
+fn render(template_name: &str, ctx: &tera::Context, write_dir: &std::path::PathBuf, out_path: &str) -> Result<()> {
+    let rendered = TEMPLATES.render(template_name, ctx)?;
 
-    std::fs::write("encoderfile-test/src/main.rs", rendered)?;
+    let file = write_dir.join(out_path);
+
+    std::fs::write(file, rendered)?;
 
     Ok(())
 }

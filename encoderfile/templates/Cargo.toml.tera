@@ -1,6 +1,6 @@
 [package]
-name = "encoderfile-test"
-version = "0.1.0"
+name = "encoderfile"
+version = "{{ version }}"
 edition = "2024"
 
 [dependencies]

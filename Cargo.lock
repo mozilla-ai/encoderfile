@@ -755,7 +755,9 @@ dependencies = [
  "figment",
  "lazy_static",
  "serde",
+ "sha2",
  "tera",
+ "uuid",
 ]
 
 [[package]]
@@ -800,16 +802,6 @@ dependencies = [
  "tracing-subscriber",
  "utoipa",
  "utoipa-axum",
-]
-
-[[package]]
-name = "encoderfile-test"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "encoderfile-core",
- "tokio",
 ]
 
 [[package]]

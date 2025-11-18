@@ -7,6 +7,7 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 use tera::Context;
+use sha2::{Sha256, Digest};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -23,14 +24,18 @@ impl Config {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncoderfileConfig {
-    name: String,
-    path: ModelPath,
-    model_type: ModelType,
+    pub name: String,
+    #[serde(default = "default_version")]
+    pub version: String,
+    pub path: ModelPath,
+    pub model_type: ModelType,
     #[serde(default = "default_output_dir")]
-    output_dir: PathBuf,
+    pub output_dir: PathBuf,
     #[serde(default = "default_cache_dir")]
-    cache_dir: PathBuf,
-    transform: Option<Transform>,
+    pub cache_dir: PathBuf,
+    pub transform: Option<Transform>,
+    #[serde(default = "default_build")]
+    pub build: bool
 }
 
 impl EncoderfileConfig {
@@ -42,6 +47,7 @@ impl EncoderfileConfig {
             Some(s) => Some(s.transform()?),
         };
 
+        ctx.insert("version", self.version.as_str());
         ctx.insert("model_name", self.name.as_str());
         ctx.insert("model_type", &self.model_type);
         ctx.insert("model_weights_path", &self.path.model_weights_path()?);
@@ -50,6 +56,14 @@ impl EncoderfileConfig {
         ctx.insert("transform", &transform);
 
         Ok(ctx)
+    }
+
+    pub fn get_write_dir(&self) -> PathBuf {
+        let id = uuid::Uuid::new_v4().to_string();
+
+        let filename_hash = Sha256::digest(self.name.as_bytes());
+
+        self.cache_dir.join(format!("encoderfile-{:x}-{}", filename_hash, id))
     }
 }
 
@@ -138,4 +152,12 @@ fn default_cache_dir() -> PathBuf {
         .expect("Cannot locate")
         .cache_dir()
         .to_path_buf()
+}
+
+fn default_version() -> String {
+    "0.1.0".to_string()
+}
+
+fn default_build() -> bool {
+    true
 }
