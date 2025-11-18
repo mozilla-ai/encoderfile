@@ -98,11 +98,6 @@ make setup
 
 This will install Rust dependencies, create a virtual environment, and download model weights for integration tests (these will show up in `models/`).
 
-If you are using VSCode with the `rust-analyzer` plugin, it will want to automatically compile for you. If the errors become annoying, you can generate a default .env file for the embedding model used in unit tests:
-```sh
-uv run -m encoderbuild.utils.create_dummy_env_file > .env
-```
-
 ## 🏗️ Building an Encoderfile
 
 ### Prepare your Model
