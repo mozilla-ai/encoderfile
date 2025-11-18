@@ -47,11 +47,5 @@ jobs:
           restore-keys: |
             pre-commit-${{ runner.os }}-
 
-      - name: Run project setup
-        run: make setup
-
-      - name: Generate dummy env file
-        run: uv run -m encoderbuild.utils.create_dummy_env_file > .env
-
       - name: Run pre-commit
         run: uv run --dev pre-commit run --all-files
