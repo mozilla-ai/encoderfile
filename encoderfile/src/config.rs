@@ -32,7 +32,7 @@ pub struct EncoderfileConfig {
     pub path: ModelPath,
     pub model_type: ModelType,
     #[serde(default = "default_output_dir")]
-    pub output_dir: PathBuf,
+    pub output_path: PathBuf,
     #[serde(default = "default_cache_dir")]
     pub cache_dir: PathBuf,
     pub transform: Option<Transform>,
@@ -66,13 +66,6 @@ impl EncoderfileConfig {
 
         self.cache_dir
             .join(format!("encoderfile-{:x}", filename_hash))
-    }
-
-    pub fn get_output_dir(&self) -> Result<PathBuf> {
-        Ok(self
-            .output_dir
-            .canonicalize()?
-            .join(format!("{}.encoderfile", &self.name)))
     }
 }
 
@@ -297,7 +290,7 @@ mod tests {
             version: "1.0".into(),
             path: ModelPath::Directory(base.clone()),
             model_type: ModelType::Embedding,
-            output_dir: base.clone(),
+            output_path: base.clone(),
             cache_dir: base.clone(),
             transform: None,
             build: true,
@@ -310,27 +303,6 @@ mod tests {
     }
 
     #[test]
-    fn test_encoderfile_output_dir() {
-        let base = create_model_dir();
-
-        let cfg = EncoderfileConfig {
-            name: "bitter-end".into(),
-            version: "0.0.1".into(),
-            path: ModelPath::Directory(base.clone()),
-            model_type: ModelType::TokenClassification,
-            output_dir: base.clone(),
-            cache_dir: base.clone(),
-            transform: None,
-            build: true,
-        };
-
-        let out = cfg.get_output_dir().unwrap();
-        assert!(out.ends_with("bitter-end.encoderfile"));
-
-        cleanup(&base);
-    }
-
-    #[test]
     fn test_encoderfile_to_tera_ctx() {
         let base = create_model_dir();
         let cfg = EncoderfileConfig {
@@ -338,7 +310,7 @@ mod tests {
             version: "0.1.0".into(),
             path: ModelPath::Directory(base.clone()),
             model_type: ModelType::SequenceClassification,
-            output_dir: base.clone(),
+            output_path: base.clone(),
             cache_dir: base.clone(),
             transform: Some(Transform::Inline("1+1".into())),
             build: true,

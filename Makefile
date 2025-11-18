@@ -54,7 +54,10 @@ clean:
 		echo "target/ does not exist — skipping clean."; \
 	fi
 
-.PHONY: generate-schemas
-generate-schemas:
+.PHONY: generate-docs
+generate-docs:
+# 	generate JSON schema for encoderfile config
 	@cargo run \
 		--bin generate-encoderfile-config-schema
+# 	generate CLI docs for encoderfile build
+	@cargo run --bin generate-encoderfile-cli-docs --features="_internal"

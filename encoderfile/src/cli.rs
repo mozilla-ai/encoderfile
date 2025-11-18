@@ -12,7 +12,9 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
+    #[command(about = "Build an encoderfile.")]
     Build(BuildArgs),
+    #[command(about = "Get Encoderfile version.")]
     Version(()),
 }
 
@@ -30,13 +32,23 @@ impl Commands {
 
 #[derive(Debug, Args)]
 pub struct BuildArgs {
-    #[arg(short = 'f')]
+    #[arg(short = 'f', help = "Path to config file. Required.")]
     config: PathBuf,
-    #[arg(long = "output-dir")]
-    output_dir: Option<PathBuf>,
-    #[arg(long = "cache-dir")]
+    #[arg(
+        short = 'o',
+        long = "output-path",
+        help = "Output path, e.g., `./my_model.encoderfile`. Optional"
+    )]
+    output_path: Option<PathBuf>,
+    #[arg(
+        long = "cache-dir",
+        help = "Cache directory. This is used for build artifacts. Optional."
+    )]
     cache_dir: Option<PathBuf>,
-    #[arg(long = "no-build")]
+    #[arg(
+        long = "no-build",
+        help = "Skips build stage. Only generates files to directory in `cache_dir`. Defaults to False."
+    )]
     no_build: bool,
 }
 
@@ -44,8 +56,8 @@ impl BuildArgs {
     fn run(self) -> Result<()> {
         let mut config = super::config::Config::load(&self.config)?;
 
-        if let Some(o) = &self.output_dir {
-            config.encoderfile.output_dir = o.to_path_buf();
+        if let Some(o) = &self.output_path {
+            config.encoderfile.output_path = o.to_path_buf();
         }
 
         if let Some(cache_dir) = &self.cache_dir {
@@ -94,7 +106,7 @@ impl BuildArgs {
             }
 
             // export encoderfile to output dir
-            std::fs::rename(generated_path, config.encoderfile.get_output_dir()?)?;
+            std::fs::rename(generated_path, &config.encoderfile.output_path)?;
         }
 
         Ok(())
