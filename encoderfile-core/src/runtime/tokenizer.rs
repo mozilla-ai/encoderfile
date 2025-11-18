@@ -10,7 +10,7 @@ static TOKENIZER: OnceLock<Arc<Tokenizer>> = OnceLock::new();
 
 pub fn get_tokenizer(tokenizer_json: &str, model_config: &Arc<ModelConfig>) -> Arc<Tokenizer> {
     TOKENIZER
-        .get_or_init(|| Arc::new(get_tokenizer_from_string(tokenizer_json, &model_config)))
+        .get_or_init(|| Arc::new(get_tokenizer_from_string(tokenizer_json, model_config)))
         .clone()
 }
 
