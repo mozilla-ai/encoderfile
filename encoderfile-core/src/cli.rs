@@ -76,7 +76,7 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute(self) -> Result<()> {
+    pub async fn execute(self, state: AppState) -> Result<()> {
         match self {
             Commands::Serve {
                 grpc_hostname,
@@ -88,6 +88,8 @@ impl Commands {
                 enable_otel,
                 otel_exporter_url,
             } => {
+                let banner = crate::get_banner(state.model_id.as_str());
+
                 if disable_grpc && disable_http {
                     return Err(crate::error::ApiError::ConfigError(
                         "Cannot disable both gRPC and HTTP",
@@ -101,15 +103,15 @@ impl Commands {
 
                 let grpc_process = match disable_grpc {
                     true => tokio::spawn(async { Ok(()) }),
-                    false => tokio::spawn(run_grpc(grpc_hostname, grpc_port)),
+                    false => tokio::spawn(run_grpc(grpc_hostname, grpc_port, state.clone())),
                 };
 
                 let http_process = match disable_http {
                     true => tokio::spawn(async { Ok(()) }),
-                    false => tokio::spawn(run_http(http_hostname, http_port)),
+                    false => tokio::spawn(run_http(http_hostname, http_port, state.clone())),
                 };
 
-                println!("{}", crate::get_banner());
+                println!("{}", banner);
 
                 let _ = tokio::join!(grpc_process, http_process);
             }
@@ -121,8 +123,6 @@ impl Commands {
                 setup_tracing(None)?;
 
                 let metadata = None;
-
-                let state = AppState::default();
 
                 match state.model_type {
                     ModelType::Embedding => {
@@ -154,8 +154,9 @@ impl Commands {
                 }
             }
             Commands::Mcp { hostname, port } => {
-                let mcp_process = tokio::spawn(run_mcp(hostname, port));
-                println!("{}", crate::get_banner());
+                let banner = crate::get_banner(state.model_id.as_str());
+                let mcp_process = tokio::spawn(run_mcp(hostname, port, state));
+                println!("{}", banner);
                 let _ = tokio::join!(mcp_process);
             }
         }

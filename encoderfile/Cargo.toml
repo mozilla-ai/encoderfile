@@ -11,8 +11,10 @@ path = "src/main.rs"
 anyhow = "1.0.100"
 clap = "4.5.52"
 directories = "6.0.0"
-figment = {version = "0.10.19", features = ["env", "serde_json", "serde_yaml"]}
+figment = {version = "0.10.19", features = ["env", "serde_yaml", "yaml"]}
+lazy_static = "1.5.0"
 serde = { version = "1.0.228", features = ["serde_derive"] }
+tera = "1.20.1"
 
 [features]
 bench = []

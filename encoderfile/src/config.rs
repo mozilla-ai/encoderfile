@@ -1,7 +1,25 @@
 use anyhow::{Result, bail};
-use std::path::PathBuf;
+use std::{io::Read, path::PathBuf};
 
+use figment::{
+    Figment,
+    providers::{Format, Yaml},
+};
 use serde::{Deserialize, Serialize};
+use tera::Context;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub encoderfile: EncoderfileConfig,
+}
+
+impl Config {
+    pub fn load(path: &PathBuf) -> Result<Self> {
+        let config = Figment::new().merge(Yaml::file(path)).extract()?;
+
+        Ok(config)
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncoderfileConfig {
@@ -12,9 +30,58 @@ pub struct EncoderfileConfig {
     output_dir: PathBuf,
     #[serde(default = "default_cache_dir")]
     cache_dir: PathBuf,
+    transform: Option<Transform>,
+}
+
+impl EncoderfileConfig {
+    pub fn to_tera_ctx(&self) -> Result<Context> {
+        let mut ctx = Context::new();
+
+        let transform = match &self.transform {
+            None => None,
+            Some(s) => Some(s.transform()?),
+        };
+
+        ctx.insert("model_name", self.name.as_str());
+        ctx.insert("model_type", &self.model_type);
+        ctx.insert("model_weights_path", &self.path.model_weights_path()?);
+        ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
+        ctx.insert("model_config_path", &self.path.model_config_path()?);
+        ctx.insert("transform", &transform);
+
+        Ok(ctx)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Transform {
+    Path { path: PathBuf },
+    Inline(String),
+}
+
+impl Transform {
+    pub fn transform(&self) -> Result<String> {
+        match self {
+            Self::Path { path } => {
+                if !path.exists() {
+                    bail!("No such file: {:?}", &path);
+                }
+
+                let mut code = String::new();
+
+                std::fs::File::open(path)?.read_to_string(&mut code)?;
+
+                Ok(code)
+            }
+            Self::Inline(s) => Ok(s.clone()),
+        }
+        .map(|i| i.trim().to_string())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum ModelPath {
     Directory(PathBuf),
     Paths {
@@ -41,7 +108,7 @@ macro_rules! asset_path {
                 bail!("Could not locate {} at path: {:?}", $err, path);
             }
 
-            Ok(path)
+            Ok(path.canonicalize()?)
         }
     };
 }

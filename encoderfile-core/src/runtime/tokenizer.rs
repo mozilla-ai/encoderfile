@@ -1,10 +1,18 @@
 use crate::{error::ApiError, runtime::config::ModelConfig};
 use anyhow::Result;
 use std::str::FromStr;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tokenizers::{
     Encoding, PaddingDirection, PaddingParams, PaddingStrategy, tokenizer::Tokenizer,
 };
+
+static TOKENIZER: OnceLock<Arc<Tokenizer>> = OnceLock::new();
+
+pub fn get_tokenizer(tokenizer_json: &str, model_config: &Arc<ModelConfig>) -> Arc<Tokenizer> {
+    TOKENIZER
+        .get_or_init(|| Arc::new(get_tokenizer_from_string(tokenizer_json, &model_config)))
+        .clone()
+}
 
 pub fn get_tokenizer_from_string(s: &str, config: &Arc<ModelConfig>) -> Tokenizer {
     let pad_token_id = config.pad_token_id;

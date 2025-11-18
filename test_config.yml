@@ -1,0 +1,7 @@
+encoderfile:
+  name: my-model
+  path: models/embedding
+  model_type: embedding
+  output_dir: .
+  transform:
+    path: transforms/embedding/l2_normalize_embeddings.lua

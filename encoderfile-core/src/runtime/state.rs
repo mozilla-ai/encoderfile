@@ -21,16 +21,3 @@ impl AppState {
         (self.transform_factory)()
     }
 }
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self {
-            session: crate::assets::get_model(),
-            tokenizer: crate::assets::get_tokenizer(),
-            config: crate::assets::get_model_config(),
-            model_type: crate::assets::get_model_type(),
-            model_id: crate::assets::get_model_id(),
-            transform_factory: crate::assets::get_transform,
-        }
-    }
-}

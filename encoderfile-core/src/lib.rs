@@ -18,3 +18,4 @@ pub mod transport;
 pub mod test_utils;
 
 pub use assets::get_banner;
+pub use runtime::AppState;
