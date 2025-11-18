@@ -17,11 +17,16 @@ format:
 ,PHONY: licenses
 licenses:
 	@echo "Generating licenses..."
-	@cargo bundle-licenses --format yaml --output THIRDPARTY.yml
+	@cargo bundle-licenses \
+		--format yaml \
+		--output THIRDPARTY.yml
 
 .PHONY:
 clippy:
-	@cargo clippy --fix --all-features --allow-dirty
+	@cargo clippy \
+		--fix \
+		--all-features \
+		--allow-dirty
 
 .PHONY: pre-commit
 pre-commit:
@@ -51,8 +56,12 @@ clean:
 
 .PHONY: generate-schemas
 generate-schemas:
-	@cargo run --bin generate-encoderfile-config-schema
+	@cargo run \
+		--bin generate-encoderfile-config-schema
 
 .PHONY: cov
 cov:
-	cargo llvm-cov --workspace --all-features
+	cargo llvm-cov \
+		--workspace \
+		--all-features \
+		--open
