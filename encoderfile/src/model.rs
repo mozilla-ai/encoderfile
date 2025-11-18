@@ -61,9 +61,7 @@ fn validate_token_classification_model(model: Session) -> Result<()> {
 
 fn get_outp_dim<'a>(outputs: &'a [Output], outp_name: &str) -> Result<&'a Shape> {
     outputs
-        .iter()
-        .filter(|i| i.name == outp_name)
-        .next()
+        .iter().find(|i| i.name == outp_name)
         .ok_or(anyhow::anyhow!(format!("Model must return {}", outp_name)))?
         .output_type
         .tensor_shape()
