@@ -23,7 +23,11 @@ jobs:
        contains(github.event.pull_request.labels.*.name, 'minor') || 
        contains(github.event.pull_request.labels.*.name, 'major')))
     runs-on: ubuntu-latest
-    
+
+    outputs:
+      version: ${{ steps.get-version.outputs.VERSION }}
+      prerelease: ${{ steps.determine-release-type.outputs.PRERELEASE }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
