@@ -192,6 +192,5 @@ jobs:
             pyproject.toml
             Cargo.lock
             uv.lock
-            **/pyproject.toml
             **/Cargo.toml
           labels: ${{ steps.generate_labels.outputs.labels }}
