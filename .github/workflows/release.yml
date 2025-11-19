@@ -102,6 +102,8 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
+        with:
+          run-dev-setup: "false"
 
       - name: Cargo publish (dry-run)
         run: cargo publish -p encoderfile-core --dry-run
@@ -133,6 +135,8 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
+        with:
+          run-dev-setup: "false"
       
       - name: Install target
         run: rustup target add ${{ matrix.platform.target }}
@@ -144,7 +148,7 @@ jobs:
 
       - name: Create release tarball
         run: |
-          VERSION="${{ needs.tag.outputs.version }}"
+          VERSION="${{ needs.create-tag.outputs.version }}"
           PLATFORM="${{ matrix.platform.target }}"
 
           mkdir -p release
@@ -165,7 +169,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: encoderfile-${{ matrix.platform.target }}
-          path: encoderfile-v${{ needs.tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
+          path: encoderfile-v${{ needs.create-tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
 
 
   create-release:
