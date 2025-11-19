@@ -19,7 +19,11 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started: getting_started.md
+  - Getting Started: getting-started.md
+  - CLI Reference: cli.md
+  - API Reference: api-reference.md
+  - Code of Conduct: CODE_OF_CONDUCT.md
+  - Contributing: CONTRIBUTING.md
   - Transforms:
       - Transforms: transforms/index.md
       - Reference: transforms/reference.md

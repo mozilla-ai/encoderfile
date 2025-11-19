@@ -1,93 +1,31 @@
 # Getting Started
 
-This guide will help you set up your development environment and build your first encoderfile.
+This quick-start guide will help you build and run your first encoderfile in under 10 minutes.
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+### Encoderfile CLI Tool
 
-- [Rust](https://rust-lang.org/tools/install/) - For building the binary
-- [Python 3.13+](https://www.python.org/downloads/) - For the build tools
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
-- [protoc](https://protobuf.dev/installation/) - Protocol Buffer compiler
+You need the `encoderfile` CLI tool installed:
 
-### Installing Prerequisites
+- **Pre-built binary** (Linux/macOS): Download from [releases](https://github.com/mozilla-ai/encoderfile/releases) (TODO: add actual release link)
+- **Build from source** (all platforms): See [BUILDING.md](../BUILDING.md)
 
-=== "macOS"
+### Python with Optimum
 
-    ```bash
-    # Install Rust
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-    # Install uv
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-
-    # Install protoc
-    brew install protobuf
-    ```
-
-=== "Linux"
-
-    ```bash
-    # Install Rust
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-    # Install uv
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-
-    # Install protoc
-    # Ubuntu/Debian
-    sudo apt-get install protobuf-compiler
-
-    # Fedora
-    sudo dnf install protobuf-compiler
-    ```
-
-=== "Windows"
-
-    ```powershell
-    # Install Rust
-    # Download and run rustup-init.exe from https://rustup.rs
-
-    # Install uv
-    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-    # Install protoc
-    # Download from https://github.com/protocolbuffers/protobuf/releases
-    ```
-
-## Development Setup
-
-If you want to contribute to encoderfile or modify the source code:
+For exporting models to ONNX:
 
 ```bash
-# Clone the repository
-git clone https://github.com/mozilla-ai/encoderfile.git
-cd encoderfile
-
-# Set up the development environment
-make setup
+pip install optimum[exporters]
 ```
-
-This will:
-- Install Rust dependencies
-- Create a Python virtual environment
-- Download model weights for integration tests
-
-!!! tip "VSCode Users"
-    If you're using VSCode with the `rust-analyzer` plugin and encounter compilation errors, generate a default `.env` file:
-
-    ```bash
-    uv run -m encoderbuild.utils.create_dummy_env_file > .env
-    ```
 
 ## Your First Encoderfile
 
 Let's build a sentiment analysis model as an example.
 
-### Step 1: Export a Model to ONNX
+### Step 1: Export Model to ONNX
 
-First, we need to export a HuggingFace model to ONNX format:
+Export a HuggingFace model to ONNX format:
 
 ```bash
 optimum-cli export onnx \
@@ -96,30 +34,24 @@ optimum-cli export onnx \
   ./sentiment-model
 ```
 
-This will create a directory with the following structure:
+This creates a directory with the required files:
 
 ```
 sentiment-model/
 ├── config.json
 ├── model.onnx                # ONNX weights
-├── special_tokens_map.json
-├── tokenizer_config.json
 ├── tokenizer.json            # Tokenizer
-└── vocab.txt
+└── ... (other files)
 ```
 
-!!! note "Task Types"
-    Available tasks:
-
-    - `feature-extraction` - For embedding models
-    - `text-classification` - For sequence classification
-    - `token-classification` - For NER/token tagging
-
-    See the [HuggingFace task guide](https://huggingface.co/docs/optimum/exporters/onnx/usage_guides/export_a_model) for more options.
+**Available task types:**
+- `feature-extraction` - For embedding models
+- `text-classification` - For sequence classification
+- `token-classification` - For NER/token tagging
 
 ### Step 2: Create Configuration File
 
-Create a YAML configuration file `sentiment-config.yml`:
+Create `sentiment-config.yml`:
 
 ```yaml
 encoderfile:
@@ -130,44 +62,34 @@ encoderfile:
   output_dir: ./build
 ```
 
-**Configuration fields:**
-
+**Key fields:**
 - `name` - Model identifier (used in API responses)
-- `version` - Model version (optional, defaults to "0.1.0")
 - `path` - Path to the model directory with ONNX weights
-- `model_type` - Model type: `embedding`, `sequence_classification`, or `token_classification`
-- `output_dir` - Where to output the binary (optional, defaults to current directory)
+- `model_type` - `embedding`, `sequence_classification`, or `token_classification`
+- `output_dir` - Where to output the binary (optional)
 
 ### Step 3: Build the Binary
 
-First, build the CLI tool if you haven't already:
+Build your encoderfile:
 
 ```bash
-cargo build -p encoderfile --bin cli --release
+encoderfile build -f sentiment-config.yml
 ```
 
-Now build your encoderfile:
-
-```bash
-./target/release/cli build -f sentiment-config.yml
-```
+> **Note:** If you built the CLI from source, use: `./target/release/cli build -f sentiment-config.yml`
 
 The binary will be created at `./build/sentiment-analyzer.encoderfile`.
 
 ### Step 4: Run the Server
 
-Start the encoderfile server:
+Start your encoderfile server:
 
 ```bash
-# Make the binary executable (Unix-like systems)
 chmod +x ./build/sentiment-analyzer.encoderfile
-
-# Start the server
 ./build/sentiment-analyzer.encoderfile serve
 ```
 
-You should see output indicating the server is running:
-
+You should see:
 ```
 Starting HTTP server on 0.0.0.0:8080
 Starting gRPC server on [::]:50051
@@ -175,7 +97,7 @@ Starting gRPC server on [::]:50051
 
 ### Step 5: Make Predictions
 
-Test your encoderfile with curl:
+Test with curl:
 
 ```bash
 curl -X POST http://localhost:8080/predict \
@@ -210,11 +132,9 @@ Expected response:
 }
 ```
 
-## Common Model Types
+## Quick Examples
 
-### Embedding Models
-
-For text similarity, semantic search, and retrieval:
+### Embedding Model
 
 ```bash
 # Export
@@ -223,7 +143,7 @@ optimum-cli export onnx \
   --task feature-extraction \
   ./embedding-model
 
-# Create config
+# Config
 cat > embedding-config.yml <<EOF
 encoderfile:
   name: embedder
@@ -233,18 +153,13 @@ encoderfile:
 EOF
 
 # Build
-./target/release/cli build -f embedding-config.yml
+encoderfile build -f embedding-config.yml
 
-# Use
-./build/embedder.encoderfile serve &
-curl -X POST http://localhost:8080/predict \
-  -H "Content-Type: application/json" \
-  -d '{"inputs": ["Hello world"], "normalize": true}'
+# Run
+./build/embedder.encoderfile serve
 ```
 
-### Token Classification Models
-
-For Named Entity Recognition (NER):
+### Token Classification (NER)
 
 ```bash
 # Export
@@ -253,7 +168,7 @@ optimum-cli export onnx \
   --task token-classification \
   ./ner-model
 
-# Create config
+# Config
 cat > ner-config.yml <<EOF
 encoderfile:
   name: ner
@@ -263,73 +178,56 @@ encoderfile:
 EOF
 
 # Build
-./target/release/cli build -f ner-config.yml
+encoderfile build -f ner-config.yml
 
-# Use
-./build/ner.encoderfile serve &
-curl -X POST http://localhost:8080/predict \
-  -H "Content-Type: application/json" \
-  -d '{"inputs": ["Apple Inc. is in Cupertino, California"]}'
+# Run
+./build/ner.encoderfile serve
 ```
 
-## Server Configuration
+## Common Tasks
 
-### Customizing Ports
+### Server Configuration
 
+**Custom ports:**
 ```bash
-# Custom HTTP port
-./build/<model>.encoderfile serve --http-port 3000
-
-# Custom gRPC port
-./build/<model>.encoderfile serve --grpc-port 50052
-
-# Both custom
-./build/<model>.encoderfile serve --http-port 3000 --grpc-port 50052
+./build/my-model.encoderfile serve --http-port 3000 --grpc-port 50052
 ```
 
-### Disabling Services
-
+**HTTP only (disable gRPC):**
 ```bash
-# HTTP only
-./build/<model>.encoderfile serve --disable-grpc
-
-# gRPC only
-./build/<model>.encoderfile serve --disable-http
+./build/my-model.encoderfile serve --disable-grpc
 ```
 
-### Using Custom Hostnames
-
+**gRPC only (disable HTTP):**
 ```bash
-./build/<model>.encoderfile serve \
-  --http-hostname 127.0.0.1 \
-  --grpc-hostname localhost
+./build/my-model.encoderfile serve --disable-http
 ```
 
-## CLI Inference
+### CLI Inference
 
-For one-off predictions without running a server:
+Run inference without starting a server:
 
 ```bash
 # Single input
-./build/<model>.encoderfile infer "This is a test sentence"
+./build/my-model.encoderfile infer "Test sentence"
 
 # Multiple inputs
-./build/<model>.encoderfile infer "First text" "Second text" "Third text"
+./build/my-model.encoderfile infer "First" "Second" "Third"
 
 # Save to file
-./build/<model>.encoderfile infer "Test" -o results.json
+./build/my-model.encoderfile infer "Test" -o results.json
 ```
 
-## Using Pre-Exported Models
+### Using Pre-Exported Models
 
-Some models on HuggingFace already have ONNX weights:
+Some HuggingFace models already have ONNX weights:
 
 ```bash
-# Clone a model with ONNX weights
+# Clone model with existing ONNX weights
 git clone https://huggingface.co/optimum/distilbert-base-uncased-finetuned-sst-2-english
 
-# Create config
-cat > sentiment-config.yml <<EOF
+# Build directly
+cat > config.yml <<EOF
 encoderfile:
   name: sentiment
   path: ./distilbert-base-uncased-finetuned-sst-2-english
@@ -337,49 +235,38 @@ encoderfile:
   output_dir: ./build
 EOF
 
-# Build directly
-./target/release/cli build -f sentiment-config.yml
+encoderfile build -f config.yml
 ```
 
 ## Troubleshooting
 
 ### ONNX Export Fails
 
-If `optimum-cli export` fails:
-
-1. Check model compatibility - must be encoder-only
-2. Try a different task type
-3. Check the model's HuggingFace page for known issues
+- Check model compatibility (must be encoder-only)
+- Try a different task type
+- Check the model's HuggingFace page for known issues
 
 ### Build Fails
 
-If the build fails:
-
-1. Ensure all prerequisites are installed
-2. Check that the model directory has `model.onnx` and `tokenizer.json`
-3. Verify the model type matches the architecture
+- Ensure the model directory has `model.onnx`, `tokenizer.json`, and `config.json`
+- Verify the model type matches the architecture
+- See [BUILDING.md](../BUILDING.md) for detailed troubleshooting
 
 ### Server Won't Start
 
-If the server fails to start:
-
-1. Check if ports are already in use
-2. Try different ports with `--http-port` and `--grpc-port`
-3. Check file permissions on the binary
+- Check if ports are already in use
+- Try different ports with `--http-port` and `--grpc-port`
+- Check file permissions: `chmod +x ./build/my-model.encoderfile`
 
 ### Inference Errors
 
-If inference fails:
-
-1. Check input format matches the expected schema
-2. Verify the server is running with `/health` endpoint
-3. Check server logs for error messages
+- Check input format matches the expected schema
+- Verify the server is running
+- Check server logs for error messages
 
 ## Next Steps
 
-Now that you have encoderfile running, explore:
-
-- [**Building Guide**](building.md) - Advanced build options and optimization
-- [**CLI Reference**](cli.md) - Complete command-line documentation
-- [**API Reference**](api-reference.md) - HTTP, gRPC, and MCP APIs
-- [**Contributing**](CONTRIBUTING.md) - Help improve encoderfile
+- **[BUILDING.md](../BUILDING.md)** - Complete build guide with advanced configuration options
+- **[CLI Reference](cli.md)** - Full command-line documentation
+- **[API Reference](api-reference.md)** - REST, gRPC, and MCP API documentation
+- **[Contributing](../CONTRIBUTING.md)** - Help improve encoderfile
