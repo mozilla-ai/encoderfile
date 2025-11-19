@@ -31,7 +31,7 @@ pub struct EncoderfileConfig {
     pub version: String,
     pub path: ModelPath,
     pub model_type: ModelType,
-    #[serde(default = "default_output_dir")]
+    #[serde(default = "default_output_path")]
     pub output_path: PathBuf,
     #[serde(default = "default_cache_dir")]
     pub cache_dir: PathBuf,
@@ -135,9 +135,10 @@ impl ModelPath {
     asset_path!(model_weights_path, "model.onnx", "model weights");
 }
 
-fn default_output_dir() -> PathBuf {
+fn default_output_path() -> PathBuf {
     std::env::current_dir()
         .expect("Can't even find the current dir? Tragic. (no seriously please open an issue)")
+        .join("model.encoderfile")
 }
 
 fn default_cache_dir() -> PathBuf {
