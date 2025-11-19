@@ -9,6 +9,8 @@ dependencies = [
     "optimum[onnxruntime]>=2.0.0",
     "pip>=25.2",
     "protobuf>=6.33.0",
+    "pydantic>=2.12.4",
+    "toml>=0.10.2",
     "transformers>=4.55.0",
 ]
 

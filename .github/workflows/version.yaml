@@ -1,0 +1,197 @@
+name: Version Management
+
+on:
+  push:
+    # uncomment when we're ready for alpha pre-releases
+    # branches:
+    #   - main
+
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Type of version bump to perform"
+        required: true
+        type: choice
+        options:
+          - beta
+          - rc
+          - release
+          - major
+          - minor
+          - patch
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-commit-message:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check trigger event or commit message
+        id: check
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger — always run."
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '\n')
+          echo "Commit message: '$COMMIT_MSG'"
+
+          # Skip version bump if commit is a known non-code change
+          if echo "$COMMIT_MSG" | grep -Eq '^(chore|docs|style|test|ci)(\([^)]+\))?:'; then
+            echo "Skipping: commit is non-code change."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          elif echo "$COMMIT_MSG" | grep -iq 'bump version'; then
+            echo "Skipping: self-referential version bump."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "Commit is code-related — triggering version bump."
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
+  bump-version:
+    needs: check-commit-message
+    if: needs.check-commit-message.outputs.should_run == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          echo "version=$(cat pyproject.toml | grep '^version = ".*"' | cut -d'"' -f2)" >> $GITHUB_OUTPUT
+
+      # Create a new branch for version bump
+      # - name: Create version bump branch
+      #   id: create_branch
+      #   run: |
+      #     BRANCH_NAME="version-bump-$(date +%Y%m%d-%H%M%S)"
+      #     git checkout -b $BRANCH_NAME
+      #     echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      # Handle automatic alpha bump on push to dev
+      - name: Get git hash
+        id: git_hash
+        run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Bump alpha version (on push)
+        if: github.event_name == 'push'
+        run: uv run scripts/bump_version.py alpha --git-hash ${{ steps.git_hash.outputs.hash }}
+
+      # Handle workflow dispatch for beta/rc/release
+      - name: Bump version (beta/rc/release)
+        if: |
+          github.event_name == 'workflow_dispatch' &&
+          (github.event.inputs.version_type == 'beta' ||
+           github.event.inputs.version_type == 'rc' ||
+           github.event.inputs.version_type == 'release')
+        run: uv run scripts/bump_version.py ${{ github.event.inputs.version_type }}
+
+      # Handle workflow dispatch for major/minor/patch
+      - name: Bump version (major/minor/patch)
+        if: |
+          github.event_name == 'workflow_dispatch' &&
+          (github.event.inputs.version_type == 'major' ||
+           github.event.inputs.version_type == 'minor' ||
+           github.event.inputs.version_type == 'patch')
+        run: |
+          if [ "${{ github.event.inputs.version_type }}" = "major" ]; then
+            uv run bump_version.py mjr
+          elif [ "${{ github.event.inputs.version_type }}" = "minor" ]; then
+            uv run bump_version.py mnr
+          else
+            uv run bump_version.py patch
+          fi
+
+      # Get new version after bump
+      - name: Get new version
+        id: new_version
+        run: |
+          echo "version=$(cat pyproject.toml | grep '^version = ".*"' | cut -d'"' -f2)" >> $GITHUB_OUTPUT
+
+      # Update Cargo.lock
+      - name: Update Cargo.lock
+        run: cargo update ptolemy --precise ${{ steps.new_version.outputs.version }}
+
+      # Update uv.lock
+      - name: Update uv.lock
+        run: uv lock
+
+      # Generate appropriate labels based on release type
+      - name: Generate PR labels
+        id: generate_labels
+        run: |
+          # Start with the standard labels
+          LABELS="auto-generated\nversion-bump"
+
+          # Add release type label
+          if [ "${{ github.event_name }}" = "push" ]; then
+            RELEASE_TYPE="alpha"
+          else
+            RELEASE_TYPE="${{ github.event.inputs.version_type }}"
+          fi
+
+          LABELS="$LABELS\n$RELEASE_TYPE"
+
+          # Add prerelease label for alpha/beta/rc
+          if [ "$RELEASE_TYPE" = "alpha" ] || [ "$RELEASE_TYPE" = "beta" ] || [ "$RELEASE_TYPE" = "rc" ]; then
+            LABELS="$LABELS\nprerelease"
+          fi
+
+          echo "labels<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$LABELS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # Create PR
+      - name: Create Pull Request
+        id: create_pr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "version: bump version 🚀 ${{ steps.current_version.outputs.version }} → ${{ steps.new_version.outputs.version }}"
+          title: "version: Version Bump 🚀 ${{ steps.current_version.outputs.version }} → ${{ steps.new_version.outputs.version }}"
+          body: |
+            ## 🎉 Version Bump 🎉
+
+            This PR bumps the version from ${{ steps.current_version.outputs.version }} to ${{ steps.new_version.outputs.version }}.
+
+            ### 🔄 Changes
+            - 📝 Updated version in pyproject.toml
+            - 🔒 Updated Cargo.lock
+
+            ✨ This PR was automatically generated by the Version Management workflow ✨
+
+            ![version bump](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjJmOXBxbGh2Z3BiYXM1NnJhMHdtbmNoaTFxN2xjOGZjZnd1ZGhuMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oEjI53nBYOOEQgDcY/giphy.gif)
+          branch: version/bump-${{ github.run_id }}
+          base: main
+          delete-branch: true
+          add-paths: |
+            pyproject.toml
+            Cargo.lock
+            uv.lock
+            **/pyproject.toml
+            **/Cargo.toml
+          labels: ${{ steps.generate_labels.outputs.labels }}
