@@ -23,6 +23,9 @@ nav:
   - Transforms:
       - Transforms: transforms/index.md
       - Reference: transforms/reference.md
+  - Reference:
+    - Encoderfile Build CLI: reference/encoderfile_util_cli.md
+    - Encoderfile Binary CLI: reference/encoderfile_binary_cli.md
 
 plugins:
   - include-markdown

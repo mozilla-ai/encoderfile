@@ -28,7 +28,7 @@
         "name": {
           "type": "string"
         },
-        "output_dir": {
+        "output_path": {
           "type": "string",
           "default": "/Users/rbesaleli/encoderfile"
         },
