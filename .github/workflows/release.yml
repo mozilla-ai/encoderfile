@@ -119,7 +119,7 @@ jobs:
         uses: ./.github/actions/project-setup
       
       - name: Install target
-        run: rustup component add ${{ matrix.platform.target }}
+        run: rustup target add ${{ matrix.platform.target }}
 
       - name: Build
         run: cargo build --bin encoderfile --release --target ${{ matrix.platform.target }}
