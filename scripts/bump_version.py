@@ -34,7 +34,18 @@ class Pre(StrEnum):
             return 2
         if self == Pre.RELEASE:
             return 3
+    
+    def __gt__(self, other: str) -> bool:
+        return int(self) > int(other)
+    
+    def __lt__(self, other: str) -> bool:
+        return int(self) < int(other)
 
+    def __ge__(self, other: str) -> bool:
+        return int(self) >= int(other)
+    
+    def __le__(self, other: str) -> bool:
+        return int(self) <= int(other)
 
 class Version(BaseModel):
     """Version model."""
@@ -76,82 +87,50 @@ class Version(BaseModel):
 
         return self.base_version
 
-    def __eq__(self, o: object) -> bool:
-        return str(self) == str(o)
+    def bump_pre(self, target: Pre, local: Optional[str] = None):
+        # Can't go backwards without bumping version
+        if target < self.pre:
+            raise ValueError(
+                f"Cannot move from {self.pre} to {target} without bumping base version"
+            )
 
-    def __hash__(self) -> int:
-        return hash(str(self))
+        # alpha always bumps counter
+        if target == Pre.ALPHA:
+            self.local = local
+            if self.n is None:
+                self.n = 0
+            self.n += 1
 
-    def __gt__(self, o: "Version") -> bool:
-        if self.mjr != o.mjr:
-            return self.mjr > o.mjr
-        if self.mnr != o.mnr:
-            return self.mnr > o.mnr
-        if self.patch != o.patch:
-            return self.patch > o.patch
+        # beta or rc should preserve `n`, but switch to 0 if absent if alpha isn't used
+        elif target in {Pre.BETA, Pre.RC}:
+            if self.n is None:
+                self.n = 0
+            self.local = None
 
-        if self.n == o.n:
-            return self.pre > o.pre
+        # release drops counter & local
+        elif target == Pre.RELEASE:
+            self.n = None
+            self.local = None
 
-        if self.base_version == o.base_version and self.pre != o.pre:
-            return self.pre == Pre.RELEASE
+        self.pre = target
+        return self
 
-        return self.n > o.n
-
-    def __ge__(self, o: "Version") -> bool:
-        return self > o or self == o
-
-    def __lt__(self, o: "Version") -> bool:
-        return not self >= o
-
-    def __le__(self, o: "Version") -> bool:
-        return not self > o
-
-    def __mod__(self, o: "Version") -> "Version":
-        return self.base_version == o.base_version
-
-    def _bump_n(self):
-        if self.n is None:
-            self.n = 0
-        self.n += 1
 
     def bump_dev(self, local: str) -> "Version":
         """Bump dev version."""
-        self.local = local
-        self._bump_n()
-        self.pre = Pre.ALPHA
-        return self
+        return self.bump_pre(Pre.ALPHA, local)
 
     def bump_beta(self) -> "Version":
         """Bump beta version."""
-        if self.n is None:
-            raise ValueError(
-                "You have to have some dev commits before creating a beta version"
-            )
-        self.pre = Pre.BETA
-        self.local = None
-        return self
+        return self.bump_pre(Pre.BETA)
 
     def bump_rc(self) -> "Version":
         """Bump rc version."""
-        if self.n is None:
-            raise ValueError(
-                "You have to have some dev commits before creating a rc version"
-            )
-        self.pre = Pre.RC
-        self.local = None
-        return self
+        return self.bump_pre(Pre.RC)
 
     def bump_release(self) -> "Version":
         """Bump release version."""
-        if self.n is None:
-            raise ValueError(
-                "You have to have some dev commits before creating a release version"
-            )
-        self.pre = Pre.RELEASE
-        self.local = None
-        self.n = None
-        return self
+        return self.bump_pre(Pre.RELEASE)
 
     def bump_mjr(self) -> "Version":
         """Bump major version."""
