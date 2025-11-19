@@ -600,6 +600,6 @@ sentiment-analyzer serve --http-port 8080
 ## Additional Resources
 
 - [Getting Started Guide](getting-started.md) - Step-by-step tutorial
-- [Building Guide](building.md) - Advanced build options and optimization
 - [API Reference](api-reference.md) - HTTP/gRPC/MCP API documentation
+- [BUILDING.md](../BUILDING.md) - Complete build guide with advanced configuration
 - [GitHub Repository](https://github.com/mozilla-ai/encoderfile) - Source code and issues

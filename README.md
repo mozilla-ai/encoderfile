@@ -323,7 +323,6 @@ Run as a Model Context Protocol server:
 - **[Building Guide](BUILDING.md)** - Build encoderfiles from ONNX models
 - **[CLI Reference](https://mozilla-ai.github.io/encoderfile/cli/)** - Complete command-line documentation
 - **[API Reference](https://mozilla-ai.github.io/encoderfile/api-reference/)** - REST, gRPC, and MCP API docs
-- **[Architecture Guide](https://mozilla-ai.github.io/encoderfile/building/)** - Advanced build options
 
 ## 🛠️ Building Custom Encoderfiles
 
