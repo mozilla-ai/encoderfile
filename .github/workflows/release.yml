@@ -65,6 +65,13 @@ jobs:
         uses: ./.github/actions/project-setup
         with:
           target: ${{ matrix.target }}
+      
+      - name: Debug rustup targets
+        run: |
+          rustup target list --installed
+          echo "-----"
+          echo "Default toolchain:"
+          rustup show
 
       - name: Build Encoderfile CLI
         run: cargo build --bin encoderfile --target ${{ matrix.target }}
