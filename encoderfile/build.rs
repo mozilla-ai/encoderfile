@@ -25,5 +25,5 @@ fn get_local_encoderfile_dep() -> String {
 }
 
 fn get_versioned_encoderfile_dep() -> String {
-    format!("version = {}", env!("CARGO_PKG_VERSION"))
+    format!("version = \"{}\"", env!("CARGO_PKG_VERSION"))
 }
