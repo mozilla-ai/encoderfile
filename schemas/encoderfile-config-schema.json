@@ -30,7 +30,7 @@
         },
         "output_path": {
           "type": "string",
-          "default": "/Users/rbesaleli/encoderfile"
+          "default": "/Users/rbesaleli/encoderfile/model.encoderfile"
         },
         "path": {
           "$ref": "#/$defs/ModelPath"

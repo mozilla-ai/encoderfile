@@ -27,10 +27,10 @@ Build an encoderfile.
 
 ###### **Options:**
 
-* `-f <CONFIG>` — Path to config file.
-* `-o`, `--output-path <OUTPUT_PATH>` — Output path (e.g., `./my_model.encoderfile`)
-* `--cache-dir <CACHE_DIR>` — Cache directory. This is used for build artifacts.
-* `--no-build` — Skips build stage. Only generates files to directory in `cache_dir`.
+* `-f <CONFIG>` — Path to config file. Required.
+* `-o`, `--output-path <OUTPUT_PATH>` — Output path, e.g., `./my_model.encoderfile`. Optional
+* `--cache-dir <CACHE_DIR>` — Cache directory. This is used for build artifacts. Optional.
+* `--no-build` — Skips build stage. Only generates files to directory in `cache_dir`. Defaults to False.
 
 
 
