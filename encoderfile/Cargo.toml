@@ -1,10 +1,3 @@
-[package]
-name = "encoderfile"
-version = "0.1.0"
-edition = "2024"
-license = "Apache-2.0"
-license-file = "../LICENSE"
-
 [[bin]]
 name = "cli"
 path = "bin/cli.rs"
@@ -16,29 +9,48 @@ path = "bin/generate_encoderfile_config_schema.rs"
 [[bin]]
 name = "generate-encoderfile-cli-docs"
 path = "bin/generate_cli_docs.rs"
-required-features = ["_internal"]
+required-features = [ "_internal",]
+
+[package]
+name = "encoderfile"
+version = "0.1.0-beta.1"
+edition = "2024"
+license = "Apache-2.0"
+license-file = "../LICENSE"
 
 [dependencies]
 anyhow = "1.0.100"
 clap = "4.5.52"
 clap_derive = "4.5.49"
 directories = "6.0.0"
-figment = {version = "0.10.19", features = ["env", "serde_yaml", "yaml"]}
 lazy_static = "1.5.0"
 schemars = "1.1.0"
-serde = { version = "1.0.228", features = ["serde_derive"] }
 serde_json = "1.0.145"
 sha2 = "0.10.9"
 tera = "1.20.1"
-clap-markdown = { version = "0.1.5", optional = true }
+
+[features]
+bench = []
+_internal = [ "clap-markdown",]
+
+[dev-dependencies]
+tempfile = "3.23.0"
+
+[dependencies.figment]
+version = "0.10.19"
+features = [ "env", "serde_yaml", "yaml",]
+
+[dependencies.serde]
+version = "1.0.228"
+features = [ "serde_derive",]
+
+[dependencies.clap-markdown]
+version = "0.1.5"
+optional = true
 
 [dependencies.ort]
 version = "=2.0.0-rc.10"
 
-[features]
-bench = []
-_internal = ["clap-markdown"]
-
-[dev-dependencies]
-tempfile = "3.23.0"
-uuid = { version = "1.18.1", features = ["v4"] }
+[dev-dependencies.uuid]
+version = "1.18.1"
+features = [ "v4",]
