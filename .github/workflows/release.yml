@@ -169,7 +169,7 @@ jobs:
 
 
   create-release:
-    needs: [tag, build-encoderfile]
+    needs: [tag, build-encoderfile, publish-encoderfile-core]
     runs-on: ubuntu-latest
     permissions:
       contents: write
