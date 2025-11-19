@@ -2,6 +2,19 @@ encoderfile:
   name: my-model-2
   path: models/token_classification
   model_type: token_classification
-  output_dir: ./my-model-2.encoderfile
-  transform:
-    path: transforms/token_classification/softmax_logits.lua
+  output_path: ./my-model-2.encoderfile
+  transform: |
+    --- Applies a softmax across token classification logits.
+    --- Each token classification is normalized independently.
+    --- 
+    --- Args:
+    ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
+    ---                 The softmax is applied along the third axis (n_labels).
+    ---
+    --- Returns:
+    ---   Tensor: The input tensor with softmax-normalized embeddings.
+    ---@param arr Tensor
+    ---@return Tensor
+    function Postprocess(arr)
+        return arr:softmax(3)
+    end
