@@ -85,8 +85,6 @@ jobs:
           fi
           
       - name: Create tag
-        # Only create tag if this is a PR close, not if we're manually triggered
-        if: ${{ github.event_name == 'pull_request' }}
         run: |
           # Check if tag already exists
           if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
@@ -123,8 +121,50 @@ jobs:
       - name: Build
         run: cargo build --bin encoderfile --release --target ${{ matrix.platform.target }}
 
-      - name: Upload built binary
+      - name: Create release tarball
+        run: |
+          VERSION="${{ needs.release-and-publish.outputs.version }}"
+          PLATFORM="${{ matrix.platform.target }}"
+
+          mkdir -p release
+
+          # Copy binary and docs
+          cp target/${PLATFORM}/release/encoderfile release/encoderfile
+          cp README.md release/README.md
+          cp LICENSE release/LICENSE
+          test -f THIRDPARTY.md && cp THIRDPARTY.md release/THIRDPARTY.md
+
+          # Create tarball
+          TAR_NAME="encoderfile-v${VERSION}-${PLATFORM}.tar.gz"
+          tar -czf "${TAR_NAME}" -C release .
+
+          echo "TAR_NAME=${TAR_NAME}" >> $GITHUB_ENV
+
+      - name: Upload release tarball
         uses: actions/upload-artifact@v4
         with:
           name: encoderfile-${{ matrix.platform.target }}
-          path: target/${{ matrix.platform.target }}/release/encoderfile
+          path: encoderfile-v${{ needs.release-and-publish.outputs.version }}-${{ matrix.platform.target }}.tar.gz
+
+
+  create-release:
+    needs: [release-and-publish, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.release-and-publish.outputs.version }}
+          name: v${{ needs.release-and-publish.outputs.version }}
+          prerelease: ${{ needs.release-and-publish.outputs.prerelease }}
+          files: dist/**/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
