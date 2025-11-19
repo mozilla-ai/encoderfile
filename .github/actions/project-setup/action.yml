@@ -1,5 +1,6 @@
 name: "Project Setup"
 description: "Shared environment setup for CI"
+
 inputs:
   toolchain:
     description: "Rust toolchain to install"
@@ -9,19 +10,50 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Rust toolchain
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: ${{ inputs.toolchain }}
 
+    # Python
     - uses: actions/setup-python@v5
       with:
         python-version: "3.13"
 
-    - name: Install system dependencies
+    # ----- OS-Specific System Dependencies -----
+
+    # Linux deps
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y protobuf-compiler libssl-dev pkg-config cmake zlib1g-dev libdw-dev binutils-dev libelf-dev
+        sudo apt-get install -y \
+          protobuf-compiler \
+          libssl-dev \
+          pkg-config \
+          cmake \
+          zlib1g-dev \
+          libdw-dev \
+          binutils-dev \
+          libelf-dev
+
+    # macOS deps (Homebrew)
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew update
+        brew install \
+          protobuf \
+          openssl@3 \
+          pkg-config \
+          cmake \
+          zlib \
+          libelf \
+          binutils || true  # binutils conflicts with Apple toolchain, so ignore failure
+
+    # ----- Universal steps -----
 
     - name: Install uv
       shell: bash
