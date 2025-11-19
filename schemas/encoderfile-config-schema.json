@@ -19,8 +19,10 @@
           "default": true
         },
         "cache_dir": {
-          "type": "string",
-          "default": "/Users/rbesaleli/Library/Caches/com.mozilla-ai.encoderfile"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "model_type": {
           "$ref": "#/$defs/ModelType"
@@ -29,8 +31,10 @@
           "type": "string"
         },
         "output_path": {
-          "type": "string",
-          "default": "/Users/rbesaleli/encoderfile/model.encoderfile"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "path": {
           "$ref": "#/$defs/ModelPath"
