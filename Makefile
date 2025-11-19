@@ -5,7 +5,7 @@ setup:
 	@echo "creating .venv..."
 	@uv sync --locked
 	@echo "downloading test models..."
-	@uv run -m encoderbuild.utils.download_test_models
+	@uv run scripts/download_test_models.py
 
 .PHONY: format
 format:
