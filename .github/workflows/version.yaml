@@ -1,4 +1,4 @@
-name: Version Management
+name: version management
 
 on:
   push:
