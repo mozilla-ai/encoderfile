@@ -1,6 +1,7 @@
 """
 Bump semantic version
 """
+
 from typing import Optional, List, Tuple
 import sys
 import os
@@ -17,6 +18,7 @@ v?(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.(\d+)(?:\+(\w+))?)?
 """.strip()
 )
 
+
 class Pre(StrEnum):
     ALPHA = "alpha"
     BETA = "beta"
@@ -32,6 +34,7 @@ class Pre(StrEnum):
             return 2
         if self == Pre.RELEASE:
             return 3
+
 
 class Version(BaseModel):
     """Version model."""
@@ -189,6 +192,7 @@ class Version(BaseModel):
         self.local = None
         return self
 
+
 def find_version_files(start_path: str = ".") -> List[Path]:
     """Recursively find all pyproject.toml and Cargo.toml files except root pyproject.toml."""
     version_files = []
@@ -201,6 +205,7 @@ def find_version_files(start_path: str = ".") -> List[Path]:
             version_files.append(path)
 
     return version_files
+
 
 def get_root_version(pyproject_path: Path) -> Version:
     """Get version from root pyproject.toml."""
@@ -216,6 +221,7 @@ def get_root_version(pyproject_path: Path) -> Version:
         raise ValueError(f"Root pyproject.toml not found at {pyproject_path}") from e
     except Exception as e:
         raise ValueError(f"Error reading root version: {str(e)}") from e
+
 
 def update_version_in_file(file_path: Path, new_version: Version) -> Tuple[bool, str]:
     """Update version in a TOML file."""
@@ -240,6 +246,7 @@ def update_version_in_file(file_path: Path, new_version: Version) -> Tuple[bool,
         return True, f"Updated version to {new_version}"
     except Exception as e:
         return False, f"Error updating file: {str(e)}"
+
 
 def main():
     """Main function."""
@@ -316,7 +323,7 @@ def main():
             if os.path.abspath(file_path) == os.path.abspath(root_pyproject):
                 continue
 
-            if os.path.abspath(file_path) == os.path.abspath('./Cargo.toml'):
+            if os.path.abspath(file_path) == os.path.abspath("./Cargo.toml"):
                 continue
 
             # don't update files in .venv
@@ -334,6 +341,7 @@ def main():
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
