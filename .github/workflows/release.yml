@@ -99,8 +99,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
       - name: Cargo publish (dry-run)
         run: cargo publish -p encoderfile-core --dry-run
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
 
       - name: Cargo publish
         run: cargo publish -p encoderfile-core
