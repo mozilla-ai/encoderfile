@@ -21,3 +21,5 @@ cargo build \
     --release \
     -target x86_64-apple-darwin
 ```
+
+The resulting binary will be in `target/x86_64-apple-darwin/release/encoderfile`.
