@@ -93,6 +93,19 @@ jobs:
             git tag -a "v${VERSION}" -m "Version ${VERSION}"
             git push origin "v${VERSION}"
           fi
+  
+  publish-encoderfile-core:
+    needs: tag
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cargo publish (dry-run)
+        run: cargo publish -p encoderfile-core --dry-run
+
+      - name: Cargo publish
+        run: cargo publish -p encoderfile-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   build-encoderfile:
     needs: tag
