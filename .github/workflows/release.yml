@@ -12,7 +12,7 @@ permissions:
   packages: write
 
 jobs:
-  release-and-publish:
+  tag:
     # Only run this job on merged PRs with specific labels or manual dispatch
     if: >
       github.event_name == 'workflow_dispatch' ||
@@ -95,15 +95,15 @@ jobs:
           fi
 
   build-macos:
-    needs: release-and-publish
+    needs: tag
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
         platform:
           - runner: macos-13
-            target: x86_64
+            target: x86_64-apple-darwin
           - runner: macos-14
-            target: aarch64
+            target: aarch64-apple-darwin
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -123,7 +123,7 @@ jobs:
 
       - name: Create release tarball
         run: |
-          VERSION="${{ needs.release-and-publish.outputs.version }}"
+          VERSION="${{ needs.tag.outputs.version }}"
           PLATFORM="${{ matrix.platform.target }}"
 
           mkdir -p release
@@ -144,11 +144,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: encoderfile-${{ matrix.platform.target }}
-          path: encoderfile-v${{ needs.release-and-publish.outputs.version }}-${{ matrix.platform.target }}.tar.gz
+          path: encoderfile-v${{ needs.tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
 
 
   create-release:
-    needs: [release-and-publish, build-macos]
+    needs: [tag, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -162,9 +162,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.release-and-publish.outputs.version }}
-          name: v${{ needs.release-and-publish.outputs.version }}
-          prerelease: ${{ needs.release-and-publish.outputs.prerelease }}
+          tag_name: v${{ needs.tag.outputs.version }}
+          name: v${{ needs.tag.outputs.version }}
+          prerelease: ${{ needs.tag.outputs.prerelease }}
           files: dist/**/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
