@@ -6,6 +6,10 @@ inputs:
     description: "Rust toolchain to install"
     required: false
     default: "stable"
+  extra_targets:
+    description: "Additional Rust targets to install (comma-separated)"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -14,6 +18,16 @@ runs:
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: ${{ inputs.toolchain }}
+    
+    - name: Install additional Rust targets
+      if: inputs.extra_targets != ''
+      shell: bash
+      run: |
+        IFS=',' read -ra TARGETS <<< "${{ inputs.extra_targets }}"
+        for t in "${TARGETS[@]}"; do
+          echo "Installing Rust target: $t"
+          rustup target add "$t"
+        done
 
     # Python
     - uses: actions/setup-python@v5

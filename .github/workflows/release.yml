@@ -46,22 +46,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
-
-          - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: macos-latest
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - os: macOS-15
             target: aarch64-apple-darwin
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-    
+
+      - name: Install Linux cross deps
+        if: runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+
       - name: Project setup
         uses: ./.github/actions/project-setup
+        with:
+          extra_targets: ${{ matrix.target }}
 
       - name: Build Encoderfile CLI
         run: cargo build --bin encoderfile --target ${{ matrix.target }}
