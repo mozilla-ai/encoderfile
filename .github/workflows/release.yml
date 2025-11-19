@@ -1,0 +1,130 @@
+name: Tag, Release, and Publish
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release-and-publish:
+    # Only run this job on merged PRs with specific labels or manual dispatch
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && 
+      (contains(github.event.pull_request.labels.*.name, 'beta') || 
+       contains(github.event.pull_request.labels.*.name, 'rc') || 
+       contains(github.event.pull_request.labels.*.name, 'patch') || 
+       contains(github.event.pull_request.labels.*.name, 'minor') || 
+       contains(github.event.pull_request.labels.*.name, 'major')))
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Set up Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Get current version from pyproject.toml/Cargo.toml
+        id: get-version
+        run: |
+          # Try to find version in pyproject.toml first
+          if [ -f "pyproject.toml" ]; then
+            VERSION=$(cat pyproject.toml | grep '^version = ".*"' | cut -d'"' -f2)
+          # Then try Cargo.toml
+          elif [ -f "ptolemy-py/Cargo.toml" ]; then
+            VERSION=$(cat ptolemy-py/Cargo.toml | grep '^version = ".*"' | cut -d'"' -f2 | head -1 | sed 's/+.*//')
+          else
+            echo "Could not find version in pyproject.toml or Cargo.toml"
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Current version: ${VERSION}"
+      
+      - name: Determine release type
+        id: determine-release-type
+        # Only run this for PR merge events
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          # Determine release type based on PR labels
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]]; then
+            echo "RELEASE_TYPE=beta" >> $GITHUB_ENV
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
+            echo "RELEASE_TYPE=release candidate" >> $GITHUB_ENV
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TYPE=release" >> $GITHUB_ENV
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          fi
+          
+          # Determine version type based on PR labels
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'major') }}" == "true" ]]; then
+            echo "VERSION_TYPE=major" >> $GITHUB_ENV
+          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" == "true" ]]; then
+            echo "VERSION_TYPE=minor" >> $GITHUB_ENV
+          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
+            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+          else
+            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+          fi
+          
+      - name: Create tag
+        # Only create tag if this is a PR close, not if we're manually triggered
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          # Check if tag already exists
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists, skipping tag creation"
+          else
+            git tag -a "v${VERSION}" -m "Version ${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+
+  build-macos:
+    needs: release-and-publish
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      matrix:
+        platform:
+          - runner: macos-13
+            target: x86_64
+          - runner: macos-14
+            target: aarch64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Install macOS dependencies
+        run: |
+          brew install openssl@3 protobuf pkg-config
+          echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(brew --prefix openssl@3)/lib/pkgconfig" >> $GITHUB_ENV
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+
+      - name: Build
+        run: cargo build --bin encoderfile --release --target ${{ matrix.platform.target }}
+
+      - name: Upload built binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: encoderfile-${{ matrix.platform.target }}
+          path: target/${{ matrix.platform.target }}/release/encoderfile

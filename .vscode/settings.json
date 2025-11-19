@@ -18,6 +18,10 @@
     "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format",
     "tag:yaml.org,2002:python/object/apply:pymdownx.slugs.slugify mapping"
   ],
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
   "Lua.workspace.library": [
     "${workspaceFolder}/encoderfile/stubs/lua"
   ],
