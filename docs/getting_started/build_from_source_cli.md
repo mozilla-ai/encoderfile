@@ -2,14 +2,15 @@
 
 Encoderfile CLI can be built on most major platforms using a standard Rust toolchain. Cross-compilation is technically possible, but ONNX Runtime currently makes it non-trivial. Improved cross-compile support is on our roadmap; for now, we strongly recommend building **on the same architecture you intend to run on**.
 
-### Important Note About musl
-ONNX Runtime does **not** officially support musl-based Linux distributions at this time. Builds may fail or behave unpredictably See [Issue #69](https://github.com/mozilla-ai/encoderfile/issues/69) for updates on this.
+!!! warning "Important Note About Musl/Alpine"
+    ONNX Runtime does **not** officially support musl-based Linux distributions at this time. Builds may fail or behave unpredictably See [Issue #69](https://github.com/mozilla-ai/encoderfile/issues/69) for updates on this.
 
-## Cross-compilation — MacOS
+## Cross-compilation — MacOS (Apple Silicon)
 
-Building on MacOS for other MacOS targets is relatively straightforward.
+Building on M1+ MacOS for other MacOS targets is relatively straightforward.
 
-On Apple Silicon macs (M1+), to cross-compile to `x86_64` architectures:
+### `aarch64-apple-darwin` ➡️ `x86_64-apple-darwin`
+To cross-compile to `x86_64` architectures, run:
 
 ```bash
 # install rustup component

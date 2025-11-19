@@ -34,3 +34,6 @@ plugins:
 markdown_extensions:
   - pymdownx.snippets:
       check_paths: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
