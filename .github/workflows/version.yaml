@@ -134,7 +134,7 @@ jobs:
 
       # Update Cargo.lock
       - name: Update Cargo.lock
-        run: cargo update ptolemy --precise ${{ steps.new_version.outputs.version }}
+        run: cargo update --workspace --precise ${{ steps.new_version.outputs.version }}
 
       # Update uv.lock
       - name: Update uv.lock
