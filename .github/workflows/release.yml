@@ -105,11 +105,14 @@ jobs:
 
       - name: Cargo publish (dry-run)
         run: cargo publish -p encoderfile-core --dry-run
+        env:
+          ENCODERFILE_DEV: "false"
 
       - name: Cargo publish
         run: cargo publish -p encoderfile-core
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          ENCODERFILE_DEV: "false"
 
   build-encoderfile:
     needs: tag
@@ -136,6 +139,8 @@ jobs:
 
       - name: Build
         run: cargo build --bin encoderfile --release --target ${{ matrix.platform.target }}
+        env:
+          ENCODERFILE_DEV: "false"
 
       - name: Create release tarball
         run: |
