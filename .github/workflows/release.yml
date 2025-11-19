@@ -94,7 +94,7 @@ jobs:
             git push origin "v${VERSION}"
           fi
 
-  build-macos:
+  build-encoderfile:
     needs: tag
     runs-on: ${{ matrix.platform.runner }}
     strategy:
@@ -104,6 +104,10 @@ jobs:
             target: x86_64-apple-darwin
           - runner: macos-14
             target: aarch64-apple-darwin
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
 
@@ -143,7 +147,7 @@ jobs:
 
 
   create-release:
-    needs: [tag, build-macos]
+    needs: [tag, build-encoderfile]
     runs-on: ubuntu-latest
     permissions:
       contents: write
