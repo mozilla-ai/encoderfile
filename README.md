@@ -4,27 +4,24 @@
   </picture>
 </p>
 
-
-<!-- <div align="center">
-
-[![pre-commit](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)
-[![unit_tests](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)
-[![benchmarks](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg)
-
-[![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge)
-[![codecov](https://codecov.io/gh/mozilla-ai/encoderfile/graph/badge.svg?token=45KUDEYD8Z)](https://codecov.io/gh/mozilla-ai/encoderfile)
-
-</div> -->
+<p align="center">
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yml/badge.svg" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml/badge.svg" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml/badge.svg" />
+  </a>
+</p>
 
 <p align="center">
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg" />
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/release.yml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/release.yml/badge.svg" />
   </a>
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml/badge.svg" />
-  </a>
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml/badge.svg" />
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/version.yml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/version.yml/badge.svg" />
   </a>
 </p>
 
