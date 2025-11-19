@@ -53,7 +53,7 @@ jobs:
             echo "Could not find version in pyproject.toml or Cargo.toml"
             exit 1
           fi
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           echo "Current version: ${VERSION}"
       
       - name: Determine release type
@@ -63,25 +63,25 @@ jobs:
         run: |
           # Determine release type based on PR labels
           if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]]; then
-            echo "RELEASE_TYPE=beta" >> $GITHUB_ENV
-            echo "PRERELEASE=true" >> $GITHUB_ENV
+            echo "RELEASE_TYPE=beta" >> $GITHUB_OUTPUT
+            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
           elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
-            echo "RELEASE_TYPE=release candidate" >> $GITHUB_ENV
-            echo "PRERELEASE=true" >> $GITHUB_ENV
+            echo "RELEASE_TYPE=release candidate" >> $GITHUB_OUTPUT
+            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
           else
-            echo "RELEASE_TYPE=release" >> $GITHUB_ENV
-            echo "PRERELEASE=false" >> $GITHUB_ENV
+            echo "RELEASE_TYPE=release" >> $GITHUB_OUTPUT
+            echo "PRERELEASE=false" >> $GITHUB_OUTPUT
           fi
           
           # Determine version type based on PR labels
           if [[ "${{ contains(github.event.pull_request.labels.*.name, 'major') }}" == "true" ]]; then
-            echo "VERSION_TYPE=major" >> $GITHUB_ENV
+            echo "VERSION_TYPE=major" >> $GITHUB_OUTPUT
           elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" == "true" ]]; then
-            echo "VERSION_TYPE=minor" >> $GITHUB_ENV
+            echo "VERSION_TYPE=minor" >> $GITHUB_OUTPUT
           elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
-            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+            echo "VERSION_TYPE=patch" >> $GITHUB_OUTPUT
           else
-            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+            echo "VERSION_TYPE=patch" >> $GITHUB_OUTPUT
           fi
    
       # - name: Create tag
