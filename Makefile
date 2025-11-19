@@ -15,7 +15,7 @@ format:
 ,PHONY: licenses
 licenses:
 	@echo "Generating licenses..."
-	@cargo about generate about.hbs > THIRDPARTY.html
+	@cargo about generate about.hbs > THIRDPARTY.md
 
 .PHONY:
 clippy:
