@@ -106,7 +106,7 @@ impl BuildArgs {
             }
 
             // export encoderfile to output dir
-            std::fs::rename(generated_path, &config.encoderfile.output_path())?;
+            std::fs::rename(generated_path, config.encoderfile.output_path())?;
         }
 
         Ok(())
