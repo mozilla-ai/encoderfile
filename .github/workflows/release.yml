@@ -64,7 +64,7 @@ jobs:
       - name: Project setup
         uses: ./.github/actions/project-setup
         with:
-          extra_targets: ${{ matrix.target }}
+          target: ${{ matrix.target }}
 
       - name: Build Encoderfile CLI
         run: cargo build --bin encoderfile --target ${{ matrix.target }}
