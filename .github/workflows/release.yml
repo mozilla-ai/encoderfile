@@ -12,7 +12,7 @@ permissions:
   packages: write
 
 jobs:
-  tag:
+  create-tag:
     # Only run this job on merged PRs with specific labels or manual dispatch
     if: >
       github.event_name == 'workflow_dispatch' ||
@@ -83,19 +83,19 @@ jobs:
           else
             echo "VERSION_TYPE=patch" >> $GITHUB_ENV
           fi
-          
-      - name: Create tag
-        run: |
-          # Check if tag already exists
-          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-            echo "Tag v${VERSION} already exists, skipping tag creation"
-          else
-            git tag -a "v${VERSION}" -m "Version ${VERSION}"
-            git push origin "v${VERSION}"
-          fi
+   
+      # - name: Create tag
+      #   run: |
+      #     # Check if tag already exists
+      #     if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+      #       echo "Tag v${VERSION} already exists, skipping tag creation"
+      #     else
+      #       git tag -a "v${VERSION}" -m "Version ${VERSION}"
+      #       git push origin "v${VERSION}"
+      #     fi
   
   publish-encoderfile-core:
-    needs: tag
+    needs: create-tag
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
           ENCODERFILE_DEV: "false"
 
   build-encoderfile:
-    needs: tag
+    needs: create-tag
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -169,7 +169,7 @@ jobs:
 
 
   create-release:
-    needs: [tag, build-encoderfile, publish-encoderfile-core]
+    needs: [create-tag, build-encoderfile, publish-encoderfile-core]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -183,9 +183,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.tag.outputs.version }}
-          name: v${{ needs.tag.outputs.version }}
-          prerelease: ${{ needs.tag.outputs.prerelease }}
+          tag_name: v${{ needs.create-tag.outputs.version }}
+          name: v${{ needs.create-tag.outputs.version }}
+          prerelease: ${{ needs.create-tag.outputs.prerelease }}
           files: dist/**/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
