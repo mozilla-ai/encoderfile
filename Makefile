@@ -1,7 +1,5 @@
 .PHONY: setup
 setup:
-# 	@echo "installing dependencies..."
-# 	@cargo install cargo-bundle-licenses
 	@echo "creating .venv..."
 	@uv sync --locked
 	@echo "downloading test models..."
@@ -17,9 +15,7 @@ format:
 ,PHONY: licenses
 licenses:
 	@echo "Generating licenses..."
-	@cargo bundle-licenses \
-		--format yaml \
-		--output THIRDPARTY.yml
+	@cargo about generate about.hbs > THIRDPARTY.html
 
 .PHONY:
 clippy:
