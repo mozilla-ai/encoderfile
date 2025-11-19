@@ -15,7 +15,6 @@ name = "encoderfile-core"
 version = "0.1.0-beta.1"
 edition = "2024"
 license = "Apache-2.0"
-license-file = "../LICENSE"
 
 [features]
 bench = []
