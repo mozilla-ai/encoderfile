@@ -34,18 +34,19 @@ class Pre(StrEnum):
             return 2
         if self == Pre.RELEASE:
             return 3
-    
+
     def __gt__(self, other: str) -> bool:
         return int(self) > int(other)
-    
+
     def __lt__(self, other: str) -> bool:
         return int(self) < int(other)
 
     def __ge__(self, other: str) -> bool:
         return int(self) >= int(other)
-    
+
     def __le__(self, other: str) -> bool:
         return int(self) <= int(other)
+
 
 class Version(BaseModel):
     """Version model."""
@@ -87,9 +88,17 @@ class Version(BaseModel):
 
         return self.base_version
 
+    def bump_n(self):
+        if self.n is None:
+            self.n = 0
+
+        self.n += 1
+
     def bump_pre(self, target: Pre, local: Optional[str] = None):
         # Can't go backwards without bumping version
-        if target < self.pre:
+        # Allow RELEASE → anything
+        # Only forbid moving backward *within prerelease stages*
+        if self.pre != Pre.RELEASE and target < self.pre:
             raise ValueError(
                 f"Cannot move from {self.pre} to {target} without bumping base version"
             )
@@ -97,14 +106,15 @@ class Version(BaseModel):
         # alpha always bumps counter
         if target == Pre.ALPHA:
             self.local = local
-            if self.n is None:
-                self.n = 0
-            self.n += 1
+            self.bump_n()
 
         # beta or rc should preserve `n`, but switch to 0 if absent if alpha isn't used
         elif target in {Pre.BETA, Pre.RC}:
-            if self.n is None:
+            # if target > curr, then counter should go back to 0
+            if target > self.pre:
                 self.n = 0
+
+            self.bump_n()
             self.local = None
 
         # release drops counter & local
@@ -114,7 +124,6 @@ class Version(BaseModel):
 
         self.pre = target
         return self
-
 
     def bump_dev(self, local: str) -> "Version":
         """Bump dev version."""
