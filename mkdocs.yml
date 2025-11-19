@@ -19,7 +19,8 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started: getting_started.md
+  - Getting Started:
+    - Building from Source — CLI: getting_started/build_from_source_cli.md
   - Transforms:
       - Transforms: transforms/index.md
       - Reference: transforms/reference.md
