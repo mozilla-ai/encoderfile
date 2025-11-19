@@ -57,11 +57,11 @@ impl BuildArgs {
         let mut config = super::config::Config::load(&self.config)?;
 
         if let Some(o) = &self.output_path {
-            config.encoderfile.output_path = o.to_path_buf();
+            config.encoderfile.output_path = Some(o.to_path_buf());
         }
 
         if let Some(cache_dir) = &self.cache_dir {
-            config.encoderfile.cache_dir = cache_dir.to_path_buf();
+            config.encoderfile.cache_dir = Some(cache_dir.to_path_buf());
         }
 
         if self.no_build {
@@ -106,7 +106,7 @@ impl BuildArgs {
             }
 
             // export encoderfile to output dir
-            std::fs::rename(generated_path, &config.encoderfile.output_path)?;
+            std::fs::rename(generated_path, &config.encoderfile.output_path())?;
         }
 
         Ok(())

@@ -31,16 +31,32 @@ pub struct EncoderfileConfig {
     pub version: String,
     pub path: ModelPath,
     pub model_type: ModelType,
-    #[serde(default = "default_output_path")]
-    pub output_path: PathBuf,
-    #[serde(default = "default_cache_dir")]
-    pub cache_dir: PathBuf,
+    pub output_path: Option<PathBuf>,
+    pub cache_dir: Option<PathBuf>,
     pub transform: Option<Transform>,
     #[serde(default = "default_build")]
     pub build: bool,
 }
 
 impl EncoderfileConfig {
+    pub fn output_path(&self) -> PathBuf {
+        match &self.output_path {
+            Some(p) => p.to_path_buf(),
+            None => {
+                println!("No output path detected. Saving to current directory...");
+                std::env::current_dir()
+                    .expect("Can't even find the current dir? Tragic. (no seriously please open an issue)")
+                    .join(format!("{}.encoderfile", self.name))
+            }
+        }
+    }
+
+    pub fn cache_dir(&self) -> PathBuf {
+        match &self.cache_dir {
+            Some(c) => c.to_path_buf(),
+            None => default_cache_dir(),
+        }
+    }
     pub fn to_tera_ctx(&self) -> Result<Context> {
         let mut ctx = Context::new();
 
@@ -56,7 +72,7 @@ impl EncoderfileConfig {
         ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
         ctx.insert("model_config_path", &self.path.model_config_path()?);
         ctx.insert("transform", &transform);
-        ctx.insert("encoderfile_version", &encoderfile_core_version());
+        ctx.insert("encoderfile_version_str", &encoderfile_core_version());
 
         Ok(ctx)
     }
@@ -64,7 +80,7 @@ impl EncoderfileConfig {
     pub fn get_generated_dir(&self) -> PathBuf {
         let filename_hash = Sha256::digest(self.name.as_bytes());
 
-        self.cache_dir
+        self.cache_dir()
             .join(format!("encoderfile-{:x}", filename_hash))
     }
 }
@@ -135,12 +151,6 @@ impl ModelPath {
     asset_path!(model_weights_path, "model.onnx", "model weights");
 }
 
-fn default_output_path() -> PathBuf {
-    std::env::current_dir()
-        .expect("Can't even find the current dir? Tragic. (no seriously please open an issue)")
-        .join("model.encoderfile")
-}
-
 fn default_cache_dir() -> PathBuf {
     directories::ProjectDirs::from("com", "mozilla-ai", "encoderfile")
         .expect("Cannot locate")
@@ -156,28 +166,8 @@ fn default_build() -> bool {
     true
 }
 
-fn encoderfile_core_version() -> String {
-    let encoderfile_dev = std::env::var("ENCODERFILE_DEV")
-        .unwrap_or("false".to_string())
-        .to_lowercase();
-    match encoderfile_dev.as_str() {
-        "true" => {
-            #[cfg(not(test))]
-            let path = PathBuf::from("encoderfile-core").canonicalize().unwrap();
-
-            #[cfg(test)]
-            let path = PathBuf::from("../encoderfile-core").canonicalize().unwrap();
-
-            format!(
-                "encoderfile-core = {{ path = \"{}\" }}",
-                path.to_str().unwrap()
-            )
-        }
-        "false" => {
-            format!("encoderfile-core = {}", env!("CARGO_PKG_VERSION"))
-        }
-        _ => panic!("Unknown ENCODERFILE_DEV variable: {}", encoderfile_dev),
-    }
+fn encoderfile_core_version() -> &'static str {
+    env!("ENCODERFILE_CORE_DEP_STR")
 }
 
 #[cfg(test)]
@@ -291,8 +281,8 @@ mod tests {
             version: "1.0".into(),
             path: ModelPath::Directory(base.clone()),
             model_type: ModelType::Embedding,
-            output_path: base.clone(),
-            cache_dir: base.clone(),
+            output_path: Some(base.clone()),
+            cache_dir: Some(base.clone()),
             transform: None,
             build: true,
         };
@@ -311,8 +301,8 @@ mod tests {
             version: "0.1.0".into(),
             path: ModelPath::Directory(base.clone()),
             model_type: ModelType::SequenceClassification,
-            output_path: base.clone(),
-            cache_dir: base.clone(),
+            output_path: Some(base.clone()),
+            cache_dir: Some(base.clone()),
             transform: Some(Transform::Inline("1+1".into())),
             build: true,
         };
