@@ -1,10 +1,10 @@
 name: version management
 
 on:
-  push:
-    # uncomment when we're ready for alpha pre-releases
-    # branches:
-    #   - main
+# uncomment when we're ready for alpha pre-releases
+#   push:
+#     branches:
+#       - main
 
   workflow_dispatch:
     inputs:
