@@ -4,18 +4,6 @@
   </picture>
 </p>
 
-
-<!-- <div align="center">
-
-[![pre-commit](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg)
-[![unit_tests](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-unit-tests.yaml/badge.svg)
-[![benchmarks](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg)](https://github.com/mozilla-ai/encoderfile/actions/workflows/run-benchmarks.yaml/badge.svg)
-
-[![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/mozilla-ai/encoderfile?utm_source=badge)
-[![codecov](https://codecov.io/gh/mozilla-ai/encoderfile/graph/badge.svg?token=45KUDEYD8Z)](https://codecov.io/gh/mozilla-ai/encoderfile)
-
-</div> -->
-
 <p align="center">
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg" />
@@ -40,7 +28,6 @@
   </a>
 </p>
 
-
 ## 🚀 Overview
 
 Encoderfile packages transformer encoders—optionally with classification heads—into a single, self-contained executable.
@@ -60,9 +47,8 @@ Encoderfiles can run as:
 
 - REST API
 - gRPC microservice
-- CLI
-- (Future) MCP server
-- (Future) FFI support for near-universal cross-language embedding
+- CLI for batch processing
+- MCP server (Model Context Protocol)
 
 ### Supported Architectures
 
@@ -78,183 +64,318 @@ Encoderfile supports the following Hugging Face model classes (and their ONNX-ex
 - ⚙️ Models must have ONNX-exported weights (`path/to/your/model/model.onnx`).
 - 🧠 The ONNX graph input must include `input_ids` and optionally `attention_mask`.
 - 🚫 Models relying on generation heads (AutoModelForSeq2SeqLM, AutoModelForCausalLM, etc.) are not supported.
-
-#### Gotchas
 - `XLNet`, `Transfomer XL`, and derivative architectures are not yet supported.
 
-## 🧰 Setup
+## 📦 Installation
 
-Prerequisites:
-- [Rust](https://rust-lang.org/tools/install/)
-- [Python](https://www.python.org/downloads/)
-- [uv](https://docs.astral.sh/uv/getting-started/installation/)
-- [protoc](https://protobuf.dev/installation/)
+### Option 1: Download Pre-built CLI Tool (Recommended)
 
+Download the encoderfile CLI tool to build your own model binaries:
 
-To set up your dev environment, run the following:
-```sh
-make setup
-```
-
-This will install Rust dependencies, create a virtual environment, and download model weights for integration tests (these will show up in `models/`).
-
-## 🏗️ Building an Encoderfile
-
-### Prepare your Model
-
-To create an Encoderfile, you must have a HuggingFace model downloaded in an accessible directory. The model directory **must** have exported ONNX weights. 
-
-#### Export a Model 
+**Linux (x86_64):**
 ```bash
-optimum-cli export onnx \
-  --model <model_id>  \
-  --task <task_type> \
-  <path_to_model_directory>
+# TODO: Add download URL
+curl -L -o encoderfile <Download URL>
+chmod +x encoderfile
 ```
 
-**Task types:** See [HuggingFace task guide](https://huggingface.co/docs/optimum/exporters/onnx/usage_guides/export_a_model) for available tasks (`feature-extraction`, `text-classification`, `token-classification`, etc.)
-
-#### Use a pre-exported model 
-
-Some models on HuggingFace already have ONNX weights in their repos.
-
-Your model directory should look like this:
-
-
-```
-my_model/
-├── config.json
-├── model.onnx
-├── special_tokens_map.json
-├── tokenizer_config.json
-├── tokenizer.json
-└── vocab.txt
-```
-
-### Build the binary 
-
-```sh
-uv run -m encoderbuild build \
-    -n my-model-name \
-    -t [embedding|sequence_classification|token_classification] \
-    -m path/to/model/dir
-```
-
-### Run REST Server 
-
-Your final binary is `target/release/encoderfile`. To run it as a server:
-**Default port:** 8080 (override with `--http-port`)
-
-```
-chmod +x target/release/encoderfile
-./target/release/encoderfile serve
-```
-
-## REST API Usage 
-
-
-### Embeddings  
-
-```sh
-curl -X POST http://localhost:8080/predict \
-  -H "Content-Type: application/json" \
-  -d '{"inputs": ["this is a sentence"]}'
-```
-
-Extracts token-level embeddings
-
-### Sequence Classification / Token Classification
-```sh
-curl -X POST http://localhost:8080/predict \
-  -H "Content-Type: application/json" \
-  -d '{"inputs": ["this is a sentence"]}'
-```
-
-Returns predictions and logits.
-
-## 🔧 Walkthrough Example - Sequence Classification
-
-Let's use encoderfile to perform sentiment analysis on a few input strings 
-
-We'll work with `distilbert-base-uncased-finetuned-sst-2-english`, which is a fine-tuned version of the DistilBERT model.  
-
-### Export Model to ONNX 
+**macOS (Apple Silicon):**
 ```bash
+# TODO: Add download URL
+curl -L -o encoderfile <Download URL>
+chmod +x encoderfile
+```
+
+**macOS (Intel):**
+```bash
+# TODO: Add download URL
+curl -L -o encoderfile <Download URL>
+chmod +x encoderfile
+```
+
+> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see [BUILDING.md](BUILDING.md) for instructions on building from source.
+
+Move the binary to a location in your PATH:
+```bash
+# Linux/macOS
+sudo mv encoderfile /usr/local/bin/
+
+# Or add to your user bin
+mkdir -p ~/.local/bin
+mv encoderfile ~/.local/bin/
+```
+
+### Option 2: Build CLI Tool from Source
+
+See [BUILDING.md](BUILDING.md) for instructions on building the CLI tool from source.
+
+## 🚀 Quick Start
+
+### Step 1: Prepare Your Model
+
+First, you need an ONNX-exported model. Export any HuggingFace model:
+
+```bash
+# Install optimum for ONNX export
+pip install optimum[exporters]
+
+# Export a sentiment analysis model
 optimum-cli export onnx \
   --model distilbert-base-uncased-finetuned-sst-2-english \
   --task text-classification \
-  <path_to_model_directory>
+  ./sentiment-model
 ```
 
-### Build Encoderfile 
-```bash
-uv run -m encoderbuild build \
-  -n sentiment-analyzer \
-  -t sequence_classification \
-  -m <path_to_model_directory>
+### Step 2: Create Configuration File
+
+Create `sentiment-config.yml`:
+
+```yaml
+encoderfile:
+  name: sentiment-analyzer
+  path: ./sentiment-model
+  model_type: sequence_classification
+  output_dir: ./build
 ```
 
-### Start Server 
-Use `--http-port` parameter to start the REST server on a specific port 
+### Step 3: Build Your Encoderfile
+
+Use the downloaded `encoderfile` CLI tool:
 
 ```bash
-./target/release/encoderfile serve 
-``` 
+encoderfile build -f sentiment-config.yml
+```
 
-### Analyze Sentiment
+This creates a self-contained binary at `./build/sentiment-analyzer.encoderfile`.
+
+### Step 4: Run Your Model
+
+Start the server:
+
+```bash
+./build/sentiment-analyzer.encoderfile serve
+```
+
+The server will start on `http://localhost:8080` by default.
+
+### Making Predictions
+
+**Sentiment Analysis:**
 ```bash
 curl -X POST http://localhost:8080/predict \
   -H "Content-Type: application/json" \
-  -d '{"inputs": ["This is the cutest cat ever!", "Boring video, waste of time", "These cats are so funny!"]}'
+  -d '{
+    "inputs": [
+      "This is the cutest cat ever!",
+      "Boring video, waste of time",
+      "These cats are so funny!"
+    ]
+  }'
 ```
 
-### Expected Output 
-<details> 
-<summary> JSON Output </summary>  
-
+**Response:**
 ```json
 {
-    "results": [
-        {
-            "logits": [
-                -4.045369,
-                4.3970084
-            ],
-            "scores": [
-                0.00021549074,
-                0.9997845
-            ],
-            "predicted_index": 1,
-            "predicted_label": "POSITIVE"
-        },
-        {
-            "logits": [
-                4.7616825,
-                -3.8323877
-            ],
-            "scores": [
-                0.9998148,
-                0.0001851664
-            ],
-            "predicted_index": 0,
-            "predicted_label": "NEGATIVE"
-        },
-        {
-            "logits": [
-                -4.2407384,
-                4.565653
-            ],
-            "scores": [
-                0.00014975043,
-                0.9998503
-            ],
-            "predicted_index": 1,
-            "predicted_label": "POSITIVE"
-        }
-    ],
-    "model_id": "sentiment-analyzer"
+  "results": [
+    {
+      "logits": [-4.045369, 4.3970084],
+      "scores": [0.00021549074, 0.9997845],
+      "predicted_index": 1,
+      "predicted_label": "POSITIVE"
+    },
+    {
+      "logits": [4.7616825, -3.8323877],
+      "scores": [0.9998148, 0.0001851664],
+      "predicted_index": 0,
+      "predicted_label": "NEGATIVE"
+    },
+    {
+      "logits": [-4.2407384, 4.565653],
+      "scores": [0.00014975043, 0.9998503],
+      "predicted_index": 1,
+      "predicted_label": "POSITIVE"
+    }
+  ],
+  "model_id": "sentiment-analyzer"
 }
 ```
 
-</details> 
+**Embeddings:**
+```bash
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inputs": ["Hello world"],
+    "normalize": true
+  }'
+```
 
+**Token Classification (NER):**
+```bash
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inputs": ["Apple Inc. is located in Cupertino, California"]
+  }'
+```
+
+## 🎯 Usage Modes
+
+### 1. REST API Server
+
+Start an HTTP server (default port 8080):
+
+```bash
+./my-model.encoderfile serve
+```
+
+**Custom configuration:**
+```bash
+./my-model.encoderfile serve \
+  --http-port 3000 \
+  --http-hostname 0.0.0.0
+```
+
+**Disable gRPC (HTTP only):**
+```bash
+./my-model.encoderfile serve --disable-grpc
+```
+
+### 2. gRPC Server
+
+Start with default gRPC server (port 50051):
+
+```bash
+./my-model.encoderfile serve
+```
+
+**gRPC only (no HTTP):**
+```bash
+./my-model.encoderfile serve --disable-http
+```
+
+**Custom gRPC configuration:**
+```bash
+./my-model.encoderfile serve \
+  --grpc-port 50052 \
+  --grpc-hostname localhost
+```
+
+### 3. CLI Inference
+
+Run one-off inference without starting a server:
+
+```bash
+# Single input
+./my-model.encoderfile infer "This is a test sentence"
+
+# Multiple inputs
+./my-model.encoderfile infer "First text" "Second text" "Third text"
+
+# Save output to file
+./my-model.encoderfile infer "Test input" -o results.json
+```
+
+### 4. MCP Server
+
+Run as a Model Context Protocol server:
+
+```bash
+./my-model.encoderfile mcp --hostname 0.0.0.0 --port 9100
+```
+
+## 🔧 Server Configuration
+
+### Port Configuration
+
+```bash
+# Custom HTTP port
+./my-model.encoderfile serve --http-port 3000
+
+# Custom gRPC port
+./my-model.encoderfile serve --grpc-port 50052
+
+# Both
+./my-model.encoderfile serve --http-port 3000 --grpc-port 50052
+```
+
+### Hostname Configuration
+
+```bash
+./my-model.encoderfile serve \
+  --http-hostname 127.0.0.1 \
+  --grpc-hostname localhost
+```
+
+### Service Selection
+
+```bash
+# HTTP only
+./my-model.encoderfile serve --disable-grpc
+
+# gRPC only
+./my-model.encoderfile serve --disable-http
+```
+
+## 📚 Documentation
+
+- **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/)** - Step-by-step tutorial
+- **[Building Guide](BUILDING.md)** - Build encoderfiles from ONNX models
+- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/cli/)** - Complete command-line documentation
+- **[API Reference](https://mozilla-ai.github.io/encoderfile/api-reference/)** - REST, gRPC, and MCP API docs
+- **[Architecture Guide](https://mozilla-ai.github.io/encoderfile/building/)** - Advanced build options
+
+## 🛠️ Building Custom Encoderfiles
+
+Once you have the `encoderfile` CLI tool installed, you can build binaries from any compatible HuggingFace model.
+
+See [BUILDING.md](BUILDING.md) for detailed instructions including:
+
+- How to export models to ONNX format
+- Configuration file options
+- Advanced features (Lua transforms, custom paths, etc.)
+- Troubleshooting tips
+
+**Quick workflow:**
+
+1. Export your model to ONNX: `optimum-cli export onnx ...`
+2. Create a config file: `config.yml`
+3. Build the binary: `encoderfile build -f config.yml`
+4. Deploy anywhere: `./build/my-model.encoderfile serve`
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/mozilla-ai/encoderfile.git
+cd encoderfile
+
+# Set up development environment
+make setup
+
+# Run tests
+make test
+
+# Build documentation
+make docs-serve
+```
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [ONNX Runtime](https://onnxruntime.ai/)
+- Inspired by [Llamafile](https://github.com/Mozilla-Ocho/llamafile)
+- Powered by the Hugging Face model ecosystem
+
+## 💬 Community
+
+- [Discord](https://discord.com/invite/KTA26kGRyv) - Join our community
+- [GitHub Issues](https://github.com/mozilla-ai/encoderfile/issues) - Report bugs or request features
+- [GitHub Discussions](https://github.com/mozilla-ai/encoderfile/discussions) - Ask questions and share ideas
