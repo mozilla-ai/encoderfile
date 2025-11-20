@@ -73,15 +73,15 @@ This will:
 First, build the encoderfile CLI tool:
 
 ```bash
-cargo build -p encoderfile --bin cli --release
+cargo build --bin encoderfile --release
 ```
 
-The CLI binary will be created at `./target/release/cli`.
+The CLI binary will be created at `./target/release/encoderfile`.
 
 Optionally, install it to your system:
 
 ```bash
-cargo install --path encoderfile --bin cli
+cargo install --path encoderfile --bin encoderfile
 ```
 
 ## Step-by-Step: Building an Encoderfile
@@ -174,8 +174,8 @@ encoderfile:
   # Model type: embedding, sequence_classification, or token_classification
   model_type: embedding
 
-  # Output directory (optional, defaults to current directory)
-  output_dir: ./build
+  # Output path (optional, defaults to ./<name>.encoderfile in current directory)
+  output_path: ./build/my-model.encoderfile
 
   # Cache directory (optional, defaults to system cache)
   cache_dir: ~/.cache/encoderfile
@@ -191,7 +191,7 @@ encoderfile:
 encoderfile:
   name: my-model
   model_type: embedding
-  output_dir: ./build
+  output_path: ./build/my-model.encoderfile
   path:
     model_config_path: ./models/config.json
     model_weights_path: ./models/model.onnx
@@ -203,13 +203,13 @@ encoderfile:
 Build your encoderfile binary:
 
 ```bash
-./target/release/cli build -f config.yml
+./target/release/encoderfile build -f config.yml
 ```
 
 Or, if you installed the CLI:
 
 ```bash
-cli build -f config.yml
+encoderfile build -f config.yml
 ```
 
 The build process will:
@@ -219,7 +219,7 @@ The build process will:
 3. Validate the ONNX model structure
 4. Generate a Rust project with embedded assets
 5. Compile the project into a self-contained binary
-6. Output the binary to `<output_dir>/<name>.encoderfile`
+6. Output the binary to the specified path (or `./<name>.encoderfile` if not specified)
 
 **Build output:**
 ```
@@ -255,13 +255,13 @@ chmod +x ./build/my-model.encoderfile
 
 ```bash
 # Basic build
-./target/release/cli build -f config.yml
+./target/release/encoderfile build -f config.yml
 
 # Override output directory
-./target/release/cli build -f config.yml --output-dir ./dist
+./target/release/encoderfile build -f config.yml --output-dir ./dist
 
 # Generate without building (for debugging)
-./target/release/cli build -f config.yml --no-build
+./target/release/encoderfile build -f config.yml --no-build
 ```
 
 ### Configuration File Fields
@@ -272,7 +272,7 @@ chmod +x ./build/my-model.encoderfile
 | `path` | Yes | - | Path to model directory or explicit file paths |
 | `model_type` | Yes | - | Model type: `embedding`, `sequence_classification`, `token_classification` |
 | `version` | No | `"0.1.0"` | Model version string |
-| `output_dir` | No | Current directory | Where to output the built binary |
+| `output_path` | No | `./<name>.encoderfile` | Path where the built binary will be saved |
 | `cache_dir` | No | System cache | Where to store generated files |
 | `transform` | No | `None` | Optional Lua transform script |
 | `build` | No | `true` | Whether to compile the binary |
@@ -288,7 +288,7 @@ encoderfile:
   name: my-embedder
   path: ./models/embedding-model
   model_type: embedding
-  output_dir: ./build
+  output_path: ./build/my-embedder.encoderfile
 ```
 
 **Examples:**
@@ -305,7 +305,7 @@ encoderfile:
   name: my-classifier
   path: ./models/classifier-model
   model_type: sequence_classification
-  output_dir: ./build
+  output_path: ./build/my-classifier.encoderfile
 ```
 
 **Examples:**
@@ -322,7 +322,7 @@ encoderfile:
   name: my-ner
   path: ./models/ner-model
   model_type: token_classification
-  output_dir: ./build
+  output_path: ./build/my-ner.encoderfile
 ```
 
 **Examples:**
@@ -402,10 +402,10 @@ protoc --version
 
 ```bash
 # Debug builds are slow
-cargo build --bin cli
+cargo build --bin encoderfile
 
 # Release builds are optimized
-cargo build --bin cli --release
+cargo build --bin encoderfile --release
 ```
 
 ## CI/CD Integration
@@ -446,13 +446,13 @@ jobs:
             name: my-model
             path: ./model
             model_type: embedding
-            output_dir: ./build
+            output_path: ./build/my-model.encoderfile
           EOF
 
       - name: Build encoderfile
         run: |
-          cargo build -p encoderfile --bin cli --release
-          ./target/release/cli build -f config.yml
+          cargo build --bin encoderfile --release
+          ./target/release/encoderfile build -f config.yml
 
       - uses: actions/upload-artifact@v3
         with:
