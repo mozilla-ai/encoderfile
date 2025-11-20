@@ -6,98 +6,93 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      version_override:
+        description: "Manually specify the release version (e.g. 1.2.3)"
+        required: false
 
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
   create-tag:
-    # Only run this job on merged PRs with specific labels or manual dispatch
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && 
-      (contains(github.event.pull_request.labels.*.name, 'beta') || 
-       contains(github.event.pull_request.labels.*.name, 'rc') || 
-       contains(github.event.pull_request.labels.*.name, 'patch') || 
-       contains(github.event.pull_request.labels.*.name, 'minor') || 
-       contains(github.event.pull_request.labels.*.name, 'major')))
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       (contains(github.event.pull_request.labels.*.name, 'beta') ||
+        contains(github.event.pull_request.labels.*.name, 'rc') ||
+        contains(github.event.pull_request.labels.*.name, 'patch') ||
+        contains(github.event.pull_request.labels.*.name, 'minor') ||
+        contains(github.event.pull_request.labels.*.name, 'major')))
     runs-on: ubuntu-latest
 
     outputs:
-      version: ${{ steps.get-version.outputs.VERSION }}
-      prerelease: ${{ steps.determine-release-type.outputs.PRERELEASE }}
+      version: ${{ steps.versioning.outputs.VERSION }}
+      prerelease: ${{ steps.versioning.outputs.PRERELEASE }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          
+
       - name: Set up Git
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-      - name: Get current version from pyproject.toml/Cargo.toml
-        id: get-version
+      - name: Determine version
+        id: versioning
         run: |
-          # Try to find version in pyproject.toml first
-          if [ -f "pyproject.toml" ]; then
-            VERSION=$(cat pyproject.toml | grep '^version = ".*"' | cut -d'"' -f2)
-          # Then try Cargo.toml
-          elif [ -f "ptolemy-py/Cargo.toml" ]; then
-            VERSION=$(cat ptolemy-py/Cargo.toml | grep '^version = ".*"' | cut -d'"' -f2 | head -1 | sed 's/+.*//')
+          # 1) If manual workflow_dispatch override given, use that
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && \
+             [[ -n "${{ github.event.inputs.version_override }}" ]]; then
+             VERSION="${{ github.event.inputs.version_override }}"
+             PRE="false"
+             echo "Using manual override: $VERSION"
           else
-            echo "Could not find version in pyproject.toml or Cargo.toml"
-            exit 1
+            # 2) Extract version from pyproject.toml or Cargo.toml
+            if [ -f "pyproject.toml" ]; then
+              VERSION=$(grep '^version = "' pyproject.toml | cut -d'"' -f2)
+            elif [ -f "ptolemy-py/Cargo.toml" ]; then
+              VERSION=$(grep '^version = "' ptolemy-py/Cargo.toml | head -1 | cut -d'"' -f2 | sed 's/+.*//')
+            else
+              echo "Could not find version file."
+              exit 1
+            fi
+
+            # 3) Determine prerelease type
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]]; then
+              PRE="true"
+            elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
+              PRE="true"
+            else
+              PRE="false"
+            fi
           fi
+
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Current version: ${VERSION}"
-      
-      - name: Determine release type
-        id: determine-release-type
-        # Only run this for PR merge events
-        if: ${{ github.event_name == 'pull_request' }}
+          echo "PRERELEASE=${PRE}" >> $GITHUB_OUTPUT
+
+      - name: Create tag if missing
         run: |
-          # Determine release type based on PR labels
-          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]]; then
-            echo "RELEASE_TYPE=beta" >> $GITHUB_OUTPUT
-            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
-            echo "RELEASE_TYPE=release candidate" >> $GITHUB_OUTPUT
-            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+          VERSION="${{ steps.versioning.outputs.VERSION }}"
+
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists."
           else
-            echo "RELEASE_TYPE=release" >> $GITHUB_OUTPUT
-            echo "PRERELEASE=false" >> $GITHUB_OUTPUT
+            git tag -a "v${VERSION}" -m "Version ${VERSION}"
+            git push origin "v${VERSION}"
           fi
-          
-          # Determine version type based on PR labels
-          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'major') }}" == "true" ]]; then
-            echo "VERSION_TYPE=major" >> $GITHUB_OUTPUT
-          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" == "true" ]]; then
-            echo "VERSION_TYPE=minor" >> $GITHUB_OUTPUT
-          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
-            echo "VERSION_TYPE=patch" >> $GITHUB_OUTPUT
-          else
-            echo "VERSION_TYPE=patch" >> $GITHUB_OUTPUT
-          fi
-   
-      # - name: Create tag
-      #   run: |
-      #     # Check if tag already exists
-      #     if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-      #       echo "Tag v${VERSION} already exists, skipping tag creation"
-      #     else
-      #       git tag -a "v${VERSION}" -m "Version ${VERSION}"
-      #       git push origin "v${VERSION}"
-      #     fi
-  
+
   publish-encoderfile-core:
     needs: create-tag
     runs-on: ubuntu-24.04
@@ -141,7 +136,7 @@ jobs:
         uses: ./.github/actions/project-setup
         with:
           run-dev-setup: "false"
-      
+
       - name: Install target
         run: rustup target add ${{ matrix.platform.target }}
 
@@ -153,35 +148,28 @@ jobs:
       - name: Create release tarball
         run: |
           VERSION="${{ needs.create-tag.outputs.version }}"
-          PLATFORM="${{ matrix.platform.target }}"
+          TARGET="${{ matrix.platform.target }}"
+          mkdir -p dist
 
-          mkdir -p release
+          cp target/${TARGET}/release/encoderfile dist/encoderfile
+          cp README.md dist/README.md
+          cp LICENSE dist/LICENSE
+          test -f THIRDPARTY.md && cp THIRDPARTY.md dist/THIRDPARTY.md
 
-          # Copy binary and docs
-          cp target/${PLATFORM}/release/encoderfile release/encoderfile
-          cp README.md release/README.md
-          cp LICENSE release/LICENSE
-          test -f THIRDPARTY.md && cp THIRDPARTY.md release/THIRDPARTY.md
+          TAR="encoderfile-v${VERSION}-${TARGET}.tar.gz"
+          tar -czf "$TAR" -C dist .
 
-          # Create tarball
-          TAR_NAME="encoderfile-v${VERSION}-${PLATFORM}.tar.gz"
-          tar -czf "${TAR_NAME}" -C release .
+          mv "$TAR" "./${TAR}"
 
-          echo "TAR_NAME=${TAR_NAME}" >> $GITHUB_ENV
-
-      - name: Upload release tarball
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: encoderfile-${{ matrix.platform.target }}
           path: encoderfile-v${{ needs.create-tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
 
-
   create-release:
     needs: [create-tag, build-encoderfile, publish-encoderfile-core]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -196,5 +184,39 @@ jobs:
           prerelease: ${{ needs.create-tag.outputs.prerelease }}
           files: dist/**/*.tar.gz
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-build:
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/encoderfile:latest
+            ghcr.io/${{ github.repository_owner }}/encoderfile:${{ needs.create-tag.outputs.version }}
