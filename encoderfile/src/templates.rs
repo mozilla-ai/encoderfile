@@ -1,8 +1,8 @@
 use lazy_static::lazy_static;
 use tera::Tera;
 
-const MAIN_RS: &'static str = include_str!("../templates/main.rs.tera");
-const CARGO_TOML: &'static str = include_str!("../templates/Cargo.toml.tera");
+const MAIN_RS: &str = include_str!("../templates/main.rs.tera");
+const CARGO_TOML: &str = include_str!("../templates/Cargo.toml.tera");
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
