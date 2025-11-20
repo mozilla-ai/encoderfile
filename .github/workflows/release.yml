@@ -186,22 +186,37 @@ jobs:
           generate_release_notes: true
 
   docker-build:
-    needs: create-release
+    needs: [create-release, build-encoderfile]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+        # They come named like:
+        # encoderfile-x86_64-unknown-linux-gnu
+        # encoderfile-aarch64-unknown-linux-gnu
 
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+      # Extract amd64 binary
+      - name: Extract amd64
+        run: |
+          mkdir -p docker-build/amd64
+          tar -xzf artifacts/encoderfile-x86_64-unknown-linux-gnu/encoderfile-v${{ needs.create-tag.outputs.version }}-x86_64-unknown-linux-gnu.tar.gz \
+              -C docker-build/amd64
+
+      # Extract arm64 binary
+      - name: Extract arm64
+        run: |
+          mkdir -p docker-build/arm64
+          tar -xzf artifacts/encoderfile-aarch64-unknown-linux-gnu/encoderfile-v${{ needs.create-tag.outputs.version }}-aarch64-unknown-linux-gnu.tar.gz \
+              -C docker-build/arm64
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -210,13 +225,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Build & push image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/encoderfile:latest
-            ghcr.io/${{ github.repository_owner }}/encoderfile:${{ needs.create-tag.outputs.version }}
+      - name: Build amd64 image
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            -t ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }} \
+            -f Dockerfile.ci \
+            docker-build/amd64
+
+      - name: Build arm64 image
+        run: |
+          docker build \
+            --platform linux/arm64 \
+            -t ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }} \
+            -f Dockerfile.ci \
+            docker-build/arm64
+
+      - name: Push per-arch images
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }}
+          docker push ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }}
+
+      - name: Create multi-arch manifest
+        run: |
+          docker buildx imagetools create \
+            -t ghcr.io/${{ github.repository_owner }}/encoderfile:${{ needs.create-tag.outputs.version }} \
+            -t ghcr.io/${{ github.repository_owner }}/encoderfile:latest \
+            ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }} \
+            ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }}

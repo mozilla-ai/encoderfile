@@ -1,3 +1,5 @@
+### For local builds ##########################################################
+
 # ---- Build stage ------------------------------------------------------------
 # Full Rust image to ensure C/C++ toolchains and proto deps are available.
 FROM rust:1.91 AS build
@@ -34,6 +36,8 @@ RUN apt-get update && \
 
 # Install binary into a standard PATH location.
 COPY --from=build /app/target/release/encoderfile /usr/local/bin/encoderfile
+
+RUN chmod +x /usr/local/bin/encoderfile
 
 # Add documentation and license material.
 RUN mkdir -p /usr/share/docs/encoderfile
