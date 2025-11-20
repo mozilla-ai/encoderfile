@@ -33,6 +33,9 @@ jobs:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bins
 
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+
       - name: Install pre-commit
         run: pip install pre-commit detect-secrets
 
