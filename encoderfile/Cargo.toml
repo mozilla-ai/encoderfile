@@ -8,6 +8,7 @@ version = "0.1.0-rc.13"
 edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
+description = "Distribute and run transformer encoders with a single file."
 
 [dependencies]
 anyhow = "1.0.100"
