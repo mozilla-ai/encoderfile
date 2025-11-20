@@ -101,8 +101,6 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
-        with:
-          run-dev-setup: "false"
 
       - name: Cargo publish (dry-run)
         run: cargo publish -p encoderfile-core --dry-run
@@ -134,8 +132,6 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
-        with:
-          run-dev-setup: "false"
 
       - name: Install target
         run: rustup target add ${{ matrix.platform.target }}
