@@ -1,12 +1,8 @@
 ## For Github CI ###################################
 ARG ASSET_DIR
-ARG TARGETPLATFORM
 
 # Final runtime image — must include Rust toolchain
-FROM --platform=$TARGETPLATFORM rust:1.91
-
-# optional: check what platform you're building for
-RUN echo "Building for $TARGETPLATFORM"
+FROM rust:1.91
 
 # Default working directory
 WORKDIR /data
