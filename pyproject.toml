@@ -1,12 +1,12 @@
 [project]
 name = "encoderfile"
-version = "0.1.0-rc.11"
+version = "0.1.0-rc.12"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["pip>=25.2", "protobuf>=6.33.0", "pydantic>=2.12.4", "toml>=0.10.2"]
+dependencies = [ "pip>=25.2", "protobuf>=6.33.0", "pydantic>=2.12.4", "toml>=0.10.2",]
 
 [dependency-groups]
-dev = [ "pre-commit>=4.3.0", "ruff>=0.14.2"]
+dev = [ "pre-commit>=4.3.0", "ruff>=0.14.2",]
 docs = [ "mkdocs>=1.6.1", "mkdocs-include-markdown-plugin>=7.2.0", "mkdocs-material>=9.7.0",]
-setup = ["onnxruntime>=1.23.1", "optimum[onnxruntime]>=2.0.0", "transformers>=4.55.0"]
+setup = [ "onnxruntime>=1.23.1", "optimum[onnxruntime]>=2.0.0", "transformers>=4.55.0",]
