@@ -59,14 +59,14 @@ encoderfile:
   version: "1.0.0"
   path: ./sentiment-model
   model_type: sequence_classification
-  output_dir: ./build
+  output_path: ./build/sentiment-analyzer.encoderfile
 ```
 
 **Key fields:**
 - `name` - Model identifier (used in API responses)
 - `path` - Path to the model directory with ONNX weights
 - `model_type` - `embedding`, `sequence_classification`, or `token_classification`
-- `output_dir` - Where to output the binary (optional)
+- `output_path` - Where to output the binary (optional, defaults to `./<name>.encoderfile`)
 
 ### Step 3: Build the Binary
 
@@ -76,7 +76,7 @@ Build your encoderfile:
 encoderfile build -f sentiment-config.yml
 ```
 
-> **Note:** If you built the CLI from source, use: `./target/release/cli build -f sentiment-config.yml`
+> **Note:** If you built the CLI from source, use: `./target/release/encoderfile build -f sentiment-config.yml`
 
 The binary will be created at `./build/sentiment-analyzer.encoderfile`.
 
@@ -149,7 +149,7 @@ encoderfile:
   name: embedder
   path: ./embedding-model
   model_type: embedding
-  output_dir: ./build
+  output_path: ./build/embedder.encoderfile
 EOF
 
 # Build
@@ -174,7 +174,7 @@ encoderfile:
   name: ner
   path: ./ner-model
   model_type: token_classification
-  output_dir: ./build
+  output_path: ./build/ner.encoderfile
 EOF
 
 # Build
@@ -232,7 +232,7 @@ encoderfile:
   name: sentiment
   path: ./distilbert-base-uncased-finetuned-sst-2-english
   model_type: sequence_classification
-  output_dir: ./build
+  output_path: ./build/sentiment.encoderfile
 EOF
 
 encoderfile build -f config.yml

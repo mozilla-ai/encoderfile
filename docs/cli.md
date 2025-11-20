@@ -19,14 +19,14 @@ Validates a model configuration and builds a self-contained Rust binary with emb
 
 ```bash
 # If you haven't installed the CLI tool yet, build it first:
-cargo build -p encoderfile --bin cli --release
+cargo build --bin encoderfile --release
 
 # Then run it:
-./target/release/cli build -f <config.yml> [OPTIONS]
+./target/release/encoderfile build -f <config.yml> [OPTIONS]
 
 # Or install it to your system:
-cargo install --path encoderfile --bin cli
-cli build -f <config.yml> [OPTIONS]
+cargo install --path encoderfile --bin encoderfile
+encoderfile build -f <config.yml> [OPTIONS]
 ```
 
 #### Options
@@ -61,8 +61,8 @@ encoderfile:
   # Model type: embedding, sequence_classification, or token_classification
   model_type: embedding
 
-  # Output directory (optional, defaults to current directory)
-  output_dir: ./build
+  # Output path (optional, defaults to ./<name>.encoderfile in current directory)
+  output_path: ./build/my-model.encoderfile
 
   # Cache directory (optional, defaults to system cache)
   cache_dir: ~/.cache/encoderfile
@@ -97,12 +97,12 @@ encoderfile:
   version: "1.0.0"
   path: ./models/all-MiniLM-L6-v2
   model_type: embedding
-  output_dir: ./build
+  output_path: ./build/sentence-embedder.encoderfile
 ```
 
 Build:
 ```bash
-./target/release/cli build -f embedding-config.yml
+./target/release/encoderfile build -f embedding-config.yml
 ```
 
 **Build a sentiment classifier:**
@@ -117,7 +117,7 @@ encoderfile:
 
 Build:
 ```bash
-./target/release/cli build -f sentiment-config.yml
+./target/release/encoderfile build -f sentiment-config.yml
 ```
 
 **Build a NER model with transform:**
@@ -134,17 +134,17 @@ encoderfile:
 
 Build:
 ```bash
-./target/release/cli build -f ner-config.yml
+./target/release/encoderfile build -f ner-config.yml
 ```
 
 **Generate without building:**
 ```bash
-./target/release/cli build -f config.yml --no-build
+./target/release/encoderfile build -f config.yml --no-build
 ```
 
 **Override output directory:**
 ```bash
-./target/release/cli build -f config.yml --output-dir ./custom-output
+./target/release/encoderfile build -f config.yml --output-dir ./custom-output
 ```
 
 #### Build Process
@@ -162,16 +162,18 @@ The `build` command performs the following steps:
    - `Cargo.toml` - Generated with proper dependencies
 5. **Embeds assets** - Uses the `factory!` macro to embed model files at compile time
 6. **Compiles binary** - Runs `cargo build --release` on the generated project
-7. **Outputs binary** - Copies the binary to `<output_dir>/<name>.encoderfile`
+7. **Outputs binary** - Copies the binary to the specified output path
 
 #### Output
 
-Upon successful build, you'll find the binary at:
+Upon successful build, you'll find the binary at the path specified in `output_path`.
+
+If `output_path` is not specified, the binary defaults to:
 ```
-<output_dir>/<name>.encoderfile
+./<name>.encoderfile
 ```
 
-For example, with `name: my-model` and `output_dir: ./build`:
+For example, with `name: my-model` and `output_path: ./build/my-model.encoderfile`:
 ```
 ./build/my-model.encoderfile
 ```
@@ -231,7 +233,7 @@ Prints the encoderfile version.
 #### Usage
 
 ```bash
-./target/release/cli version
+./target/release/encoderfile version
 ```
 
 #### Output
@@ -539,7 +541,7 @@ encoderfile:
   version: "1.0.0"
   path: ./models/sentiment-model
   model_type: sequence_classification
-  output_dir: ./build
+  output_path: ./build/sentiment-analyzer.encoderfile
 ```
 
 ### Step 3: Build Encoderfile Binary
@@ -591,8 +593,8 @@ sentiment-analyzer serve --http-port 8080
 
 | Command | Tool | Purpose |
 |---------|------|---------|
-| `./target/release/cli build -f config.yml` | cli | Build self-contained binary from ONNX model |
-| `./target/release/cli version` | cli | Print version information |
+| `./target/release/encoderfile build -f config.yml` | encoderfile | Build self-contained binary from ONNX model |
+| `./target/release/encoderfile version` | encoderfile | Print version information |
 | `<model>.encoderfile serve` | encoderfile | Start HTTP/gRPC inference server |
 | `<model>.encoderfile infer` | encoderfile | Run single inference from command line |
 | `<model>.encoderfile mcp` | encoderfile | Start MCP server |
