@@ -25,7 +25,7 @@ RUN cargo build --bin encoderfile --release
 FROM rust:1.91 AS final
 
 # Default working directory.
-WORKDIR /data
+WORKDIR /opt/encoderfile
 
 # Install runtime dependencies.
 RUN apt-get update && \
