@@ -23,6 +23,8 @@ RUN apt-get update && \
 
 COPY --from=build /app/target/release/encoderfile /usr/local/bin/encoderfile
 
+COPY README.md THIRDPARTY.md LICENSE /usr/share/docs/encoderfile/
+
 ENTRYPOINT ["/usr/local/bin/encoderfile"]
 
 CMD ["--help"]
