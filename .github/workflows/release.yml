@@ -93,7 +93,7 @@ jobs:
             git push origin "v${VERSION}"
           fi
 
-  publish-encoderfile-core:
+  publish-encoderfile:
     needs: create-tag
     runs-on: ubuntu-24.04
     steps:
@@ -105,12 +105,12 @@ jobs:
           run-dev-setup: "false"
 
       - name: Cargo publish (dry-run)
-        run: cargo publish -p encoderfile-core --dry-run
+        run: cargo publish --dry-run
         env:
           ENCODERFILE_DEV: "false"
 
       - name: Cargo publish
-        run: cargo publish -p encoderfile-core
+        run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           ENCODERFILE_DEV: "false"
@@ -167,7 +167,7 @@ jobs:
           path: encoderfile-v${{ needs.create-tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
 
   create-release:
-    needs: [create-tag, build-encoderfile, publish-encoderfile-core]
+    needs: [create-tag, build-encoderfile, publish-encoderfile]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
