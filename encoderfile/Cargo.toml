@@ -13,7 +13,7 @@ required-features = [ "_internal",]
 
 [package]
 name = "encoderfile"
-version = "0.1.0-rc.4"
+version = "0.1.0-rc.5"
 edition = "2024"
 license = "Apache-2.0"
 
