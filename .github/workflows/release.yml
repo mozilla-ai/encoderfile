@@ -230,7 +230,8 @@ jobs:
             --platform linux/amd64 \
             -t ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }} \
             -f ./docker/Dockerfile.ci \
-            docker-build/amd64
+            --build-arg ASSET_DIR=docker-build/amd64 \
+            .
 
       - name: Build arm64 image
         run: |
@@ -238,7 +239,8 @@ jobs:
             --platform linux/arm64 \
             -t ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }} \
             -f ./docker/Dockerfile.ci \
-            docker-build/arm64
+            --build-arg ASSET_DIR=docker-build/arm64 \
+            .
 
       - name: Push per-arch images
         run: |

@@ -1,5 +1,5 @@
 ## For Github CI ###################################
-
+ARG ASSET_DIR
 # Final runtime image — must include Rust toolchain
 FROM rust:1.91
 
@@ -13,9 +13,12 @@ RUN apt-get update && \
         ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
+# redeclare arg because docker is annoying :(
+ARG ASSET_DIR
+
 # Copy in the prebuilt binary for THIS architecture
 # CI will extract encoderfile into the build context
-COPY encoderfile /usr/local/bin/encoderfile
+COPY ${ASSET_DIR}/encoderfile /usr/local/bin/encoderfile
 
 # Add documentation + licenses
 RUN mkdir -p /usr/share/docs/encoderfile
