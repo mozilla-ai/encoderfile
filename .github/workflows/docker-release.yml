@@ -1,4 +1,4 @@
-name: Release Docker Images (multi-arch)
+name: release-docker
 
 on:
   release:
