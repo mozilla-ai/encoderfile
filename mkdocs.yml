@@ -20,16 +20,15 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
-  - CLI : cli.md
-  - API Reference: reference/api-reference.md
   - Code of Conduct: CODE_OF_CONDUCT.md
   - Contributing: CONTRIBUTING.md
   - Transforms:
       - Transforms: transforms/index.md
       - Reference: transforms/reference.md
   - Reference:
+    - CLI Reference: reference/cli.md
+    - API Reference: reference/api-reference.md
     - Building Guide: reference/building.md
-    - CLI Reference: reference/cli-reference.md
 
 plugins:
   - include-markdown
