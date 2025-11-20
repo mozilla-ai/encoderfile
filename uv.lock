@@ -149,13 +149,10 @@ name = "encoderfile"
 version = "0.1.0rc10"
 source = { virtual = "." }
 dependencies = [
-    { name = "onnxruntime" },
-    { name = "optimum", extra = ["onnxruntime"] },
     { name = "pip" },
     { name = "protobuf" },
     { name = "pydantic" },
     { name = "toml" },
-    { name = "transformers" },
 ]
 
 [package.dev-dependencies]
@@ -168,16 +165,18 @@ docs = [
     { name = "mkdocs-include-markdown-plugin" },
     { name = "mkdocs-material" },
 ]
+setup = [
+    { name = "onnxruntime" },
+    { name = "optimum", extra = ["onnxruntime"] },
+    { name = "transformers" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "onnxruntime", specifier = ">=1.23.1" },
-    { name = "optimum", extras = ["onnxruntime"], specifier = ">=2.0.0" },
     { name = "pip", specifier = ">=25.2" },
     { name = "protobuf", specifier = ">=6.33.0" },
     { name = "pydantic", specifier = ">=2.12.4" },
     { name = "toml", specifier = ">=0.10.2" },
-    { name = "transformers", specifier = ">=4.55.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -189,6 +188,11 @@ docs = [
     { name = "mkdocs", specifier = ">=1.6.1" },
     { name = "mkdocs-include-markdown-plugin", specifier = ">=7.2.0" },
     { name = "mkdocs-material", specifier = ">=9.7.0" },
+]
+setup = [
+    { name = "onnxruntime", specifier = ">=1.23.1" },
+    { name = "optimum", extras = ["onnxruntime"], specifier = ">=2.0.0" },
+    { name = "transformers", specifier = ">=4.55.0" },
 ]
 
 [[package]]
