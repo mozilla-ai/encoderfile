@@ -107,7 +107,13 @@ mv encoderfile ~/.local/bin/
 
 ### Option 2: Build CLI Tool from Source
 
-See [BUILDING.md](BUILDING.md) for instructions on building the CLI tool from source.
+See [BUILDING.md](BUILDING.md) for detailed instructions on building the CLI tool from source.
+
+Quick build:
+```bash
+cargo build --bin encoderfile --release
+./target/release/encoderfile --help
+```
 
 ## 🚀 Quick Start
 
@@ -135,7 +141,7 @@ encoderfile:
   name: sentiment-analyzer
   path: ./sentiment-model
   model_type: sequence_classification
-  output_dir: ./build
+  output_path: ./build/sentiment-analyzer.encoderfile
 ```
 
 ### Step 3: Build Your Encoderfile
@@ -178,19 +184,19 @@ curl -X POST http://localhost:8080/predict \
 {
   "results": [
     {
-      "logits": [-4.045369, 4.3970084],
+      "logits": [0.00021549065, 0.9997845],
       "scores": [0.00021549074, 0.9997845],
       "predicted_index": 1,
       "predicted_label": "POSITIVE"
     },
     {
-      "logits": [4.7616825, -3.8323877],
+      "logits": [0.9998148, 0.00018516644],
       "scores": [0.9998148, 0.0001851664],
       "predicted_index": 0,
       "predicted_label": "NEGATIVE"
     },
     {
-      "logits": [-4.2407384, 4.565653],
+      "logits": [0.00014975034, 0.9998503],
       "scores": [0.00014975043, 0.9998503],
       "predicted_index": 1,
       "predicted_label": "POSITIVE"
@@ -317,7 +323,9 @@ Run as a Model Context Protocol server:
 ./my-model.encoderfile serve --disable-http
 ```
 
-## 📚 Documentation
+## 📚 Documentation 
+
+-- TODO : Needs the right links
 
 - **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/)** - Step-by-step tutorial
 - **[Building Guide](BUILDING.md)** - Build encoderfiles from ONNX models
@@ -359,7 +367,7 @@ make setup
 # Run tests
 make test
 
-# Build documentation
+# Build documentation - Check command with Raz
 make docs-serve
 ```
 
