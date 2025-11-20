@@ -100,10 +100,3 @@ uvx hf download \
   config.json \
   --local-dir /encoderfile
 ```
-
-## Notes
-
-* The ONNX file must expose `input_ids` (and optionally `attention_mask`).
-* `transform.lua` is applied to post-process embeddings (see Encoderfile docs).
-* The final image contains **no Python**, **no Hugging Face**, **nothing dynamic**.
-  Exactly how you want it.
