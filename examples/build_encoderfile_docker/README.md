@@ -1,6 +1,6 @@
 # Example: Building an Encoderfile for Sentence Embeddings
 
-This example shows how to package **BAAI/bge-small-en-v1.5** into a standalone Encoderfile binary using Docker.  
+This example shows how to package [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) into a standalone Encoderfile binary using Docker.  
 You end up with a minimal image that contains exactly one thing: a fast, dependency-free sentence-embedding server.
 
 ## 🏗️ Build the Docker Image
