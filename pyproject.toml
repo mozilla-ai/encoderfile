@@ -1,6 +1,6 @@
 [project]
 name = "encoderfile"
-version = "0.1.0-rc.12"
+version = "0.1.0-rc.13"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
