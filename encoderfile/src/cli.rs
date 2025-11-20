@@ -1,5 +1,5 @@
 use super::templates::TEMPLATES;
-use anyhow::{Result, bail, Context};
+use anyhow::{Context, Result, bail};
 use std::path::PathBuf;
 
 use clap_derive::{Args, Parser, Subcommand};
@@ -70,16 +70,17 @@ impl BuildArgs {
         }
 
         // validate model
-        config.encoderfile.model_type.validate_model(
-            &config.encoderfile.path.model_weights_path()?
-        )?;
+        config
+            .encoderfile
+            .model_type
+            .validate_model(&config.encoderfile.path.model_weights_path()?)?;
 
         // setup write directory
         let write_dir = config.encoderfile.get_generated_dir();
         std::fs::create_dir_all(write_dir.join("src/"))
             .with_context(|| format!("Failed creating {}", write_dir.display()))?;
 
-        // render templates 
+        // render templates
         let ctx = config.encoderfile.to_tera_ctx()?;
 
         render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
@@ -90,8 +91,9 @@ impl BuildArgs {
             return Ok(());
         }
 
-        // canonicalize paths 
-        let cargo_toml_path = write_dir.join("Cargo.toml")
+        // canonicalize paths
+        let cargo_toml_path = write_dir
+            .join("Cargo.toml")
             .canonicalize()
             .context("Canonicalizing Cargo.toml failed")?;
 
@@ -117,14 +119,14 @@ impl BuildArgs {
         // locate generated binary
         let generated_binary = write_dir.join("target/release/encoderfile");
         if !generated_binary.exists() {
-            bail!("ERROR: generated binary {:?} does not exist.", generated_binary);
+            bail!(
+                "ERROR: generated binary {:?} does not exist.",
+                generated_binary
+            );
         }
 
         // final output move (filesystem-safe)
-        move_across_filesystems(
-            &generated_binary,
-            &config.encoderfile.output_path()
-        )?;
+        move_across_filesystems(&generated_binary, &config.encoderfile.output_path())?;
 
         Ok(())
     }
@@ -152,10 +154,8 @@ fn move_across_filesystems(src: &std::path::Path, dst: &std::path::Path) -> Resu
     match std::fs::rename(src, dst) {
         Ok(_) => Ok(()),
         Err(e) if e.kind() == std::io::ErrorKind::CrossesDevices => {
-            std::fs::copy(src, dst)
-                .with_context(|| format!("copying {:?} → {:?}", src, dst))?;
-            std::fs::remove_file(src)
-                .with_context(|| format!("removing {:?}", src))?;
+            std::fs::copy(src, dst).with_context(|| format!("copying {:?} → {:?}", src, dst))?;
+            std::fs::remove_file(src).with_context(|| format!("removing {:?}", src))?;
             Ok(())
         }
         Err(e) => Err(e.into()),
