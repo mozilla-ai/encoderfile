@@ -14,7 +14,7 @@ pub struct Transform {
 impl Transform {
     #[tracing::instrument(name = "new_transform", skip_all)]
     pub fn new(transform: &str) -> Result<Self, ApiError> {
-        let lua = new_lua();
+        let lua = new_lua()?;
 
         lua.load(transform)
             .exec()
@@ -118,32 +118,48 @@ impl Transform {
     }
 }
 
-fn new_lua() -> Lua {
+fn new_lua() -> Result<Lua, ApiError> {
     let lua = Lua::new_with(
         mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH,
         mlua::LuaOptions::default(),
     )
-    .unwrap();
+    .map_err(|e| {
+        tracing::error!(
+            "Failed to create new Lua engine. This should not happen. More details: {:?}",
+            e
+        );
+        ApiError::InternalError("Failed to create new Lua engine")
+    })?;
 
     let globals = lua.globals();
     globals
         .set(
             "Tensor",
             lua.create_function(|lua, value| Tensor::from_lua(value, lua))
-                .unwrap(),
+                .map_err(|e| {
+                    tracing::error!("Failed to create Lua tensor library: More details: {:?}", e);
+                    ApiError::InternalError("Failed to create new Lua tensor library")
+                })?,
         )
-        .unwrap();
+        .map_err(|e| {
+            tracing::error!("Failed to create Lua tensor library: More details: {:?}", e);
+            ApiError::InternalError("Failed to create new Lua tensor library")
+        })?;
 
-    lua
+    Ok(lua)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn new_test_lua() -> Lua {
+        new_lua().expect("Failed to create new lua")
+    }
+
     #[test]
     fn test_create_tensor() {
-        let lua = new_lua();
+        let lua = new_test_lua();
         lua.load(
             r#"
             function MyTensor()
@@ -278,9 +294,13 @@ mod tests {
 mod sandbox_tests {
     use super::*;
 
+    fn new_test_lua() -> Lua {
+        new_lua().expect("Failed to create new lua")
+    }
+
     #[test]
     fn test_no_unsafe_stdlibs_loaded() {
-        let engine = new_lua();
+        let engine = new_test_lua();
 
         // Should evaluate to nil, not a table or function
         let val: mlua::Value = engine.load("return os").eval().unwrap();
@@ -295,7 +315,7 @@ mod sandbox_tests {
 
     #[test]
     fn test_cannot_access_environment_or_execute_commands() {
-        let lua = new_lua();
+        let lua = new_lua().expect("Failed to create new Lua");
 
         // `os.execute` shouldn't exist or be callable
         let res = lua
@@ -310,7 +330,7 @@ mod sandbox_tests {
 
     #[test]
     fn test_no_file_system_access_via_package() {
-        let lua = new_lua();
+        let lua = new_test_lua();
 
         // 'require' should not be usable
         let res = lua.load("require('os')").exec();
@@ -323,7 +343,7 @@ mod sandbox_tests {
 
     #[test]
     fn test_tensor_function_is_only_safe_binding() {
-        let lua = new_lua();
+        let lua = new_test_lua();
 
         // Tensor should exist
         let tensor_res = lua.load("return Tensor").eval::<mlua::Value>();
@@ -336,7 +356,7 @@ mod sandbox_tests {
 
     #[test]
     fn test_limited_math_and_string_stdlibs() {
-        let lua = new_lua();
+        let lua = new_test_lua();
 
         // math should work
         assert_eq!(lua.load("return math.sqrt(9)").eval::<f64>().unwrap(), 3.0);

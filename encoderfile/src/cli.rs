@@ -87,7 +87,9 @@ impl BuildArgs {
         if config.encoderfile.build {
             let cargo_toml_path = write_dir.join("Cargo.toml").canonicalize()?;
 
-            let manifest_dir = cargo_toml_path.to_str().unwrap();
+            let manifest_dir = cargo_toml_path
+                .to_str()
+                .expect("Cargo.toml path is not utf-8");
 
             std::process::Command::new("cargo")
                 .arg("build")
