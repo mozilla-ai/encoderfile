@@ -185,7 +185,7 @@ jobs:
           generate_release_notes: true
 
   docker-build:
-    needs: [create-release, build-encoderfile]
+    needs: [create-release, build-encoderfile, create-tag]
     runs-on: ubuntu-latest
     permissions:
       contents: read
