@@ -820,6 +820,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "encoderfile-utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap-markdown",
+ "encoderfile",
+ "schemars",
+ "serde_json",
+]
+
+[[package]]
 name = "env_home"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
