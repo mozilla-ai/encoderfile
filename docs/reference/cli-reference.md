@@ -19,13 +19,13 @@ Validates a model configuration and builds a self-contained Rust binary with emb
 
 ```bash
 # If you haven't installed the CLI tool yet, build it first:
-cargo build -p encoderfile --bin cli --release
+cargo build -p encoderfile --release
 
 # Then run it:
-./target/release/cli build -f <config.yml> [OPTIONS]
+./target/release/encoderfile build -f <config.yml> [OPTIONS]
 
 # Or install it to your system:
-cargo install --path encoderfile --bin cli
+cargo install --path encoderfile 
 cli build -f <config.yml> [OPTIONS]
 ```
 

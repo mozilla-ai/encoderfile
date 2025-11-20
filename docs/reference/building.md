@@ -241,41 +241,7 @@ chmod +x ./build/my-model.encoderfile
 ```
 
 ## Configuration Options
-
-### CLI Options
-
-| Option | Short | Required | Description |
-|--------|-------|----------|-------------|
-| `--config` | `-f` | Yes | Path to YAML configuration file |
-| `--output-dir` | - | No | Override output directory from config |
-| `--cache-dir` | - | No | Override cache directory from config |
-| `--no-build` | - | No | Generate project files without building |
-
-**Examples:**
-
-```bash
-# Basic build
-./target/release/encoderfile build -f config.yml
-
-# Override output directory
-./target/release/encoderfile build -f config.yml --output-dir ./dist
-
-# Generate without building (for debugging)
-./target/release/encoderfile build -f config.yml --no-build
-```
-
-### Configuration File Fields
-
-| Field | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `name` | Yes | - | Model identifier (used in API responses) |
-| `path` | Yes | - | Path to model directory or explicit file paths |
-| `model_type` | Yes | - | Model type: `embedding`, `sequence_classification`, `token_classification` |
-| `version` | No | `"0.1.0"` | Model version string |
-| `output_path` | No | `./<name>.encoderfile` | Path where the built binary will be saved |
-| `cache_dir` | No | System cache | Where to store generated files |
-| `transform` | No | `None` | Optional Lua transform script |
-| `build` | No | `true` | Whether to compile the binary |
+> For a complete set of configuration options, see the [CLI Reference](cli-reference.md)
 
 ## Model Types
 

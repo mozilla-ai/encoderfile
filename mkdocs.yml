@@ -20,16 +20,16 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
-  - CLI Reference: cli.md
-  - API Reference: api-reference.md
+  - CLI : cli.md
+  - API Reference: reference/api-reference.md
   - Code of Conduct: CODE_OF_CONDUCT.md
   - Contributing: CONTRIBUTING.md
   - Transforms:
       - Transforms: transforms/index.md
       - Reference: transforms/reference.md
   - Reference:
-    - Encoderfile Build CLI: reference/encoderfile_util_cli.md
-    - Encoderfile Binary CLI: reference/encoderfile_binary_cli.md
+    - Building Guide: reference/building.md
+    - CLI Reference: reference/cli-reference.md
 
 plugins:
   - include-markdown
