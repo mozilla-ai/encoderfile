@@ -5,13 +5,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml">
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg" />
   </a>
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml">
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml/badge.svg" />
   </a>
-  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml">
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml/badge.svg" />
   </a>
 </p>
