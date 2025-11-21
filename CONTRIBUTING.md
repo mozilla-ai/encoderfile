@@ -17,7 +17,6 @@ Before creating a new issue or starting work:
 
 For significant changes, please open an issue **before** starting work:
 
-- New provider integrations
 - API changes or new public methods
 - Architectural changes
 - Breaking changes
@@ -31,4 +30,18 @@ All contributors must follow our [Code of Conduct](CODE_OF_CONDUCT.md). We're co
 
 ## Development Setup
 
-### Prerequisites
+
+```bash
+# Clone the repository
+git clone https://github.com/mozilla-ai/encoderfile.git
+cd encoderfile
+
+# Set up development environment
+make setup
+
+# Run tests
+make test
+
+# Build documentation
+make docs
+```
