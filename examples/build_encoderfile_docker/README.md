@@ -82,7 +82,7 @@ COPY encoderfile.yml transform.lua ./
 RUN encoderfile build -f encoderfile.yml
 
 # final minimal image
-FROM debian:bookworm-slim AS final
+FROM gcr.io/distroless/cc as final
 COPY --from=build /encoderfile/model.encoderfile /usr/local/bin/model.encoderfile
 ENTRYPOINT ["/usr/local/bin/model.encoderfile"]
 CMD ["serve"]

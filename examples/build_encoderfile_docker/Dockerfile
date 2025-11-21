@@ -18,7 +18,7 @@ COPY encoderfile.yml transform.lua ./
 RUN encoderfile build -f encoderfile.yml
 
 # final image — binary only
-FROM debian:bookworm-slim AS final
+FROM gcr.io/distroless/cc as final
 
 # copy binary
 COPY --from=build /encoderfile/model.encoderfile /usr/local/bin/model.encoderfile
