@@ -35,5 +35,5 @@ jobs:
         # TODO: update version variable set when we automate this on release
         run: |
           VERSION=${{ github.event.inputs.version_override }}
-          mike deploy --push --update-aliases "$VERSION" latest
-          mike set-default latest --push
+          uv run --group docs mike deploy --push --update-aliases "$VERSION" latest
+          uv run --group docs mike set-default latest --push
