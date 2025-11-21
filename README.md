@@ -11,6 +11,9 @@
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml">
     <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml/badge.svg" />
   </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml">
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml/badge.svg" />
+  </a>
 </p>
 
 <p align="center">
