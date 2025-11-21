@@ -50,6 +50,33 @@ Encoderfiles can run as:
 - CLI for batch processing
 - MCP server (Model Context Protocol)
 
+```mermaid
+flowchart LR
+    %% Styling
+    classDef asset fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
+    classDef process fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
+    classDef artifact fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000;
+
+    subgraph Inputs ["1. Input Assets"]
+        direction TB
+        Onnx["ONNX Model<br/>(.onnx)"]:::asset
+        Tok["Tokenizer Data<br/>(tokenizer.json)"]:::asset
+    end
+
+    subgraph Build ["2. Build Phase"]
+        Builder["Encoderfile Builder<br/>(Rust Compiler + Runtime Wrapper)"]:::process
+    end
+
+    subgraph Output ["3. Production Artifact"]
+        Binary["Single Binary Executable<br/>(HTTP/gRPC/MCP)"]:::artifact
+    end
+
+    %% Connections
+    Onnx --> Builder
+    Tok --> Builder
+    Builder -->|"Compiles & Embeds"| Binary
+```
+
 ### Supported Architectures
 
 Encoderfile supports the following Hugging Face model classes (and their ONNX-exported equivalents):
