@@ -4,6 +4,8 @@ use rmcp::transport::streamable_http_server::{
     StreamableHttpService, session::local::LocalSessionManager,
 };
 
+mod error;
+
 // TODO figure out the lifetimes of a state so a ref can be safely passed
 pub fn make_router(state: AppState) -> axum::Router {
     match state.model_type {
@@ -60,7 +62,7 @@ macro_rules! generate_mcp {
             use $crate::services::$fn_name;
             use $crate::common::$request_body;
             use $crate::runtime::AppState;
-            use $crate::error::to_mcp_error;
+            use $crate::transport::mcp::error::to_mcp_error;
             use rmcp::{
                 ErrorData as McpError,
                 ServerHandler,

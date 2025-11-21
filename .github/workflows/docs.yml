@@ -1,5 +1,7 @@
 name: docs
 on:
+  release:
+    types: [published, prereleased]
   workflow_dispatch:
     inputs:
       version_override:

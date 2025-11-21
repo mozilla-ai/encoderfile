@@ -27,6 +27,8 @@ use crate::{
     runtime::AppState,
 };
 
+mod error;
+
 #[cfg(not(tarpaulin_include))]
 pub fn router(state: AppState) -> axum::Router {
     let builder = tonic::service::Routes::builder().routes();

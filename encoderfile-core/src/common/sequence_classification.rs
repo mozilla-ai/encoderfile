@@ -10,17 +10,6 @@ pub struct SequenceClassificationRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-impl From<crate::generated::sequence_classification::SequenceClassificationRequest>
-    for SequenceClassificationRequest
-{
-    fn from(val: crate::generated::sequence_classification::SequenceClassificationRequest) -> Self {
-        Self {
-            inputs: val.inputs,
-            metadata: Some(val.metadata),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct SequenceClassificationResponse {
     pub results: Vec<SequenceClassificationResult>,
@@ -29,35 +18,10 @@ pub struct SequenceClassificationResponse {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-impl From<SequenceClassificationResponse>
-    for crate::generated::sequence_classification::SequenceClassificationResponse
-{
-    fn from(val: SequenceClassificationResponse) -> Self {
-        Self {
-            results: val.results.into_iter().map(|i| i.into()).collect(),
-            model_id: val.model_id,
-            metadata: val.metadata.unwrap_or_default(),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, ToSchema, JsonSchema)]
 pub struct SequenceClassificationResult {
     pub logits: Vec<f32>,
     pub scores: Vec<f32>,
     pub predicted_index: u32,
     pub predicted_label: Option<String>,
-}
-
-impl From<SequenceClassificationResult>
-    for crate::generated::sequence_classification::SequenceClassificationResult
-{
-    fn from(val: SequenceClassificationResult) -> Self {
-        Self {
-            logits: val.logits,
-            scores: val.scores,
-            predicted_index: val.predicted_index,
-            predicted_label: val.predicted_label,
-        }
-    }
 }

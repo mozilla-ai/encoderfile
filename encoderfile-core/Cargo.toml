@@ -1,14 +1,37 @@
 [[bench]]
 name = "l2_norm"
 harness = false
+required-features = ["dev-utils"]
 
 [[bench]]
 name = "postprocessing"
 harness = false
+required-features = ["dev-utils"]
 
 [[bench]]
 name = "benchmark_transforms"
 harness = false
+required-features = ["dev-utils"]
+
+[[test]]
+name = "transforms"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_grpc"
+required-features = ["dev-utils", "transport"]
+
+[[test]]
+name = "test_http"
+required-features = ["dev-utils", "transport"]
+
+[[test]]
+name = "test_models"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_services"
+required-features = ["dev-utils"]
 
 [package]
 name = "encoderfile-core"
@@ -18,30 +41,53 @@ license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
 
 [features]
-bench = []
+default = ["transport"]
+transport = [
+    "runtime",
+    "opentelemetry",
+    "opentelemetry-semantic-conventions",
+    "opentelemetry-stdout",
+    "opentelemetry_sdk",
+    "opentelemetry-otlp",
+    "rmcp",
+    "rmcp-macros",
+    "axum",
+    "clap",
+    "clap_derive",
+    "prost",
+    "tonic-prost",
+    "tonic-types",
+    "tonic-web",
+    "tracing-opentelemetry",
+    "tonic",
+    "tower-http"
+    ]
+dev-utils = ["runtime"]
+runtime = ["transforms", "tokenizers", "ort"]
+transforms = ["mlua"]
 
 [dependencies]
 anyhow = "1.0.100"
-axum = "0.8.6"
-clap = "4.5.51"
-clap_derive = "4.5.49"
+axum = { version = "0.8.6", optional = true }
+clap = { version = "4.5.51", optional = true }
+clap_derive = { version = "4.5.49", optional = true }
 ndarray = "0.16.1"
 ndarray-stats = "0.6.0"
-opentelemetry = "0.31.0"
-opentelemetry-semantic-conventions = "0.31.0"
-opentelemetry-stdout = "0.31.0"
-opentelemetry_sdk = "0.31.0"
+opentelemetry = { version = "0.31.0", optional = true }
+opentelemetry-semantic-conventions = { version = "0.31.0", optional = true }
+opentelemetry-stdout = { version = "0.31.0", optional = true }
+opentelemetry_sdk = { version = "0.31.0", optional = true }
 parking_lot = "0.12.5"
-prost = "0.14.1"
+prost = { version = "0.14.1", optional = true }
 schemars = "1.0.5"
 serde_json = "1.0.145"
 thiserror = "2.0.17"
-tokenizers = "0.22.1"
-tonic-prost = "0.14.2"
-tonic-types = "0.14.2"
-tonic-web = "0.14.2"
+tokenizers = { version = "0.22.1", optional = true }
+tonic-prost = { version = "0.14.2", optional = true }
+tonic-types = { version = "0.14.2", optional = true }
+tonic-web = { version = "0.14.2", optional = true }
 tracing = "0.1.41"
-tracing-opentelemetry = "0.32.0"
+tracing-opentelemetry = { version = "0.32.0", optional = true }
 utoipa = "5.4.0"
 utoipa-axum = "0.2.0"
 
@@ -56,17 +102,21 @@ tower = "0.5.2"
 [dependencies.mlua]
 version = "0.11.4"
 features = [ "lua54", "vendored",]
+optional = true
 
 [dependencies.opentelemetry-otlp]
 version = "0.31.0"
 features = [ "grpc-tonic",]
+optional = true
 
 [dependencies.rmcp]
 version = "0.8.0"
 features = [ "server", "transport-streamable-http-server",]
+optional = true
 
 [dependencies.rmcp-macros]
 version = "0.8.0"
+optional = true
 
 [dependencies.serde]
 version = "1.0.228"
@@ -79,10 +129,12 @@ features = [ "full",]
 [dependencies.tonic]
 version = "0.14.2"
 features = [ "router",]
+optional = true
 
 [dependencies.tower-http]
 version = "0.6.6"
 features = [ "trace",]
+optional = true
 
 [dependencies.tracing-subscriber]
 version = "0.3.20"
@@ -91,6 +143,7 @@ features = [ "fmt", "env-filter",]
 [dependencies.ort]
 version = "=2.0.0-rc.10"
 features = [ "std", "tracing", "ndarray",]
+optional = true
 
 [dev-dependencies.divan]
 version = "4.0.5"
