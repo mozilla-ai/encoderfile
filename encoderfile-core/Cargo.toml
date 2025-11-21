@@ -15,14 +15,15 @@ required-features = ["dev-utils"]
 
 [[test]]
 name = "transforms"
+required-features = ["dev-utils"]
 
 [[test]]
 name = "test_grpc"
-required-features = ["dev-utils"]
+required-features = ["dev-utils", "transport"]
 
 [[test]]
 name = "test_http"
-required-features = ["dev-utils"]
+required-features = ["dev-utils", "transport"]
 
 [[test]]
 name = "test_models"
@@ -40,7 +41,20 @@ license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
 
 [features]
-dev-utils = []
+default = ["transport"]
+transport = [
+    "runtime",
+    "opentelemetry",
+    "opentelemetry-semantic-conventions",
+    "opentelemetry-stdout",
+    "opentelemetry_sdk",
+    "opentelemetry-otlp",
+    "rmcp",
+    "rmcp-macros",
+    ]
+dev-utils = ["runtime"]
+runtime = ["transforms"]
+transforms = ["mlua"]
 
 [dependencies]
 anyhow = "1.0.100"
@@ -49,10 +63,10 @@ clap = "4.5.51"
 clap_derive = "4.5.49"
 ndarray = "0.16.1"
 ndarray-stats = "0.6.0"
-opentelemetry = "0.31.0"
-opentelemetry-semantic-conventions = "0.31.0"
-opentelemetry-stdout = "0.31.0"
-opentelemetry_sdk = "0.31.0"
+opentelemetry = { version = "0.31.0", optional=true }
+opentelemetry-semantic-conventions = { version = "0.31.0", optional=true }
+opentelemetry-stdout = { version = "0.31.0", optional=true }
+opentelemetry_sdk = { version = "0.31.0", optional=true }
 parking_lot = "0.12.5"
 prost = "0.14.1"
 schemars = "1.0.5"
@@ -78,17 +92,21 @@ tower = "0.5.2"
 [dependencies.mlua]
 version = "0.11.4"
 features = [ "lua54", "vendored",]
+optional = true
 
 [dependencies.opentelemetry-otlp]
 version = "0.31.0"
 features = [ "grpc-tonic",]
+optional = true
 
 [dependencies.rmcp]
 version = "0.8.0"
 features = [ "server", "transport-streamable-http-server",]
+optional = true
 
 [dependencies.rmcp-macros]
 version = "0.8.0"
+optional = true
 
 [dependencies.serde]
 version = "1.0.228"

@@ -6,14 +6,3 @@ pub enum ModelType {
     TokenClassification,
     SentenceEmbedding,
 }
-
-impl From<ModelType> for crate::generated::metadata::ModelType {
-    fn from(val: ModelType) -> Self {
-        match val {
-            ModelType::Embedding => Self::Embedding,
-            ModelType::SequenceClassification => Self::SequenceClassification,
-            ModelType::TokenClassification => Self::TokenClassification,
-            ModelType::SentenceEmbedding => Self::SentenceEmbedding,
-        }
-    }
-}
