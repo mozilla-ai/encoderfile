@@ -37,7 +37,7 @@ jobs:
         uses: ./.github/actions/project-setup
 
       - name: Install cargo hack
-        run: cargo binstall cargo-hack
+        run: cargo binstall cargo-hack --force
 
       - name: Install pre-commit
         run: pip install pre-commit detect-secrets
