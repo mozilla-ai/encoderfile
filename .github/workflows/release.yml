@@ -263,3 +263,46 @@ jobs:
               ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${VERSION} \
               ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${VERSION}
           fi
+
+  deploy-docs:
+    needs: create-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
+      - uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: ~/.cache 
+          restore-keys: |
+            mkdocs-material-
+
+      - run: pip install uv
+
+      - name: Install docs deps
+        run: uv pip install mkdocs mike mkdocs-material
+
+      - name: Deploy with mike
+        run: |
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          PRERELEASE="${{ needs.create-tag.outputs.prerelease }}"
+
+          echo "Deploying VERSION=$VERSION (prerelease=$PRERELEASE)"
+
+          # Always deploy the version
+          mike deploy "$VERSION"
+
+          # Only set default if not prerelease
+          if [[ "$PRERELEASE" == "false" ]]; then
+            mike set-default "$VERSION"
+          fi

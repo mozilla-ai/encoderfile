@@ -1,31 +1,33 @@
 name: docs
 on:
   push:
-    paths:
-      - ".github/"
-      - "docs/"
-      - "mkdocs.yml"
-      - "*.lua"
-      - "*.proto"
-      - "*.md"
-      - "assets/"
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g. v0.4.0)"
+        required: true
+        type: string
+
 permissions:
   contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Configure Git Credentials
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
       - uses: actions/cache@v4
         with:
@@ -33,5 +35,41 @@ jobs:
           path: ~/.cache 
           restore-keys: |
             mkdocs-material-
+
       - run: pip install uv
-      - run: uv run --group docs -m mkdocs gh-deploy --force
+
+      - name: Install docs deps
+        run: uv pip install mkdocs mike mkdocs-material
+
+      - name: Determine version
+        id: get_version
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            # manual input
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            # tag push
+            VERSION="${GITHUB_REF#refs/tags/}"
+            VERSION="${VERSION#v}"
+          else
+            # main branch
+            VERSION="latest"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Deploy with mike
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+
+          if [[ "$VERSION" == "latest" ]]; then
+            # main branch → rolling latest docs
+            mike deploy --update-aliases latest latest
+            mike set-default latest
+          else
+            # tagged release → pinned version
+            mike deploy "$VERSION"
+          fi
+
+      - name: Push to gh-pages
+        run: git push origin gh-pages

@@ -33,3 +33,7 @@ plugins:
 markdown_extensions:
   - pymdownx.snippets:
       check_paths: true
+
+extra:
+  version:
+    provider: mike
