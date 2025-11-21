@@ -289,9 +289,6 @@ jobs:
 
       - run: pip install uv
 
-      - name: Install docs deps
-        run: uv pip install mkdocs mike mkdocs-material
-
       - name: Deploy with mike
         run: |
           VERSION="${{ needs.create-tag.outputs.version }}"
@@ -300,9 +297,9 @@ jobs:
           echo "Deploying VERSION=$VERSION (prerelease=$PRERELEASE)"
 
           # Always deploy the version
-          mike deploy "$VERSION"
+          uv run --group docs mike deploy "$VERSION"
 
           # Only set default if not prerelease
           if [[ "$PRERELEASE" == "false" ]]; then
-            mike set-default "$VERSION"
+            uv run --group docs mike set-default "$VERSION"
           fi
