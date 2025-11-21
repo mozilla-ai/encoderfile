@@ -55,7 +55,7 @@ flowchart LR
     %% Styling
     classDef asset fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
     classDef process fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
-    classDef artifact fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000;
+    classDef artifact fill:#eceff1,stroke:#1b5e20,stroke-width:2px,color:#000;
 
     subgraph Inputs ["1. Input Assets"]
         direction TB
