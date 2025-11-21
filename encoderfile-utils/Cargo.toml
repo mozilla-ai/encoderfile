@@ -8,7 +8,7 @@ path = "bin/generate_cli_docs.rs"
 
 [package]
 name = "encoderfile-utils"
-version = "0.1.0-rc.21"
+version = "0.1.0-rc.22"
 edition = "2024"
 publish = false
 
