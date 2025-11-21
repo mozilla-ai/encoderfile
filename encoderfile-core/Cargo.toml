@@ -1,14 +1,36 @@
 [[bench]]
 name = "l2_norm"
 harness = false
+required-features = ["dev-utils"]
 
 [[bench]]
 name = "postprocessing"
 harness = false
+required-features = ["dev-utils"]
 
 [[bench]]
 name = "benchmark_transforms"
 harness = false
+required-features = ["dev-utils"]
+
+[[test]]
+name = "transforms"
+
+[[test]]
+name = "test_grpc"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_http"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_models"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_services"
+required-features = ["dev-utils"]
 
 [package]
 name = "encoderfile-core"
@@ -18,7 +40,7 @@ license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
 
 [features]
-bench = []
+dev-utils = []
 
 [dependencies]
 anyhow = "1.0.100"

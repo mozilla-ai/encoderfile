@@ -4,7 +4,7 @@ use encoderfile_core::{
         TokenClassificationRequest,
     },
     services::{embedding, sentence_embedding, sequence_classification, token_classification},
-    test_utils::*,
+    dev_utils::*,
 };
 
 #[test]

@@ -2,7 +2,7 @@ macro_rules! test_router_mod {
     ($mod_name:ident, $state_func:ident, $test_input:expr) => {
         mod $mod_name {
             use axum::http::{Request, StatusCode};
-            use encoderfile_core::{common::*, test_utils::*, transport::http::router};
+            use encoderfile_core::{common::*, dev_utils::*, transport::http::router};
             use tower::ServiceExt;
 
             #[tokio::test]

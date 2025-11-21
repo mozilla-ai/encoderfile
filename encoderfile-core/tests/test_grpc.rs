@@ -19,7 +19,7 @@ use encoderfile_core::{
             token_classification_inference_server::TokenClassificationInference,
         },
     },
-    test_utils::*,
+    dev_utils::*,
     transport::grpc::{
         EmbeddingService, SentenceEmbeddingService, SequenceClassificationService,
         TokenClassificationService,

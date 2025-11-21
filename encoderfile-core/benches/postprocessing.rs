@@ -2,7 +2,7 @@ use divan::Bencher;
 use encoderfile_core::{
     inference::{embedding, sequence_classification, token_classification},
     runtime::encode_text,
-    test_utils::*,
+    dev_utils::*,
 };
 use ndarray::Array;
 use rand::Rng;

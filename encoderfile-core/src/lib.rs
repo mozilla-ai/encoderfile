@@ -14,8 +14,8 @@ pub mod services;
 pub mod transforms;
 pub mod transport;
 
-#[cfg(any(test, feature = "bench"))]
-pub mod test_utils;
+#[cfg(any(test, feature = "dev-utils"))]
+pub mod dev_utils;
 
 pub use assets::get_banner;
 pub use runtime::AppState;

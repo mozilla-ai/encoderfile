@@ -3,7 +3,7 @@ use encoderfile_core::inference::{
     token_classification::token_classification,
 };
 use encoderfile_core::runtime::encode_text;
-use encoderfile_core::test_utils::*;
+use encoderfile_core::dev_utils::*;
 
 #[test]
 fn test_embedding_model() {
