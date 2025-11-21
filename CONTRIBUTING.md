@@ -43,5 +43,5 @@ make setup
 make test
 
 # Build documentation
-make docs-serve
+make docs
 ```
