@@ -20,6 +20,8 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Cookbooks:
+      - Token Classification (NER): cookbooks/token-classification-ner.md
   - Code of Conduct: CODE_OF_CONDUCT.md
   - Contributing: CONTRIBUTING.md
   - Transforms:
@@ -36,3 +38,12 @@ plugins:
 markdown_extensions:
   - pymdownx.snippets:
       check_paths: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
