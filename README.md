@@ -132,23 +132,7 @@ Encoderfile supports the following Hugging Face model classes (and their ONNX-ex
 
 Download the encoderfile CLI tool to build your own model binaries:
 
-**Linux (x86_64):**
 ```bash
-# TODO: Add download URL
-curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
-chmod +x encoderfile
-```
-
-**macOS (Apple Silicon):**
-```bash
-# TODO: Add download URL
-curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
-chmod +x encoderfile
-```
-
-**macOS (Intel):**
-```bash
-# TODO: Add download URL
 curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 chmod +x encoderfile
 ```
@@ -385,11 +369,9 @@ Run as a Model Context Protocol server:
 
 ## 📚 Documentation 
 
--- TODO : Needs the right links
-
 - **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/)** - Step-by-step tutorial
-- **[Building Guide](BUILDING.md)** - Build encoderfiles from ONNX models
-- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/cli/)** - Complete command-line documentation
+- **[Building Guide](https://mozilla-ai.github.io/encoderfile/latest/reference/building/)** - Build encoderfiles from ONNX models
+- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/latest/reference/cli/)** - Complete command-line documentation
 - **[API Reference](https://mozilla-ai.github.io/encoderfile/api-reference/)** - REST, gRPC, and MCP API docs
 
 ## 🛠️ Building Custom Encoderfiles
