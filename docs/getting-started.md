@@ -8,8 +8,8 @@ This quick-start guide will help you build and run your first encoderfile in und
 
 You need the `encoderfile` CLI tool installed:
 
-- **Pre-built binary** (Linux/macOS): Download from [releases](https://github.com/mozilla-ai/encoderfile/releases) (TODO: add actual release link)
-- **Build from source** (all platforms): See [BUILDING.md](../BUILDING.md)
+- **Pre-built binary** (Linux/macOS): Download from [releases](https://github.com/mozilla-ai/encoderfile/releases) 
+- **Build from source** (all platforms): See [BUILDING.md](https://mozilla-ai.github.io/encoderfile/latest/reference/building/)
 
 ### Python with Optimum
 
