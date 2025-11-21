@@ -269,22 +269,19 @@ impl Tensor {
 
     #[tracing::instrument(skip_all)]
     fn softmax(&self, axis: isize) -> Result<Self, LuaError> {
-        let axis = self.axis1(axis)?; // subtract per-axis max (numerical stability)
-        let max = self
-            .0
-            .map_axis(axis, |lane| {
-                lane.iter().cloned().fold(f32::NEG_INFINITY, f32::max)
-            })
-            .insert_axis(axis);
-        // shifted = x - max
-        let shifted = &self.0 - &max;
-        // exponentiate
-        let exp = shifted.mapv(|v| v.exp());
-        // per-axis sum
-        let sum = exp.sum_axis(axis).insert_axis(axis);
+        let axis = self.axis1(axis)?;
 
-        // normalize: exp / sum
-        Ok(Tensor(&exp / &sum))
+        let max_vals = self.0.map_axis(axis, |row| {
+            row.iter().fold(f32::NEG_INFINITY, |m, &v| m.max(v))
+        });
+
+        let z = &self.0 - &max_vals.insert_axis(axis);
+
+        let numerator = z.mapv(|x| x.exp());
+
+        let denom = numerator.map_axis(axis, |row| row.sum());
+
+        Ok(Tensor(numerator / &denom.insert_axis(axis)))
     }
 }
 
