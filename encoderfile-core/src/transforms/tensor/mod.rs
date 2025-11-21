@@ -272,7 +272,9 @@ impl Tensor {
         let axis = self.axis1(axis)?; // subtract per-axis max (numerical stability)
         let max = self
             .0
-            .map_axis(axis, |lane| lane.iter().cloned().fold(f32::NEG_INFINITY, f32::max))
+            .map_axis(axis, |lane| {
+                lane.iter().cloned().fold(f32::NEG_INFINITY, f32::max)
+            })
             .insert_axis(axis);
         // shifted = x - max
         let shifted = &self.0 - &max;

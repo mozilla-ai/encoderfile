@@ -3,8 +3,8 @@ use encoderfile_core::{
         EmbeddingRequest, SentenceEmbeddingRequest, SequenceClassificationRequest,
         TokenClassificationRequest,
     },
-    services::{embedding, sentence_embedding, sequence_classification, token_classification},
     dev_utils::*,
+    services::{embedding, sentence_embedding, sequence_classification, token_classification},
 };
 
 #[test]

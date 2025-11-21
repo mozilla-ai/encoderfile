@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use encoderfile_core::{
+    dev_utils::*,
     generated::{
         embedding::{
             EmbeddingRequest, EmbeddingResponse, embedding_inference_server::EmbeddingInference,
@@ -19,7 +20,6 @@ use encoderfile_core::{
             token_classification_inference_server::TokenClassificationInference,
         },
     },
-    dev_utils::*,
     transport::grpc::{
         EmbeddingService, SentenceEmbeddingService, SequenceClassificationService,
         TokenClassificationService,

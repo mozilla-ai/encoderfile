@@ -1,8 +1,8 @@
 use divan::Bencher;
 use encoderfile_core::{
+    dev_utils::*,
     inference::{embedding, sequence_classification, token_classification},
     runtime::encode_text,
-    dev_utils::*,
 };
 use ndarray::Array;
 use rand::Rng;

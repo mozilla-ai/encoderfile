@@ -1,6 +1,6 @@
+use crate::error::ApiError;
 use rmcp::{ErrorData as McpError, model::ErrorCode};
 use serde_json::value::Value::String as SerdeString;
-use crate::error::ApiError;
 
 impl From<ApiError> for McpError {
     fn from(api_error: ApiError) -> McpError {

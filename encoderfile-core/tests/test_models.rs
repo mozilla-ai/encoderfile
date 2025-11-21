@@ -1,9 +1,9 @@
+use encoderfile_core::dev_utils::*;
 use encoderfile_core::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
 };
 use encoderfile_core::runtime::encode_text;
-use encoderfile_core::dev_utils::*;
 
 #[test]
 fn test_embedding_model() {
