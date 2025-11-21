@@ -78,6 +78,12 @@ function Tensor:map_axis(axis, func) end
 ---@return Tensor 1-D tensor of reduction results
 function Tensor:fold_axis(axis, func) end
 
+---Mean pools a tensor using a mask.
+---The mask must be 1 rank smaller than the tensor itself.
+---@param mask Tensor Mask tensor
+---@return Tensor
+function Tensor:mean_pool(mask) end
+
 ---Elementwise equality comparison.
 ---@param other number|Tensor
 ---@return boolean

@@ -31,6 +31,9 @@ Encoderfile supports small Lua hooks for post-processing using a small tensor li
 For `BAAI/bge-small-en-v1.5`, we stick to the standard recipe: masked mean pooling followed by L2 normalization.
 
 ```lua
+--- @param arr Tensor
+--- @param mask Tensor
+--- @return Tensor
 function Postprocess(arr, mask)
     -- Mean-pool token embeddings using the attention mask
     local mean_pooled = arr:mean_pool(mask)
