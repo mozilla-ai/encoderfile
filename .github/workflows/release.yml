@@ -152,7 +152,7 @@ jobs:
           cp LICENSE dist/LICENSE
           test -f THIRDPARTY.md && cp THIRDPARTY.md dist/THIRDPARTY.md
 
-          TAR="encoderfile-v${VERSION}-${TARGET}.tar.gz"
+          TAR="encoderfile-${TARGET}.tar.gz"
           tar -czf "$TAR" -C dist .
           echo "Created $TAR"
 
@@ -160,7 +160,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: encoderfile-${{ matrix.platform.target }}
-          path: encoderfile-v${{ needs.create-tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
+          path: encoderfile-${{ matrix.platform.target }}.tar.gz
 
   create-release:
     needs: [create-tag, build-encoderfile, publish-encoderfile]
