@@ -303,3 +303,6 @@ jobs:
           if [[ "$PRERELEASE" == "false" ]]; then
             uv run --group docs mike set-default "$VERSION"
           fi
+
+      - name: Push to gh-pages
+        run: git push origin gh-pages
