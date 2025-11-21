@@ -61,6 +61,7 @@ flowchart LR
         direction TB
         Onnx["ONNX Model<br/>(.onnx)"]:::asset
         Tok["Tokenizer Data<br/>(tokenizer.json)"]:::asset
+        Config["Runtime Config<br/>(config.yml)"]:::asset
     end
 
     subgraph Build ["2. Build Phase"]
