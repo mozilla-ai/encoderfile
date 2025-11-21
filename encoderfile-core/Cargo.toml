@@ -41,7 +41,6 @@ license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
 
 [features]
-default = ["transport"]
 transport = [
     "runtime",
     "opentelemetry",
