@@ -135,21 +135,21 @@ Download the encoderfile CLI tool to build your own model binaries:
 **Linux (x86_64):**
 ```bash
 # TODO: Add download URL
-curl -L -o encoderfile <Download URL>
+curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 chmod +x encoderfile
 ```
 
 **macOS (Apple Silicon):**
 ```bash
 # TODO: Add download URL
-curl -L -o encoderfile <Download URL>
+curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 chmod +x encoderfile
 ```
 
 **macOS (Intel):**
 ```bash
 # TODO: Add download URL
-curl -L -o encoderfile <Download URL>
+curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 chmod +x encoderfile
 ```
 
