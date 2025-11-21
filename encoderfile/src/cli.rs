@@ -1,5 +1,5 @@
 use super::templates::TEMPLATES;
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use std::path::PathBuf;
 
 use clap_derive::{Args, Parser, Subcommand};
@@ -56,6 +56,7 @@ impl BuildArgs {
     fn run(self) -> Result<()> {
         let mut config = super::config::Config::load(&self.config)?;
 
+        // --- handle user flags ---------------------------------------------------
         if let Some(o) = &self.output_path {
             config.encoderfile.output_path = Some(o.to_path_buf());
         }
@@ -74,42 +75,58 @@ impl BuildArgs {
             .model_type
             .validate_model(&config.encoderfile.path.model_weights_path()?)?;
 
-        // handle dirs
+        // setup write directory
         let write_dir = config.encoderfile.get_generated_dir();
-        std::fs::create_dir_all(write_dir.join("src/"))?;
+        std::fs::create_dir_all(write_dir.join("src/"))
+            .with_context(|| format!("Failed creating {}", write_dir.display()))?;
 
-        // create context
+        // render templates
         let ctx = config.encoderfile.to_tera_ctx()?;
 
         render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
         render("Cargo.toml.tera", &ctx, &write_dir, "Cargo.toml")?;
 
-        if config.encoderfile.build {
-            let cargo_toml_path = write_dir.join("Cargo.toml").canonicalize()?;
-
-            let manifest_dir = cargo_toml_path
-                .to_str()
-                .expect("Cargo.toml path is not utf-8");
-
-            std::process::Command::new("cargo")
-                .arg("build")
-                .arg("--release")
-                .arg("--manifest-path")
-                .arg(manifest_dir)
-                .status()?;
-
-            let generated_path = config
-                .encoderfile
-                .get_generated_dir()
-                .join("target/release/encoderfile");
-
-            if !generated_path.exists() {
-                bail!("ERROR: Generated path does not exist. This should not happen.")
-            }
-
-            // export encoderfile to output dir
-            std::fs::rename(generated_path, config.encoderfile.output_path())?;
+        // short circuit if build stage skipped
+        if !config.encoderfile.build {
+            return Ok(());
         }
+
+        // canonicalize paths
+        let cargo_toml_path = write_dir
+            .join("Cargo.toml")
+            .canonicalize()
+            .context("Canonicalizing Cargo.toml failed")?;
+
+        // run cargo build with environment isolation
+        let manifest_path = cargo_toml_path.to_string_lossy();
+        let status = std::process::Command::new("cargo")
+            .arg("build")
+            .arg("--release")
+            .arg("--manifest-path")
+            .arg(&*manifest_path)
+            // full workspace isolation (stops parent workspace detection)
+            .env("CARGO_WORKSPACE_DIR", "/nonexistent")
+            // ensure temp files stay local
+            .env("CARGO_TARGET_DIR", write_dir.join("target"))
+            .env("CARGO_HOME", write_dir.join(".cargo"))
+            .status()
+            .context("Failed to run cargo build")?;
+
+        if !status.success() {
+            bail!("cargo build failed with exit status {:?}", status);
+        }
+
+        // locate generated binary
+        let generated_binary = write_dir.join("target/release/encoderfile");
+        if !generated_binary.exists() {
+            bail!(
+                "ERROR: generated binary {:?} does not exist.",
+                generated_binary
+            );
+        }
+
+        // final output move (filesystem-safe)
+        move_across_filesystems(&generated_binary, &config.encoderfile.output_path())?;
 
         Ok(())
     }
@@ -128,4 +145,19 @@ fn render(
     std::fs::write(file, rendered)?;
 
     Ok(())
+}
+
+// -----------------------------------------------------------------------------
+// Safe move across filesystems (avoids EXDEV)
+// -----------------------------------------------------------------------------
+fn move_across_filesystems(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
+    match std::fs::rename(src, dst) {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::CrossesDevices => {
+            std::fs::copy(src, dst).with_context(|| format!("copying {:?} → {:?}", src, dst))?;
+            std::fs::remove_file(src).with_context(|| format!("removing {:?}", src))?;
+            Ok(())
+        }
+        Err(e) => Err(e.into()),
+    }
 }

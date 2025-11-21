@@ -1,21 +1,14 @@
 [[bin]]
 name = "encoderfile"
-path = "bin/cli.rs"
-
-[[bin]]
-name = "generate-encoderfile-config-schema"
-path = "bin/generate_encoderfile_config_schema.rs"
-
-[[bin]]
-name = "generate-encoderfile-cli-docs"
-path = "bin/generate_cli_docs.rs"
-required-features = [ "_internal",]
+path = "src/main.rs"
 
 [package]
 name = "encoderfile"
-version = "0.1.0-rc.7"
+version = "0.1.0-rc.22"
 edition = "2024"
 license = "Apache-2.0"
+readme = "../README.md"
+description = "Distribute and run transformer encoders with a single file."
 
 [dependencies]
 anyhow = "1.0.100"

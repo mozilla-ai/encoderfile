@@ -1,0 +1,10 @@
+encoderfile:
+  name: BAAI/bge-small-en-v1.5
+  model_type: sentence_embedding
+  output_path: model.encoderfile
+  path:
+    model_weights_path: onnx/model.onnx
+    tokenizer_path: tokenizer.json
+    model_config_path: config.json
+  transform:
+    path: transform.lua

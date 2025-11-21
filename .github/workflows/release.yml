@@ -93,7 +93,7 @@ jobs:
             git push origin "v${VERSION}"
           fi
 
-  publish-encoderfile-core:
+  publish-encoderfile:
     needs: create-tag
     runs-on: ubuntu-24.04
     steps:
@@ -101,19 +101,29 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
-        with:
-          run-dev-setup: "false"
 
       - name: Cargo publish (dry-run)
-        run: cargo publish -p encoderfile-core --dry-run
+        run: cargo publish --dry-run
         env:
           ENCODERFILE_DEV: "false"
 
       - name: Cargo publish
-        run: cargo publish -p encoderfile-core
+        run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           ENCODERFILE_DEV: "false"
+
+  upload-install-script:
+    needs: create-tag
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload artifact
+
+        uses: actions/upload-artifact@v4
+        with:
+          name: install
+          path: install.sh
 
   build-encoderfile:
     needs: create-tag
@@ -134,8 +144,6 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
-        with:
-          run-dev-setup: "false"
 
       - name: Install target
         run: rustup target add ${{ matrix.platform.target }}
@@ -156,7 +164,7 @@ jobs:
           cp LICENSE dist/LICENSE
           test -f THIRDPARTY.md && cp THIRDPARTY.md dist/THIRDPARTY.md
 
-          TAR="encoderfile-v${VERSION}-${TARGET}.tar.gz"
+          TAR="encoderfile-${TARGET}.tar.gz"
           tar -czf "$TAR" -C dist .
           echo "Created $TAR"
 
@@ -164,10 +172,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: encoderfile-${{ matrix.platform.target }}
-          path: encoderfile-v${{ needs.create-tag.outputs.version }}-${{ matrix.platform.target }}.tar.gz
+          path: encoderfile-${{ matrix.platform.target }}.tar.gz
 
   create-release:
-    needs: [create-tag, build-encoderfile, publish-encoderfile-core]
+    needs: [create-tag, build-encoderfile, publish-encoderfile, upload-install-script]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -181,41 +189,27 @@ jobs:
           tag_name: v${{ needs.create-tag.outputs.version }}
           name: v${{ needs.create-tag.outputs.version }}
           prerelease: ${{ needs.create-tag.outputs.prerelease }}
-          files: dist/**/*.tar.gz
+          files: |
+            dist/**/*.tar.gz
+            dist/install/install.sh
           generate_release_notes: true
 
   docker-build:
-    needs: [create-release, build-encoderfile, create-tag]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    needs: [create-release, create-tag]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-        # They come named like:
-        # encoderfile-x86_64-unknown-linux-gnu
-        # encoderfile-aarch64-unknown-linux-gnu
-
-      # Extract amd64 binary
-      - name: Extract amd64
-        run: |
-          mkdir -p docker-build/amd64
-          tar -xzf artifacts/encoderfile-x86_64-unknown-linux-gnu/encoderfile-v${{ needs.create-tag.outputs.version }}-x86_64-unknown-linux-gnu.tar.gz \
-              -C docker-build/amd64
-
-      # Extract arm64 binary
-      - name: Extract arm64
-        run: |
-          mkdir -p docker-build/arm64
-          tar -xzf artifacts/encoderfile-aarch64-unknown-linux-gnu/encoderfile-v${{ needs.create-tag.outputs.version }}-aarch64-unknown-linux-gnu.tar.gz \
-              -C docker-build/arm64
+      - uses: actions/checkout@v4
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -224,33 +218,48 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Build amd64 image
+      - name: Build image
         run: |
           docker build \
-            --platform linux/amd64 \
-            -t ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }} \
-            -f ./docker/Dockerfile.ci \
-            --build-arg ASSET_DIR=docker-build/amd64 \
+            --platform ${{ matrix.platform }} \
+            -t ghcr.io/${{ github.repository_owner }}/encoderfile:${{ matrix.arch }}-${{ needs.create-tag.outputs.version }} \
             .
 
-      - name: Build arm64 image
+      - name: Push image
         run: |
-          docker build \
-            --platform linux/arm64 \
-            -t ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }} \
-            -f ./docker/Dockerfile.ci \
-            --build-arg ASSET_DIR=docker-build/arm64 \
-            .
+          docker push ghcr.io/${{ github.repository_owner }}/encoderfile:${{ matrix.arch }}-${{ needs.create-tag.outputs.version }}
 
-      - name: Push per-arch images
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }}
-          docker push ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }}
+  docker-manifest:
+    needs: [docker-build, create-tag]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
       - name: Create multi-arch manifest
         run: |
-          docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository_owner }}/encoderfile:${{ needs.create-tag.outputs.version }} \
-            -t ghcr.io/${{ github.repository_owner }}/encoderfile:latest \
-            ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${{ needs.create-tag.outputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${{ needs.create-tag.outputs.version }}
+          VERSION=${{ needs.create-tag.outputs.version }}
+          PRE=${{ needs.create-tag.outputs.prerelease }}
+
+          if [[ "$PRE" == "true" ]]; then
+            echo "Prerelease detected — skipping latest tag"
+            docker buildx imagetools create \
+              -t ghcr.io/${{ github.repository_owner }}/encoderfile:${VERSION} \
+              ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${VERSION} \
+              ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${VERSION}
+          else
+            echo "Stable release — tagging latest"
+            docker buildx imagetools create \
+              -t ghcr.io/${{ github.repository_owner }}/encoderfile:${VERSION} \
+              -t ghcr.io/${{ github.repository_owner }}/encoderfile:latest \
+              ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${VERSION} \
+              ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${VERSION}
+          fi

@@ -136,7 +136,6 @@ jobs:
       - name: Update Cargo.lock
         run: cargo update encoderfile-core encoderfile --precise ${{ steps.new_version.outputs.version }}
 
-      # Update uv.lock
       - name: Update uv.lock
         run: uv lock
 

@@ -1,24 +1,22 @@
 name: docs
 on:
-  push:
-    paths:
-      - ".github/"
-      - "docs/"
-      - "mkdocs.yml"
-      - "*.lua"
-      - "*.proto"
-      - "*.md"
-      - "assets/"
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      version_override:
+        description: "Manually specify the release version (e.g. 1.2.3)"
+        required: false
+
 permissions:
   contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - run: git fetch origin gh-pages --depth=1
+
       - name: Configure Git Credentials
         run: |
           git config user.name github-actions[bot]
@@ -33,5 +31,12 @@ jobs:
           path: ~/.cache 
           restore-keys: |
             mkdocs-material-
+
       - run: pip install uv
-      - run: uv run --group docs -m mkdocs gh-deploy --force
+
+      - name: deploy
+        # TODO: update version variable set when we automate this on release
+        run: |
+          VERSION=${{ github.event.inputs.version_override }}
+          uv run --group docs mike deploy --push --update-aliases "$VERSION" latest
+          uv run --group docs mike set-default latest --push

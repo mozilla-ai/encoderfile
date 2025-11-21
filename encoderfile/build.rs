@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 
 fn main() {
-    let encoderfile_core_dep_str = match env!("ENCODERFILE_DEV") {
+    let encoderfile_core_dep_str = match option_env!("ENCODERFILE_DEV") {
         // include local path if in dev mode
-        "true" => get_local_encoderfile_dep(),
+        Some("true") => get_local_encoderfile_dep(),
         // otherwise use coupled version. encoderfile and encoderfile-core
         // should ALWAYS have the same version.
-        "false" => get_versioned_encoderfile_dep(),
+        Some("false") | None => get_versioned_encoderfile_dep(),
         _ => panic!("ENCODERFILE_DEV must either be \"true\" or \"false\""),
     };
 

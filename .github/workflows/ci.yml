@@ -3,7 +3,17 @@ name: ci
 on:
   push:
     branches: [main]
+    paths:
+      - "*.rs"
+      - "*.lua"
+      - "Cargo.toml"
+      - "*.proto"
   pull_request:
+    paths:
+      - "*.rs"
+      - "*.lua"
+      - "Cargo.toml"
+      - "*.proto"
   workflow_dispatch:
 
 jobs:
@@ -39,7 +49,10 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
-            
+
+      - name: Install test dependencies
+        run: make setup
+
       - name: Install codspeed
         run: cargo binstall cargo-codspeed --no-confirm --force
 
@@ -85,6 +98,9 @@ jobs:
 
       - name: Project setup
         uses: ./.github/actions/project-setup
+      
+      - name: Install test dependencies
+        run: make setup
       
       - name: Install llvm-tools-preview
         run: rustup component add llvm-tools-preview

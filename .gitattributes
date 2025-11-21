@@ -1,2 +1,2 @@
-*.proto linguist-detectable
 src/generated/**/*.rs -linguist-detectable
+*.hbs -linguist-detectable
