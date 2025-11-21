@@ -63,7 +63,7 @@ transport = [
     "tower-http"
     ]
 dev-utils = ["runtime"]
-runtime = ["transforms", "tokenizers"]
+runtime = ["transforms", "tokenizers", "ort"]
 transforms = ["mlua"]
 
 [dependencies]
@@ -143,6 +143,7 @@ features = [ "fmt", "env-filter",]
 [dependencies.ort]
 version = "=2.0.0-rc.10"
 features = [ "std", "tracing", "ndarray",]
+optional = true
 
 [dev-dependencies.divan]
 version = "4.0.5"
