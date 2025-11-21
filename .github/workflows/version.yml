@@ -119,11 +119,11 @@ jobs:
            github.event.inputs.version_type == 'patch')
         run: |
           if [ "${{ github.event.inputs.version_type }}" = "major" ]; then
-            uv run bump_version.py mjr
+            uv run scripts/bump_version.py mjr
           elif [ "${{ github.event.inputs.version_type }}" = "minor" ]; then
-            uv run bump_version.py mnr
+            uv run scripts/bump_version.py mnr
           else
-            uv run bump_version.py patch
+            uv run scripts/bump_version.py patch
           fi
 
       # Get new version after bump
