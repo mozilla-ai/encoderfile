@@ -69,24 +69,30 @@ flowchart LR
 
     style Inputs fill:#e3f2fd,stroke:#0277bd,stroke-width:2px,stroke-dasharray: 5 5,color:#01579b
 
-    subgraph Build ["2. Build Phase"]
+    subgraph Compile ["2. Compile Phase"]
+        Compiler["Encoderfile Compiler<br/>(CLI Tool)"]:::asset
+    end
+
+    style Compile fill:#e3f2fd,stroke:#0277bd,stroke-width:2px,stroke-dasharray: 5 5,color:#01579b
+
+    subgraph Build ["3. Build Phase"]
         direction TB
-        Compiler["Encoderfile Compiler<br/>(CLI Tool)"]:::tool
         Builder["Wrapper Process<br/>(Embeds Assets + Runtime)"]:::process
     end
 
     style Build fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#e65100
 
-    subgraph Output ["3. Artifact"]
+    subgraph Output ["4. Artifact"]
         Binary["Single Binary Executable<br/>(Static File)"]:::artifact
     end
     style Output fill:#fafafa,stroke:#546e7a,stroke-width:2px,stroke-dasharray: 5 5,color:#546e7a
 
-    subgraph Runtime ["4. Runtime Phase"]
+    subgraph Runtime ["5. Runtime Phase"]
         direction TB
         %% Added fa:fa-server icons
         Grpc["fa:fa-server gRPC Server<br/>(Protobuf)"]:::service
         Http["fa:fa-server HTTP Server<br/>(JSON)"]:::service
+        MCP["fa:fa-server MCP Server<br/>(MCP)"]:::service
         %% Added fa:fa-cloud icon
         Client["fa:fa-cloud Client Apps /<br/>MCP Agent"]:::client
     end
@@ -101,7 +107,7 @@ flowchart LR
     %% Runtime Connections
     Binary -.->|"Executes"| Grpc
     Binary -.->|"Executes"| Http
-    Grpc & Http -->|"Responds to"| Client
+    Grpc & Http & MCP-->|"Responds to"| Client
 ```
 
 ### Supported Architectures
