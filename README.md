@@ -6,13 +6,13 @@
 
 <p align="center">
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yaml/badge.svg" />
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/pre-commit.yml/badge.svg" />
   </a>
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yaml/badge.svg" />
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/ci.yml/badge.svg" />
   </a>
   <a href="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml">
-    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yaml/badge.svg" />
+    <img src="https://github.com/mozilla-ai/encoderfile/actions/workflows/docs.yml/badge.svg" />
   </a>
 </p>
 
