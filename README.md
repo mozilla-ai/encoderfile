@@ -50,6 +50,60 @@ Encoderfiles can run as:
 - CLI for batch processing
 - MCP server (Model Context Protocol)
 
+```mermaid
+flowchart LR
+    %% Styling
+    classDef asset fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
+    classDef tool fill:#fff8e1,stroke:#ff6f00,stroke-width:2px,stroke-dasharray: 5 5,color:#000;
+    classDef process fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
+    classDef artifact fill:#f5f5f5,stroke:#616161,stroke-width:2px,color:#000;
+    classDef service fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000;
+    classDef client fill:#e3f2fd,stroke:#0277bd,stroke-width:2px,stroke-dasharray: 5 5,color:#000;
+
+    subgraph Inputs ["1. Input Assets"]
+        direction TB
+        Onnx["ONNX Model<br/>(.onnx)"]:::asset
+        Tok["Tokenizer Data<br/>(tokenizer.json)"]:::asset
+        Config["Runtime Config<br/>(config.yml)"]:::asset
+    end
+
+    style Inputs fill:#e3f2fd,stroke:#0277bd,stroke-width:2px,stroke-dasharray: 5 5,color:#01579b
+
+    subgraph Build ["2. Build Phase"]
+        direction TB
+        Compiler["Encoderfile Compiler<br/>(CLI Tool)"]:::tool
+        Builder["Wrapper Process<br/>(Embeds Assets + Runtime)"]:::process
+    end
+
+    style Build fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#e65100
+
+    subgraph Output ["3. Artifact"]
+        Binary["Single Binary Executable<br/>(Static File)"]:::artifact
+    end
+    style Output fill:#fafafa,stroke:#546e7a,stroke-width:2px,stroke-dasharray: 5 5,color:#546e7a
+
+    subgraph Runtime ["4. Runtime Phase"]
+        direction TB
+        %% Added fa:fa-server icons
+        Grpc["fa:fa-server gRPC Server<br/>(Protobuf)"]:::service
+        Http["fa:fa-server HTTP Server<br/>(JSON)"]:::service
+        %% Added fa:fa-cloud icon
+        Client["fa:fa-cloud Client Apps /<br/>MCP Agent"]:::client
+    end
+    style Runtime fill:#f1f8e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+
+
+    %% Connections
+    Onnx & Tok & Config --> Builder
+    Compiler -.->|"Orchestrates"| Builder
+    Builder -->|"Outputs"| Binary
+    
+    %% Runtime Connections
+    Binary -.->|"Executes"| Grpc
+    Binary -.->|"Executes"| Http
+    Grpc & Http -->|"Responds to"| Client
+```
+
 ### Supported Architectures
 
 Encoderfile supports the following Hugging Face model classes (and their ONNX-exported equivalents):
