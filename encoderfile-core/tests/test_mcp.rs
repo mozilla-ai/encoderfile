@@ -1,19 +1,21 @@
 const LOCALHOST: &str = "localhost";
 
-use encoderfile_core::{
-    AppState, dev_utils::embedding_state, transport::mcp,
-    common::{EmbeddingRequest, EmbeddingResponse, ModelType},
-};
-use tower_http::trace::DefaultOnResponse;
-use tokio::net::TcpListener;
 use anyhow::Result;
+use encoderfile_core::{
+    AppState,
+    common::{EmbeddingRequest, EmbeddingResponse, ModelType},
+    dev_utils::embedding_state,
+    transport::mcp,
+};
 use rmcp::{
     ServiceExt,
+    model::{CallToolRequestParam, ClientCapabilities, ClientInfo, Implementation},
     transport::StreamableHttpClientTransport,
-    model::{CallToolRequestParam, ClientCapabilities, ClientInfo, Implementation}
 };
+use tokio::net::TcpListener;
+use tower_http::trace::DefaultOnResponse;
 
-async fn run_mcp(addr: String, state: AppState) -> Result<()>{
+async fn run_mcp(addr: String, state: AppState) -> Result<()> {
     let model_type = state.model_type.clone();
     let router = mcp::make_router(state).layer(
         tower_http::trace::TraceLayer::new_for_http()
@@ -35,7 +37,8 @@ async fn test_mcp() {
     let dummy_state = embedding_state();
     let mcp_server = tokio::spawn(run_mcp(addr, dummy_state));
     // Client usage copied over from https://github.com/modelcontextprotocol/rust-sdk/blob/main/examples/clients/src/streamable_http.rs
-    let client_transport = StreamableHttpClientTransport::from_uri(format!("http://{}:{}/mcp", LOCALHOST, port));
+    let client_transport =
+        StreamableHttpClientTransport::from_uri(format!("http://{}:{}/mcp", LOCALHOST, port));
     let client_info = ClientInfo {
         protocol_version: Default::default(),
         capabilities: ClientCapabilities::default(),
@@ -47,38 +50,49 @@ async fn test_mcp() {
             icons: None,
         },
     };
-    let client = client_info.serve(client_transport).await.inspect_err(|e| {
-        tracing::error!("client error: {:?}", e);
-    }).unwrap();
+    let client = client_info
+        .serve(client_transport)
+        .await
+        .inspect_err(|e| {
+            tracing::error!("client error: {:?}", e);
+        })
+        .unwrap();
     // Initialize
     let server_info = client.peer_info();
     tracing::info!("Connected to server: {server_info:#?}");
 
     // List tools
-    let tools = client.list_tools(Default::default()).await.expect("list tools failed");
+    let tools = client
+        .list_tools(Default::default())
+        .await
+        .expect("list tools failed");
     tracing::info!("Available tools: {tools:#?}");
 
     assert_eq!(tools.tools.len(), 1);
     assert_eq!(tools.tools[0].name, "run_encoder");
 
     let test_params = EmbeddingRequest {
-        inputs: vec!["This is a test.".to_string(), "This is another test.".to_string()],
-        metadata: None
+        inputs: vec![
+            "This is a test.".to_string(),
+            "This is another test.".to_string(),
+        ],
+        metadata: None,
     };
     let tool_result = client
         .call_tool(CallToolRequestParam {
             name: "run_encoder".into(),
             arguments: serde_json::json!(test_params).as_object().cloned(),
         })
-        .await.expect("call tool failed");
+        .await
+        .expect("call tool failed");
     tracing::info!("Tool result: {tool_result:#?}");
     let embeddings_response: EmbeddingResponse = serde_json::from_value(
-        tool_result.structured_content
-        .expect("No structured content found"))
-        .expect("failed to parse tool result");
+        tool_result
+            .structured_content
+            .expect("No structured content found"),
+    )
+    .expect("failed to parse tool result");
     assert_eq!(embeddings_response.results.len(), 2);
     client.cancel().await.unwrap();
     mcp_server.abort();
 }
-
-
