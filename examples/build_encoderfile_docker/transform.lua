@@ -1,3 +1,6 @@
+--- @param arr Tensor
+--- @param mask Tensor
+--- @return Tensor
 function Postprocess(arr, mask)
     -- mean pool using mask
     local mean_pooled = arr:mean_pool(mask)

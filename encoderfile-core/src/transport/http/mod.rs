@@ -1,6 +1,7 @@
 use crate::{common::ModelType, runtime::AppState};
 
 mod base;
+mod error;
 
 #[rustfmt::skip]
 macro_rules! generate_http {

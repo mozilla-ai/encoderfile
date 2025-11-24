@@ -7,8 +7,8 @@ repos:
         language: system
         types: [rust]
       - id: cargo-check
-        name: cargo check
-        entry: bash -c 'cargo check --all-features'
+        name: cargo hack check
+        entry: bash -c 'cargo hack check --each-feature'
         language: system
         types: [rust]
   - repo: https://github.com/astral-sh/ruff-pre-commit

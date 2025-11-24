@@ -17,6 +17,10 @@ licenses:
 	@echo "Generating licenses..."
 	@cargo about generate about.hbs > THIRDPARTY.md
 
+.PHONY: check
+check:
+	cargo hack check --each-feature
+
 .PHONY:
 clippy:
 	@cargo clippy \

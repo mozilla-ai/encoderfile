@@ -2,7 +2,6 @@ use super::utils::table_to_vec;
 use mlua::prelude::*;
 use ndarray::{Array1, ArrayD, Axis};
 use ndarray_stats::QuantileExt;
-use ort::tensor::ArrayExtensions;
 
 #[cfg(test)]
 mod tests;
@@ -270,7 +269,19 @@ impl Tensor {
 
     #[tracing::instrument(skip_all)]
     fn softmax(&self, axis: isize) -> Result<Self, LuaError> {
-        self.axis1(axis).map(|i| self.0.softmax(i)).map(Self)
+        let axis = self.axis1(axis)?;
+
+        let max_vals = self.0.map_axis(axis, |row| {
+            row.iter().fold(f32::NEG_INFINITY, |m, &v| m.max(v))
+        });
+
+        let z = &self.0 - &max_vals.insert_axis(axis);
+
+        let numerator = z.mapv(|x| x.exp());
+
+        let denom = numerator.map_axis(axis, |row| row.sum());
+
+        Ok(Tensor(numerator / &denom.insert_axis(axis)))
     }
 }
 

@@ -10,17 +10,6 @@ pub struct SentenceEmbeddingRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-impl From<crate::generated::sentence_embedding::SentenceEmbeddingRequest>
-    for SentenceEmbeddingRequest
-{
-    fn from(val: crate::generated::sentence_embedding::SentenceEmbeddingRequest) -> Self {
-        Self {
-            inputs: val.inputs,
-            metadata: Some(val.metadata),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct SentenceEmbeddingResponse {
     pub results: Vec<SentenceEmbedding>,
@@ -29,27 +18,7 @@ pub struct SentenceEmbeddingResponse {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-impl From<SentenceEmbeddingResponse>
-    for crate::generated::sentence_embedding::SentenceEmbeddingResponse
-{
-    fn from(val: SentenceEmbeddingResponse) -> Self {
-        Self {
-            results: val.results.into_iter().map(|i| i.into()).collect(),
-            model_id: val.model_id,
-            metadata: val.metadata.unwrap_or_default(),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct SentenceEmbedding {
     pub embedding: Vec<f32>,
-}
-
-impl From<SentenceEmbedding> for crate::generated::sentence_embedding::SentenceEmbedding {
-    fn from(val: SentenceEmbedding) -> Self {
-        Self {
-            embedding: val.embedding,
-        }
-    }
 }

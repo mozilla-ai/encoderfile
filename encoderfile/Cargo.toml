@@ -4,7 +4,7 @@ path = "src/main.rs"
 
 [package]
 name = "encoderfile"
-version = "0.1.0-rc.22"
+version = "0.1.1"
 edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
