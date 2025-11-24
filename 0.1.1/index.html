@@ -1679,7 +1679,7 @@ No Python runtime, no dependencies, no network calls. Just a fast, portable bina
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>chmod<span class="w"> </span>+x<span class="w"> </span>encoderfile
 </span></code></pre></div>
 <blockquote>
-<p><strong>Note for Windows users:</strong> Pre-built binaries are not available for Windows. Please see <a href="BUILDING.md">BUILDING.md</a> for instructions on building from source.</p>
+<p><strong>Note for Windows users:</strong> Pre-built binaries are not available for Windows. Please see our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/reference/building/">building from source</a> for instructions on building from source.</p>
 </blockquote>
 <p>Move the binary to a location in your PATH:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Linux/macOS</span>
@@ -1690,7 +1690,7 @@ No Python runtime, no dependencies, no network calls. Just a fast, portable bina
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>mv<span class="w"> </span>encoderfile<span class="w"> </span>~/.local/bin/
 </span></code></pre></div></p>
 <h3 id="option-2-build-cli-tool-from-source">Option 2: Build CLI Tool from Source</h3>
-<p>See <a href="BUILDING.md">BUILDING.md</a> for detailed instructions on building the CLI tool from source.</p>
+<p>See our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/reference/building/">building from source</a> for detailed instructions on building the CLI tool from source.</p>
 <p>Quick build:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cargo<span class="w"> </span>build<span class="w"> </span>--bin<span class="w"> </span>encoderfile<span class="w"> </span>--release
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>./target/release/encoderfile<span class="w"> </span>--help
@@ -1849,7 +1849,7 @@ No Python runtime, no dependencies, no network calls. Just a fast, portable bina
 </ul>
 <h2 id="building-custom-encoderfiles">🛠️ Building Custom Encoderfiles</h2>
 <p>Once you have the <code>encoderfile</code> CLI tool installed, you can build binaries from any compatible HuggingFace model.</p>
-<p>See <a href="BUILDING.md">BUILDING.md</a> for detailed instructions including:</p>
+<p>See our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/reference/building/">building from source</a> for detailed instructions including:</p>
 <ul>
 <li>How to export models to ONNX format</li>
 <li>Configuration file options</li>
