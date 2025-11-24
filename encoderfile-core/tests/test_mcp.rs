@@ -1,7 +1,8 @@
 const LOCALHOST: &str = "localhost";
 
 use encoderfile_core::{
-    AppState, test_utils::embedding_state, transport::mcp,
+    AppState, dev_utils::embedding_state, transport::mcp,
+    common::{EmbeddingRequest, EmbeddingResponse, ModelType},
 };
 use tower_http::trace::DefaultOnResponse;
 use tokio::net::TcpListener;
@@ -27,6 +28,7 @@ async fn run_mcp(addr: String, state: AppState) -> Result<()>{
 }
 
 #[tokio::test]
+#[test_log::test]
 async fn test_mcp() {
     let port = 9100;
     let addr = format!("{}:{}", LOCALHOST, port);
@@ -56,13 +58,25 @@ async fn test_mcp() {
     let tools = client.list_tools(Default::default()).await.expect("list tools failed");
     tracing::info!("Available tools: {tools:#?}");
 
+    assert_eq!(tools.tools.len(), 1);
+    assert_eq!(tools.tools[0].name, "run_encoder");
+
+    let test_params = EmbeddingRequest {
+        inputs: vec!["This is a test.".to_string(), "This is another test.".to_string()],
+        metadata: None
+    };
     let tool_result = client
         .call_tool(CallToolRequestParam {
-            name: "increment".into(),
-            arguments: serde_json::json!({}).as_object().cloned(),
+            name: "run_encoder".into(),
+            arguments: serde_json::json!(test_params).as_object().cloned(),
         })
         .await.expect("call tool failed");
     tracing::info!("Tool result: {tool_result:#?}");
+    let embeddings_response: EmbeddingResponse = serde_json::from_value(
+        tool_result.structured_content
+        .expect("No structured content found"))
+        .expect("failed to parse tool result");
+    assert_eq!(embeddings_response.results.len(), 2);
     client.cancel().await.unwrap();
     mcp_server.abort();
 }
