@@ -1,0 +1,70 @@
+const LOCALHOST: &str = "localhost";
+
+use encoderfile_core::{
+    AppState, test_utils::embedding_state, transport::mcp,
+};
+use tower_http::trace::DefaultOnResponse;
+use tokio::net::TcpListener;
+use anyhow::Result;
+use rmcp::{
+    ServiceExt,
+    transport::StreamableHttpClientTransport,
+    model::{CallToolRequestParam, ClientCapabilities, ClientInfo, Implementation}
+};
+
+async fn run_mcp(addr: String, state: AppState) -> Result<()>{
+    let model_type = state.model_type.clone();
+    let router = mcp::make_router(state).layer(
+        tower_http::trace::TraceLayer::new_for_http()
+            // TODO check if otel is enabled
+            // .make_span_with(crate::middleware::format_span)
+            .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
+    );
+    tracing::info!("Running {:?} MCP server on {}", model_type, &addr);
+    let listener = TcpListener::bind(addr).await?;
+    axum::serve(listener, router).await?;
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_mcp() {
+    let port = 9100;
+    let addr = format!("{}:{}", LOCALHOST, port);
+    let dummy_state = embedding_state();
+    let mcp_server = tokio::spawn(run_mcp(addr, dummy_state));
+    // Client usage copied over from https://github.com/modelcontextprotocol/rust-sdk/blob/main/examples/clients/src/streamable_http.rs
+    let client_transport = StreamableHttpClientTransport::from_uri(format!("http://{}:{}/mcp", LOCALHOST, port));
+    let client_info = ClientInfo {
+        protocol_version: Default::default(),
+        capabilities: ClientCapabilities::default(),
+        client_info: Implementation {
+            name: "test sse client".to_string(),
+            title: None,
+            version: "0.0.1".to_string(),
+            website_url: None,
+            icons: None,
+        },
+    };
+    let client = client_info.serve(client_transport).await.inspect_err(|e| {
+        tracing::error!("client error: {:?}", e);
+    }).unwrap();
+    // Initialize
+    let server_info = client.peer_info();
+    tracing::info!("Connected to server: {server_info:#?}");
+
+    // List tools
+    let tools = client.list_tools(Default::default()).await.expect("list tools failed");
+    tracing::info!("Available tools: {tools:#?}");
+
+    let tool_result = client
+        .call_tool(CallToolRequestParam {
+            name: "increment".into(),
+            arguments: serde_json::json!({}).as_object().cloned(),
+        })
+        .await.expect("call tool failed");
+    tracing::info!("Tool result: {tool_result:#?}");
+    client.cancel().await.unwrap();
+    mcp_server.abort();
+}
+
+
