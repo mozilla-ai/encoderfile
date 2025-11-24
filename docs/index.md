@@ -137,7 +137,7 @@ curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install
 chmod +x encoderfile
 ```
 
-> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see [BUILDING.md](BUILDING.md) for instructions on building from source.
+> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for instructions on building from source.
 
 Move the binary to a location in your PATH:
 ```bash
@@ -151,7 +151,7 @@ mv encoderfile ~/.local/bin/
 
 ### Option 2: Build CLI Tool from Source
 
-See [BUILDING.md](BUILDING.md) for detailed instructions on building the CLI tool from source.
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions on building the CLI tool from source.
 
 Quick build:
 ```bash
@@ -378,7 +378,7 @@ Run as a Model Context Protocol server:
 
 Once you have the `encoderfile` CLI tool installed, you can build binaries from any compatible HuggingFace model.
 
-See [BUILDING.md](BUILDING.md) for detailed instructions including:
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions including:
 
 - How to export models to ONNX format
 - Configuration file options
