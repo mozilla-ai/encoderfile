@@ -1,15 +1,23 @@
 # Encoderfile
 
-**Deploy Encoder Transformers as self-contained, single-binary executables.**
+![Encoderfile](assets/encoderfile_logo.png)
 
-[![GitHub Release](https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square)](https://github.com/mozilla-ai/encoderfile)
-[![License](https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square)](LICENSE)
+<p align="center">
+  <strong>Deploy Encoder Transformers as self-contained, single-binary executables.</strong>
+  <br><br>
+  <a href="https://github.com/mozilla-ai/encoderfile">
+    <img src="https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square" />
+  </a>
+</p>
 
 ---
 
 **Encoderfile** packages transformer encoders—and their classification heads—into a single, self-contained executable.
 
-Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have **zero runtime dependencies**. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.
+Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have **zero runtime dependencies**[^1]. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.
 
 ## Why Encoderfile?
 
@@ -34,10 +42,12 @@ While **Llamafile** focuses on generative models, **Encoderfile** is purpose-bui
 ## Supported Models
 
 Encoderfile supports encoder-only transformers for:
-- **Feature Extraction** - Semantic search, clustering, embeddings (BERT, DistilBERT, RoBERTa)
+
+- **Token Embeddings** - clustering, embeddings (BERT, DistilBERT, RoBERTa)
 - **Sequence Classification** - Sentiment analysis, topic classification
 - **Token Classification** - Named Entity Recognition, PII detection
-- 
+- **Sentence Embeddings** - Semantic search, clustering
+
 See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions on building the CLI tool from source.
 
 Generation models (GPT, T5) are not supported. See [CLI Reference](reference/cli.md) for complete model type details.
@@ -90,7 +100,7 @@ See the [API Reference](reference/api-reference.md) for complete endpoint docume
 
 Encoderfile compiles your model into a self-contained binary by embedding ONNX weights, tokenizer, and config directly into Rust code. The result is a portable executable with zero runtime dependencies.
 
-![Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server.](assets/encoderfile.png "Encoderfile Architecture")
+![Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server.](assets/diagram.png "Encoderfile Architecture")
 
 ## Documentation
 
@@ -111,3 +121,5 @@ Encoderfile compiles your model into a self-contained binary by embedding ONNX w
 - **[GitHub Issues](https://github.com/mozilla-ai/encoderfile/issues)** - Report bugs or request features
 - **[Contributing Guide](CONTRIBUTING.md)** - Learn how to contribute
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
+
+[^1]: Standard builds of Encoderfile require glibc to run because of the ONNX runtime. See [this issue](https://github.com/mozilla-ai/encoderfile/issues/69) on progress on building Encoderfile for musl linux.

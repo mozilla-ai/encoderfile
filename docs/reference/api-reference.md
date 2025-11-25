@@ -446,7 +446,7 @@ curl -X POST http://localhost:8080/predict \
 
 ## gRPC API
 
-The gRPC API provides the same functionality as the HTTP REST API using [Protocol Buffers](../encoderfile-core/proto). Three services are available depending on your model type.
+The gRPC API provides the same functionality as the HTTP REST API using [Protocol Buffers](https://github.com/mozilla-ai/encoderfile/tree/main/encoderfile-core/proto). Three services are available depending on your model type.
 
 ### Connection Details
 
@@ -912,5 +912,5 @@ Encoderfile uses async I/O and can handle multiple concurrent requests. The exac
 ## See Also
 
 - [CLI Documentation](cli.md) - Command-line interface reference
-- [Getting Started](getting-started.md) - Getting started guide
-- [Contributing Guide](CONTRIBUTING.md) - Development setup
+- [Getting Started](../getting-started.md) - Getting started guide
+- [Contributing Guide](../CONTRIBUTING.md) - Development setup
