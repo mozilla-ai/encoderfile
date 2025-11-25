@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/getting-started/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/cookbooks/token-classification-ner/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/reference/api-reference/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/reference/building/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/reference/cli/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/transforms/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+    <url>
+         <loc>https://mozilla-ai.github.io/encoderfile/0.1.2-rc.0/transforms/reference/</loc>
+         <lastmod>2025-11-25</lastmod>
+    </url>
+</urlset>
