@@ -1,9 +1,17 @@
 # Encoderfile
 
-**Deploy Encoder Transformers as self-contained, single-binary executables.**
+![Encoderfile](assets/encoderfile_logo.png)
 
-[![GitHub Release](https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square)](https://github.com/mozilla-ai/encoderfile)
-[![License](https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square)](https://github.com/mozilla-ai/encoderfile/blob/main/LICENSE)
+<p align="center">
+  <strong>Deploy Encoder Transformers as self-contained, single-binary executables.</strong>
+  <br><br>
+  <a href="https://github.com/mozilla-ai/encoderfile">
+    <img src="https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square" />
+  </a>
+</p>
 
 ---
 
@@ -34,10 +42,12 @@ While **Llamafile** focuses on generative models, **Encoderfile** is purpose-bui
 ## Supported Models
 
 Encoderfile supports encoder-only transformers for:
-- **Feature Extraction** - Semantic search, clustering, embeddings (BERT, DistilBERT, RoBERTa)
+
+- **Token Embeddings** - clustering, embeddings (BERT, DistilBERT, RoBERTa)
 - **Sequence Classification** - Sentiment analysis, topic classification
 - **Token Classification** - Named Entity Recognition, PII detection
-- 
+- **Sentence Embeddings** - Semantic search, clustering
+
 See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions on building the CLI tool from source.
 
 Generation models (GPT, T5) are not supported. See [CLI Reference](reference/cli.md) for complete model type details.
