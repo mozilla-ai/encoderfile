@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 from enum import StrEnum
 from pathlib import Path
 import toml
@@ -159,7 +160,14 @@ def main():
     for f in find_version_files(Path(args.start)):
         write_version(f, version)
 
-    print(str(version))
+        print(str(version))
+
+        # send version to GitHub Actions
+        if "GITHUB_OUTPUT" in os.environ:
+            with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+                fh.write(f"version={version}\n")
+
+        return 0
 
 if __name__ == "__main__":
     main()

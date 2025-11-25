@@ -33,11 +33,13 @@ jobs:
       - name: Bump version
         id: bump
         run: |
-          uv run scripts/bump_version.py \
+          NEW_VERSION=$(uv run scripts/bump_version.py \
             "${{ github.event.inputs.release_level }}" \
             "${{ github.event.inputs.prerelease }}" \
             --local "${{ github.event.inputs.local }}" \
-            --start "."
+            --start ".")
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit and PR
         uses: peter-evans/create-pull-request@v5
