@@ -1,8 +1,18 @@
 # Transforms
 
-Transforms allow you to modify model outputs immediately after ONNX inference and before the result is returned from the Encoderfile server or CLI. They run inside the model binary and operate directly on the tensors produced by the model.
+Transforms allow you to post-process model outputs after ONNX inference and before returning results. They run inside the model binary, operating directly on tensors for high performance.
 
-A transform is a Lua file or snippet that defines a function `Postprocess`:
+## Why Use Transforms?
+
+Common use cases:
+- **Normalize embeddings** for cosine similarity
+- **Apply softmax** to convert logits to probabilities
+- **Pool embeddings** to create sentence representations
+- **Scale outputs** for specific downstream tasks
+
+## Getting Started
+
+A transform is a Lua script that defines a `Postprocess` function:
 
 ```lua
 ---@param arr Tensor
@@ -162,8 +172,9 @@ Errors typically fall into:
 - shape mismatch
     → you modified rank or dimensions
 
-## Embedding Transforms
-Transforms are embedded at build time. They can either be passed as a path in the config.yml:
+## Configuration
+
+Transforms are embedded at build time. You can specify them in your config.yml either as a file path or inline.
 
 ```yml
 transform:
