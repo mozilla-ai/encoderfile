@@ -167,7 +167,7 @@ def main():
             with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
                 fh.write(f"version={version}\n")
 
-        return 0
+    return 0
 
 if __name__ == "__main__":
     main()
