@@ -54,7 +54,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "version: bump to ${{ steps.bump.outputs.version }}"
           branch: version/bump-${{ github.run_id }}
-          title: "Version bump: ${{ steps.bump.outputs.version }}"
+          title: "version: bump to ${{ steps.bump.outputs.version }} 🔥"
           add-paths: |
             pyproject.toml
             **/Cargo.toml
