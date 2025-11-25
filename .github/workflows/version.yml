@@ -53,6 +53,9 @@ jobs:
       - name: Update Cargo.lock
         run: cargo update encoderfile-core encoderfile --precise ${{ steps.bump.outputs.version }}
       
+      - name: Update uv.lock
+        run: uv lock
+
       # Generate appropriate labels based on release type
       - name: Generate PR labels
         id: generate_labels
