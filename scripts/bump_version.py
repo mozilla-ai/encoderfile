@@ -103,8 +103,13 @@ class Version(BaseModel):
 def find_version_files(start: Path) -> List[Path]:
     files = []
     for p in start.rglob("*"):
-        if p.name in ("pyproject.toml", "Cargo.toml"):
+        if p.name == "pyproject.toml":
             files.append(p)
+        elif p.name == "Cargo.toml":
+            # only include Cargo.toml files that actually define a package
+            data = toml.load(p)
+            if "package" in data:
+                files.append(p)
     return files
 
 def read_version(pyproject: Path) -> Version:
@@ -113,10 +118,21 @@ def read_version(pyproject: Path) -> Version:
 
 def write_version(path: Path, version: Version):
     data = toml.load(path)
+
     if path.name == "pyproject.toml":
+        if "project" not in data:
+            print(f"Skipping {path}: no [project] table")
+            return
         data["project"]["version"] = str(version)
-    else:
+
+    elif path.name == "Cargo.toml":
+        # skip virtual manifests / workspace roots
+        if "package" not in data:
+            print(f"Skipping {path}: no [package] table (workspace root / virtual manifest)")
+            return
+        
         data["package"]["version"] = str(version)
+
     with open(path, "w") as f:
         toml.dump(data, f)
 
