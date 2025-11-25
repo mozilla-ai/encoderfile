@@ -54,12 +54,15 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
 
           # always deploy the version (prereleases included)
-          uv run --group docs mike deploy --push --update-aliases "$VERSION" latest
+          uv run --group docs mike deploy --push "$VERSION"
 
-          # only set default if it's NOT a prerelease
+          # only update aliases + default if it's NOT a prerelease
           if [[ "$VERSION" != *-* ]]; then
+            echo "Updating 'latest' alias to $VERSION"
+            uv run --group docs mike alias latest "$VERSION" --push
+
             echo "Setting default to $VERSION"
             uv run --group docs mike set-default "$VERSION" --push
           else
-            echo "Skipping set-default: $VERSION is a prerelease"
+            echo "Skipping alias+default: $VERSION is a prerelease"
           fi
