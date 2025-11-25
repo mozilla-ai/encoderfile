@@ -214,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="CODE_OF_CONDUCT.md" class="md-tabs__link">
+      <a href="CODE_OF_CONDUCT/" class="md-tabs__link">
         
   
   
@@ -233,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="CONTRIBUTING.md" class="md-tabs__link">
+      <a href="CONTRIBUTING/" class="md-tabs__link">
         
   
   
@@ -678,7 +678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="CODE_OF_CONDUCT.md" class="md-nav__link">
+      <a href="CODE_OF_CONDUCT/" class="md-nav__link">
         
   
   
@@ -705,7 +705,7 @@
   
   
     <li class="md-nav__item">
-      <a href="CONTRIBUTING.md" class="md-nav__link">
+      <a href="CONTRIBUTING/" class="md-nav__link">
         
   
   
@@ -1181,12 +1181,21 @@
 
 
 <h1 id="encoderfile">Encoderfile</h1>
-<p><strong>Deploy Encoder Transformers as self-contained, single-binary executables.</strong></p>
-<p><a href="https://github.com/mozilla-ai/encoderfile"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square" /></a>
-<a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square" /></a></p>
+<p><img alt="Encoderfile" src="assets/encoderfile_logo.png" /></p>
+<p align="center">
+  <strong>Deploy Encoder Transformers as self-contained, single-binary executables.</strong>
+  <br><br>
+  <a href="https://github.com/mozilla-ai/encoderfile">
+    <img src="https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square" />
+  </a>
+  <a href="https://github.com/mozilla-ai/encoderfile/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square" />
+  </a>
+</p>
+
 <hr />
 <p><strong>Encoderfile</strong> packages transformer encoders—and their classification heads—into a single, self-contained executable.</p>
-<p>Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have <strong>zero runtime dependencies</strong>. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.</p>
+<p>Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have <strong>zero runtime dependencies</strong><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.</p>
 <h2 id="why-encoderfile">Why Encoderfile?</h2>
 <p>While <strong>Llamafile</strong> focuses on generative models, <strong>Encoderfile</strong> is purpose-built for encoder architectures. It is designed for environments where compliance, latency, and determinism are non-negotiable.</p>
 <ul>
@@ -1226,12 +1235,14 @@
 </tbody>
 </table>
 <h2 id="supported-models">Supported Models</h2>
-<p>Encoderfile supports encoder-only transformers for:
-- <strong>Feature Extraction</strong> - Semantic search, clustering, embeddings (BERT, DistilBERT, RoBERTa)
-- <strong>Sequence Classification</strong> - Sentiment analysis, topic classification
-- <strong>Token Classification</strong> - Named Entity Recognition, PII detection
-- 
-See our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/reference/building/">building from source</a> for detailed instructions on building the CLI tool from source.</p>
+<p>Encoderfile supports encoder-only transformers for:</p>
+<ul>
+<li><strong>Token Embeddings</strong> - clustering, embeddings (BERT, DistilBERT, RoBERTa)</li>
+<li><strong>Sequence Classification</strong> - Sentiment analysis, topic classification</li>
+<li><strong>Token Classification</strong> - Named Entity Recognition, PII detection</li>
+<li><strong>Sentence Embeddings</strong> - Semantic search, clustering</li>
+</ul>
+<p>See our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/reference/building/">building from source</a> for detailed instructions on building the CLI tool from source.</p>
 <p>Generation models (GPT, T5) are not supported. See <a href="reference/cli/">CLI Reference</a> for complete model type details.</p>
 <h2 id="quick-start">Quick Start</h2>
 <h3 id="1-install-cli">1. Install CLI</h3>
@@ -1262,7 +1273,7 @@ See our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/refere
 <p><strong>Next Steps:</strong> Try the <a href="cookbooks/token-classification-ner/">Token Classification Cookbook</a> for a complete walkthrough.</p>
 <h2 id="how-it-works">How It Works</h2>
 <p>Encoderfile compiles your model into a self-contained binary by embedding ONNX weights, tokenizer, and config directly into Rust code. The result is a portable executable with zero runtime dependencies.</p>
-<p><img alt="Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server." src="assets/encoderfile.png" title="Encoderfile Architecture" /></p>
+<p><img alt="Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server." src="assets/diagram.png" title="Encoderfile Architecture" /></p>
 <h2 id="documentation">Documentation</h2>
 <h3 id="getting-started">Getting Started</h3>
 <ul>
@@ -1282,9 +1293,17 @@ See our guide on <a href="https://mozilla-ai.github.io/encoderfile/latest/refere
 <h2 id="community-support">Community &amp; Support</h2>
 <ul>
 <li><strong><a href="https://github.com/mozilla-ai/encoderfile/issues">GitHub Issues</a></strong> - Report bugs or request features</li>
-<li><strong><a href="CONTRIBUTING.md">Contributing Guide</a></strong> - Learn how to contribute</li>
-<li><strong><a href="CODE_OF_CONDUCT.md">Code of Conduct</a></strong> - Community guidelines</li>
+<li><strong><a href="CONTRIBUTING/">Contributing Guide</a></strong> - Learn how to contribute</li>
+<li><strong><a href="CODE_OF_CONDUCT/">Code of Conduct</a></strong> - Community guidelines</li>
 </ul>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Standard builds of Encoderfile require glibc to run because of the ONNX runtime. See <a href="https://github.com/mozilla-ai/encoderfile/issues/69">this issue</a> on progress on building Encoderfile for musl linux.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
 
 
 
