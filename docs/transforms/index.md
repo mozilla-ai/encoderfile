@@ -11,11 +11,10 @@ function Postprocess(arr)
 end
 ```
 
-!!! tip
-    With a handful of exceptions, the `Postprocess` function must return a `Tensor` with the exact same shape as the input `Tensor` provided for that model type. The exceptions are as follows:
+With a handful of exceptions, the `Postprocess` function must return a `Tensor` with the exact same shape as the input `Tensor` provided for that model type. The exceptions are as follows:
 
-    - Embedding and sentence embedding models can modify the length of `hidden` (useful for matryoshka embeddings)
-    - Sentence embeddings are given a `Tensor` of shape `[batch_size, seq_len, hidden]` and attention mask of `[batch_size, seq_len]`, and must return a `Tensor` of shape `[batch_size, hidden]`. In other words, it expects a pooling operation along dimension `seq_len`.
+- Embedding and sentence embedding models can modify the length of `hidden` (useful for matryoshka embeddings)
+- Sentence embeddings are given a `Tensor` of shape `[batch_size, seq_len, hidden]` and attention mask of `[batch_size, seq_len]`, and must return a `Tensor` of shape `[batch_size, hidden]`. In other words, it expects a pooling operation along dimension `seq_len`.
 
 ## Input Signatures
 
