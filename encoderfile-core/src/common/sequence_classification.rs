@@ -10,7 +10,7 @@ pub struct SequenceClassificationRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, ToSchema, JsonSchema, utoipa::ToResponse)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct SequenceClassificationResponse {
     pub results: Vec<SequenceClassificationResult>,
     pub model_id: String,
@@ -18,7 +18,7 @@ pub struct SequenceClassificationResponse {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, ToSchema, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct SequenceClassificationResult {
     pub logits: Vec<f32>,
     pub scores: Vec<f32>,
