@@ -59,10 +59,11 @@ jobs:
           # stable releases only
           if [[ "$VERSION" != *-* ]]; then
             echo "Setting 'latest' → $VERSION"
-            uv run --group docs mike alias latest "$VERSION" --push
+            uv run --group docs mike deploy --push --update-aliases "$VERSION" latest
 
             echo "Setting default → $VERSION"
             uv run --group docs mike set-default "$VERSION" --push
           else
+            uv run --group docs mike deploy --push "$VERSION"
             echo "Prerelease: no alias, no default"
           fi
