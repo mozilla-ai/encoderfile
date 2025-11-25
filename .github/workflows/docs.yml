@@ -5,6 +5,10 @@ on:
       version_override:
         description: "Manually specify the release version (e.g. 1.2.3)"
         required: false
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'   # prereleases like beta/rc
 
 permissions:
   contents: write
@@ -14,6 +18,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version_override }}" ]; then
+            echo "version=${{ github.event.inputs.version_override }}" >> $GITHUB_OUTPUT
+          else
+            # tag name like "v1.2.3" or "v1.2.3-beta.1"
+            RAW_TAG="${GITHUB_REF#refs/tags/}"
+            echo "version=${RAW_TAG#v}" >> $GITHUB_OUTPUT
+          fi
 
       - run: git fetch origin gh-pages --depth=1
 
@@ -35,8 +50,7 @@ jobs:
       - run: pip install uv
 
       - name: deploy
-        # TODO: update version variable set when we automate this on release
         run: |
-          VERSION=${{ github.event.inputs.version_override }}
+          VERSION="${{ steps.version.outputs.version }}"
           uv run --group docs mike deploy --push --update-aliases "$VERSION" latest
           uv run --group docs mike set-default latest --push
