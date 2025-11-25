@@ -9,16 +9,16 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 SEMVER_RE = re.compile(
-    r"^v?(\d+)\.(\d+)\.(\d+)"
-    r"(?:-(alpha|beta|rc)\.(\d+))?"
-    r"(?:\+([\w\.]+))?$"
+    r"^v?(\d+)\.(\d+)\.(\d+)" r"(?:-(alpha|beta|rc)\.(\d+))?" r"(?:\+([\w\.]+))?$"
 )
+
 
 class Pre(StrEnum):
     ALPHA = "alpha"
     BETA = "beta"
     RC = "rc"
     RELEASE = "release"
+
 
 class Version(BaseModel):
     mjr: int
@@ -98,7 +98,9 @@ class Version(BaseModel):
 
         return self
 
+
 # ------------------ File discovery / update ---------------------------------
+
 
 def find_version_files(start: Path) -> List[Path]:
     files = []
@@ -112,9 +114,11 @@ def find_version_files(start: Path) -> List[Path]:
                 files.append(p)
     return files
 
+
 def read_version(pyproject: Path) -> Version:
     data = toml.load(pyproject)
     return Version.parse(data["project"]["version"])
+
 
 def write_version(path: Path, version: Version):
     data = toml.load(path)
@@ -128,15 +132,19 @@ def write_version(path: Path, version: Version):
     elif path.name == "Cargo.toml":
         # skip virtual manifests / workspace roots
         if "package" not in data:
-            print(f"Skipping {path}: no [package] table (workspace root / virtual manifest)")
+            print(
+                f"Skipping {path}: no [package] table (workspace root / virtual manifest)"
+            )
             return
-        
+
         data["package"]["version"] = str(version)
 
     with open(path, "w") as f:
         toml.dump(data, f)
 
+
 # ----------------------------- main ------------------------------------------
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -162,6 +170,7 @@ def main():
         print(str(version))
 
     return 0
+
 
 if __name__ == "__main__":
     main()
