@@ -250,7 +250,7 @@ encoderfile build -f config.yml
 
 - Ensure the model directory has `model.onnx`, `tokenizer.json`, and `config.json`
 - Verify the model type matches the architecture
-- See [BUILDING.md](../BUILDING.md) for detailed troubleshooting
+- See our guide on [building](reference/building.md) for detailed troubleshooting
 
 ### Server Won't Start
 
@@ -266,7 +266,7 @@ encoderfile build -f config.yml
 
 ## Next Steps
 
-- **[BUILDING.md](../BUILDING.md)** - Complete build guide with advanced configuration options
-- **[CLI Reference](cli.md)** - Full command-line documentation
-- **[API Reference](api-reference.md)** - REST, gRPC, and MCP API documentation
-- **[Contributing](../CONTRIBUTING.md)** - Help improve encoderfile
+- **[Guide on building](reference/building.md)** - Complete build guide with advanced configuration options
+- **[CLI Reference](reference/cli.md)** - Full command-line documentation
+- **[API Reference](reference/api-reference.md)** - REST, gRPC, and MCP API documentation
+- **[Contributing](CONTRIBUTING.md)** - Help improve encoderfile

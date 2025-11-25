@@ -9,7 +9,6 @@ Encoderfile compiles transformer encoders and optional classification heads into
 ### Check for Duplicates
 
 Before creating a new issue or starting work:
-
 - [ ] Search [existing issues](https://github.com/mozilla-ai/encoderfile/issues) for duplicates
 - [ ] Check [open pull requests](https://github.com/mozilla-ai/encoderfile/pulls) to see if someone is already working on it
 - [ ] For bugs, verify it still exists in the `main` branch

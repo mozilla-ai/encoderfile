@@ -3,7 +3,7 @@
 **Deploy Encoder Transformers as self-contained, single-binary executables.**
 
 [![GitHub Release](https://img.shields.io/github/v/release/mozilla-ai/encoderfile?style=flat-square)](https://github.com/mozilla-ai/encoderfile)
-[![License](https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/github/license/mozilla-ai/encoderfile?style=flat-square)](https://github.com/mozilla-ai/encoderfile/blob/main/LICENSE)
 
 ---
 
