@@ -44,6 +44,9 @@ jobs:
             --start ".")
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Update Cargo.lock
+        run: cargo update encoderfile-core encoderfile --precise ${{ steps.bump.outputs.version }}
 
       - name: Commit and PR
         uses: peter-evans/create-pull-request@v5
