@@ -5,6 +5,8 @@ Transforms allow you to modify model outputs immediately after ONNX inference an
 A transform is a Lua file or snippet that defines a function `Postprocess`:
 
 ```lua
+---@param arr Tensor
+---@return Tensor
 function Postprocess(arr, ...)
     -- your postprocessing logic
     return tensor
@@ -15,6 +17,10 @@ With a handful of exceptions, the `Postprocess` function must return a `Tensor` 
 
 - Embedding and sentence embedding models can modify the length of `hidden` (useful for matryoshka embeddings)
 - Sentence embeddings are given a `Tensor` of shape `[batch_size, seq_len, hidden]` and attention mask of `[batch_size, seq_len]`, and must return a `Tensor` of shape `[batch_size, hidden]`. In other words, it expects a pooling operation along dimension `seq_len`.
+
+We provide a built-in API for standard tensor operations. To learn more, check out our [Tensor API reference page](reference).
+
+If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
 
 ## Input Signatures
 
@@ -72,12 +78,6 @@ function Postprocess(arr, mask)
     return tensor
 end
 ```
-
-## `Tensor` Object
-
-We provide a built-in API for standard tensor operations. To learn more, check out our [Tensor API reference page](reference).
-
-If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
 
 ## Typical Transform Patterns
 
