@@ -167,7 +167,7 @@ def main():
     for f in find_version_files(Path(args.start)):
         write_version(f, version)
 
-        print(str(version))
+    print(str(version))
 
     return 0
 
