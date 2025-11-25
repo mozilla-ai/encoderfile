@@ -33,7 +33,7 @@ jobs:
       - name: Bump version
         id: bump
         run: |
-          uv run scripts/bump.py \
+          uv run scripts/bump_version.py \
             "${{ github.event.inputs.release_level }}" \
             "${{ github.event.inputs.prerelease }}" \
             --local "${{ github.event.inputs.local }}" \
