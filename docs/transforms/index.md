@@ -5,7 +5,7 @@ Transforms allow you to modify model outputs immediately after ONNX inference an
 A transform is a Lua file or snippet that defines a function `Postprocess`:
 
 ```lua
-function Postprocess(arr)
+function Postprocess(arr, ...)
     -- your postprocessing logic
     return tensor
 end
