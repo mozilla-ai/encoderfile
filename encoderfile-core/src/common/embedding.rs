@@ -10,7 +10,7 @@ pub struct EmbeddingRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, ToSchema, JsonSchema, utoipa::ToResponse)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct EmbeddingResponse {
     pub results: Vec<TokenEmbeddingSequence>,
     pub model_id: String,
@@ -18,12 +18,12 @@ pub struct EmbeddingResponse {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, ToSchema, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct TokenEmbeddingSequence {
     pub embeddings: Vec<TokenEmbedding>,
 }
 
-#[derive(Debug, Serialize, ToSchema, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema)]
 pub struct TokenEmbedding {
     pub embedding: Vec<f32>,
     pub token_info: Option<super::token::TokenInfo>,
