@@ -80,6 +80,10 @@ end
 
 ### Sentence Embedding
 
+
+!!! note "Mean Pooling"
+    To mean-pool embeddings, you can use the `Tensor:mean_pool` function like this: `tensor:mean_pool(mask)`.
+
 ```lua
 --- input: 3d tensor of shape [batch_size, seq_len, hidden]
 ---@param arr Tensor
