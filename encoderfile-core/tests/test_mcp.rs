@@ -1,21 +1,10 @@
-const LOCALHOST: &str = "localhost";
-
 use anyhow::Result;
-use encoderfile_core::{
-    AppState,
-    dev_utils::embedding_state,
-    transport::mcp,
-};
-use rmcp::{
-    ServiceExt,
-    model::{CallToolRequestParam, ClientCapabilities, ClientInfo, Implementation},
-    transport::StreamableHttpClientTransport,
-};
+use encoderfile_core::{AppState, transport::mcp};
 use tokio::net::TcpListener;
-use tower_http::trace::DefaultOnResponse;
 use tokio::sync::oneshot;
+use tower_http::trace::DefaultOnResponse;
 
-async fn run_mcp(addr: String, state: AppState, receiver: oneshot::Receiver<()>, done_sender: oneshot::Sender<()>) -> Result<()> {
+async fn run_mcp(addr: String, state: AppState, receiver: oneshot::Receiver<()>) -> Result<()> {
     let model_type = state.model_type.clone();
     let router = mcp::make_router(state).layer(
         tower_http::trace::TraceLayer::new_for_http()
@@ -26,45 +15,42 @@ async fn run_mcp(addr: String, state: AppState, receiver: oneshot::Receiver<()>,
     tracing::info!("Running {:?} MCP server on {}", model_type, &addr);
     let listener = TcpListener::bind(addr).await?;
     axum::serve(listener, router)
-        .with_graceful_shutdown(
-            async {
-                receiver.await;
-                tracing::info!("Received shutdown signal, shutting down");
-                done_sender.send(());
-                ()
-            })
-        .await;
+        .with_graceful_shutdown(async {
+            receiver.await.ok();
+            tracing::info!("Received shutdown signal, shutting down");
+        })
+        .await
+        .expect("Error while shutting down server");
     Ok(())
 }
 
 macro_rules! test_mcp_server_impl {
     ($mod_name:ident, $state_func:ident, $req_type:ident, $resp_type:ident) => {
-        mod $mod_name {
+        pub mod $mod_name {
             use encoderfile_core::{
                 common::{$req_type, $resp_type},
                 dev_utils::$state_func,
             };
             use rmcp::{
                 ServiceExt,
-                transport::StreamableHttpClientTransport,
                 model::{CallToolRequestParam, ClientCapabilities, ClientInfo, Implementation},
+                transport::StreamableHttpClientTransport,
             };
             use tokio::sync::oneshot;
 
             const LOCALHOST: &str = "localhost";
             const PORT: i32 = 9100;
 
-            #[tokio::test]
-            #[test_log::test]
-            async fn $mod_name() {
+            pub async fn $mod_name() {
                 let addr = format!("{}:{}", LOCALHOST, PORT);
                 let dummy_state = $state_func();
                 let (sender, receiver) = oneshot::channel();
-                let (done_sender, done_receiver) = oneshot::channel();
-                let mcp_server = tokio::spawn(super::run_mcp(addr, dummy_state, receiver, done_sender));
+                let _mcp_server = tokio::spawn(super::run_mcp(addr, dummy_state, receiver));
                 // Client usage copied over from https://github.com/modelcontextprotocol/rust-sdk/blob/main/examples/clients/src/streamable_http.rs
-                let client_transport =
-                    StreamableHttpClientTransport::from_uri(format!("http://{}:{}/mcp", LOCALHOST, PORT));
+                let client_transport = StreamableHttpClientTransport::from_uri(format!(
+                    "http://{}:{}/mcp",
+                    LOCALHOST, PORT
+                ));
                 let client_info = ClientInfo {
                     protocol_version: Default::default(),
                     capabilities: ClientCapabilities::default(),
@@ -119,14 +105,12 @@ macro_rules! test_mcp_server_impl {
                 )
                 .expect("failed to parse tool result");
                 assert_eq!(embeddings_response.results.len(), 2);
-                client.cancel().await;
-                sender.send(());
-                done_receiver.await;
+                client.cancel().await.expect("Error cancelling the agent");
+                sender.send(()).expect("Error sending end of test signal");
             }
         }
-    }
+    };
 }
-
 
 test_mcp_server_impl!(
     test_mcp_embedding,
@@ -148,9 +132,23 @@ test_mcp_server_impl!(
     TokenClassificationRequest,
     TokenClassificationResponse
 );
+
 test_mcp_server_impl!(
     test_mcp_sequence_classification,
     sequence_classification_state,
     SequenceClassificationRequest,
     SequenceClassificationResponse
 );
+
+#[tokio::test]
+#[test_log::test]
+async fn test_mcp_servers() {
+    self::test_mcp_embedding::test_mcp_embedding().await;
+    tracing::info!("Testing embedding");
+    self::test_mcp_sentence_embedding::test_mcp_sentence_embedding().await;
+    tracing::info!("Testing sentence embedding");
+    self::test_mcp_token_classification::test_mcp_token_classification().await;
+    tracing::info!("Testing token classification");
+    self::test_mcp_sequence_classification::test_mcp_sequence_classification().await;
+    tracing::info!("Testing sequence classification");
+}
