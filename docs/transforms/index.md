@@ -2,6 +2,8 @@
 
 Transforms allow you to post-process model outputs after ONNX inference and before returning results. They run inside the model binary, operating directly on tensors for high performance.
 
+Transforms run on Lua 5.4 on a sandboxed environments. As of right now, the transforms feature does not support LuaJIT.
+
 ## Why Use Transforms?
 
 Common use cases:
