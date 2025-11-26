@@ -89,6 +89,8 @@ end
 ```lua
 --- input: 3d tensor of shape [batch_size, seq_len, hidden]
 ---@param arr Tensor
+-- input: 2d tensor of shape [batch_size, seq_len]
+-- This is automatically provided to the function and is equivalent to 🤗 transformer's attention_mask.
 ---@param mask Tensor
 ---output: 2d tensor of shape [batch_size, hidden]
 ---@return Tensor
