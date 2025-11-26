@@ -36,6 +36,7 @@ plugins:
   - include-markdown
 
 markdown_extensions:
+  - footnotes
   - pymdownx.snippets:
       check_paths: true
   - pymdownx.highlight:

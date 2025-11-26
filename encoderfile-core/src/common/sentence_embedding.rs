@@ -10,7 +10,7 @@ pub struct SentenceEmbeddingRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, ToSchema, JsonSchema, utoipa::ToResponse)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct SentenceEmbeddingResponse {
     pub results: Vec<SentenceEmbedding>,
     pub model_id: String,

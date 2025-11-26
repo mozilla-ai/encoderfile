@@ -1,0 +1,42 @@
+flowchart TD
+    subgraph Build Process
+        subgraph Inputs ["1. Input Assets"]
+            direction TB
+            Onnx["ONNX Model<br/>(.onnx)"]:::asset
+            Tok["Tokenizer Data<br/>(tokenizer.json)"]:::asset
+            Config["Runtime Config<br/>(config.yml)"]:::asset
+        end
+
+        subgraph Compile ["2. Compile Phase"]
+            Compiler["Encoderfile Compiler<br/>(CLI Tool)"]:::asset
+        end
+
+        subgraph Build ["3. Build Phase"]
+            direction TB
+            Builder["Wrapper Process<br/>(Embeds Assets + Runtime)"]:::process
+        end
+
+        subgraph Output ["4. Artifact"]
+            Binary["Single Binary Executable<br/>(Static File)"]:::artifact
+        end
+
+        subgraph Runtime ["5. Runtime Phase"]
+            direction TB
+            %% Added fa:fa-server icons
+            Grpc["fa:fa-server gRPC Server<br/>(Protobuf)"]:::service
+            Http["fa:fa-server HTTP Server<br/>(JSON)"]:::service
+            MCP["fa:fa-server MCP Server<br/>(MCP)"]:::service
+            %% Added fa:fa-cloud icon
+            Client["fa:fa-cloud Client Apps /<br/>MCP Agent"]:::client
+        end
+
+        %% Connections
+        Onnx & Tok & Config --> Builder
+        Compiler -.->|"Orchestrates"| Builder
+        Builder -->|"Outputs"| Binary
+        
+        %% Runtime Connections
+        Binary -.->|"Executes"| Grpc
+        Binary -.->|"Executes"| Http
+        Grpc & Http & MCP-->|"Responds to"| Client
+    end

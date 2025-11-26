@@ -3,7 +3,27 @@ name: ci
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - .github/**
+      - docs/**
+      - CONTRIBUTING.md
+      - CODE_OF_CONDUCT.md
+      - README.md
+      - mkdocs.yml
+      - examples/**
+      - .vscode/**
+      - scripts/**
   pull_request:
+    paths-ignore:
+      - .github/**
+      - docs/**
+      - CONTRIBUTING.md
+      - CODE_OF_CONDUCT.md
+      - README.md
+      - mkdocs.yml
+      - examples/**
+      - .vscode/**
+      - scripts/**
   workflow_dispatch:
 
 jobs:

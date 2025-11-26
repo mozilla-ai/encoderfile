@@ -241,7 +241,7 @@ chmod +x ./build/my-model.encoderfile
 ```
 
 ## Configuration Options
-> For a complete set of configuration options, see the [CLI Reference](cli-reference.md)
+> For a complete set of configuration options, see the [CLI Reference](cli.md)
 
 ## Model Types
 
@@ -446,4 +446,4 @@ You can distribute the binary by:
 - [CLI Reference](https://mozilla-ai.github.io/encoderfile/cli/) - Complete command-line documentation
 - [API Reference](https://mozilla-ai.github.io/encoderfile/api-reference/) - REST, gRPC, and MCP APIs
 - [Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/) - Step-by-step tutorial
-- [Contributing](CONTRIBUTING.md) - Help improve encoderfile
+- [Contributing](../CONTRIBUTING.md) - Help improve encoderfile

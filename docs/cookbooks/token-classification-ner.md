@@ -12,7 +12,7 @@ This cookbook walks through building, deploying, and using a Named Entity Recogn
 
 ## Prerequisites
 
-- `encoderfile` CLI tool installed ([Installation Guide](../index.md#-installation))
+- `encoderfile` CLI tool installed ([Installation Guide](../index.md#1-install-cli))
 - Python with `optimum[exporters]` for ONNX export
 - `curl` for testing the API
 
@@ -366,10 +366,10 @@ curl http://localhost:8080/health
 
 ## Next Steps
 
-- **[Sequence Classification Cookbook](sequence-classification-sentiment.md)** - Build a sentiment analyzer
-- **[Embedding Cookbook](embeddings-similarity.md)** - Create a semantic search engine
-- **[Transforms Reference](../transforms/reference.md)** - Learn about custom post-processing
-- **[API Reference](../reference/api-reference.md)** - Complete API documentation
+- **[Transforms Guide](../transforms/index.md)** - Learn about custom post-processing with Lua scripts
+- **[Transforms Reference](../transforms/reference.md)** - Complete transforms API documentation
+- **[API Reference](../reference/api-reference.md)** - REST, gRPC, and MCP endpoint specifications
+- **[CLI Reference](../reference/cli.md)** - Full documentation for build, serve, and infer commands
 
 ---
 
