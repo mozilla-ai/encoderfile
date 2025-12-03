@@ -49,6 +49,10 @@
             }
           ]
         },
+        "validate_transform": {
+          "type": "boolean",
+          "default": true
+        },
         "version": {
           "type": "string",
           "default": "0.1.0"
