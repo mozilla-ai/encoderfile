@@ -760,7 +760,6 @@ version = "0.1.2"
 dependencies = [
  "anyhow",
  "clap",
- "clap-markdown",
  "clap_derive",
  "directories",
  "encoderfile-core",
