@@ -29,7 +29,7 @@ impl Transform {
     }
 
     pub fn has_postprocessor(&self) -> bool {
-        return self.postprocessor.is_some();
+        self.postprocessor.is_some()
     }
 
     pub fn pool(&self, data: Array3<f32>, mask: Array2<f32>) -> Result<Array2<f32>, ApiError> {
