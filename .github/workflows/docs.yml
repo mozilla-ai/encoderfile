@@ -1,14 +1,10 @@
 name: docs
+
 on:
-  workflow_dispatch:
-    inputs:
-      version_override:
-        description: "Manually specify the release version (e.g. 1.2.3)"
-        required: false
   push:
     tags:
-      - 'v*.*.*'
-      - 'v*.*.*-*'   # prereleases like beta/rc
+      - "v*.*.*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,52 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # <-- required so tags + full history are present
 
-      - name: Determine version
-        id: version
-        run: |
-          if [ -n "${{ github.event.inputs.version_override }}" ]; then
-            echo "version=${{ github.event.inputs.version_override }}" >> $GITHUB_OUTPUT
-          else
-            # tag name like "v1.2.3" or "v1.2.3-beta.1"
-            RAW_TAG="${GITHUB_REF#refs/tags/}"
-            echo "version=${RAW_TAG#v}" >> $GITHUB_OUTPUT
-          fi
-
-      - run: git fetch origin gh-pages --depth=1
-
-      - name: Configure Git Credentials
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
-      - uses: actions/cache@v4
-        with:
-          key: mkdocs-material-${{ env.cache_id }}
-          path: ~/.cache 
-          restore-keys: |
-            mkdocs-material-
 
-      - run: pip install uv
-
-      - name: deploy
+      - name: Install dependencies
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
+          pip install uv
 
-          # deploy
-          uv run --group docs mike deploy --push "$VERSION"
-
-          # stable releases only
-          if [[ "$VERSION" != *-* ]]; then
-            echo "Setting 'latest' → $VERSION"
-            uv run --group docs mike deploy --push --update-aliases "$VERSION" latest
-
-            echo "Setting default → $VERSION"
-            uv run --group docs mike set-default "$VERSION" --push
-          else
-            uv run --group docs mike deploy --push "$VERSION"
-            echo "Prerelease: no alias, no default"
-          fi
+      - name: Build & Deploy
+        run: |
+          uv run --group docs mkdocs gh-deploy --force

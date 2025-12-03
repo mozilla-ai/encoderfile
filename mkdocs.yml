@@ -52,7 +52,3 @@ markdown_extensions:
       alternate_style: true
   - admonition
   - pymdownx.details
-
-extra:
-  version:
-    provider: mike
