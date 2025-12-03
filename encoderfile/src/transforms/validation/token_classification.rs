@@ -6,7 +6,7 @@ pub fn validate_transform(transform: Transform, model_config: &ModelConfig) -> R
     let num_labels = match model_config.num_labels() {
         Some(n) => n,
         None => validation_err(
-            "Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a SequenceClassification model.",
+            "Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a TokenClassification model.",
         )?,
     };
 
