@@ -23,11 +23,11 @@ pub fn random_tensor(shape: &[usize], (range_start, range_end): (f32, f32)) -> R
             .collect(),
     )
     .with_context(
-        || "Failed to construct random ArrayD for dry-run validation. This shouldn't happen.",
+        || validation_err_ctx("Failed to construct random ArrayD for dry-run validation. This shouldn't happen. More details"),
     )
 }
 
-pub fn validation_err_ctx(msg: &str) -> String {
+pub fn validation_err_ctx<T: std::fmt::Display>(msg: T) -> String {
     format!("{}: {}", ERR_HEADER, msg)
 }
 
