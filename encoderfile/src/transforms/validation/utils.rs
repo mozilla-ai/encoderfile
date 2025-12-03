@@ -27,6 +27,25 @@ pub fn random_tensor(shape: &[usize], (range_start, range_end): (f32, f32)) -> R
     )
 }
 
+pub fn create_dummy_attention_mask(
+    batch: usize,
+    seq: usize,
+    pad_up_to: usize,
+) -> Result<ArrayD<f32>> {
+    let mut data = Vec::with_capacity(batch * seq);
+
+    for _ in 0..batch {
+        let real = seq - pad_up_to;
+        data.extend(std::iter::repeat(1.0).take(real));
+        data.extend(std::iter::repeat(0.0).take(pad_up_to));
+    }
+
+    ArrayD::from_shape_vec(IxDyn(&[batch, seq]), data)
+        .with_context(
+            || validation_err_ctx("Failed to construct dummy attention_mask for dry-run validation. This shouldn't happen. More details"),
+        )
+}
+
 pub fn validation_err_ctx<T: std::fmt::Display>(msg: T) -> String {
     format!("{}: {}", ERR_HEADER, msg)
 }
