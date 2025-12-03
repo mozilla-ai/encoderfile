@@ -37,7 +37,7 @@ impl TransformValidator {
         // fail if `Postprocess` function is not found
         // NOTE: This should be removed if we add any additional functions, e.g., a Preprocess function
         if !transform.has_postprocessor() {
-            utils::validation_err("❌ Could not find `Postprocess` function in provided transform. Please make sure it exists.")?
+            utils::validation_err("Could not find `Postprocess` function in provided transform. Please make sure it exists.")?
         }
 
         match self.config.model_type {
