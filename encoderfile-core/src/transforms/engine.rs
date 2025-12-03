@@ -1,8 +1,8 @@
-use crate::error::ApiError;
+use crate::error::{RuntimeError, ApiError};
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
-use ndarray::{Array, Array2, Array3, Axis};
+use ndarray::{Array, Array2, Array3, Axis, ArrayD};
 
 #[derive(Debug)]
 pub struct Transform {
@@ -28,30 +28,56 @@ impl Transform {
         Ok(Self { lua, postprocessor })
     }
 
+    pub fn pool_impl(data: &ArrayD<f32>, mask: ArrayD<f32>) -> Result<ArrayD<f32>, RuntimeError> {
+        let ndim = data.ndim();
+
+        assert_eq!(ndim, mask.ndim() + 1, "dim(mask) needs to be dim(data)-1");
+
+        // Expand mask by adding the last axis back
+        let mut mask_expanded = mask.clone();
+        mask_expanded = mask_expanded.insert_axis(Axis(ndim - 1));
+
+        // Broadcast mask to full data shape
+        let mask_broadcast = mask_expanded
+            .broadcast(data.shape())
+            .ok_or(RuntimeError::InternalError(format!(
+                "cannot broadcast shape {:?} to {:?}",
+                mask_expanded.shape(),
+                data.shape()
+            )))?;
+
+        // Multiply and sum over sequence dims (axes 1..ndim-1)
+        let weighted = data * &mask_broadcast;
+
+        // All axes except the last one and the batch axis
+        let mut axes_to_reduce = Vec::new();
+        for ax in 1..(ndim - 1) {
+            axes_to_reduce.push(ax);
+        }
+
+        // Sum weighted values
+        let mut sum = weighted.clone();
+        for ax in axes_to_reduce.iter().rev() {
+            sum = sum.sum_axis(Axis(*ax));
+        }
+
+        // Sum mask the same way -> counts
+        let mut count = mask_expanded.clone();
+        for ax in axes_to_reduce.iter().rev() {
+            count = count.sum_axis(Axis(*ax));
+        }
+
+        // Final: divide elementwise
+        Ok(&sum / &count)
+
+    }
+
     pub fn pool(&self, data: Array3<f32>, mask: Array2<f32>) -> Result<Array2<f32>, ApiError> {
         let func = match &self.postprocessor {
             Some(p) => p,
             None => {
-                let batch = data.len_of(Axis(0));
-                let hidden = data.len_of(Axis(2));
-
-                let mut out = Array2::<f32>::zeros((batch, hidden));
-
-                for b in 0..batch {
-                    let emb = data.slice(ndarray::s![b, .., ..]); // [seq_len, hidden]
-                    let m = mask.slice(ndarray::s![b, ..]); // [seq_len]
-
-                    // expand mask to [seq_len, hidden]
-                    let m2 = m.insert_axis(Axis(1));
-
-                    let weighted = &emb * &m2; // zero out padded tokens
-                    let sum = weighted.sum_axis(Axis(0)); // sum over seq_len
-                    let count = m.sum(); // number of real tokens
-
-                    out.slice_mut(ndarray::s![b, ..]).assign(&(sum / count));
-                }
-
-                return Ok(out);
+                let out = Transform::pool_impl(&data.into_dyn(), mask.into_dyn())?.into_dimensionality();
+                return out.map_err(|_| return ApiError::InternalError("Error reshaping in pooling"));
             }
         };
 

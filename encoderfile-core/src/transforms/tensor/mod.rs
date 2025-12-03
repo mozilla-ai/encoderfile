@@ -1,7 +1,10 @@
+use crate::error::ApiError;
+
 use super::utils::table_to_vec;
 use mlua::prelude::*;
 use ndarray::{Array1, ArrayD, Axis};
 use ndarray_stats::QuantileExt;
+use super::engine::Transform;
 
 #[cfg(test)]
 mod tests;
@@ -78,46 +81,8 @@ impl LuaUserData for Tensor {
 impl Tensor {
     #[tracing::instrument(skip_all)]
     fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
-        assert_eq!(self.0.ndim(), mask.ndim() + 1);
-
-        let ndim = self.0.ndim();
-
-        // Expand mask by adding the last axis back
-        let mut mask_expanded = mask.clone();
-        mask_expanded = mask_expanded.insert_axis(Axis(ndim - 1));
-
-        // Broadcast mask to full data shape
-        let mask_broadcast = mask_expanded
-            .broadcast(self.0.shape())
-            .ok_or(LuaError::external(format!(
-                "cannot broadcast shape {:?} to {:?}",
-                mask_expanded.shape(),
-                self.0.shape()
-            )))?;
-
-        // Multiply and sum over sequence dims (axes 1..ndim-1)
-        let weighted = &self.0 * &mask_broadcast;
-
-        // All axes except the last one and the batch axis
-        let mut axes_to_reduce = Vec::new();
-        for ax in 1..(ndim - 1) {
-            axes_to_reduce.push(ax);
-        }
-
-        // Sum weighted values
-        let mut sum = weighted.clone();
-        for ax in axes_to_reduce.iter().rev() {
-            sum = sum.sum_axis(Axis(*ax));
-        }
-
-        // Sum mask the same way -> counts
-        let mut count = mask_expanded.clone();
-        for ax in axes_to_reduce.iter().rev() {
-            count = count.sum_axis(Axis(*ax));
-        }
-
-        // Final: divide elementwise
-        Ok(Self(&sum / &count))
+        let result = Transform::pool_impl(&self.0, mask)?;
+        return Ok(Self(result));
     }
 
     #[tracing::instrument(skip_all)]
