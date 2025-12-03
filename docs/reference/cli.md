@@ -71,7 +71,10 @@ encoderfile:
   transform:
     path: ./transforms/normalize.lua
   # OR inline transform:
-  # transform: "return normalize(output)"
+  # transform: "function Postprocess(logits) return logits:lp_normalize(2.0, 2.0) end"
+
+  # Whether to validate transform with a dry-run (optional, defaults to true)
+  validate_transform: true
 
   # Whether to build the binary (optional, defaults to true)
   build: true
