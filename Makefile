@@ -59,5 +59,3 @@ generate-docs:
 # 	generate JSON schema for encoderfile config
 	@cargo run \
 		--bin generate-encoderfile-config-schema
-# 	generate CLI docs for encoderfile build
-	@cargo run --bin generate-encoderfile-cli-docs --features="_internal"
