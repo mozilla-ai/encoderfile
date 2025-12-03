@@ -5,6 +5,7 @@ use crate::{config::EncoderfileConfig, model::ModelType};
 
 mod embedding;
 mod sequence_classification;
+mod token_classification;
 mod utils;
 
 #[derive(Debug)]
@@ -54,7 +55,9 @@ impl<'a> TransformValidator<'a> {
             ModelType::SequenceClassification => {
                 sequence_classification::validate_transform(transform, self.model_config)
             }
-            ModelType::TokenClassification => todo!(),
+            ModelType::TokenClassification => {
+                token_classification::validate_transform(transform, self.model_config)
+            }
             ModelType::SentenceEmbedding => todo!(),
         }
     }
