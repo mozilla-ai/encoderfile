@@ -34,6 +34,8 @@ pub struct EncoderfileConfig {
     pub output_path: Option<PathBuf>,
     pub cache_dir: Option<PathBuf>,
     pub transform: Option<Transform>,
+    #[serde(default = "default_validate_transform")]
+    pub validate_transform: bool,
     #[serde(default = "default_build")]
     pub build: bool,
 }
@@ -166,6 +168,10 @@ fn default_build() -> bool {
     true
 }
 
+fn default_validate_transform() -> bool {
+    true
+}
+
 fn encoderfile_core_version() -> &'static str {
     env!("ENCODERFILE_CORE_DEP_STR")
 }
@@ -283,6 +289,7 @@ mod tests {
             model_type: ModelType::Embedding,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
+            validate_transform: false,
             transform: None,
             build: true,
         };
@@ -303,6 +310,7 @@ mod tests {
             model_type: ModelType::SequenceClassification,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
+            validate_transform: false,
             transform: Some(Transform::Inline("1+1".into())),
             build: true,
         };
