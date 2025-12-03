@@ -1,6 +1,6 @@
 use crate::{
-    common::ModelType,
-    runtime::{AppState, ModelConfig},
+    common::{ModelConfig, ModelType},
+    runtime::AppState,
     transforms::Transform,
 };
 use ort::session::Session;

@@ -32,6 +32,7 @@ tempfile = "3.23.0"
 [dependencies.encoderfile-core]
 path = "../encoderfile-core"
 features = ["transforms"]
+default-features = false
 
 [dependencies.figment]
 version = "0.10.19"
