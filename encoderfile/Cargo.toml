@@ -28,6 +28,10 @@ _internal = [ "clap-markdown",]
 [dev-dependencies]
 tempfile = "3.23.0"
 
+[dependencies.encoderfile-core]
+path = "../encoderfile-core"
+features = ["transforms"]
+
 [dependencies.figment]
 version = "0.10.19"
 features = [ "env", "serde_yaml", "yaml",]

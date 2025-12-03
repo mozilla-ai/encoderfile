@@ -763,6 +763,7 @@ dependencies = [
  "clap-markdown",
  "clap_derive",
  "directories",
+ "encoderfile-core",
  "figment",
  "lazy_static",
  "ort",
