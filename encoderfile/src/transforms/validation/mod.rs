@@ -3,30 +3,30 @@ use encoderfile_core::transforms::Transform;
 
 use crate::{config::EncoderfileConfig, model::ModelType};
 
-mod utils;
 mod embedding;
+mod utils;
 
 #[derive(Debug)]
-pub struct TransformValidator {
-    config: EncoderfileConfig
+pub struct TransformValidator<'a> {
+    config: &'a EncoderfileConfig,
 }
 
-impl TransformValidator {
-    pub fn new(config: EncoderfileConfig) -> Self {
+impl<'a> TransformValidator<'a> {
+    pub fn new(config: &'a EncoderfileConfig) -> Self {
         Self { config }
     }
 
     pub fn validate(&self) -> Result<()> {
         // if validate_transform set to false, return
         if !self.config.validate_transform {
-            return Ok(())
+            return Ok(());
         }
 
         // try to fetch transform string
         // will fail if a path to a transform does not exist
         let transform_str = match &self.config.transform {
             Some(t) => t.transform()?,
-            None => return Ok(())
+            None => return Ok(()),
         };
 
         // create transform
@@ -37,7 +37,9 @@ impl TransformValidator {
         // fail if `Postprocess` function is not found
         // NOTE: This should be removed if we add any additional functions, e.g., a Preprocess function
         if !transform.has_postprocessor() {
-            utils::validation_err("Could not find `Postprocess` function in provided transform. Please make sure it exists.")?
+            utils::validation_err(
+                "Could not find `Postprocess` function in provided transform. Please make sure it exists.",
+            )?
         }
 
         match self.config.model_type {

@@ -1,8 +1,7 @@
-use anyhow::{Result, Context, bail};
-use encoderfile_core::transforms::Tensor;
+use anyhow::{Context, Result, bail};
+use ndarray::{ArrayD, IxDyn};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
-use ndarray::{ArrayD, IxDyn};
 
 pub const ERR_HEADER: &'static str = "❌ Transform validation failed";
 const SEED: u64 = 42;
@@ -16,8 +15,11 @@ pub fn random_tensor(shape: &[usize], (range_start, range_end): (f32, f32)) -> R
         IxDyn(shape),
         (0..total)
             .map(|_| rng.random_range(range_start..range_end))
-            .collect()
-    ).with_context(|| "Failed to construct random ArrayD for dry-run validation. This shouldn't happen.")
+            .collect(),
+    )
+    .with_context(
+        || "Failed to construct random ArrayD for dry-run validation. This shouldn't happen.",
+    )
 }
 
 pub fn validation_err_ctx(msg: &str) -> String {
