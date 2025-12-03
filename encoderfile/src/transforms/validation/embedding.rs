@@ -1,15 +1,11 @@
-use super::utils;
+use super::utils::{BATCH_SIZE, SEQ_LEN, HIDDEN_DIM, random_tensor};
 use anyhow::{Context, Result, bail};
 use encoderfile_core::transforms::Transform;
-
-const BATCH_SIZE: usize = 32;
-const SEQ_LEN: usize = 128;
-const HIDDEN_DIM: usize = 384;
 
 pub fn validate_transform(transform: Transform) -> Result<()> {
     // create dummy hidden states with shape [batch_size, seq_len, hidden_dim]
     let dummy_hidden_states =
-        utils::random_tensor(&[BATCH_SIZE, SEQ_LEN, HIDDEN_DIM], (-1.0, 1.0))?;
+        random_tensor(&[BATCH_SIZE, SEQ_LEN, HIDDEN_DIM], (-1.0, 1.0))?;
 
     let res = transform.postprocess(dummy_hidden_states)
         .with_context(|| "Failed to run postprocessing on dummy embeddings (randomly generated in range -1.0..1.0) of shape [32, 128, 384].")?;

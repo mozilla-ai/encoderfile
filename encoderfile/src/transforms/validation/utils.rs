@@ -6,6 +6,11 @@ use rand::{Rng, SeedableRng};
 pub const ERR_HEADER: &'static str = "❌ Transform validation failed";
 const SEED: u64 = 42;
 
+// test values
+pub const BATCH_SIZE: usize = 32;
+pub const SEQ_LEN: usize = 128;
+pub const HIDDEN_DIM: usize = 384;
+
 pub fn random_tensor(shape: &[usize], (range_start, range_end): (f32, f32)) -> Result<ArrayD<f32>> {
     let mut rng = StdRng::seed_from_u64(SEED);
 
@@ -26,6 +31,6 @@ pub fn validation_err_ctx(msg: &str) -> String {
     format!("{}: {}", ERR_HEADER, msg)
 }
 
-pub fn validation_err<T, E: std::fmt::Display>(msg: E) -> anyhow::Result<T> {
+pub fn validation_err<T, E: std::fmt::Display>(msg: E) -> Result<T> {
     bail!("{}: {}", ERR_HEADER, msg)
 }

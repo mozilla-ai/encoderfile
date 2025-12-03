@@ -1,7 +1,7 @@
 use crate::{
-    common::{TokenClassification, TokenClassificationResult, TokenInfo},
+    common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo},
     error::ApiError,
-    runtime::{AppState, ModelConfig},
+    runtime::AppState,
 };
 use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;

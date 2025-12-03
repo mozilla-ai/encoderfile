@@ -1,7 +1,7 @@
 use crate::{
-    common::SequenceClassificationResult,
+    common::{ModelConfig, SequenceClassificationResult},
     error::ApiError,
-    runtime::{AppState, ModelConfig},
+    runtime::AppState,
 };
 use ndarray::{Array2, Axis, Ix2};
 use ndarray_stats::QuantileExt;

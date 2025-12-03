@@ -1,6 +1,7 @@
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
+use encoderfile_core::common::ModelConfig;
 use schemars::JsonSchema;
-use std::{io::Read, path::PathBuf};
+use std::{io::{Read, BufReader}, path::PathBuf, fs::File};
 
 use super::model::ModelType;
 use figment::{
@@ -9,7 +10,6 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use tera::Context;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Config {
@@ -41,6 +41,16 @@ pub struct EncoderfileConfig {
 }
 
 impl EncoderfileConfig {
+    pub fn model_config(&self) -> Result<ModelConfig> {
+        let model_config_path = self.path.model_config_path()?;
+
+        let file = File::open(model_config_path)?;
+
+        let reader = BufReader::new(file);
+
+        serde_json::from_reader(reader).with_context(|| "Failed to deserialize model config")
+    }
+
     pub fn output_path(&self) -> PathBuf {
         match &self.output_path {
             Some(p) => p.to_path_buf(),
@@ -59,8 +69,8 @@ impl EncoderfileConfig {
             None => default_cache_dir(),
         }
     }
-    pub fn to_tera_ctx(&self) -> Result<Context> {
-        let mut ctx = Context::new();
+    pub fn to_tera_ctx(&self) -> Result<tera::Context> {
+        let mut ctx = tera::Context::new();
 
         let transform = match &self.transform {
             None => None,
@@ -104,7 +114,7 @@ impl Transform {
 
                 let mut code = String::new();
 
-                std::fs::File::open(path)?.read_to_string(&mut code)?;
+                File::open(path)?.read_to_string(&mut code)?;
 
                 Ok(code)
             }
