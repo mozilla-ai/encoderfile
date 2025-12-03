@@ -3,7 +3,7 @@ use ndarray::{ArrayD, IxDyn};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 
-pub const ERR_HEADER: &'static str = "❌ Transform validation failed";
+pub const ERR_HEADER: &str = "❌ Transform validation failed";
 const SEED: u64 = 42;
 
 // test values
@@ -36,8 +36,8 @@ pub fn create_dummy_attention_mask(
 
     for _ in 0..batch {
         let real = seq - pad_up_to;
-        data.extend(std::iter::repeat(1.0).take(real));
-        data.extend(std::iter::repeat(0.0).take(pad_up_to));
+        data.extend(std::iter::repeat_n(1.0, real));
+        data.extend(std::iter::repeat_n(0.0, pad_up_to));
     }
 
     ArrayD::from_shape_vec(IxDyn(&[batch, seq]), data)
