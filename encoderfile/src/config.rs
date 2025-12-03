@@ -1,7 +1,11 @@
 use anyhow::{Context, Result, bail};
 use encoderfile_core::common::ModelConfig;
 use schemars::JsonSchema;
-use std::{io::{Read, BufReader}, path::PathBuf, fs::File};
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+    path::PathBuf,
+};
 
 use super::model::ModelType;
 use figment::{

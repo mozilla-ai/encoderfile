@@ -79,7 +79,8 @@ impl BuildArgs {
             .validate_model(&config.encoderfile.path.model_weights_path()?)?;
 
         // validate transform
-        super::transforms::TransformValidator::new(&config.encoderfile, &model_config).validate()?;
+        super::transforms::TransformValidator::new(&config.encoderfile, &model_config)
+            .validate()?;
 
         // setup write directory
         let write_dir = config.encoderfile.get_generated_dir();

@@ -5,7 +5,9 @@ use encoderfile_core::{common::ModelConfig, transforms::Transform};
 pub fn validate_transform(transform: Transform, model_config: &ModelConfig) -> Result<()> {
     let num_labels = match model_config.num_labels() {
         Some(n) => n,
-        None => validation_err("Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a SequenceClassification model.")?
+        None => validation_err(
+            "Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a SequenceClassification model.",
+        )?,
     };
 
     let dummy_logits = random_tensor(&[BATCH_SIZE, num_labels], (-1.0, 1.0))?;
@@ -20,27 +22,23 @@ pub fn validate_transform(transform: Transform, model_config: &ModelConfig) -> R
                 )
             )
         })?;
-    
+
     // result must return tensor of rank 2
     if res.ndim() != 2 {
-        validation_err(
-            format!(
-                "Transform must return tensor of rank 2. Got tensor of shape {:?}.",
-                res.shape()
-            )
-        )?
+        validation_err(format!(
+            "Transform must return tensor of rank 2. Got tensor of shape {:?}.",
+            res.shape()
+        ))?
     }
 
     // result must have same shape as original
     if res.shape() != shape {
-        validation_err(
-            format!(
-                "Transform must return Tensor of shape [batch_size, num_labels]. Expected shape [{}, {}], got shape {:?}",
-                BATCH_SIZE,
-                num_labels,
-                res.shape()
-            )
-        )?
+        validation_err(format!(
+            "Transform must return Tensor of shape [batch_size, num_labels]. Expected shape [{}, {}], got shape {:?}",
+            BATCH_SIZE,
+            num_labels,
+            res.shape()
+        ))?
     }
 
     Ok(())

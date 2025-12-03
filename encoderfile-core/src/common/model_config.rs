@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,15 +21,15 @@ impl ModelConfig {
 
     pub fn num_labels(&self) -> Option<usize> {
         if self.num_labels.is_some() {
-            return self.num_labels
+            return self.num_labels;
         }
 
         if let Some(id2label) = &self.id2label {
-            return Some(id2label.len())
+            return Some(id2label.len());
         }
 
         if let Some(label2id) = &self.label2id {
-            return Some(label2id.len())
+            return Some(label2id.len());
         }
 
         None

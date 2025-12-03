@@ -1,4 +1,4 @@
-use crate::common::{ModelType, ModelConfig};
+use crate::common::{ModelConfig, ModelType};
 use std::sync::{Arc, OnceLock};
 
 static MODEL_TYPE: OnceLock<ModelType> = OnceLock::new();

@@ -17,7 +17,10 @@ pub struct TransformValidator<'a> {
 
 impl<'a> TransformValidator<'a> {
     pub fn new(encoderfile_config: &'a EncoderfileConfig, model_config: &'a ModelConfig) -> Self {
-        Self { encoderfile_config, model_config }
+        Self {
+            encoderfile_config,
+            model_config,
+        }
     }
 
     pub fn validate(&self) -> Result<()> {
@@ -48,7 +51,9 @@ impl<'a> TransformValidator<'a> {
 
         match self.encoderfile_config.model_type {
             ModelType::Embedding => embedding::validate_transform(transform),
-            ModelType::SequenceClassification => sequence_classification::validate_transform(transform, self.model_config),
+            ModelType::SequenceClassification => {
+                sequence_classification::validate_transform(transform, self.model_config)
+            }
             ModelType::TokenClassification => todo!(),
             ModelType::SentenceEmbedding => todo!(),
         }

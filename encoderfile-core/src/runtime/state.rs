@@ -4,7 +4,10 @@ use ort::session::Session;
 use parking_lot::Mutex;
 use tokenizers::Tokenizer;
 
-use crate::{common::{ModelType, ModelConfig}, transforms::Transform};
+use crate::{
+    common::{ModelConfig, ModelType},
+    transforms::Transform,
+};
 
 #[derive(Debug, Clone)]
 pub struct AppState {
