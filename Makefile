@@ -12,6 +12,22 @@ format:
 	@echo "Formatting rust..."
 	@cargo fmt
 
+.PHONY: lint
+lint:
+	cargo clippy \
+		--all-features \
+		--all-targets \
+		-- \
+		-D warnings
+
+.PHONY: coverage
+coverage:
+	cargo llvm-cov \
+		--workspace \
+		--all-features \
+		--lcov \
+		--output-path lcov.info
+
 ,PHONY: licenses
 licenses:
 	@echo "Generating licenses..."

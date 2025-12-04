@@ -119,7 +119,7 @@ jobs:
         run: cargo binstall cargo-llvm-cov --force --no-confirm
 
       - name: Generate coverage
-        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+        run: make coverage
 
       - name: Upload to codecov
         uses: codecov/codecov-action@v2
@@ -166,4 +166,4 @@ jobs:
       - run: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu clippy
 
       - name: Run Clippy
-        run: cargo clippy --all-features --all-targets -- -D warnings
+        run: make lint
