@@ -1,11 +1,5 @@
 use anyhow::{Context, Result};
-use encoderfile_core::{
-    common::ModelConfig,
-    transforms::{
-        EmbeddingTransform, SentenceEmbeddingTransform, SequenceClassificationTransform,
-        TokenClassificationTransform, TransformSpec,
-    },
-};
+use encoderfile_core::{common::ModelConfig, transforms::TransformSpec};
 
 use crate::{config::EncoderfileConfig, model::ModelType};
 
@@ -40,6 +34,14 @@ pub trait TransformValidatorExt: TransformSpec {
     fn dry_run(&self, model_config: &ModelConfig) -> Result<()>;
 }
 
+macro_rules! validate_transform {
+    ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
+        encoderfile_core::transforms::$transform_type::new($transform_str)
+            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
+            .validate($encoderfile_config, $model_config)
+    };
+}
+
 pub fn validate_transform(
     encoderfile_config: &EncoderfileConfig,
     model_config: &ModelConfig,
@@ -54,17 +56,29 @@ pub fn validate_transform(
     let transform_str = Some(transform_string.as_ref());
 
     match encoderfile_config.model_type {
-        ModelType::Embedding => EmbeddingTransform::new(transform_str)
-            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
-            .validate(encoderfile_config, model_config),
-        ModelType::SequenceClassification => SequenceClassificationTransform::new(transform_str)
-            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
-            .validate(encoderfile_config, model_config),
-        ModelType::TokenClassification => TokenClassificationTransform::new(transform_str)
-            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
-            .validate(encoderfile_config, model_config),
-        ModelType::SentenceEmbedding => SentenceEmbeddingTransform::new(transform_str)
-            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
-            .validate(encoderfile_config, model_config),
+        ModelType::Embedding => validate_transform!(
+            EmbeddingTransform,
+            transform_str,
+            encoderfile_config,
+            model_config
+        ),
+        ModelType::SequenceClassification => validate_transform!(
+            SequenceClassificationTransform,
+            transform_str,
+            encoderfile_config,
+            model_config
+        ),
+        ModelType::TokenClassification => validate_transform!(
+            TokenClassificationTransform,
+            transform_str,
+            encoderfile_config,
+            model_config
+        ),
+        ModelType::SentenceEmbedding => validate_transform!(
+            SentenceEmbeddingTransform,
+            transform_str,
+            encoderfile_config,
+            model_config
+        ),
     }
 }
