@@ -62,11 +62,14 @@ mod tests {
 
     #[test]
     fn test_seq_cls_transform() {
-        let engine = SequenceClassificationTransform::new(Some(r##"
+        let engine = SequenceClassificationTransform::new(Some(
+            r##"
         function Postprocess(arr)
             return arr
         end
-        "##)).expect("Failed to create engine");
+        "##,
+        ))
+        .expect("Failed to create engine");
 
         let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
 
@@ -77,11 +80,14 @@ mod tests {
 
     #[test]
     fn test_seq_cls_transform_bad_fn() {
-        let engine = SequenceClassificationTransform::new(Some(r##"
+        let engine = SequenceClassificationTransform::new(Some(
+            r##"
         function Postprocess(arr)
             return 1
         end
-        "##)).expect("Failed to create engine");
+        "##,
+        ))
+        .expect("Failed to create engine");
 
         let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
 

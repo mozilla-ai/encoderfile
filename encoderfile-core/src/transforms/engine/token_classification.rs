@@ -62,11 +62,14 @@ mod tests {
 
     #[test]
     fn test_token_cls_identity_transform() {
-        let engine = TokenClassificationTransform::new(Some(r##"
+        let engine = TokenClassificationTransform::new(Some(
+            r##"
         function Postprocess(arr)
             return arr
         end
-        "##)).expect("Failed to create engine");
+        "##,
+        ))
+        .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 2), 2.0);
 
@@ -77,11 +80,14 @@ mod tests {
 
     #[test]
     fn test_token_cls_transform_bad_fn() {
-        let engine = TokenClassificationTransform::new(Some(r##"
+        let engine = TokenClassificationTransform::new(Some(
+            r##"
         function Postprocess(arr)
             return 1
         end
-        "##)).expect("Failed to create engine");
+        "##,
+        ))
+        .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 2), 2.0);
 

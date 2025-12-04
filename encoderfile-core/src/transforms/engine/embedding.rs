@@ -61,11 +61,14 @@ mod tests {
 
     #[test]
     fn test_embedding_identity_transform() {
-        let engine = EmbeddingTransform::new(Some(r##"
+        let engine = EmbeddingTransform::new(Some(
+            r##"
         function Postprocess(arr)
             return arr
         end
-        "##)).expect("Failed to create engine");
+        "##,
+        ))
+        .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
 
@@ -76,11 +79,14 @@ mod tests {
 
     #[test]
     fn test_embedding_transform_bad_fn() {
-        let engine = EmbeddingTransform::new(Some(r##"
+        let engine = EmbeddingTransform::new(Some(
+            r##"
         function Postprocess(arr)
             return 1
         end
-        "##)).expect("Failed to create engine");
+        "##,
+        ))
+        .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
 
