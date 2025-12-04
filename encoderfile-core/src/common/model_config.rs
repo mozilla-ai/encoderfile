@@ -35,3 +35,53 @@ impl ModelConfig {
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_num_labels() {
+        let test_labels: Vec<(String, u32)> = vec![("a", 1), ("b", 2), ("c", 3)]
+            .into_iter()
+            .map(|(i, j)| (i.to_string(), j))
+            .collect();
+
+        let label2id: HashMap<String, u32> = test_labels.clone().into_iter().collect();
+        let id2label: HashMap<u32, String> = test_labels
+            .clone()
+            .into_iter()
+            .map(|(i, j)| (j, i))
+            .collect();
+
+        let config = ModelConfig {
+            model_type: "MyModel".to_string(),
+            pad_token_id: 0,
+            num_labels: Some(3),
+            id2label: Some(id2label.clone()),
+            label2id: Some(label2id.clone()),
+        };
+
+        assert_eq!(config.num_labels(), Some(3));
+
+        let config = ModelConfig {
+            model_type: "MyModel".to_string(),
+            pad_token_id: 0,
+            num_labels: None,
+            id2label: Some(id2label.clone()),
+            label2id: Some(label2id.clone()),
+        };
+
+        assert_eq!(config.num_labels(), Some(3));
+
+        let config = ModelConfig {
+            model_type: "MyModel".to_string(),
+            pad_token_id: 0,
+            num_labels: None,
+            id2label: None,
+            label2id: Some(label2id.clone()),
+        };
+
+        assert_eq!(config.num_labels(), Some(3));
+    }
+}
