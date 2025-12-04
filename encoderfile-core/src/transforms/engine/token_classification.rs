@@ -43,3 +43,19 @@ impl Postprocessor for TokenClassificationTransform {
         Ok(result)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_token_cls_no_transform() {
+        let engine = TokenClassificationTransform::new(Some("")).expect("Failed to create Transform");
+
+        let arr = ndarray::Array3::<f32>::from_elem((32, 16, 2), 2.0);
+
+        let result = engine.postprocess(arr.clone()).expect("Failed");
+
+        assert_eq!(arr, result);
+    }
+}

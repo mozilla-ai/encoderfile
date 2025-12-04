@@ -43,3 +43,19 @@ impl Postprocessor for EmbeddingTransform {
         Ok(result)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embedding_no_transform() {
+        let engine = EmbeddingTransform::new(Some("")).expect("Failed to create Transform");
+
+        let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
+
+        let result = engine.postprocess(arr.clone()).expect("Failed");
+
+        assert_eq!(arr, result);
+    }
+}

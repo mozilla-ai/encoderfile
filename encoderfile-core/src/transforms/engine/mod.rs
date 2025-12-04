@@ -134,17 +134,6 @@ mod tests {
     }
 
     //     #[test]
-    //     fn test_no_transform_postprocessing() {
-    //         let engine = Transform::new("").expect("Failed to create Transform");
-
-    //         let arr = ndarray::Array2::<f32>::from_elem((3, 3), 2.0);
-
-    //         let result = engine.postprocess(arr.clone()).expect("Failed");
-
-    //         assert_eq!(arr, result);
-    //     }
-
-    //     #[test]
     //     fn test_bad_output_transform_postprocessing() {
     //         let engine = Transform::new(
     //             r##"
