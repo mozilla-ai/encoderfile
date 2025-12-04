@@ -1,7 +1,6 @@
 use crate::{
     common::{ModelConfig, ModelType},
     runtime::AppState,
-    transforms::Transform,
 };
 use ort::session::Session;
 use parking_lot::Mutex;
@@ -22,7 +21,7 @@ pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
         config,
         model_type,
         model_id: "test-model".to_string(),
-        transform_factory: || Transform::new("").unwrap(),
+        transform_str: None
     }
 }
 

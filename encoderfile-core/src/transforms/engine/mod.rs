@@ -104,34 +104,34 @@ fn new_lua() -> Result<Lua, ApiError> {
     Ok(lua)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-//     fn new_test_lua() -> Lua {
-//         new_lua().expect("Failed to create new lua")
-//     }
+    fn new_test_lua() -> Lua {
+        new_lua().expect("Failed to create new lua")
+    }
 
-//     #[test]
-//     fn test_create_tensor() {
-//         let lua = new_test_lua();
-//         lua.load(
-//             r#"
-//             function MyTensor()
-//                 return Tensor({1, 2, 3})
-//             end
-//             "#,
-//         )
-//         .exec()
-//         .unwrap();
+    #[test]
+    fn test_create_tensor() {
+        let lua = new_test_lua();
+        lua.load(
+            r#"
+            function MyTensor()
+                return Tensor({1, 2, 3})
+            end
+            "#,
+        )
+        .exec()
+        .unwrap();
 
-//         let function = lua
-//             .globals()
-//             .get::<LuaFunction>("MyTensor")
-//             .expect("Failed to get MyTensor");
+        let function = lua
+            .globals()
+            .get::<LuaFunction>("MyTensor")
+            .expect("Failed to get MyTensor");
 
-//         assert!(function.call::<Tensor>(()).is_ok())
-//     }
+        assert!(function.call::<Tensor>(()).is_ok())
+    }
 
 //     #[test]
 //     fn test_no_pooling() {
@@ -245,86 +245,78 @@ fn new_lua() -> Result<Lua, ApiError> {
 //     }
 // }
 
-// #[cfg(test)]
-// mod sandbox_tests {
-//     use super::*;
+    #[test]
+    fn test_no_unsafe_stdlibs_loaded() {
+        let engine = new_test_lua();
 
-//     fn new_test_lua() -> Lua {
-//         new_lua().expect("Failed to create new lua")
-//     }
+        // Should evaluate to nil, not a table or function
+        let val: mlua::Value = engine.load("return os").eval().unwrap();
+        assert!(matches!(val, mlua::Value::Nil));
 
-//     #[test]
-//     fn test_no_unsafe_stdlibs_loaded() {
-//         let engine = new_test_lua();
+        let val: mlua::Value = engine.load("return io").eval().unwrap();
+        assert!(matches!(val, mlua::Value::Nil));
 
-//         // Should evaluate to nil, not a table or function
-//         let val: mlua::Value = engine.load("return os").eval().unwrap();
-//         assert!(matches!(val, mlua::Value::Nil));
+        let val: mlua::Value = engine.load("return debug").eval().unwrap();
+        assert!(matches!(val, mlua::Value::Nil));
+    }
 
-//         let val: mlua::Value = engine.load("return io").eval().unwrap();
-//         assert!(matches!(val, mlua::Value::Nil));
+    #[test]
+    fn test_cannot_access_environment_or_execute_commands() {
+        let lua = new_lua().expect("Failed to create new Lua");
 
-//         let val: mlua::Value = engine.load("return debug").eval().unwrap();
-//         assert!(matches!(val, mlua::Value::Nil));
-//     }
+        // `os.execute` shouldn't exist or be callable
+        let res = lua
+            .load("return type(os) == 'table' and type(os.execute) == 'function'")
+            .eval::<bool>();
 
-//     #[test]
-//     fn test_cannot_access_environment_or_execute_commands() {
-//         let lua = new_lua().expect("Failed to create new Lua");
+        assert!(
+            matches!(res, Ok(false) | Err(_)),
+            "os.execute should not be callable"
+        );
+    }
 
-//         // `os.execute` shouldn't exist or be callable
-//         let res = lua
-//             .load("return type(os) == 'table' and type(os.execute) == 'function'")
-//             .eval::<bool>();
+    #[test]
+    fn test_no_file_system_access_via_package() {
+        let lua = new_test_lua();
 
-//         assert!(
-//             matches!(res, Ok(false) | Err(_)),
-//             "os.execute should not be callable"
-//         );
-//     }
+        // 'require' should not be usable
+        let res = lua.load("require('os')").exec();
+        assert!(res.is_err());
 
-//     #[test]
-//     fn test_no_file_system_access_via_package() {
-//         let lua = new_test_lua();
+        // 'package' table should not exist
+        let res = lua.load("package").eval::<mlua::Value>();
+        assert!(res.unwrap().is_nil())
+    }
 
-//         // 'require' should not be usable
-//         let res = lua.load("require('os')").exec();
-//         assert!(res.is_err());
+    #[test]
+    fn test_tensor_function_is_only_safe_binding() {
+        let lua = new_test_lua();
 
-//         // 'package' table should not exist
-//         let res = lua.load("package").eval::<mlua::Value>();
-//         assert!(res.unwrap().is_nil())
-//     }
+        // Tensor should exist
+        let tensor_res = lua.load("return Tensor").eval::<mlua::Value>();
+        assert!(tensor_res.is_ok());
 
-//     #[test]
-//     fn test_tensor_function_is_only_safe_binding() {
-//         let lua = new_test_lua();
+        // But nothing else custom
+        let res = lua.load("return DangerousFunction").eval::<mlua::Value>();
+        assert!(res.unwrap().is_nil());
+    }
 
-//         // Tensor should exist
-//         let tensor_res = lua.load("return Tensor").eval::<mlua::Value>();
-//         assert!(tensor_res.is_ok());
+    #[test]
+    fn test_limited_math_and_string_stdlibs() {
+        let lua = new_test_lua();
 
-//         // But nothing else custom
-//         let res = lua.load("return DangerousFunction").eval::<mlua::Value>();
-//         assert!(res.unwrap().is_nil());
-//     }
+        // math should work
+        assert_eq!(lua.load("return math.sqrt(9)").eval::<f64>().unwrap(), 3.0);
 
-//     #[test]
-//     fn test_limited_math_and_string_stdlibs() {
-//         let lua = new_test_lua();
+        // string manipulation should work
+        assert_eq!(
+            lua.load("return string.upper('sandbox')")
+                .eval::<String>()
+                .unwrap(),
+            "SANDBOX"
+        );
 
-//         // math should work
-//         assert_eq!(lua.load("return math.sqrt(9)").eval::<f64>().unwrap(), 3.0);
-
-//         // string manipulation should work
-//         assert_eq!(
-//             lua.load("return string.upper('sandbox')")
-//                 .eval::<String>()
-//                 .unwrap(),
-//             "SANDBOX"
-//         );
-
-//         // io.open should NOT exist
-//         assert!(lua.load("return io.open").eval::<mlua::Value>().is_err());
-//     }
-// }
+        // io.open should NOT exist
+        assert!(lua.load("return io.open").eval::<mlua::Value>().is_err());
+    }
+}

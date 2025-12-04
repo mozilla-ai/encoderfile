@@ -1,5 +1,5 @@
 {
-  "rust-analyzer.cargo.features": ["bench"],
+  "rust-analyzer.cargo.features": ["dev-utils"],
   "rust-analyzer.procMacro.enable": true,
   "rust-analyzer.cargo.buildScripts.enable": true,
   "rust-analyzer.linkedProjects": [
