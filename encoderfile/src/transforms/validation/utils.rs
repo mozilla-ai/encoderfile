@@ -31,11 +31,11 @@ pub fn random_tensor<D: Dimension>(
     )
 }
 
-pub fn create_dummy_attention_mask(
+pub fn create_dummy_attention_mask<D: Dimension>(
     batch: usize,
     seq: usize,
     pad_up_to: usize,
-) -> Result<ArrayD<f32>> {
+) -> Result<Array<f32, D>> {
     let mut data = Vec::with_capacity(batch * seq);
 
     for _ in 0..batch {
@@ -45,6 +45,7 @@ pub fn create_dummy_attention_mask(
     }
 
     ArrayD::from_shape_vec(IxDyn(&[batch, seq]), data)
+        .and_then(|i| i.into_dimensionality::<D>())
         .with_context(
             || validation_err_ctx("Failed to construct dummy attention_mask for dry-run validation. This shouldn't happen. More details"),
         )

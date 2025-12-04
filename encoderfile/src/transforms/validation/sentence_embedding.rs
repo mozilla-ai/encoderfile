@@ -10,15 +10,12 @@ use encoderfile_core::{
     common::ModelConfig,
     transforms::{Postprocessor, SentenceEmbeddingTransform},
 };
-use ndarray::Ix2;
 
 impl TransformValidatorExt for SentenceEmbeddingTransform {
     fn dry_run(&self, _model_config: &ModelConfig) -> Result<()> {
         // create dummy hidden states with shape [batch_size, seq_len, hidden_dim]
         let dummy_hidden_states = random_tensor(&[BATCH_SIZE, SEQ_LEN, HIDDEN_DIM], (-1.0, 1.0))?;
-        let dummy_attention_mask = create_dummy_attention_mask(BATCH_SIZE, SEQ_LEN - 8, SEQ_LEN)?
-            .into_dimensionality::<Ix2>()
-            .unwrap();
+        let dummy_attention_mask = create_dummy_attention_mask(BATCH_SIZE, SEQ_LEN - 8, SEQ_LEN)?;
         let shape = dummy_hidden_states.shape().to_owned();
 
         let res = self.postprocess((dummy_hidden_states, dummy_attention_mask))
