@@ -50,7 +50,8 @@ mod tests {
 
     #[test]
     fn test_sequence_cls_no_transform() {
-        let engine = SequenceClassificationTransform::new(Some("")).expect("Failed to create Transform");
+        let engine =
+            SequenceClassificationTransform::new(Some("")).expect("Failed to create Transform");
 
         let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
 

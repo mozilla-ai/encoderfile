@@ -50,7 +50,8 @@ mod tests {
 
     #[test]
     fn test_token_cls_no_transform() {
-        let engine = TokenClassificationTransform::new(Some("")).expect("Failed to create Transform");
+        let engine =
+            TokenClassificationTransform::new(Some("")).expect("Failed to create Transform");
 
         let arr = ndarray::Array3::<f32>::from_elem((32, 16, 2), 2.0);
 
