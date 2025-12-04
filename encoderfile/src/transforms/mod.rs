@@ -1,3 +1,3 @@
 mod validation;
 
-pub use validation::TransformValidator;
+pub use validation::validate_transform;

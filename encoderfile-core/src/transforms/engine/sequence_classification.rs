@@ -1,0 +1,45 @@
+use crate::error::ApiError;
+
+use super::{super::tensor::Tensor, Postprocessor, SequenceClassificationTransform};
+use ndarray::{Array2, Ix2};
+
+impl Postprocessor for SequenceClassificationTransform {
+    type Input = Array2<f32>;
+    type Output = Array2<f32>;
+
+    fn postprocess(&self, data: Self::Input) -> Result<Self::Output, ApiError> {
+        let func = match self.postprocessor() {
+            Some(p) => p,
+            None => return Ok(data),
+        };
+
+        let expected_shape = data.shape().to_owned();
+
+        let tensor = Tensor(data.into_dyn());
+
+        let result = func
+            .call::<Tensor>(tensor)
+            .map_err(|e| ApiError::LuaError(e.to_string()))?
+            .into_inner()
+            .into_dimensionality::<Ix2>().map_err(|e| {
+                tracing::error!("Failed to cast array into Ix2: {e}. Check your lua transform to make sure it returns a tensor of shape [batch_size, num_classes]");
+                ApiError::InternalError("Error postprocessing sequence classifications")
+            })?;
+
+        let result_shape = result.shape();
+
+        if expected_shape.as_slice() != result_shape {
+            tracing::error!(
+                "Transform error: expected tensor of shape {:?}, got tensor of shape {:?}",
+                expected_shape.as_slice(),
+                result_shape
+            );
+
+            return Err(ApiError::InternalError(
+                "Error postprocessing sequence classifications",
+            ));
+        }
+
+        Ok(result)
+    }
+}

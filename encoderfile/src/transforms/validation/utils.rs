@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, bail};
-use ndarray::{ArrayD, IxDyn};
+use ndarray::{Array, ArrayD, Dimension, IxDyn};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 
@@ -11,17 +11,21 @@ pub const BATCH_SIZE: usize = 32;
 pub const SEQ_LEN: usize = 128;
 pub const HIDDEN_DIM: usize = 384;
 
-pub fn random_tensor(shape: &[usize], (range_start, range_end): (f32, f32)) -> Result<ArrayD<f32>> {
+pub fn random_tensor<D: Dimension>(
+    shape: &[usize],
+    (range_start, range_end): (f32, f32),
+) -> Result<Array<f32, D>> {
     let mut rng = StdRng::seed_from_u64(SEED);
 
     let total = shape.iter().product();
 
     ArrayD::from_shape_vec(
-        IxDyn(shape),
+        shape,
         (0..total)
             .map(|_| rng.random_range(range_start..range_end))
             .collect(),
     )
+    .and_then(|i| i.into_dimensionality::<D>())
     .with_context(
         || validation_err_ctx("Failed to construct random ArrayD for dry-run validation. This shouldn't happen. More details"),
     )

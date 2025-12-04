@@ -9,6 +9,12 @@ mod tests;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tensor(pub ArrayD<f32>);
 
+impl Tensor {
+    pub fn into_inner(self) -> ArrayD<f32> {
+        self.0
+    }
+}
+
 impl FromLua for Tensor {
     fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Tensor, LuaError> {
         match value {

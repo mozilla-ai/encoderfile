@@ -35,8 +35,10 @@ async fn main() -> Result<()> {
     let tokenizer = get_tokenizer(assets::TOKENIZER_JSON, &config);
     let model_type = get_model_type(assets::MODEL_TYPE_STR);
     let model_id = assets::MODEL_ID.to_string();
-    let transform_factory = || get_transform(assets::TRANSFORM);
-
+    let transform_str = match assets::TRANSFORM {
+        Some(t) => Some(t.to_string()),
+        None => None
+    };
 
     let state = AppState {
         session,
@@ -44,7 +46,7 @@ async fn main() -> Result<()> {
         tokenizer,
         model_type,
         model_id,
-        transform_factory,
+        transform_str,
     };
 
     cli.command.execute(state).await?;
