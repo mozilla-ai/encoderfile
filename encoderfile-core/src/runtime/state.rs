@@ -13,7 +13,7 @@ pub struct AppState {
     pub config: Arc<ModelConfig>,
     pub model_type: ModelType,
     pub model_id: String,
-    transform_str: Option<String>,
+    pub transform_str: Option<String>,
 }
 
 impl AppState {

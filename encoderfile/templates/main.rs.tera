@@ -9,8 +9,7 @@ use encoderfile_core::{
         get_model,
         get_model_config,
         get_tokenizer,
-        get_model_type,
-        get_transform,
+        get_model_type
     },
     AppState,
 };
