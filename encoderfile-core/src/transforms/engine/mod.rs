@@ -133,33 +133,6 @@ mod tests {
         assert!(function.call::<Tensor>(()).is_ok())
     }
 
-    //     #[test]
-    //     fn test_bad_dimensionality_transform_postprocessing() {
-    //         let engine = Transform::new(
-    //             r##"
-    //         function Postprocess(x)
-    //             return x:sum_axis(1)
-    //         end
-    //         "##,
-    //         )
-    //         .unwrap();
-
-    //         let arr = ndarray::Array2::<f32>::from_elem((3, 3), 2.0);
-    //         let result = engine.postprocess(arr.clone());
-
-    //         assert!(result.is_err());
-
-    //         if let Err(e) = result {
-    //             match e {
-    //                 ApiError::LuaError(s) => {
-    //                     assert!(s.contains("Postprocess function returned tensor of dim"))
-    //                 }
-    //                 _ => panic!("Didn't return lua error"),
-    //             }
-    //         }
-    //     }
-    // }
-
     #[test]
     fn test_no_unsafe_stdlibs_loaded() {
         let engine = new_test_lua();
