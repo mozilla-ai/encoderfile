@@ -86,33 +86,35 @@ mod tests {
 
     #[test]
     fn test_successful_pool() {
-        let engine = SentenceEmbeddingTransform::new(
-            Some(r##"
+        let engine = SentenceEmbeddingTransform::new(Some(
+            r##"
         function Postprocess(arr, mask)
             -- sum along second axis (lol)
             return arr:sum_axis(2)
         end
-        "##),
-        )
+        "##,
+        ))
         .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
         let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
 
-        let result = engine.postprocess((arr, mask)).expect("Failed to compute pool");
+        let result = engine
+            .postprocess((arr, mask))
+            .expect("Failed to compute pool");
 
         assert_eq!(result.shape(), [16, 128])
     }
 
     #[test]
     fn test_bad_dim_pool() {
-        let engine = SentenceEmbeddingTransform::new(
-            Some(r##"
+        let engine = SentenceEmbeddingTransform::new(Some(
+            r##"
         function Postprocess(arr, mask)
             return arr
         end
-        "##,)
-        )
+        "##,
+        ))
         .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);

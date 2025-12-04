@@ -21,7 +21,7 @@ pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
         config,
         model_type,
         model_id: "test-model".to_string(),
-        transform_str: None
+        transform_str: None,
     }
 }
 

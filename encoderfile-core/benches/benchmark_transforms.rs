@@ -1,6 +1,6 @@
+use encoderfile_core::transforms::Postprocessor;
 use ndarray::{Array2, Array3};
 use rand::Rng;
-use encoderfile_core::transforms::Postprocessor;
 
 fn main() {
     divan::main()
@@ -36,9 +36,9 @@ fn bench_embedding_l2_normalization(bencher: divan::Bencher, (x, y, z): (usize, 
 
 #[divan::bench(args = [(16, 2), (32, 8), (128, 32)])]
 fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
-    let engine = encoderfile_core::transforms::SequenceClassificationTransform::new(Some(include_str!(
-        "../../transforms/sequence_classification/softmax_logits.lua"
-    )))
+    let engine = encoderfile_core::transforms::SequenceClassificationTransform::new(Some(
+        include_str!("../../transforms/sequence_classification/softmax_logits.lua"),
+    ))
     .unwrap();
 
     let test_tensor = get_random_2d(x, y);
@@ -50,9 +50,9 @@ fn bench_seq_cls_softmax(bencher: divan::Bencher, (x, y): (usize, usize)) {
 
 #[divan::bench(args = [(16, 16, 2), (32, 128, 8), (128, 256, 32)])]
 fn bench_tok_cls_softmax(bencher: divan::Bencher, (x, y, z): (usize, usize, usize)) {
-    let engine = encoderfile_core::transforms::TokenClassificationTransform::new(Some(include_str!(
-        "../../transforms/token_classification/softmax_logits.lua"
-    )))
+    let engine = encoderfile_core::transforms::TokenClassificationTransform::new(Some(
+        include_str!("../../transforms/token_classification/softmax_logits.lua"),
+    ))
     .unwrap();
 
     let test_tensor = get_random_3d(x, y, z);

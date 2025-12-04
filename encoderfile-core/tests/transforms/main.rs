@@ -1,4 +1,7 @@
-use encoderfile_core::transforms::{EmbeddingTransform, Postprocessor, SequenceClassificationTransform, TokenClassificationTransform};
+use encoderfile_core::transforms::{
+    EmbeddingTransform, Postprocessor, SequenceClassificationTransform,
+    TokenClassificationTransform,
+};
 use ndarray::{Array2, Array3, Axis};
 use ort::tensor::ArrayExtensions;
 
