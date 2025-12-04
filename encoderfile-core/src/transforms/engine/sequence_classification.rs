@@ -59,4 +59,34 @@ mod tests {
 
         assert_eq!(arr, result);
     }
+
+    #[test]
+    fn test_seq_cls_transform() {
+        let engine = SequenceClassificationTransform::new(Some(r##"
+        function Postprocess(arr)
+            return arr
+        end
+        "##)).expect("Failed to create engine");
+
+        let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
+
+        let result = engine.postprocess(arr.clone()).expect("Failed");
+
+        assert_eq!(arr, result);
+    }
+
+    #[test]
+    fn test_seq_cls_transform_bad_fn() {
+        let engine = SequenceClassificationTransform::new(Some(r##"
+        function Postprocess(arr)
+            return 1
+        end
+        "##)).expect("Failed to create engine");
+
+        let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
+
+        let result = engine.postprocess(arr.clone());
+
+        assert!(result.is_err())
+    }
 }

@@ -134,24 +134,6 @@ mod tests {
     }
 
     //     #[test]
-    //     fn test_bad_output_transform_postprocessing() {
-    //         let engine = Transform::new(
-    //             r##"
-    //         function Postprocess(x)
-    //             return 1
-    //         end
-    //         "##,
-    //         )
-    //         .unwrap();
-
-    //         let arr = ndarray::Array2::<f32>::from_elem((3, 3), 2.0);
-
-    //         let result = engine.postprocess(arr.clone());
-
-    //         assert!(result.is_err())
-    //     }
-
-    //     #[test]
     //     fn test_bad_dimensionality_transform_postprocessing() {
     //         let engine = Transform::new(
     //             r##"
