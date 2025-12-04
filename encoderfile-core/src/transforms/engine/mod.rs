@@ -22,7 +22,7 @@ transform!(SequenceClassification, SequenceClassificationTransform);
 transform!(TokenClassification, TokenClassificationTransform);
 transform!(SentenceEmbedding, SentenceEmbeddingTransform);
 
-pub trait Postprocessor {
+pub trait Postprocessor: TransformSpec {
     type Input;
     type Output;
 
