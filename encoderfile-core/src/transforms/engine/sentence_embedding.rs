@@ -44,7 +44,7 @@ impl Postprocessor for SentenceEmbeddingTransform {
             .into_inner()
             .into_dimensionality::<Ix2>().map_err(|e| {
                 tracing::error!("Failed to cast array into Ix2: {e}. Check your lua transform to make sure it returns a tensor of shape [batch_size, *]");
-                ApiError::InternalError("Error postprocessing embeddings")
+                ApiError::LuaError("Error postprocessing embeddings".to_string())
             })?;
 
         let result_shape = result.shape();
@@ -56,7 +56,9 @@ impl Postprocessor for SentenceEmbeddingTransform {
                 result_shape
             );
 
-            return Err(ApiError::InternalError("Error postprocessing embeddings"));
+            return Err(ApiError::LuaError(
+                "Error postprocessing embeddings".to_string(),
+            ));
         }
 
         Ok(result)
@@ -142,5 +144,32 @@ mod tests {
         let result = engine.postprocess((arr.clone(), mask));
 
         assert!(result.is_err())
+    }
+
+    #[test]
+    fn test_bad_dimensionality_transform_postprocessing() {
+        let engine = SentenceEmbeddingTransform::new(Some(
+            r##"
+        function Postprocess(arr, mask)
+            return arr
+        end
+        "##,
+        ))
+        .unwrap();
+
+        let arr = ndarray::Array3::<f32>::from_elem((3, 3, 3), 2.0);
+        let mask = ndarray::Array2::<f32>::from_elem((3, 3), 1.0);
+        let result = engine.postprocess((arr.clone(), mask));
+
+        assert!(result.is_err());
+
+        if let Err(e) = result {
+            match e {
+                ApiError::LuaError(s) => {
+                    assert!(s.contains("Error postprocessing embeddings"))
+                }
+                _ => panic!("Didn't return lua error"),
+            }
+        }
     }
 }

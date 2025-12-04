@@ -23,7 +23,7 @@ impl Postprocessor for SequenceClassificationTransform {
             .into_inner()
             .into_dimensionality::<Ix2>().map_err(|e| {
                 tracing::error!("Failed to cast array into Ix2: {e}. Check your lua transform to make sure it returns a tensor of shape [batch_size, num_classes]");
-                ApiError::InternalError("Error postprocessing sequence classifications")
+                ApiError::LuaError("Error postprocessing sequence classifications".to_string())
             })?;
 
         let result_shape = result.shape();
@@ -35,8 +35,8 @@ impl Postprocessor for SequenceClassificationTransform {
                 result_shape
             );
 
-            return Err(ApiError::InternalError(
-                "Error postprocessing sequence classifications",
+            return Err(ApiError::LuaError(
+                "Error postprocessing sequence classifications".to_string(),
             ));
         }
 
@@ -94,5 +94,31 @@ mod tests {
         let result = engine.postprocess(arr.clone());
 
         assert!(result.is_err())
+    }
+
+    #[test]
+    fn test_bad_dimensionality_transform_postprocessing() {
+        let engine = SequenceClassificationTransform::new(Some(
+            r##"
+        function Postprocess(x)
+            return x:sum_axis(1)
+        end
+        "##,
+        ))
+        .unwrap();
+
+        let arr = ndarray::Array2::<f32>::from_elem((2, 2), 2.0);
+        let result = engine.postprocess(arr.clone());
+
+        assert!(result.is_err());
+
+        if let Err(e) = result {
+            match e {
+                ApiError::LuaError(s) => {
+                    assert!(s.contains("Error postprocessing sequence classifications"))
+                }
+                _ => panic!("Didn't return lua error"),
+            }
+        }
     }
 }
