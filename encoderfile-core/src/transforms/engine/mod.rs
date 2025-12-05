@@ -1,6 +1,4 @@
-use std::marker::PhantomData;
-
-use crate::error::ApiError;
+use crate::{common::ModelType, error::ApiError};
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
@@ -11,16 +9,15 @@ mod sequence_classification;
 mod token_classification;
 
 macro_rules! transform {
-    ($transform_type:ident, $type_name:ident) => {
-        pub type $type_name = Transform<$transform_type>;
-        pub struct $transform_type;
+    ($type_name:ident, $mt:ident) => {
+        pub type $type_name = Transform<{ ModelType::$mt as u8 }>;
     };
 }
 
-transform!(Embedding, EmbeddingTransform);
-transform!(SequenceClassification, SequenceClassificationTransform);
-transform!(TokenClassification, TokenClassificationTransform);
-transform!(SentenceEmbedding, SentenceEmbeddingTransform);
+transform!(EmbeddingTransform, Embedding);
+transform!(SequenceClassificationTransform, SequenceClassification);
+transform!(TokenClassificationTransform, TokenClassification);
+transform!(SentenceEmbeddingTransform, SentenceEmbedding);
 
 pub trait Postprocessor: TransformSpec {
     type Input;
@@ -34,14 +31,13 @@ pub trait TransformSpec {
 }
 
 #[derive(Debug)]
-pub struct Transform<T> {
+pub struct Transform<const MT: u8> {
     #[allow(dead_code)]
     lua: Lua,
     postprocessor: Option<LuaFunction>,
-    _marker: PhantomData<T>,
 }
 
-impl<T> Transform<T> {
+impl<const MT: u8> Transform<MT> {
     fn postprocessor(&self) -> &Option<LuaFunction> {
         &self.postprocessor
     }
@@ -59,15 +55,11 @@ impl<T> Transform<T> {
             .get::<Option<LuaFunction>>("Postprocess")
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-        Ok(Self {
-            lua,
-            postprocessor,
-            _marker: PhantomData,
-        })
+        Ok(Self { lua, postprocessor })
     }
 }
 
-impl<T> TransformSpec for Transform<T> {
+impl<const MT: u8> TransformSpec for Transform<MT> {
     fn has_postprocessor(&self) -> bool {
         self.postprocessor.is_some()
     }
