@@ -26,7 +26,7 @@ pub mod transport;
 pub mod dev_utils;
 
 pub use assets::get_banner;
-#[cfg(feature = "runtime")]
+#[cfg(feature = "transport")]
 pub use cli::cli_entrypoint;
 #[cfg(feature = "runtime")]
 pub use runtime::AppState;
