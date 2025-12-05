@@ -55,11 +55,14 @@ impl TransformValidatorExt for EmbeddingTransform {
 
 #[cfg(test)]
 mod tests {
-    use crate::{config::{EncoderfileConfig, ModelPath}, model::ModelType};
+    use crate::{
+        config::{EncoderfileConfig, ModelPath},
+        model::ModelType,
+    };
 
     use super::*;
 
-    fn test_encoderfile_config(transform: &str) -> EncoderfileConfig {
+    fn test_encoderfile_config() -> EncoderfileConfig {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
@@ -69,7 +72,7 @@ mod tests {
             output_path: None,
             transform: None,
             validate_transform: true,
-            build: true
+            build: true,
         }
     }
 
@@ -81,15 +84,37 @@ mod tests {
 
     #[test]
     fn test_identity_validation() {
-        let encoderfile_config = test_encoderfile_config(
-            "function Postprocess(arr) return arr end"
-        );
-
+        let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
         EmbeddingTransform::new(Some("function Postprocess(arr) return arr end"))
             .expect("Failed to create transform")
             .validate(&encoderfile_config, &model_config)
             .expect("Failed to validate");
+    }
+
+    #[test]
+    fn test_bad_return_type() {
+        let encoderfile_config = test_encoderfile_config();
+        let model_config = test_model_config();
+
+        let result = EmbeddingTransform::new(Some("function Postprocess(arr) return 1 end"))
+            .expect("Failed to create transform")
+            .validate(&encoderfile_config, &model_config);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_bad_dimensionality() {
+        let encoderfile_config = test_encoderfile_config();
+        let model_config = test_model_config();
+
+        let result =
+            EmbeddingTransform::new(Some("function Postprocess(arr) return arr:sum_axis(1) end"))
+                .expect("Failed to create transform")
+                .validate(&encoderfile_config, &model_config);
+
+        assert!(result.is_err());
     }
 }

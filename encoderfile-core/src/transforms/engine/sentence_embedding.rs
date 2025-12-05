@@ -39,7 +39,7 @@ impl Postprocessor for SentenceEmbeddingTransform {
         let tensor = Tensor(data.into_dyn());
 
         let result = func
-            .call::<Tensor>(tensor)
+            .call::<Tensor>((tensor, Tensor(mask.into_dyn())))
             .map_err(|e| ApiError::LuaError(e.to_string()))?
             .into_inner()
             .into_dimensionality::<Ix2>().map_err(|e| {
