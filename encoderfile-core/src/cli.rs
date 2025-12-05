@@ -30,10 +30,7 @@ pub async fn cli_entrypoint(
     let config = get_model_config(config_str);
     let tokenizer = get_tokenizer(tokenizer_json, &config);
     let model_type = get_model_type(model_type);
-    let transform_str = match transform_str {
-        Some(t) => Some(t.to_string()),
-        None => None,
-    };
+    let transform_str = transform_str.map(|t| t.to_string());
     let model_id = model_id.to_string();
 
     let state = AppState {
