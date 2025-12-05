@@ -82,3 +82,52 @@ pub fn validate_transform(
         ),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use encoderfile_core::transforms::EmbeddingTransform;
+
+    use crate::config::ModelPath;
+
+    use super::*;
+
+    fn test_encoderfile_config() -> EncoderfileConfig {
+        EncoderfileConfig {
+            name: "my-model".to_string(),
+            version: "0.0.1".to_string(),
+            path: ModelPath::Directory(std::path::PathBuf::from("models/embedding")),
+            model_type: ModelType::Embedding,
+            cache_dir: None,
+            output_path: None,
+            transform: None,
+            validate_transform: true,
+            build: true,
+        }
+    }
+
+    fn test_model_config() -> ModelConfig {
+        let config_json = include_str!("../../../../models/embedding/config.json");
+
+        serde_json::from_str(config_json).unwrap()
+    }
+
+    #[test]
+    fn test_empty_transform() {
+        let result = EmbeddingTransform::new(None)
+            .expect("Failed to make embedding transform")
+            .validate(&test_encoderfile_config(), &test_model_config());
+
+        assert!(result.is_err())
+    }
+
+    #[test]
+    fn test_no_validation() {
+        let mut config = test_encoderfile_config();
+        config.validate_transform = false;
+
+        EmbeddingTransform::new(None)
+            .expect("Failed to make embedding transform")
+            .validate(&config, &test_model_config())
+            .expect("Should be ok")
+    }
+}
