@@ -1,7 +1,7 @@
 use crate::error::ApiError;
 
 use super::{super::tensor::Tensor, Postprocessor, SentenceEmbeddingTransform};
-use ndarray::{Array2, Array3, Axis, Ix2};
+use ndarray::{Array2, Array3, Ix2};
 
 impl Postprocessor for SentenceEmbeddingTransform {
     type Input = (Array3<f32>, Array2<f32>);
@@ -11,26 +11,21 @@ impl Postprocessor for SentenceEmbeddingTransform {
         let func = match &self.postprocessor {
             Some(p) => p,
             None => {
-                let batch = data.len_of(Axis(0));
-                let hidden = data.len_of(Axis(2));
+                let Tensor(mean_pooled) = Tensor(data.into_dyn())
+                    .mean_pool(Tensor(mask.into_dyn()))
+                    .map_err(|e| {
+                        tracing::error!(
+                            "Failed to mean pool. This should not happen. More details: {:?}",
+                            e
+                        );
+                        ApiError::InternalError("Failed to postprocess embeddings")
+                    })?;
 
-                let mut out = Array2::<f32>::zeros((batch, hidden));
-
-                for b in 0..batch {
-                    let emb = data.slice(ndarray::s![b, .., ..]); // [seq_len, hidden]
-                    let m = mask.slice(ndarray::s![b, ..]); // [seq_len]
-
-                    // expand mask to [seq_len, hidden]
-                    let m2 = m.insert_axis(Axis(1));
-
-                    let weighted = &emb * &m2; // zero out padded tokens
-                    let sum = weighted.sum_axis(Axis(0)); // sum over seq_len
-                    let count = m.sum(); // number of real tokens
-
-                    out.slice_mut(ndarray::s![b, ..]).assign(&(sum / count));
-                }
-
-                return Ok(out);
+                return mean_pooled.into_dimensionality::<Ix2>()
+                    .map_err(|e| {
+                        tracing::error!("Failed to cast mean pool results into Ix2. This should not happen. More details: {:?}", e);
+                        ApiError::InternalError("Failed to postprocess embeddings")
+                    });
             }
         };
 
@@ -68,6 +63,7 @@ impl Postprocessor for SentenceEmbeddingTransform {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray::Axis;
 
     #[test]
     fn test_no_pooling() {

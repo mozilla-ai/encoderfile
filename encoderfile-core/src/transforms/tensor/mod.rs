@@ -83,7 +83,7 @@ impl LuaUserData for Tensor {
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
-    fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
+    pub fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
         assert_eq!(self.0.ndim(), mask.ndim() + 1);
 
         let ndim = self.0.ndim();
