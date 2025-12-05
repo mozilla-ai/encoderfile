@@ -1,7 +1,8 @@
 use crate::{
-    common::{TokenClassification, TokenClassificationResult, TokenInfo},
+    common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo},
     error::ApiError,
-    runtime::{AppState, ModelConfig},
+    runtime::AppState,
+    transforms::{Postprocessor, TokenClassificationTransform},
 };
 use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;
@@ -24,7 +25,7 @@ pub fn token_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]")
         .into_owned();
 
-    outputs = state.transform().postprocess(outputs)?;
+    outputs = TokenClassificationTransform::new(state.transform_str())?.postprocess(outputs)?;
 
     let predictions = postprocess(outputs, encodings, &state.config);
 

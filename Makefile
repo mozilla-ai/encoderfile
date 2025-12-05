@@ -12,6 +12,22 @@ format:
 	@echo "Formatting rust..."
 	@cargo fmt
 
+.PHONY: lint
+lint:
+	cargo clippy \
+		--all-features \
+		--all-targets \
+		-- \
+		-D warnings
+
+.PHONY: coverage
+coverage:
+	cargo llvm-cov \
+		--workspace \
+		--all-features \
+		--lcov \
+		--output-path lcov.info
+
 ,PHONY: licenses
 licenses:
 	@echo "Generating licenses..."
@@ -59,5 +75,3 @@ generate-docs:
 # 	generate JSON schema for encoderfile config
 	@cargo run \
 		--bin generate-encoderfile-config-schema
-# 	generate CLI docs for encoderfile build
-	@cargo run --bin generate-encoderfile-cli-docs --features="_internal"

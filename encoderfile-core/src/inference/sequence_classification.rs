@@ -1,7 +1,8 @@
 use crate::{
-    common::SequenceClassificationResult,
+    common::{ModelConfig, SequenceClassificationResult},
     error::ApiError,
-    runtime::{AppState, ModelConfig},
+    runtime::AppState,
+    transforms::{Postprocessor, SequenceClassificationTransform},
 };
 use ndarray::{Array2, Axis, Ix2};
 use ndarray_stats::QuantileExt;
@@ -24,7 +25,7 @@ pub fn sequence_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_labels]")
         .into_owned();
 
-    outputs = state.transform().postprocess(outputs)?;
+    outputs = SequenceClassificationTransform::new(state.transform_str())?.postprocess(outputs)?;
 
     let results = postprocess(outputs, &state.config);
 

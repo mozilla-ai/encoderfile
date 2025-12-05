@@ -9,6 +9,12 @@ mod tests;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tensor(pub ArrayD<f32>);
 
+impl Tensor {
+    pub fn into_inner(self) -> ArrayD<f32> {
+        self.0
+    }
+}
+
 impl FromLua for Tensor {
     fn from_lua(value: LuaValue, _lua: &Lua) -> Result<Tensor, LuaError> {
         match value {
@@ -77,7 +83,7 @@ impl LuaUserData for Tensor {
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
-    fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
+    pub fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
         assert_eq!(self.0.ndim(), mask.ndim() + 1);
 
         let ndim = self.0.ndim();

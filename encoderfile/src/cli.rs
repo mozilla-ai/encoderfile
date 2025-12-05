@@ -69,11 +69,17 @@ impl BuildArgs {
             config.encoderfile.build = false;
         }
 
+        // validate model config
+        let model_config = config.encoderfile.model_config()?;
+
         // validate model
         config
             .encoderfile
             .model_type
             .validate_model(&config.encoderfile.path.model_weights_path()?)?;
+
+        // validate transform
+        crate::transforms::validate_transform(&config.encoderfile, &model_config)?;
 
         // setup write directory
         let write_dir = config.encoderfile.get_generated_dir();
