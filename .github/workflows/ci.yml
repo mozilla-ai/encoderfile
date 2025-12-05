@@ -163,6 +163,9 @@ jobs:
         with:
           toolchain: nightly
       
+      - name: Install test dependencies
+        run: make setup
+      
       - run: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu clippy
 
       - name: Run Clippy
