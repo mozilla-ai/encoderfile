@@ -87,7 +87,7 @@ pub fn validate_transform(
 mod tests {
     use encoderfile_core::transforms::EmbeddingTransform;
 
-    use crate::config::ModelPath;
+    use crate::config::{ModelPath, Transform};
 
     use super::*;
 
@@ -129,5 +129,53 @@ mod tests {
             .expect("Failed to make embedding transform")
             .validate(&config, &test_model_config())
             .expect("Should be ok")
+    }
+
+    #[test]
+    fn test_validate() {
+        let transform_str = "function Postprocess(arr) return arr end";
+
+        let encoderfile_config = EncoderfileConfig {
+            name: "my-model".to_string(),
+            version: "0.0.1".to_string(),
+            path: ModelPath::Directory(std::path::PathBuf::from("models/embedding")),
+            model_type: ModelType::Embedding,
+            cache_dir: None,
+            output_path: None,
+            transform: Some(Transform::Inline(transform_str.to_string())),
+            validate_transform: true,
+            build: true,
+        };
+
+        let model_config_str =
+            include_str!(concat!("../../../../models/", "embedding", "/config.json"));
+
+        let model_config =
+            serde_json::from_str(model_config_str).expect("Failed to create model config");
+
+        validate_transform(&encoderfile_config, &model_config).expect("Failed to validate");
+    }
+
+    #[test]
+    fn test_validate_empty() {
+        let encoderfile_config = EncoderfileConfig {
+            name: "my-model".to_string(),
+            version: "0.0.1".to_string(),
+            path: ModelPath::Directory(std::path::PathBuf::from("models/embedding")),
+            model_type: ModelType::Embedding,
+            cache_dir: None,
+            output_path: None,
+            transform: None,
+            validate_transform: true,
+            build: true,
+        };
+
+        let model_config_str =
+            include_str!(concat!("../../../../models/", "embedding", "/config.json"));
+
+        let model_config =
+            serde_json::from_str(model_config_str).expect("Failed to create model config");
+
+        validate_transform(&encoderfile_config, &model_config).expect("Failed to validate");
     }
 }
