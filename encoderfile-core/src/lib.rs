@@ -27,4 +27,6 @@ pub mod dev_utils;
 
 pub use assets::get_banner;
 #[cfg(feature = "runtime")]
+pub use cli::cli_entrypoint;
+#[cfg(feature = "runtime")]
 pub use runtime::AppState;
