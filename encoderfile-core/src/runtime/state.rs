@@ -4,7 +4,7 @@ use ort::session::Session;
 use parking_lot::Mutex;
 use tokenizers::Tokenizer;
 
-use crate::{common::ModelType, runtime::config::ModelConfig, transforms::Transform};
+use crate::common::{ModelConfig, ModelType};
 
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -13,11 +13,14 @@ pub struct AppState {
     pub config: Arc<ModelConfig>,
     pub model_type: ModelType,
     pub model_id: String,
-    pub transform_factory: fn() -> Transform,
+    pub transform_str: Option<String>,
 }
 
 impl AppState {
-    pub fn transform(&self) -> Transform {
-        (self.transform_factory)()
+    pub fn transform_str(&self) -> Option<&str> {
+        match &self.transform_str {
+            Some(t) => Some(t.as_ref()),
+            None => None,
+        }
     }
 }

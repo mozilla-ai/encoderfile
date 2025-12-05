@@ -1,4 +1,4 @@
-use crate::{error::ApiError, runtime::config::ModelConfig};
+use crate::{common::ModelConfig, error::ApiError};
 use anyhow::Result;
 use std::str::FromStr;
 use std::sync::{Arc, OnceLock};

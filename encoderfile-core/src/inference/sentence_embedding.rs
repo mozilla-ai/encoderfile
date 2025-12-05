@@ -1,7 +1,12 @@
 use ndarray::{Array2, Axis, Ix2, Ix3};
 use tokenizers::Encoding;
 
-use crate::{common::SentenceEmbedding, error::ApiError, runtime::AppState};
+use crate::{
+    common::SentenceEmbedding,
+    error::ApiError,
+    runtime::AppState,
+    transforms::{Postprocessor, SentenceEmbeddingTransform},
+};
 
 #[tracing::instrument(skip_all)]
 pub fn sentence_embedding<'a>(
@@ -28,9 +33,9 @@ pub fn sentence_embedding<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
 
-    let transform = state.transform();
+    let transform = SentenceEmbeddingTransform::new(state.transform_str())?;
 
-    let pooled_outputs = transform.pool(outputs, a_mask_arr)?;
+    let pooled_outputs = transform.postprocess((outputs, a_mask_arr))?;
 
     let embeddings = postprocess(pooled_outputs, encodings);
 

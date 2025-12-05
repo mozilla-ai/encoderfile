@@ -5,6 +5,7 @@ use crate::{
     common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
     error::ApiError,
     runtime::AppState,
+    transforms::{EmbeddingTransform, Postprocessor},
 };
 
 #[tracing::instrument(skip_all)]
@@ -24,7 +25,7 @@ pub fn embedding<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
 
-    outputs = state.transform().postprocess(outputs)?;
+    outputs = EmbeddingTransform::new(state.transform_str())?.postprocess(outputs)?;
 
     let embeddings = postprocess(outputs, encodings);
 

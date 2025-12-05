@@ -2,10 +2,6 @@
 name = "generate-encoderfile-config-schema"
 path = "bin/generate_encoderfile_config_schema.rs"
 
-[[bin]]
-name = "generate-encoderfile-cli-docs"
-path = "bin/generate_cli_docs.rs"
-
 [package]
 name = "encoderfile-utils"
 version = "0.1.2"
