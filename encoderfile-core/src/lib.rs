@@ -8,6 +8,7 @@ pub mod error;
 #[rustfmt::skip]
 #[cfg(feature = "transport")]
 pub mod generated;
+#[cfg(feature = "transport")]
 pub mod factory;
 #[cfg(feature = "runtime")]
 pub mod inference;
@@ -27,6 +28,6 @@ pub mod dev_utils;
 
 pub use assets::get_banner;
 #[cfg(feature = "transport")]
-pub use cli::cli_entrypoint;
+pub use factory::entrypoint;
 #[cfg(feature = "runtime")]
 pub use runtime::AppState;
