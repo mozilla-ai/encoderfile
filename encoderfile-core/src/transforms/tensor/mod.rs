@@ -96,7 +96,7 @@ impl Tensor {
             .ok_or_else(|| LuaError::external("Failed to fetch output slice"))?;
 
         // NaN bound policy: if any bound is NaN, everything becomes NaN. For IEEE-754 compliance :d
-        if min.map_or(false, f32::is_nan) || max.map_or(false, f32::is_nan) {
+        if min.is_some_and(f32::is_nan) || max.is_some_and(f32::is_nan) {
             for dst in out_slice.iter_mut() {
                 *dst = f32::NAN;
             }
