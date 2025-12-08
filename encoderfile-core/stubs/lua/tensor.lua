@@ -12,6 +12,15 @@ Tensor = {}
 ---@return Tensor
 function Tensor.new(tbl) end
 
+---Returns a new tensor with values clamped between `min` and `max`.
+---If `min` is nil, no lower bound is applied.
+---If `max` is nil, no upper bound is applied.
+---Equivalent to `torch.clamp`.
+---@param min number|nil Lower bound (optional)
+---@param max number|nil Upper bound (optional)
+---@return Tensor
+function Tensor:clamp(min, max) end
+
 ---Computes the standard deviation of all elements.
 ---`ddof` specifies the degrees-of-freedom adjustment.
 ---@param ddof integer

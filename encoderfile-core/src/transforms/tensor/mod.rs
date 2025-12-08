@@ -78,10 +78,55 @@ impl LuaUserData for Tensor {
             this.fold_axis(axis, acc, func)
         });
         methods.add_method("mean_pool", |_, this, mask| this.mean_pool(mask));
+        methods.add_method("clamp", |_, this, (min, max)| this.clamp(min, max));
     }
 }
 
 impl Tensor {
+    #[tracing::instrument(skip_all)]
+    pub fn clamp(&self, min: Option<f32>, max: Option<f32>) -> Result<Self, LuaError> {
+        let input = self
+            .0
+            .as_slice()
+            .ok_or_else(|| LuaError::external("Array must be contiguous"))?;
+
+        let mut out = ArrayD::<f32>::zeros(self.0.raw_dim());
+        let out_slice = out
+            .as_slice_mut()
+            .ok_or_else(|| LuaError::external("Failed to fetch output slice"))?;
+
+        // NaN bound policy: if any bound is NaN, everything becomes NaN. For IEEE-754 compliance :d
+        if min.is_some_and(f32::is_nan) || max.is_some_and(f32::is_nan) {
+            for dst in out_slice.iter_mut() {
+                *dst = f32::NAN;
+            }
+            return Ok(Self(out));
+        }
+
+        match (min, max) {
+            (Some(lo), Some(hi)) => {
+                for (dst, &src) in out_slice.iter_mut().zip(input.iter()) {
+                    *dst = src.max(lo).min(hi);
+                }
+            }
+            (Some(lo), None) => {
+                for (dst, &src) in out_slice.iter_mut().zip(input.iter()) {
+                    *dst = src.max(lo);
+                }
+            }
+            (None, Some(hi)) => {
+                for (dst, &src) in out_slice.iter_mut().zip(input.iter()) {
+                    *dst = src.min(hi);
+                }
+            }
+            (None, None) => {
+                out_slice.copy_from_slice(input);
+            }
+        }
+
+        Ok(Self(out))
+    }
+
     #[tracing::instrument(skip_all)]
     pub fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
         assert_eq!(self.0.ndim(), mask.ndim() + 1);

@@ -3,6 +3,103 @@ use mlua::prelude::*;
 use ndarray::{Array0, Array2, Array3, Axis, array};
 
 #[test]
+fn test_clamp_correctness() {
+    let tensor = Tensor(ndarray::array!([-5.0, -1.0, 0.0, 1.0, 5.0]).into_dyn());
+    let result = tensor
+        .clamp(Some(-1.0), Some(1.0))
+        .expect("Failed to clamp");
+    let expected = Tensor(ndarray::array!([-1.0, -1.0, 0.0, 1.0, 1.0]).into_dyn());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_lower_bound_only() {
+    let tensor = Tensor(ndarray::array!([-3.0, 0.0, 2.0]).into_dyn());
+    let result = tensor
+        .clamp(Some(0.0), None)
+        .expect("Failed to clamp tensor");
+    let expected = Tensor(ndarray::array!([0.0, 0.0, 2.0]).into_dyn());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_upper_bound_only() {
+    let tensor = Tensor(ndarray::array!([-3.0, 0.0, 2.0, 5.0]).into_dyn());
+    let result = tensor
+        .clamp(None, Some(2.0))
+        .expect("Failed to clamp tensor");
+    let expected = Tensor(ndarray::array!([-3.0, 0.0, 2.0, 2.0]).into_dyn());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_infinite_bounds() {
+    let tensor = Tensor(ndarray::array!([-3.0, 0.0, 2.0, 5.0]).into_dyn());
+    let result = tensor
+        .clamp(Some(f32::NEG_INFINITY), Some(f32::INFINITY))
+        .expect("Failed to clamp tensor");
+    let expected = Tensor(ndarray::array!([-3.0, 0.0, 2.0, 5.0]).into_dyn());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_multidimensional() {
+    let tensor =
+        Tensor(ndarray::array!([[-3.0, 3.0], [0.0, 0.0], [2.0, 2.0], [5.0, 5.0]]).into_dyn());
+    let expected_shape = tensor.0.shape().to_owned();
+
+    let result = tensor
+        .clamp(Some(0.0), Some(1.0))
+        .expect("Failed to clamp tensor");
+
+    let expected =
+        Tensor(ndarray::array!([[0.0, 1.0], [0.0, 0.0], [1.0, 1.0], [1.0, 1.0]]).into_dyn());
+
+    assert_eq!(result.0.shape(), expected_shape.as_slice());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_identity() {
+    let tensor = Tensor(ndarray::array!([-3.0, 0.0, 2.0, 5.0]).into_dyn());
+    let result = tensor.clamp(None, None).expect("Failed to clamp tensor");
+    assert_eq!(result.0, tensor.0);
+}
+
+#[test]
+fn test_clamp_min_equals_max() {
+    let tensor = Tensor(ndarray::array!([0.0, 3.0, 10.0]).into_dyn());
+    let result = tensor
+        .clamp(Some(3.0), Some(3.0))
+        .expect("Failed to clamp tensor");
+    let expected = Tensor(ndarray::array!([3.0, 3.0, 3.0]).into_dyn());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_inverted_bounds() {
+    let tensor = Tensor(ndarray::array!([0.0, 3.0, 10.0]).into_dyn());
+    let result = tensor
+        .clamp(Some(5.0), Some(2.0))
+        .expect("Failed to clamp tensor");
+    let expected = Tensor(ndarray::array!([2.0, 2.0, 2.0]).into_dyn());
+    assert_eq!(result.0, expected.0);
+}
+
+#[test]
+fn test_clamp_nan() {
+    // clamping with NaN bounds nuke the entire tensor. Just so that we have no surprises later ;)
+    let tensor = Tensor(ndarray::array!([0.0, 3.0, 10.0]).into_dyn());
+    let result = tensor
+        .clamp(Some(f32::NAN), Some(f32::NAN))
+        .expect("Failed to clamp tensor");
+    let expected = Tensor(ndarray::array!([f32::NAN, f32::NAN, f32::NAN]).into_dyn());
+    for (a, b) in result.0.iter().zip(expected.0.iter()) {
+        assert!(a.is_nan() && b.is_nan());
+    }
+}
+
+#[test]
 fn test_min() {
     let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
     assert_eq!(tensor.min().unwrap(), 1.0);
