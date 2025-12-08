@@ -4,10 +4,10 @@ We provide a Docker image to build Encoderfiles without installing any dependenc
 
 Use it for when you don't want to manage a local toolchain, or when you prefer running builds in an isolated environment for things like CI or ephemeral workers.
 
-The image is available here:
+You can pull the image from [our image registry](https://github.com/mozilla-ai/encoderfile/pkgs/container/encoderfile):
 
 ```
-ghcr.io/mozilla-ai/encoderfile:latest
+docker pull ghcr.io/mozilla-ai/encoderfile:latest
 ```
 
 !!! note "Note on Architecture"
