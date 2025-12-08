@@ -88,7 +88,7 @@ fn test_clamp_inverted_bounds() {
 
 #[test]
 fn test_clamp_nan() {
-    // clamping with NaN bounds will do nothing. Just so that we have no surprises later ;)
+    // clamping with NaN bounds nuke the entire tensor. Just so that we have no surprises later ;)
     let tensor = Tensor(ndarray::array!([0.0, 3.0, 10.0]).into_dyn());
     let result = tensor
         .clamp(Some(f32::NAN), Some(f32::NAN))
