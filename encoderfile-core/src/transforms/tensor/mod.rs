@@ -78,10 +78,37 @@ impl LuaUserData for Tensor {
             this.fold_axis(axis, acc, func)
         });
         methods.add_method("mean_pool", |_, this, mask| this.mean_pool(mask));
+        methods.add_method("clamp", |_, this, (min, max)| this.clamp(min, max));
     }
 }
 
 impl Tensor {
+    #[tracing::instrument(skip_all)]
+    pub fn clamp(&self, min: f32, max: f32) -> Result<Self, LuaError> {
+        let input = self
+            .0
+            .as_slice()
+            .ok_or(LuaError::external("Array must be contiguous"))?;
+
+        let mut out = ArrayD::<f32>::zeros(self.0.raw_dim());
+        let out_slice = out.as_slice_mut().ok_or(LuaError::external(
+            "Failed to fetch out as slice. This shouldn't happen.",
+        ))?;
+
+        // tight loop over mutable arr for ✨ efficiency ✨
+        // we can do a custom simd thing when someone complains
+        for (dst, src) in out_slice.iter_mut().zip(input.iter()) {
+            // clamp(x, min, max) = min(max(x, min), max)
+            *dst = src
+                // push x up to the lower bound if needed
+                .max(min)
+                // push x down to upper bound if needed
+                .min(max);
+        }
+
+        Ok(Self(out))
+    }
+
     #[tracing::instrument(skip_all)]
     pub fn mean_pool(&self, Tensor(mask): Tensor) -> Result<Self, LuaError> {
         assert_eq!(self.0.ndim(), mask.ndim() + 1);
