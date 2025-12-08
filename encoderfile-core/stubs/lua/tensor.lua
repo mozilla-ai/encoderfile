@@ -12,6 +12,12 @@ Tensor = {}
 ---@return Tensor
 function Tensor.new(tbl) end
 
+---Truncates a tensor along a specific axis.
+---@param axis integer Axis to truncate along
+---@param len integer Length to truncate each slice to
+---@return Tensor
+function Tensor:truncate_axis(axis, len) end
+
 ---Returns a new tensor with values clamped between `min` and `max`.
 ---If `min` is nil, no lower bound is applied.
 ---If `max` is nil, no upper bound is applied.
