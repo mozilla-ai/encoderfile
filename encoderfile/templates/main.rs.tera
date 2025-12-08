@@ -17,8 +17,7 @@ factory! {
     "###){% else %}None{% endif %},
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     cli_entrypoint(
         &assets::MODEL_WEIGHTS,
         assets::MODEL_CONFIG_JSON,
@@ -26,5 +25,5 @@ async fn main() -> Result<()> {
         assets::MODEL_TYPE_STR,
         assets::MODEL_ID,
         assets::TRANSFORM,
-    ).await
+    )
 }

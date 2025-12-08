@@ -7,7 +7,7 @@ use crate::{
     server::{run_grpc, run_http, run_mcp},
     services::{embedding, sentence_embedding, sequence_classification, token_classification},
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
 use clap_derive::{Parser, Subcommand, ValueEnum};
 use opentelemetry::trace::TracerProvider as _;
@@ -16,7 +16,7 @@ use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{fmt::Display, io::Write};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-pub async fn cli_entrypoint(
+pub fn cli_entrypoint(
     model_bytes: &[u8],
     config_str: &str,
     tokenizer_json: &str,
@@ -24,6 +24,11 @@ pub async fn cli_entrypoint(
     model_id: &str,
     transform_str: Option<&str>,
 ) -> Result<()> {
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .with_context(|| "Failed to create Tokio runtime")?;
+
     let cli = Cli::parse();
 
     let session = get_model(model_bytes);
@@ -42,7 +47,7 @@ pub async fn cli_entrypoint(
         transform_str,
     };
 
-    cli.command.execute(state).await?;
+    rt.block_on(cli.command.execute(state))?;
 
     Ok(())
 }
