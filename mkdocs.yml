@@ -20,6 +20,8 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Building Encoderfiles:
+    - Building with Docker: building_encoderfiles/docker.md
   - Cookbooks:
       - Token Classification (NER): cookbooks/token-classification-ner.md
   - Code of Conduct: CODE_OF_CONDUCT.md
