@@ -104,17 +104,17 @@ impl Tensor {
                 for (dst, &src) in iter_obj {
                     *dst = src.max(lo).min(hi);
                 }
-            },
+            }
             (Some(lo), None) => {
                 for (dst, &src) in iter_obj {
                     *dst = src.max(lo);
                 }
-            },
+            }
             (None, Some(hi)) => {
                 for (dst, &src) in iter_obj {
                     *dst = src.min(hi);
                 }
-            },
+            }
             (None, None) => {
                 out_slice.copy_from_slice(input);
             }
