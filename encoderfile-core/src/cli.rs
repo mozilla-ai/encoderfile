@@ -23,7 +23,7 @@ pub fn cli_entrypoint(
     model_type: &str,
     model_id: &str,
     transform_str: Option<&str>,
-) -> Result<()> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()

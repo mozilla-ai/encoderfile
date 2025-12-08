@@ -3,9 +3,6 @@ name = "encoderfile"
 version = "{{ version }}"
 edition = "2024"
 
-[dependencies]
-anyhow = "1.0.100"
-
 [dependencies.encoderfile-core]
 {{ encoderfile_version_str }}
 features = ["transport"]
