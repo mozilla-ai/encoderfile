@@ -84,7 +84,7 @@ impl LuaUserData for Tensor {
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
-    pub fn clamp(&self, min: f32, max: f32) -> Result<Self, LuaError> {
+    pub fn clamp(&self, min: Option<f32>, max: Option<f32>) -> Result<Self, LuaError> {
         let input = self
             .0
             .as_slice()
@@ -95,16 +95,30 @@ impl Tensor {
             "Failed to fetch out as slice. This shouldn't happen.",
         ))?;
 
+        let iter_obj = out_slice.iter_mut().zip(input.iter());
+
         // tight loop over mutable arr for ✨ efficiency ✨
         // we can do a custom simd thing when someone complains
-        for (dst, src) in out_slice.iter_mut().zip(input.iter()) {
-            // clamp(x, min, max) = min(max(x, min), max)
-            *dst = src
-                // push x up to the lower bound if needed
-                .max(min)
-                // push x down to upper bound if needed
-                .min(max);
-        }
+        match (min, max) {
+            (Some(lo), Some(hi)) => {
+                for (dst, &src) in iter_obj {
+                    *dst = src.max(lo).min(hi);
+                }
+            },
+            (Some(lo), None) => {
+                for (dst, &src) in iter_obj {
+                    *dst = src.max(lo);
+                }
+            },
+            (None, Some(hi)) => {
+                for (dst, &src) in iter_obj {
+                    *dst = src.min(hi);
+                }
+            },
+            (None, None) => {
+                out_slice.copy_from_slice(input);
+            }
+        };
 
         Ok(Self(out))
     }
