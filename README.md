@@ -351,8 +351,8 @@ make setup
 # Run tests
 make test
 
-# Build documentation - Check command with Raz
-make docs-serve
+# Build documentation 
+make docs
 ```
 
 ## 📄 License
