@@ -88,37 +88,41 @@ impl Tensor {
         let input = self
             .0
             .as_slice()
-            .ok_or(LuaError::external("Array must be contiguous"))?;
+            .ok_or_else(|| LuaError::external("Array must be contiguous"))?;
 
         let mut out = ArrayD::<f32>::zeros(self.0.raw_dim());
-        let out_slice = out.as_slice_mut().ok_or(LuaError::external(
-            "Failed to fetch out as slice. This shouldn't happen.",
-        ))?;
+        let out_slice = out
+            .as_slice_mut()
+            .ok_or_else(|| LuaError::external("Failed to fetch output slice"))?;
 
-        let iter_obj = out_slice.iter_mut().zip(input.iter());
+        // NaN bound policy: if any bound is NaN, everything becomes NaN. For IEEE-754 compliance :d
+        if min.map_or(false, f32::is_nan) || max.map_or(false, f32::is_nan) {
+            for dst in out_slice.iter_mut() {
+                *dst = f32::NAN;
+            }
+            return Ok(Self(out));
+        }
 
-        // tight loop over mutable arr for ✨ efficiency ✨
-        // we can do a custom simd thing when someone complains
         match (min, max) {
             (Some(lo), Some(hi)) => {
-                for (dst, &src) in iter_obj {
+                for (dst, &src) in out_slice.iter_mut().zip(input.iter()) {
                     *dst = src.max(lo).min(hi);
                 }
             }
             (Some(lo), None) => {
-                for (dst, &src) in iter_obj {
+                for (dst, &src) in out_slice.iter_mut().zip(input.iter()) {
                     *dst = src.max(lo);
                 }
             }
             (None, Some(hi)) => {
-                for (dst, &src) in iter_obj {
+                for (dst, &src) in out_slice.iter_mut().zip(input.iter()) {
                     *dst = src.min(hi);
                 }
             }
             (None, None) => {
                 out_slice.copy_from_slice(input);
             }
-        };
+        }
 
         Ok(Self(out))
     }

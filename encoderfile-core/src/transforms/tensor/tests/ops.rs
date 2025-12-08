@@ -93,8 +93,10 @@ fn test_clamp_nan() {
     let result = tensor
         .clamp(Some(f32::NAN), Some(f32::NAN))
         .expect("Failed to clamp tensor");
-    let expected = Tensor(ndarray::array!([0.0, 3.0, 10.0]).into_dyn());
-    assert_eq!(result.0, expected.0);
+    let expected = Tensor(ndarray::array!([f32::NAN, f32::NAN, f32::NAN]).into_dyn());
+    for (a, b) in result.0.iter().zip(expected.0.iter()) {
+        assert!(a.is_nan() && b.is_nan());
+    }
 }
 
 #[test]
