@@ -15,7 +15,7 @@ docker pull ghcr.io/mozilla-ai/encoderfile:latest
 
 ## Mounting Assets
 
-The Docker container needs access to 2 things to build an Encoderfile:
+The Docker container needs access to two elements to build an Encoderfile:
 
 - An Encoderfile config file—passed via `-f path/to/your/config_file.yml` using the CLI
 - Model assets (ONNX file, tokenizer, `config.json`, etc.), referenced by relative or absolute paths in `config.yml`.
