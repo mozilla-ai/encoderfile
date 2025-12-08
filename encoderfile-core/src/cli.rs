@@ -3,49 +3,17 @@ use crate::{
         EmbeddingRequest, ModelType, SentenceEmbeddingRequest, SequenceClassificationRequest,
         TokenClassificationRequest,
     },
-    runtime::{AppState, get_model, get_model_config, get_model_type, get_tokenizer},
+    runtime::AppState,
     server::{run_grpc, run_http, run_mcp},
     services::{embedding, sentence_embedding, sequence_classification, token_classification},
 };
 use anyhow::Result;
-use clap::Parser;
 use clap_derive::{Parser, Subcommand, ValueEnum};
 use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{fmt::Display, io::Write};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-pub async fn cli_entrypoint(
-    model_bytes: &[u8],
-    config_str: &str,
-    tokenizer_json: &str,
-    model_type: &str,
-    model_id: &str,
-    transform_str: Option<&str>,
-) -> Result<()> {
-    let cli = Cli::parse();
-
-    let session = get_model(model_bytes);
-    let config = get_model_config(config_str);
-    let tokenizer = get_tokenizer(tokenizer_json, &config);
-    let model_type = get_model_type(model_type);
-    let transform_str = transform_str.map(|t| t.to_string());
-    let model_id = model_id.to_string();
-
-    let state = AppState {
-        session,
-        config,
-        tokenizer,
-        model_type,
-        model_id,
-        transform_str,
-    };
-
-    cli.command.execute(state).await?;
-
-    Ok(())
-}
 
 macro_rules! generate_cli_route {
     ($req:ident, $fn:path, $format:ident, $out_dir:expr, $state:expr) => {{

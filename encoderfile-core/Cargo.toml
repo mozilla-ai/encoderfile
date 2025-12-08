@@ -52,14 +52,14 @@ runtime = [ "transforms", "tokenizers", "ort",]
 transforms = [ "mlua",]
 
 [dependencies]
-anyhow = "1.0.100"
-ndarray = "0.16.1"
+anyhow = { workspace = true }
+ndarray = { workspace = true }
 ndarray-stats = "0.6.0"
 parking_lot = "0.12.5"
-schemars = "1.0.5"
-serde_json = "1.0.145"
-thiserror = "2.0.17"
-tracing = "0.1.41"
+schemars = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
 utoipa = "5.4.0"
 utoipa-axum = "0.2.0"
 
@@ -68,7 +68,7 @@ dotenv = "0.15.0"
 tonic-prost-build = "0.14.2"
 
 [dev-dependencies]
-rand = "0.9.2"
+rand = { workspace = true }
 tower = "0.5.2"
 test-log = "0.2.18"
 
@@ -89,11 +89,11 @@ version = "0.8.6"
 optional = true
 
 [dependencies.clap]
-version = "4.5.51"
+workspace = true
 optional = true
 
 [dependencies.clap_derive]
-version = "4.5.49"
+workspace = true 
 optional = true
 
 [dependencies.opentelemetry]
@@ -156,8 +156,7 @@ version = "0.8.0"
 optional = true
 
 [dependencies.serde]
-version = "1.0.228"
-features = [ "serde_derive",]
+workspace = true
 
 [dependencies.tokio]
 version = "1.48.0"
@@ -178,8 +177,7 @@ version = "0.3.20"
 features = [ "fmt", "env-filter",]
 
 [dependencies.ort]
-version = "=2.0.0-rc.10"
-features = [ "std", "tracing", "ndarray",]
+workspace = true
 optional = true
 
 [dev-dependencies.divan]

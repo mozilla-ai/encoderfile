@@ -1,3 +1,8 @@
+use crate::{
+    cli::Cli,
+    runtime::{AppState, get_model, get_model_config, get_model_type, get_tokenizer},
+};
+
 #[macro_export]
 macro_rules! embed_in_section {
     ($name:ident, $path:expr, $section:expr, Bytes) => {
@@ -49,5 +54,55 @@ macro_rules! factory {
             #[allow(dead_code)]
             pub const TRANSFORM: Option<&'static str> = $transform;
         }
+
+        fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+            $crate::entrypoint(
+                &assets::MODEL_WEIGHTS,
+                assets::MODEL_CONFIG_JSON,
+                assets::TOKENIZER_JSON,
+                assets::MODEL_TYPE_STR,
+                assets::MODEL_ID,
+                assets::TRANSFORM,
+            )
+        }
     };
+}
+
+pub fn entrypoint(
+    model_bytes: &[u8],
+    config_str: &str,
+    tokenizer_json: &str,
+    model_type: &str,
+    model_id: &str,
+    transform_str: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    use anyhow::Context;
+    use clap::Parser;
+
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .with_context(|| "Failed to create Tokio runtime")?;
+
+    let cli = Cli::parse();
+
+    let session = get_model(model_bytes);
+    let config = get_model_config(config_str);
+    let tokenizer = get_tokenizer(tokenizer_json, &config);
+    let model_type = get_model_type(model_type);
+    let transform_str = transform_str.map(|t| t.to_string());
+    let model_id = model_id.to_string();
+
+    let state = AppState {
+        session,
+        config,
+        tokenizer,
+        model_type,
+        model_id,
+        transform_str,
+    };
+
+    rt.block_on(cli.command.execute(state))?;
+
+    Ok(())
 }
