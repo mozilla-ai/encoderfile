@@ -10,7 +10,7 @@ mod token_classification;
 pub use embedding::*;
 pub use model_config::*;
 pub use model_metadata::*;
-pub use model_type::ModelTypeEnum;
+pub use model_type::ModelType;
 pub use sentence_embedding::*;
 pub use sequence_classification::*;
 pub use token::*;

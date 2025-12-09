@@ -1,4 +1,4 @@
-use crate::common::ModelTypeEnum;
+use crate::common::ModelType;
 use crate::runtime::AppState;
 use rmcp::transport::streamable_http_server::{
     StreamableHttpService, session::local::LocalSessionManager,
@@ -9,7 +9,7 @@ mod error;
 // TODO figure out the lifetimes of a state so a ref can be safely passed
 pub fn make_router(state: AppState) -> axum::Router {
     match state.model_type {
-        ModelTypeEnum::Embedding => {
+        ModelType::Embedding => {
             let service = StreamableHttpService::new(
                 move || Ok(embedding::EmbedderTool::new(state.clone())),
                 LocalSessionManager::default().into(),
@@ -17,7 +17,7 @@ pub fn make_router(state: AppState) -> axum::Router {
             );
             axum::Router::new().nest_service("/mcp", service)
         }
-        ModelTypeEnum::SequenceClassification => {
+        ModelType::SequenceClassification => {
             let service = StreamableHttpService::new(
                 move || {
                     Ok(sequence_classification::SequenceClassificationTool::new(
@@ -29,7 +29,7 @@ pub fn make_router(state: AppState) -> axum::Router {
             );
             axum::Router::new().nest_service("/mcp", service)
         }
-        ModelTypeEnum::TokenClassification => {
+        ModelType::TokenClassification => {
             let service = StreamableHttpService::new(
                 move || {
                     Ok(token_classification::TokenClassificationTool::new(
@@ -41,7 +41,7 @@ pub fn make_router(state: AppState) -> axum::Router {
             );
             axum::Router::new().nest_service("/mcp", service)
         }
-        ModelTypeEnum::SentenceEmbedding => {
+        ModelType::SentenceEmbedding => {
             let service = StreamableHttpService::new(
                 move || {
                     Ok(sentence_embedding::SentenceEmbeddingTool::new(

@@ -3,7 +3,7 @@ macro_rules! model_type {
         // create enum
         #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
         #[serde(rename_all = "snake_case")]
-        pub enum ModelTypeEnum {
+        pub enum ModelType {
             $(
             $x,
             )*
@@ -12,9 +12,9 @@ macro_rules! model_type {
         $(
             pub struct $x;
 
-            impl ModelType for $x {
-                fn enum_val() -> ModelTypeEnum {
-                    ModelTypeEnum::$x
+            impl ModelTypeSpec for $x {
+                fn enum_val() -> ModelType {
+                    ModelType::$x
                 }
             }
         )*
@@ -28,6 +28,6 @@ model_type![
     SentenceEmbedding,
 ];
 
-pub trait ModelType {
-    fn enum_val() -> ModelTypeEnum;
+pub trait ModelTypeSpec {
+    fn enum_val() -> ModelType;
 }
