@@ -25,21 +25,20 @@ pub async fn run_grpc(
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
-    tracing::info!(
+    tracing::debug!(
         "TLS configuration: cert file: {:?}, cert key: {:?}",
         maybe_cert_file,
         maybe_key_file
     );
 
+    tracing::info!("Running {:?} gRPC server on {}", model_type, &addr);
+
     match (maybe_cert_file, maybe_key_file) {
         (Some(cert_file), Some(key_file)) => {
-            tracing::info!("Running {:?} gRPC-on-TLS server on {}", model_type, &addr);
-
             // ref: https://github.com/tokio-rs/axum/blob/main/examples/tls-rustls/src/main.rs#L45
             // configure certificate and private key used by https
-            let config = RustlsConfig::from_pem_file(Path::new(&cert_file), Path::new(&key_file))
-                .await
-                .unwrap();
+            let config =
+                RustlsConfig::from_pem_file(Path::new(&cert_file), Path::new(&key_file)).await?;
 
             let socket_addr = addr.parse()?;
 
@@ -47,9 +46,17 @@ pub async fn run_grpc(
                 .serve(router)
                 .await?
         }
-        _ => {
-            tracing::info!("Running {:?} gRPC server on {}", model_type, &addr);
-
+        (None, Some(_)) => {
+            return Err(crate::error::ApiError::ConfigError(
+                "Both cert and key file need to be set. Only the key file has been set.",
+            ))?;
+        }
+        (Some(_), None) => {
+            return Err(crate::error::ApiError::ConfigError(
+                "Both cert and key file need to be set. Only the cert file has been set.",
+            ))?;
+        }
+        (None, None) => {
             let listener = tokio::net::TcpListener::bind(&addr)
                 .await
                 .expect("Invalid address: {addr}");
