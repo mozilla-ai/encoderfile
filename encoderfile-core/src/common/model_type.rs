@@ -11,6 +11,12 @@ macro_rules! model_type {
 
         $(
             pub struct $x;
+
+            impl ModelType for $x {
+                fn enum_val() -> ModelTypeEnum {
+                    ModelTypeEnum::$x
+                }
+            }
         )*
     }
 }
@@ -21,3 +27,7 @@ model_type![
     TokenClassification,
     SentenceEmbedding,
 ];
+
+pub trait ModelType {
+    fn enum_val() -> ModelTypeEnum;
+}
