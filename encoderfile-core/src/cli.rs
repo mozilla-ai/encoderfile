@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        EmbeddingRequest, ModelType, SentenceEmbeddingRequest, SequenceClassificationRequest,
+        EmbeddingRequest, ModelTypeEnum, SentenceEmbeddingRequest, SequenceClassificationRequest,
         TokenClassificationRequest,
     },
     runtime::AppState,
@@ -147,12 +147,12 @@ impl Commands {
                 let metadata = None;
 
                 match state.model_type {
-                    ModelType::Embedding => {
+                    ModelTypeEnum::Embedding => {
                         let request = EmbeddingRequest { inputs, metadata };
 
                         generate_cli_route!(request, embedding, format, out_dir, state)
                     }
-                    ModelType::SequenceClassification => {
+                    ModelTypeEnum::SequenceClassification => {
                         let request = SequenceClassificationRequest { inputs, metadata };
 
                         generate_cli_route!(
@@ -163,12 +163,12 @@ impl Commands {
                             state
                         )
                     }
-                    ModelType::TokenClassification => {
+                    ModelTypeEnum::TokenClassification => {
                         let request = TokenClassificationRequest { inputs, metadata };
 
                         generate_cli_route!(request, token_classification, format, out_dir, state)
                     }
-                    ModelType::SentenceEmbedding => {
+                    ModelTypeEnum::SentenceEmbedding => {
                         let request = SentenceEmbeddingRequest { inputs, metadata };
 
                         generate_cli_route!(request, sentence_embedding, format, out_dir, state)

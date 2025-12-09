@@ -4,14 +4,14 @@ use ort::session::Session;
 use parking_lot::Mutex;
 use tokenizers::Tokenizer;
 
-use crate::common::{ModelConfig, ModelType};
+use crate::common::{ModelConfig, ModelTypeEnum};
 
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub session: Arc<Mutex<Session>>,
     pub tokenizer: Arc<Tokenizer>,
     pub config: Arc<ModelConfig>,
-    pub model_type: ModelType,
+    pub model_type: ModelTypeEnum,
     pub model_id: String,
     pub transform_str: Option<String>,
 }

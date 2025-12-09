@@ -1,4 +1,4 @@
-use crate::{common::ModelType, runtime::AppState};
+use crate::{common::ModelTypeEnum, runtime::AppState};
 
 mod base;
 mod error;
@@ -71,10 +71,10 @@ macro_rules! generate_http {
 
 pub fn router(state: AppState) -> axum::Router {
     match &state.model_type {
-        ModelType::Embedding => embedding::get_router(state),
-        ModelType::SequenceClassification => sequence_classification::get_router(state),
-        ModelType::TokenClassification => token_classification::get_router(state),
-        ModelType::SentenceEmbedding => sentence_embedding::get_router(state),
+        ModelTypeEnum::Embedding => embedding::get_router(state),
+        ModelTypeEnum::SequenceClassification => sequence_classification::get_router(state),
+        ModelTypeEnum::TokenClassification => token_classification::get_router(state),
+        ModelTypeEnum::SentenceEmbedding => sentence_embedding::get_router(state),
     }
 }
 

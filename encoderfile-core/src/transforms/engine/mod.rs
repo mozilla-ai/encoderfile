@@ -1,4 +1,4 @@
-use crate::{common::ModelType, error::ApiError};
+use crate::{common::ModelTypeEnum, error::ApiError};
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
@@ -10,7 +10,7 @@ mod token_classification;
 
 macro_rules! transform {
     ($type_name:ident, $mt:ident) => {
-        pub type $type_name = Transform<{ ModelType::$mt as u8 }>;
+        pub type $type_name = Transform<{ ModelTypeEnum::$mt as u8 }>;
     };
 }
 

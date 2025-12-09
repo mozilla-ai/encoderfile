@@ -12,13 +12,13 @@ impl From<common::GetModelMetadataResponse> for GetModelMetadataResponse {
     }
 }
 
-impl From<common::ModelType> for ModelType {
-    fn from(val: common::ModelType) -> Self {
+impl From<common::ModelTypeEnum> for ModelType {
+    fn from(val: common::ModelTypeEnum) -> Self {
         match val {
-            common::ModelType::Embedding => Self::Embedding,
-            common::ModelType::SequenceClassification => Self::SequenceClassification,
-            common::ModelType::TokenClassification => Self::TokenClassification,
-            common::ModelType::SentenceEmbedding => Self::SentenceEmbedding,
+            common::ModelTypeEnum::Embedding => Self::Embedding,
+            common::ModelTypeEnum::SequenceClassification => Self::SequenceClassification,
+            common::ModelTypeEnum::TokenClassification => Self::TokenClassification,
+            common::ModelTypeEnum::SentenceEmbedding => Self::SentenceEmbedding,
         }
     }
 }

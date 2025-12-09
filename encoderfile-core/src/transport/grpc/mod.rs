@@ -1,5 +1,5 @@
 use crate::{
-    common::ModelType,
+    common::ModelTypeEnum,
     generated::{
         embedding::{
             self,
@@ -34,16 +34,16 @@ pub fn router(state: AppState) -> axum::Router {
     let builder = tonic::service::Routes::builder().routes();
 
     match &state.model_type {
-        ModelType::Embedding => {
+        ModelTypeEnum::Embedding => {
             builder.add_service(EmbeddingInferenceServer::new(EmbeddingService::new(state)))
         }
-        ModelType::SequenceClassification => builder.add_service(
+        ModelTypeEnum::SequenceClassification => builder.add_service(
             SequenceClassificationInferenceServer::new(SequenceClassificationService::new(state)),
         ),
-        ModelType::TokenClassification => builder.add_service(
+        ModelTypeEnum::TokenClassification => builder.add_service(
             TokenClassificationInferenceServer::new(TokenClassificationService::new(state)),
         ),
-        ModelType::SentenceEmbedding => builder.add_service(SentenceEmbeddingInferenceServer::new(
+        ModelTypeEnum::SentenceEmbedding => builder.add_service(SentenceEmbeddingInferenceServer::new(
             SentenceEmbeddingService::new(state),
         )),
     }
