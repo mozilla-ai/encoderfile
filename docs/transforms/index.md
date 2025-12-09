@@ -37,6 +37,14 @@ We provide a built-in API for standard tensor operations. To learn more, check o
 
 If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
 
+## Creating a New Transform
+
+To create a new transform, use the Encoderfile CLI:
+
+```
+encoderfile new-transform --model-type [embedding|sequence_classification|etc.] > /path/to/your/transform/file.lua
+```
+
 ## Input Signatures
 
 The input signature of `Postprocess` depends on the type of model being used.
