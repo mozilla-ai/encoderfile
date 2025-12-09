@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{common::model_type, error::ApiError};
+use crate::{common::model_type::{self, ModelTypeSpec}, error::ApiError};
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
@@ -33,14 +33,14 @@ pub trait TransformSpec {
 }
 
 #[derive(Debug)]
-pub struct Transform<T> {
+pub struct Transform<T: ModelTypeSpec> {
     #[allow(dead_code)]
     lua: Lua,
     postprocessor: Option<LuaFunction>,
     _marker: PhantomData<T>,
 }
 
-impl<T> Transform<T> {
+impl<T: ModelTypeSpec> Transform<T> {
     fn postprocessor(&self) -> &Option<LuaFunction> {
         &self.postprocessor
     }
@@ -66,7 +66,7 @@ impl<T> Transform<T> {
     }
 }
 
-impl<T> TransformSpec for Transform<T> {
+impl<T: ModelTypeSpec> TransformSpec for Transform<T> {
     fn has_postprocessor(&self) -> bool {
         self.postprocessor.is_some()
     }
