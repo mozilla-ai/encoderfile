@@ -84,6 +84,33 @@ impl LuaUserData for Tensor {
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
+    pub fn truncate_axis(&self, axis: isize, len: usize) -> Result<Self, LuaError> {
+        let axis = self.axis1(axis)?;
+
+        let actual_len = self.0.len_of(axis).min(len);
+
+        let mut slice_spec = Vec::with_capacity(self.0.ndim());
+
+        for i in 0..self.0.ndim() {
+            if Axis(i) == axis {
+                slice_spec.push(ndarray::SliceInfoElem::Slice {
+                    start: 0,
+                    end: Some(actual_len as isize),
+                    step: 1,
+                });
+            } else {
+                slice_spec.push(ndarray::SliceInfoElem::Slice {
+                    start: 0,
+                    end: None,
+                    step: 1,
+                });
+            }
+        }
+
+        Ok(Tensor(self.0.slice(&slice_spec[..]).to_owned()))
+    }
+
+    #[tracing::instrument(skip_all)]
     pub fn clamp(&self, min: Option<f32>, max: Option<f32>) -> Result<Self, LuaError> {
         let input = self
             .0

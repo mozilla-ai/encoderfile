@@ -3,6 +3,32 @@ use mlua::prelude::*;
 use ndarray::{Array0, Array2, Array3, Axis, array};
 
 #[test]
+fn test_truncate_axis_correctness() {
+    let tensor = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+
+    // truncate along 2rd axis (3rd in lua land) to 2
+    let result = tensor
+        .truncate_axis(3, 2)
+        .expect("Failed to truncate tensor");
+    let expected = Tensor(Array3::from_elem([3, 3, 2], 1.0).into_dyn());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_truncate_axis_out_of_bounds() {
+    let tensor = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+
+    // should return the same thing
+    let result = tensor
+        .truncate_axis(3, 500)
+        .expect("Failed to truncate tensor");
+    let expected = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn test_clamp_correctness() {
     let tensor = Tensor(ndarray::array!([-5.0, -1.0, 0.0, 1.0, 5.0]).into_dyn());
     let result = tensor
