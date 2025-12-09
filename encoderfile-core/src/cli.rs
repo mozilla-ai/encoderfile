@@ -58,6 +58,10 @@ pub enum Commands {
         enable_otel: bool,
         #[arg(long, default_value = "http://localhost:4317")]
         otel_exporter_url: String,
+        #[arg(long)]
+        cert_file: Option<String>,
+        #[arg(long)]
+        key_file: Option<String>,
     },
     Infer {
         #[arg(required = true)]
@@ -72,6 +76,10 @@ pub enum Commands {
         hostname: String,
         #[arg(long, default_value = "9100")]
         port: String,
+        #[arg(long)]
+        cert_file: Option<String>,
+        #[arg(long)]
+        key_file: Option<String>,
     },
 }
 
@@ -87,6 +95,8 @@ impl Commands {
                 disable_http,
                 enable_otel,
                 otel_exporter_url,
+                cert_file,
+                key_file,
             } => {
                 let banner = crate::get_banner(state.model_id.as_str());
 
@@ -103,12 +113,24 @@ impl Commands {
 
                 let grpc_process = match disable_grpc {
                     true => tokio::spawn(async { Ok(()) }),
-                    false => tokio::spawn(run_grpc(grpc_hostname, grpc_port, state.clone())),
+                    false => tokio::spawn(run_grpc(
+                        grpc_hostname,
+                        grpc_port,
+                        cert_file.clone(),
+                        key_file.clone(),
+                        state.clone(),
+                    )),
                 };
 
                 let http_process = match disable_http {
                     true => tokio::spawn(async { Ok(()) }),
-                    false => tokio::spawn(run_http(http_hostname, http_port, state.clone())),
+                    false => tokio::spawn(run_http(
+                        http_hostname,
+                        http_port,
+                        cert_file.clone(),
+                        key_file.clone(),
+                        state.clone(),
+                    )),
                 };
 
                 println!("{}", banner);
@@ -153,9 +175,14 @@ impl Commands {
                     }
                 }
             }
-            Commands::Mcp { hostname, port } => {
+            Commands::Mcp {
+                hostname,
+                port,
+                cert_file,
+                key_file,
+            } => {
                 let banner = crate::get_banner(state.model_id.as_str());
-                let mcp_process = tokio::spawn(run_mcp(hostname, port, state));
+                let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
                 println!("{}", banner);
                 let _ = tokio::join!(mcp_process);
             }

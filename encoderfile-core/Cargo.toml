@@ -46,7 +46,7 @@ description = "Distribute and run transformer encoders with a single file."
 
 [features]
 default = [ "transport",]
-transport = [ "runtime", "opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "clap", "clap_derive", "prost", "tonic-prost", "tonic-types", "tonic-web", "tracing-opentelemetry", "tonic", "tower-http",]
+transport = [ "runtime", "opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "axum-server", "clap", "clap_derive", "prost", "tonic-prost", "tonic-types", "tonic-web", "tracing-opentelemetry", "tonic", "tower-http",]
 dev-utils = [ "runtime",]
 runtime = [ "transforms", "tokenizers", "ort",]
 transforms = [ "mlua",]
@@ -86,6 +86,11 @@ features = ["client", "transport-streamable-http-client-reqwest"]
 
 [dependencies.axum]
 version = "0.8.6"
+optional = true
+
+[dependencies.axum-server]
+version = "0.7.3"
+features = ["tls-rustls"]
 optional = true
 
 [dependencies.clap]
