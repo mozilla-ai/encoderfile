@@ -16,6 +16,11 @@ pub enum Commands {
     Build(BuildArgs),
     #[command(about = "Get Encoderfile version.")]
     Version(()),
+    #[command(about = "Generate a new transform.")]
+    NewTransform {
+        #[arg(short = 'm', long = "model-type", help = "Model type")]
+        model_type: String,
+    },
 }
 
 impl Commands {
@@ -26,6 +31,7 @@ impl Commands {
                 println!("Encoderfile {}", env!("CARGO_PKG_VERSION"));
                 Ok(())
             }
+            Self::NewTransform { model_type } => super::transforms::new_transform(model_type),
         }
     }
 }
