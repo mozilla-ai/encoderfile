@@ -29,6 +29,6 @@ model_type![
     SentenceEmbedding,
 ];
 
-pub trait ModelTypeSpec: Send + Sync + std::fmt::Debug {
+pub trait ModelTypeSpec: Send + Sync + Clone + std::fmt::Debug {
     fn enum_val() -> ModelType;
 }
