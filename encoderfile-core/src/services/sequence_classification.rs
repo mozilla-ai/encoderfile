@@ -1,5 +1,5 @@
 use crate::{
-    common::{SequenceClassificationRequest, SequenceClassificationResponse},
+    common::{SequenceClassificationRequest, SequenceClassificationResponse, model_type},
     error::ApiError,
     inference,
     runtime::AppState,
@@ -8,7 +8,7 @@ use crate::{
 #[tracing::instrument(skip_all)]
 pub fn sequence_classification(
     request: impl Into<SequenceClassificationRequest>,
-    state: &AppState,
+    state: &AppState<model_type::SequenceClassification>,
 ) -> Result<SequenceClassificationResponse, ApiError> {
     let request = request.into();
     let session = state.session.lock();

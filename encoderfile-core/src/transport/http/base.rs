@@ -1,4 +1,4 @@
-use crate::runtime::AppState;
+use crate::{common::model_type::ModelTypeSpec, runtime::AppState};
 use axum::{Json, extract::State, response::IntoResponse};
 
 #[utoipa::path(
@@ -19,6 +19,8 @@ pub async fn health() -> impl IntoResponse {
         (status = 200, response = crate::common::GetModelMetadataResponse)
     ),
 )]
-pub async fn get_model_metadata(State(state): State<AppState>) -> impl IntoResponse {
+pub async fn get_model_metadata<T: ModelTypeSpec>(
+    State(state): State<AppState<T>>,
+) -> impl IntoResponse {
     Json(crate::services::get_model_metadata(&state))
 }

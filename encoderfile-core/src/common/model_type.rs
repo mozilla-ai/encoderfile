@@ -10,6 +10,7 @@ macro_rules! model_type {
         }
 
         $(
+            #[derive(Debug)]
             pub struct $x;
 
             impl ModelTypeSpec for $x {
@@ -28,6 +29,6 @@ model_type![
     SentenceEmbedding,
 ];
 
-pub trait ModelTypeSpec {
+pub trait ModelTypeSpec: Send + Sync + std::fmt::Debug {
     fn enum_val() -> ModelType;
 }

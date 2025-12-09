@@ -1,6 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::{common::model_type::{self, ModelTypeSpec}, error::ApiError};
+use crate::{
+    common::model_type::{self, ModelTypeSpec},
+    error::ApiError,
+};
 
 use super::tensor::Tensor;
 use mlua::prelude::*;

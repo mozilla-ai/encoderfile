@@ -1,5 +1,5 @@
 use crate::{
-    common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo},
+    common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo, model_type},
     error::ApiError,
     runtime::AppState,
     transforms::{Postprocessor, TokenClassificationTransform},
@@ -11,7 +11,7 @@ use tokenizers::Encoding;
 #[tracing::instrument(skip_all)]
 pub fn token_classification<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState,
+    state: &AppState<model_type::TokenClassification>,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);

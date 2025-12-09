@@ -1,5 +1,8 @@
 use crate::{
-    common::{ModelConfig, ModelType},
+    common::{
+        ModelConfig,
+        model_type::{self, ModelTypeSpec},
+    },
     runtime::AppState,
 };
 use ort::session::Session;
@@ -10,38 +13,28 @@ const EMBEDDING_DIR: &str = "../models/embedding";
 const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
-pub fn get_state(dir: &str, model_type: ModelType) -> AppState {
+pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
     let config = Arc::new(get_config(dir));
     let tokenizer = Arc::new(get_tokenizer(dir, &config));
     let session = Arc::new(get_model(dir));
 
-    AppState {
-        session,
-        tokenizer,
-        config,
-        model_type,
-        model_id: "test-model".to_string(),
-        transform_str: None,
-    }
+    AppState::new(session, tokenizer, config, "test-model".to_string(), None)
 }
 
-pub fn embedding_state() -> AppState {
-    get_state(EMBEDDING_DIR, ModelType::Embedding)
+pub fn embedding_state() -> AppState<model_type::Embedding> {
+    get_state(EMBEDDING_DIR)
 }
 
-pub fn sentence_embedding_state() -> AppState {
-    get_state(EMBEDDING_DIR, ModelType::SentenceEmbedding)
+pub fn sentence_embedding_state() -> AppState<model_type::SentenceEmbedding> {
+    get_state(EMBEDDING_DIR)
 }
 
-pub fn sequence_classification_state() -> AppState {
-    get_state(
-        SEQUENCE_CLASSIFICATION_DIR,
-        ModelType::SequenceClassification,
-    )
+pub fn sequence_classification_state() -> AppState<model_type::SequenceClassification> {
+    get_state(SEQUENCE_CLASSIFICATION_DIR)
 }
 
-pub fn token_classification_state() -> AppState {
-    get_state(TOKEN_CLASSIFICATION_DIR, ModelType::TokenClassification)
+pub fn token_classification_state() -> AppState<model_type::TokenClassification> {
+    get_state(TOKEN_CLASSIFICATION_DIR)
 }
 
 fn get_config(dir: &str) -> ModelConfig {

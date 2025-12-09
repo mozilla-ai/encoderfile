@@ -1,5 +1,5 @@
 use crate::{
-    common::{TokenClassificationRequest, TokenClassificationResponse},
+    common::{TokenClassificationRequest, TokenClassificationResponse, model_type},
     error::ApiError,
     inference,
     runtime::AppState,
@@ -8,7 +8,7 @@ use crate::{
 #[tracing::instrument(skip_all)]
 pub fn token_classification(
     request: impl Into<TokenClassificationRequest>,
-    state: &AppState,
+    state: &AppState<model_type::TokenClassification>,
 ) -> Result<TokenClassificationResponse, ApiError> {
     let request = request.into();
     let session = state.session.lock();

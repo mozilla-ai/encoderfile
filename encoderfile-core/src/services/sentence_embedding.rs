@@ -1,5 +1,5 @@
 use crate::{
-    common::{SentenceEmbeddingRequest, SentenceEmbeddingResponse},
+    common::{SentenceEmbeddingRequest, SentenceEmbeddingResponse, model_type},
     error::ApiError,
     inference,
     runtime::AppState,
@@ -8,7 +8,7 @@ use crate::{
 #[tracing::instrument(skip_all)]
 pub fn sentence_embedding(
     request: impl Into<SentenceEmbeddingRequest>,
-    state: &AppState,
+    state: &AppState<model_type::SentenceEmbedding>,
 ) -> Result<SentenceEmbeddingResponse, ApiError> {
     let request = request.into();
 

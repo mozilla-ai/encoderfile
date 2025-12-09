@@ -1,5 +1,5 @@
 use crate::{
-    common::{EmbeddingRequest, EmbeddingResponse},
+    common::{EmbeddingRequest, EmbeddingResponse, model_type},
     error::ApiError,
     inference,
     runtime::AppState,
@@ -8,7 +8,7 @@ use crate::{
 #[tracing::instrument(skip_all)]
 pub fn embedding(
     request: impl Into<EmbeddingRequest>,
-    state: &AppState,
+    state: &AppState<model_type::Embedding>,
 ) -> Result<EmbeddingResponse, ApiError> {
     let request = request.into();
 

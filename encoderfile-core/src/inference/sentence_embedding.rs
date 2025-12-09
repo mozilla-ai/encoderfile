@@ -2,7 +2,7 @@ use ndarray::{Array2, Axis, Ix2, Ix3};
 use tokenizers::Encoding;
 
 use crate::{
-    common::SentenceEmbedding,
+    common::{SentenceEmbedding, model_type},
     error::ApiError,
     runtime::AppState,
     transforms::{Postprocessor, SentenceEmbeddingTransform},
@@ -11,7 +11,7 @@ use crate::{
 #[tracing::instrument(skip_all)]
 pub fn sentence_embedding<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState,
+    state: &AppState<model_type::SentenceEmbedding>,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SentenceEmbedding>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);

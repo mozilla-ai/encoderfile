@@ -1,5 +1,5 @@
 use crate::{
-    common::{ModelConfig, SequenceClassificationResult},
+    common::{ModelConfig, SequenceClassificationResult, model_type},
     error::ApiError,
     runtime::AppState,
     transforms::{Postprocessor, SequenceClassificationTransform},
@@ -11,7 +11,7 @@ use tokenizers::Encoding;
 #[tracing::instrument(skip_all)]
 pub fn sequence_classification<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState,
+    state: &AppState<model_type::SequenceClassification>,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
