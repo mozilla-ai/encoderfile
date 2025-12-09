@@ -12,6 +12,12 @@ Tensor = {}
 ---@return Tensor
 function Tensor.new(tbl) end
 
+---Computes layer_norm along a specific axis
+---@param axis integer Axis to compute layer_norm along
+---@param eps number epsilon value
+---@return Tensor
+function Tensor:layer_norm(axis, eps) end
+
 ---Truncates a tensor along a specific axis.
 ---@param axis integer Axis to truncate along
 ---@param len integer Length to truncate each slice to
