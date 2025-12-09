@@ -17,14 +17,11 @@ docker pull ghcr.io/mozilla-ai/encoderfile:latest
 
 The Docker container needs access to two elements to build an Encoderfile:
 
-- An Encoderfile config file—passed via `-f path/to/your/config_file.yml` using the CLI
-- Model assets (ONNX file, tokenizer, `config.json`, etc.), referenced by relative or absolute paths in `config.yml`.
+1. **Config file** - Your `config.yml` passed via `-f` flag
+2. **Model assets** - ONNX file, tokenizer,  `config.json` referenced by `config.yml`.
+3. **Output directory** - Where the `.encoderfile` binary will be written
 
-Inside the container, Encoderfile will read these paths exactly as written in your configuration. So whatever paths you specify must exist inside the container where encoderfile build runs.
-
-This means you typically mount your project directory into `/opt/encoderfile` (the default working directory in the Docker image).
-
-A place to write the generated .encoderfile binary—Encoderfile writes its output to the build directory you specify in your `config.yml` (default is is `/opt/encoderfile`). That directory also needs to be inside the mounted volume so the binary actually ends up back on your machine rather than disappearing into the container’s filesystem.
+All paths in your config must exist inside the container. Mount your project directory to `/opt/encoderfile` (the default working directory) so encoderfile can find everything and write the output back to your host machine.Retry
 
 ## Minimal Example
 
@@ -76,9 +73,9 @@ docker run \
 
 What happens:
 
-- Your current directory is mounted into the container at /opt/encoderfile.
-- Inside the container, Encoderfile sees config.yml and any model paths exactly as they appear in your project.
-- The resulting .encoderfile binary is written back into your project directory
+- Your current directory is mounted into the container at `/opt/encoderfile`.
+- Inside the container, Encoderfile sees `config.yml` and any model paths exactly as they appear in your project.
+- The resulting `.encoderfile` binary is written back into your project directory
 
 ## Troubleshooting
 
