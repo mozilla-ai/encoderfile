@@ -10,7 +10,7 @@ macro_rules! model_type {
         }
 
         $(
-            #[derive(Debug)]
+            #[derive(Debug, Clone)]
             pub struct $x;
 
             impl ModelTypeSpec for $x {

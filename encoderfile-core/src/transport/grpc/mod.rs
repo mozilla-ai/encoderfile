@@ -3,14 +3,16 @@ use crate::common::model_type::{self, ModelTypeSpec};
 use crate::{
     generated::{embedding, sentence_embedding, sequence_classification, token_classification},
     runtime::AppState,
+    services::Inference,
 };
 
 mod error;
 
-pub trait GrpcRouter {
-    type ModelType: ModelTypeSpec;
-
-    fn router(state: AppState<Self::ModelType>) -> axum::Router;
+pub trait GrpcRouter: ModelTypeSpec
+where
+    Self: Sized,
+{
+    fn router(state: AppState<Self>) -> axum::Router;
 }
 
 pub struct GrpcService<T: ModelTypeSpec> {
@@ -31,13 +33,10 @@ macro_rules! generate_grpc_server {
         $request_path:ident,
         $response_path:ident,
         $trait_path:ident,
-        $server_type:ident,
-        $fn_path:path
+        $server_type:ident
     ) => {
         impl GrpcRouter for model_type::$model_type {
-            type ModelType = model_type::$model_type;
-
-            fn router(state: AppState<Self::ModelType>) -> axum::Router {
+            fn router(state: AppState<Self>) -> axum::Router {
                 tonic::service::Routes::builder()
                     .routes()
                     .add_service($generated_mod::$server_mod::$server_type::new(
@@ -59,7 +58,8 @@ macro_rules! generate_grpc_server {
                 tonic::Status,
             > {
                 Ok(tonic::Response::new(
-                    $fn_path(request.into_inner(), &self.state)
+                    self.state
+                        .inference(request.into_inner())
                         .map_err(|e| e.to_tonic_status())?
                         .into(),
                 ))
@@ -87,8 +87,7 @@ generate_grpc_server!(
     EmbeddingRequest,
     EmbeddingResponse,
     EmbeddingInference,
-    EmbeddingInferenceServer,
-    crate::services::embedding
+    EmbeddingInferenceServer
 );
 
 generate_grpc_server!(
@@ -98,8 +97,7 @@ generate_grpc_server!(
     SequenceClassificationRequest,
     SequenceClassificationResponse,
     SequenceClassificationInference,
-    SequenceClassificationInferenceServer,
-    crate::services::sequence_classification
+    SequenceClassificationInferenceServer
 );
 
 generate_grpc_server!(
@@ -109,8 +107,7 @@ generate_grpc_server!(
     TokenClassificationRequest,
     TokenClassificationResponse,
     TokenClassificationInference,
-    TokenClassificationInferenceServer,
-    crate::services::token_classification
+    TokenClassificationInferenceServer
 );
 
 generate_grpc_server!(
@@ -120,6 +117,5 @@ generate_grpc_server!(
     SentenceEmbeddingRequest,
     SentenceEmbeddingResponse,
     SentenceEmbeddingInference,
-    SentenceEmbeddingInferenceServer,
-    crate::services::sentence_embedding
+    SentenceEmbeddingInferenceServer
 );

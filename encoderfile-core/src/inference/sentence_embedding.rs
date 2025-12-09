@@ -2,16 +2,15 @@ use ndarray::{Array2, Axis, Ix2, Ix3};
 use tokenizers::Encoding;
 
 use crate::{
-    common::{SentenceEmbedding, model_type},
+    common::SentenceEmbedding,
     error::ApiError,
-    runtime::AppState,
     transforms::{Postprocessor, SentenceEmbeddingTransform},
 };
 
 #[tracing::instrument(skip_all)]
 pub fn sentence_embedding<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState<model_type::SentenceEmbedding>,
+    transform: &SentenceEmbeddingTransform,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SentenceEmbedding>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -32,8 +31,6 @@ pub fn sentence_embedding<'a>(
         .into_dimensionality::<Ix3>()
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
-
-    let transform = SentenceEmbeddingTransform::new(state.transform_str())?;
 
     let pooled_outputs = transform.postprocess((outputs, a_mask_arr))?;
 

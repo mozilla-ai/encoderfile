@@ -2,25 +2,52 @@ use crate::{
     common::{SentenceEmbeddingRequest, SentenceEmbeddingResponse, model_type},
     error::ApiError,
     inference,
-    runtime::AppState,
+    runtime::{AppState, InferenceState},
+    transforms::SentenceEmbeddingTransform,
 };
 
-#[tracing::instrument(skip_all)]
-pub fn sentence_embedding(
-    request: impl Into<SentenceEmbeddingRequest>,
-    state: &AppState<model_type::SentenceEmbedding>,
-) -> Result<SentenceEmbeddingResponse, ApiError> {
-    let request = request.into();
+use super::inference::Inference;
 
-    let session = state.session.lock();
+impl Inference for AppState<model_type::SentenceEmbedding> {
+    type Input = SentenceEmbeddingRequest;
+    type Output = SentenceEmbeddingResponse;
 
-    let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
+    fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
+        let request = request.into();
 
-    let results = inference::sentence_embedding::sentence_embedding(session, state, encodings)?;
+        let session = self.session();
 
-    Ok(SentenceEmbeddingResponse {
-        results,
-        model_id: state.model_id.clone(),
-        metadata: request.metadata,
-    })
+        let encodings = crate::runtime::encode_text(&self.tokenizer(), request.inputs)?;
+
+        let transform = SentenceEmbeddingTransform::new(self.transform_str())?;
+
+        let results =
+            inference::sentence_embedding::sentence_embedding(session, &transform, encodings)?;
+
+        Ok(SentenceEmbeddingResponse {
+            results,
+            model_id: self.model_id.clone(),
+            metadata: request.metadata,
+        })
+    }
 }
+
+// #[tracing::instrument(skip_all)]
+// pub fn sentence_embedding(
+//     request: impl Into<SentenceEmbeddingRequest>,
+//     state: &AppState<model_type::SentenceEmbedding>,
+// ) -> Result<SentenceEmbeddingResponse, ApiError> {
+//     let request = request.into();
+
+//     let session = state.session.lock();
+
+//     let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
+
+//     let results = inference::sentence_embedding::sentence_embedding(session, state, encodings)?;
+
+//     Ok(SentenceEmbeddingResponse {
+//         results,
+//         model_id: state.model_id.clone(),
+//         metadata: request.metadata,
+//     })
+// }

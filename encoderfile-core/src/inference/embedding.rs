@@ -2,16 +2,15 @@ use ndarray::{Array3, Axis, Ix3};
 use tokenizers::Encoding;
 
 use crate::{
-    common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo, model_type},
+    common::{TokenEmbedding, TokenEmbeddingSequence, TokenInfo},
     error::ApiError,
-    runtime::AppState,
     transforms::{EmbeddingTransform, Postprocessor},
 };
 
 #[tracing::instrument(skip_all)]
 pub fn embedding<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState<model_type::Embedding>,
+    transform: &EmbeddingTransform,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenEmbeddingSequence>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -25,7 +24,7 @@ pub fn embedding<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, hidden_dim]")
         .into_owned();
 
-    outputs = EmbeddingTransform::new(state.transform_str())?.postprocess(outputs)?;
+    outputs = transform.postprocess(outputs)?;
 
     let embeddings = postprocess(outputs, encodings);
 
