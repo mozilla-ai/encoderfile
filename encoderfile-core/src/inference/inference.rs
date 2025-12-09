@@ -4,5 +4,5 @@ pub trait Inference {
     type Input;
     type Output;
 
-    fn run(&self) -> Result<Self::Output, ApiError>;
+    fn run(&self, input: Self::Input) -> Result<Self::Output, ApiError>;
 }
