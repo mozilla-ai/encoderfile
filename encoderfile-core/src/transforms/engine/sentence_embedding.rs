@@ -1,9 +1,9 @@
-use crate::error::ApiError;
+use crate::{common::model_type, error::ApiError};
 
-use super::{super::tensor::Tensor, Postprocessor, SentenceEmbeddingTransform};
+use super::{super::tensor::Tensor, Postprocessor, Transform};
 use ndarray::{Array2, Array3, Ix2};
 
-impl Postprocessor for SentenceEmbeddingTransform {
+impl Postprocessor for Transform<model_type::SentenceEmbedding> {
     type Input = (Array3<f32>, Array2<f32>);
     type Output = Array2<f32>;
 
@@ -67,7 +67,8 @@ mod tests {
 
     #[test]
     fn test_no_pooling() {
-        let engine = SentenceEmbeddingTransform::new(Some("")).expect("Failed to create engine");
+        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(""))
+            .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
         let mask = ndarray::Array2::<f32>::from_elem((16, 32), 1.0);
@@ -84,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_successful_pool() {
-        let engine = SentenceEmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
             r##"
         function Postprocess(arr, mask)
             -- sum along second axis (lol)
@@ -106,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_bad_dim_pool() {
-        let engine = SentenceEmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
             r##"
         function Postprocess(arr, mask)
             return arr
@@ -125,7 +126,7 @@ mod tests {
 
     #[test]
     fn test_sentence_embedding_transform_bad_fn() {
-        let engine = SentenceEmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
             r##"
         function Postprocess(arr, mask)
             return 1
@@ -144,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = SentenceEmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
             r##"
         function Postprocess(arr, mask)
             return arr

@@ -1,7 +1,7 @@
 mod embedding;
 mod model_config;
 mod model_metadata;
-mod model_type;
+pub mod model_type;
 mod sentence_embedding;
 mod sequence_classification;
 mod token;
@@ -10,7 +10,7 @@ mod token_classification;
 pub use embedding::*;
 pub use model_config::*;
 pub use model_metadata::*;
-pub use model_type::*;
+pub use model_type::ModelTypeEnum;
 pub use sentence_embedding::*;
 pub use sequence_classification::*;
 pub use token::*;

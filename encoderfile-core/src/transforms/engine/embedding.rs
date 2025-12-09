@@ -1,9 +1,9 @@
-use crate::error::ApiError;
+use crate::{common::model_type, error::ApiError};
 
-use super::{super::tensor::Tensor, EmbeddingTransform, Postprocessor};
+use super::{super::tensor::Tensor, Postprocessor, Transform};
 use ndarray::{Array3, Ix3};
 
-impl Postprocessor for EmbeddingTransform {
+impl Postprocessor for Transform<model_type::Embedding> {
     type Input = Array3<f32>;
     type Output = Array3<f32>;
 
@@ -52,7 +52,8 @@ mod tests {
 
     #[test]
     fn test_embedding_no_transform() {
-        let engine = EmbeddingTransform::new(Some("")).expect("Failed to create Transform");
+        let engine =
+            Transform::<model_type::Embedding>::new(Some("")).expect("Failed to create Transform");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
 
@@ -63,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_embedding_identity_transform() {
-        let engine = EmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::Embedding>::new(Some(
             r##"
         function Postprocess(arr)
             return arr
@@ -81,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_embedding_transform_bad_fn() {
-        let engine = EmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::Embedding>::new(Some(
             r##"
         function Postprocess(arr)
             return 1
@@ -99,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = EmbeddingTransform::new(Some(
+        let engine = Transform::<model_type::Embedding>::new(Some(
             r##"
         function Postprocess(x)
             return x:sum_axis(1)

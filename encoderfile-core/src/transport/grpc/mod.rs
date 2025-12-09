@@ -43,9 +43,9 @@ pub fn router(state: AppState) -> axum::Router {
         ModelTypeEnum::TokenClassification => builder.add_service(
             TokenClassificationInferenceServer::new(TokenClassificationService::new(state)),
         ),
-        ModelTypeEnum::SentenceEmbedding => builder.add_service(SentenceEmbeddingInferenceServer::new(
-            SentenceEmbeddingService::new(state),
-        )),
+        ModelTypeEnum::SentenceEmbedding => builder.add_service(
+            SentenceEmbeddingInferenceServer::new(SentenceEmbeddingService::new(state)),
+        ),
     }
     .into_axum_router()
 }

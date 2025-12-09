@@ -1,9 +1,9 @@
-use crate::error::ApiError;
+use crate::{common::model_type, error::ApiError};
 
-use super::{super::tensor::Tensor, Postprocessor, SequenceClassificationTransform};
+use super::{super::tensor::Tensor, Postprocessor, Transform};
 use ndarray::{Array2, Ix2};
 
-impl Postprocessor for SequenceClassificationTransform {
+impl Postprocessor for Transform<model_type::SequenceClassification> {
     type Input = Array2<f32>;
     type Output = Array2<f32>;
 
@@ -50,8 +50,8 @@ mod tests {
 
     #[test]
     fn test_sequence_cls_no_transform() {
-        let engine =
-            SequenceClassificationTransform::new(Some("")).expect("Failed to create Transform");
+        let engine = Transform::<model_type::SequenceClassification>::new(Some(""))
+            .expect("Failed to create Transform");
 
         let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
 
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn test_seq_cls_transform() {
-        let engine = SequenceClassificationTransform::new(Some(
+        let engine = Transform::<model_type::SequenceClassification>::new(Some(
             r##"
         function Postprocess(arr)
             return arr
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn test_seq_cls_transform_bad_fn() {
-        let engine = SequenceClassificationTransform::new(Some(
+        let engine = Transform::<model_type::SequenceClassification>::new(Some(
             r##"
         function Postprocess(arr)
             return 1
@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = SequenceClassificationTransform::new(Some(
+        let engine = Transform::<model_type::SequenceClassification>::new(Some(
             r##"
         function Postprocess(x)
             return x:sum_axis(1)
