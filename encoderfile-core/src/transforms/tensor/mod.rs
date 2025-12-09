@@ -84,6 +84,26 @@ impl LuaUserData for Tensor {
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
+    pub fn layer_norm(&self, axis: isize, eps: f32) -> Result<Self, LuaError> {
+        // normalize over axis
+        let axis = self.axis1(axis)?;
+        let mean = self
+            .0
+            .mean_axis(axis)
+            .ok_or(LuaError::external(
+                "Failed to mean_axis Tensor: Axis length must be > 0.",
+            ))?
+            .insert_axis(axis);
+
+        // no bias: ddof = 0.0
+        let var = self.0.var_axis(axis, 0.0);
+        let std = (var + eps).mapv(f32::sqrt).insert_axis(axis);
+
+        // y = (x − mean(x)) / sqrt(var(x) + eps)
+        Ok(Tensor(((&self.0 - &mean) / &std).into_dyn()))
+    }
+
+    #[tracing::instrument(skip_all)]
     pub fn truncate_axis(&self, axis: isize, len: usize) -> Result<Self, LuaError> {
         let axis = self.axis1(axis)?;
 
