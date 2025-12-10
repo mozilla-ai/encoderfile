@@ -31,24 +31,24 @@ macro_rules! predict_endpoint {
             pub struct ApiDoc;
 
             #[utoipa::path(
-                                get,
-                                path = base::OPENAPI_ENDPOINT,
-                                responses(
-                                    (status = 200, description = "Successful")
-                                )
-                            )]
+                                                get,
+                                                path = base::OPENAPI_ENDPOINT,
+                                                responses(
+                                                    (status = 200, description = "Successful")
+                                                )
+                                            )]
             pub async fn openapi() -> impl IntoResponse {
                 Json(ApiDoc::openapi())
             }
 
             #[utoipa::path(
-                                post,
-                                path = base::PREDICT_ENDPOINT,
-                                request_body = PredictInput,
-                                responses(
-                                    (status = 200, response = PredictOutput)
-                                ),
-                            )]
+                                                post,
+                                                path = base::PREDICT_ENDPOINT,
+                                                request_body = PredictInput,
+                                                responses(
+                                                    (status = 200, response = PredictOutput)
+                                                ),
+                                            )]
             pub async fn predict(
                 State(state): State<AppState<ModelType>>,
                 Json(req): Json<PredictInput>,
