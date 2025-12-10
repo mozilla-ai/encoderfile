@@ -40,12 +40,7 @@ trait CliRoute: Inference {
     }
 }
 
-impl<T> CliRoute for AppState<T>
-where
-    T: ModelTypeSpec,
-    AppState<T>: Inference,
-{
-}
+impl<T: ModelTypeSpec> CliRoute for AppState<T> where AppState<T>: Inference {}
 
 #[derive(Parser)]
 pub struct Cli {

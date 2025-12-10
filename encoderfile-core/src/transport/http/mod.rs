@@ -3,9 +3,8 @@ use crate::{common::model_type::ModelTypeSpec, runtime::AppState, services::Infe
 mod base;
 mod error;
 
-pub fn router<T>(state: AppState<T>) -> axum::Router
+pub fn router<T: ModelTypeSpec>(state: AppState<T>) -> axum::Router
 where
-    T: ModelTypeSpec,
     AppState<T>: Inference,
 {
     axum::Router::new()

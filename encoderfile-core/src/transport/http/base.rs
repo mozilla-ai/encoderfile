@@ -40,15 +40,11 @@ pub async fn get_model_metadata<T: ModelTypeSpec>(
     Json(crate::services::get_model_metadata(&state))
 }
 
-pub async fn predict<'de, T>(
+pub async fn predict<T: ModelTypeSpec>(
     State(state): State<AppState<T>>,
     Json(req): Json<<AppState<T> as Inference>::Input>,
-) -> Result<
-    Json<<AppState<T> as Inference>::Output>,
-    (axum::http::StatusCode, std::borrow::Cow<'static, str>),
->
+) -> impl IntoResponse
 where
-    T: ModelTypeSpec,
     AppState<T>: Inference,
 {
     state
@@ -64,9 +60,8 @@ where
         (status = 200, description = "Successful")
     )
 )]
-pub async fn openapi<'de, T: ModelTypeSpec>() -> impl IntoResponse
+pub async fn openapi<T: ModelTypeSpec>() -> impl IntoResponse
 where
-    T: ModelTypeSpec,
     AppState<T>: Inference,
 {
     let mut openapi = ApiDoc::openapi();
@@ -78,9 +73,8 @@ where
     Json(openapi)
 }
 
-fn inference_endpoint_openapi<'de, T>() -> (&'static str, utoipa::openapi::path::PathItem)
+fn inference_endpoint_openapi<T: ModelTypeSpec>() -> (&'static str, utoipa::openapi::path::PathItem)
 where
-    T: ModelTypeSpec,
     AppState<T>: Inference,
 {
     let input_schema = <AppState<T> as Inference>::Input::schema();

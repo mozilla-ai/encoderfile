@@ -42,7 +42,7 @@ macro_rules! factory {
         $model_weights_path:expr,
         $tokenizer_path:expr,
         $model_config_path:expr,
-        $model_type:expr,
+        $model_type:ident,
         $model_id:expr,
         $transform:expr,
     } => {
@@ -51,7 +51,6 @@ macro_rules! factory {
             $crate::embed_in_section!(TOKENIZER_JSON, $tokenizer_path, "tokenizer", String);
             $crate::embed_in_section!(MODEL_CONFIG_JSON, $model_config_path, "model_config", String);
 
-            pub const MODEL_TYPE_STR: &'static str = $model_type;
             pub const MODEL_ID: &'static str = $model_id;
 
             #[allow(dead_code)]
@@ -59,11 +58,10 @@ macro_rules! factory {
         }
 
         fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            $crate::entrypoint(
+            $crate::entrypoint::<$crate::common::model_type::$model_type>(
                 &assets::MODEL_WEIGHTS,
                 assets::MODEL_CONFIG_JSON,
                 assets::TOKENIZER_JSON,
-                assets::MODEL_TYPE_STR,
                 assets::MODEL_ID,
                 assets::TRANSFORM,
             )

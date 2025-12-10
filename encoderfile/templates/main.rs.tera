@@ -4,7 +4,7 @@ encoderfile_core::factory! {
     "{{ model_weights_path }}",
     "{{ tokenizer_path }}",
     "{{ model_config_path }}",
-    "{{ model_type }}",
+    {{ model_type }},
     "{{ model_name }}",
     {% if transform %}Some(r###"
 {{ transform }}
