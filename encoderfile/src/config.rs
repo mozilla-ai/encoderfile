@@ -83,7 +83,7 @@ impl EncoderfileConfig {
 
         ctx.insert("version", self.version.as_str());
         ctx.insert("model_name", self.name.as_str());
-        ctx.insert("model_type", &self.model_type);
+        ctx.insert("model_type", self.model_type.to_ident());
         ctx.insert("model_weights_path", &self.path.model_weights_path()?);
         ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
         ctx.insert("model_config_path", &self.path.model_config_path()?);

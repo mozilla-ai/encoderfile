@@ -10,6 +10,15 @@ pub struct TokenClassificationRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
+impl super::FromCliInput for TokenClassificationRequest {
+    fn from_cli_input(inputs: Vec<String>) -> Self {
+        Self {
+            inputs,
+            metadata: Some(HashMap::default()),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct TokenClassificationResponse {
     pub results: Vec<TokenClassificationResult>,

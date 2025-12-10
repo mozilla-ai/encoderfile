@@ -1,11 +1,9 @@
 use crate::{
-    common::{
-        EmbeddingRequest, ModelType, SentenceEmbeddingRequest, SequenceClassificationRequest,
-        TokenClassificationRequest,
-    },
+    common::{FromCliInput, model_type::ModelTypeSpec},
     runtime::AppState,
     server::{run_grpc, run_http, run_mcp},
-    services::{embedding, sentence_embedding, sequence_classification, token_classification},
+    services::Inference,
+    transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
@@ -15,23 +13,34 @@ use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{fmt::Display, io::Write};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-macro_rules! generate_cli_route {
-    ($req:ident, $fn:path, $format:ident, $out_dir:expr, $state:expr) => {{
-        let result = $fn($req, &$state)?;
+trait CliRoute: Inference {
+    fn cli_route(
+        &self,
+        inputs: Vec<String>,
+        format: Format,
+        out_dir: Option<String>,
+    ) -> Result<()> {
+        let input = Self::Input::from_cli_input(inputs);
 
-        let serialized = match $format {
+        let result = self.inference(input)?;
+
+        let serialized = match format {
             Format::Json => serde_json::to_string_pretty(&result)?,
         };
 
-        match $out_dir {
+        match out_dir {
             Some(o) => {
                 let mut file = std::fs::File::create(o)?;
                 file.write_all(serialized.as_bytes())?;
             }
             None => println!("{}", serialized),
-        }
-    }};
+        };
+
+        Ok(())
+    }
 }
+
+impl<T: ModelTypeSpec> CliRoute for AppState<T> where AppState<T>: Inference {}
 
 #[derive(Parser)]
 pub struct Cli {
@@ -84,7 +93,13 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute(self, state: AppState) -> Result<()> {
+    pub async fn execute<T: ModelTypeSpec + GrpcRouter + McpRouter + HttpRouter>(
+        self,
+        state: AppState<T>,
+    ) -> Result<()>
+    where
+        AppState<T>: Inference,
+    {
         match self {
             Commands::Serve {
                 grpc_hostname,
@@ -144,36 +159,7 @@ impl Commands {
             } => {
                 setup_tracing(None)?;
 
-                let metadata = None;
-
-                match state.model_type {
-                    ModelType::Embedding => {
-                        let request = EmbeddingRequest { inputs, metadata };
-
-                        generate_cli_route!(request, embedding, format, out_dir, state)
-                    }
-                    ModelType::SequenceClassification => {
-                        let request = SequenceClassificationRequest { inputs, metadata };
-
-                        generate_cli_route!(
-                            request,
-                            sequence_classification,
-                            format,
-                            out_dir,
-                            state
-                        )
-                    }
-                    ModelType::TokenClassification => {
-                        let request = TokenClassificationRequest { inputs, metadata };
-
-                        generate_cli_route!(request, token_classification, format, out_dir, state)
-                    }
-                    ModelType::SentenceEmbedding => {
-                        let request = SentenceEmbeddingRequest { inputs, metadata };
-
-                        generate_cli_route!(request, sentence_embedding, format, out_dir, state)
-                    }
-                }
+                state.cli_route(inputs, format, out_dir)?
             }
             Commands::Mcp {
                 hostname,

@@ -1,24 +1,27 @@
-#[cfg(not(tarpaulin_include))]
-use crate::AppState;
-use crate::transport::{grpc, http, mcp};
+use crate::{
+    AppState,
+    common::model_type::ModelTypeSpec,
+    services::Inference,
+    transport::{grpc::GrpcRouter, http::HttpRouter},
+};
 use anyhow::Result;
 use axum_server::tls_rustls::RustlsConfig;
 use std::path::Path;
 use tower_http::trace::DefaultOnResponse;
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_grpc(
+pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
-    state: AppState,
+    state: AppState<T>,
 ) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let model_type = state.model_type.clone();
+    let model_type = T::enum_val();
 
-    let router = grpc::router(state)
+    let router = T::router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_grpc()
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
@@ -69,18 +72,21 @@ pub async fn run_grpc(
 }
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_http(
+pub async fn run_http<T: ModelTypeSpec + HttpRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
-    state: AppState,
-) -> Result<()> {
+    state: AppState<T>,
+) -> Result<()>
+where
+    AppState<T>: Inference,
+{
     let addr = format!("{}:{}", &hostname, &port);
 
-    let model_type = state.model_type.clone();
+    let model_type = T::enum_val();
 
-    let router = http::router(state)
+    let router = T::http_router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
@@ -124,19 +130,19 @@ pub async fn run_http(
 }
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_mcp(
+pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
-    state: AppState,
+    state: AppState<T>,
 ) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
     // FIXME add otel around here
-    let model_type = state.model_type.clone();
+    let model_type = T::enum_val();
 
-    let router = mcp::make_router(state)
+    let router = T::mcp_router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
                 // TODO check if otel is enabled

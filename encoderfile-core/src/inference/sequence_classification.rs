@@ -1,7 +1,6 @@
 use crate::{
     common::{ModelConfig, SequenceClassificationResult},
     error::ApiError,
-    runtime::AppState,
     transforms::{Postprocessor, SequenceClassificationTransform},
 };
 use ndarray::{Array2, Axis, Ix2};
@@ -11,7 +10,8 @@ use tokenizers::Encoding;
 #[tracing::instrument(skip_all)]
 pub fn sequence_classification<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState,
+    transform: &SequenceClassificationTransform,
+    config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -25,9 +25,9 @@ pub fn sequence_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_labels]")
         .into_owned();
 
-    outputs = SequenceClassificationTransform::new(state.transform_str())?.postprocess(outputs)?;
+    outputs = transform.postprocess(outputs)?;
 
-    let results = postprocess(outputs, &state.config);
+    let results = postprocess(outputs, config);
 
     Ok(results)
 }

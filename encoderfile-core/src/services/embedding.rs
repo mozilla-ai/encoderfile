@@ -1,26 +1,32 @@
 use crate::{
-    common::{EmbeddingRequest, EmbeddingResponse},
+    common::{EmbeddingRequest, EmbeddingResponse, model_type},
     error::ApiError,
     inference,
-    runtime::AppState,
+    runtime::{AppState, InferenceState},
+    transforms::EmbeddingTransform,
 };
 
-#[tracing::instrument(skip_all)]
-pub fn embedding(
-    request: impl Into<EmbeddingRequest>,
-    state: &AppState,
-) -> Result<EmbeddingResponse, ApiError> {
-    let request = request.into();
+use super::inference::Inference;
 
-    let session = state.session.lock();
+impl Inference for AppState<model_type::Embedding> {
+    type Input = EmbeddingRequest;
+    type Output = EmbeddingResponse;
 
-    let encodings = crate::runtime::encode_text(&state.tokenizer, request.inputs)?;
+    fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
+        let request = request.into();
 
-    let results = inference::embedding::embedding(session, state, encodings)?;
+        let session = self.session();
 
-    Ok(EmbeddingResponse {
-        results,
-        model_id: state.model_id.clone(),
-        metadata: request.metadata,
-    })
+        let encodings = crate::runtime::encode_text(self.tokenizer(), request.inputs)?;
+
+        let transform = EmbeddingTransform::new(self.transform_str())?;
+
+        let results = inference::embedding::embedding(session, &transform, encodings)?;
+
+        Ok(EmbeddingResponse {
+            results,
+            model_id: self.model_id.clone(),
+            metadata: request.metadata,
+        })
+    }
 }

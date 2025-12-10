@@ -4,7 +4,7 @@ use encoderfile_core::{
         TokenClassificationRequest,
     },
     dev_utils::*,
-    services::{embedding, sentence_embedding, sequence_classification, token_classification},
+    services::Inference,
 };
 
 #[test]
@@ -15,7 +15,9 @@ pub fn test_embedding_service() {
         metadata: None,
     };
 
-    let response = embedding(request, &state).expect("Failed to compute embeddings");
+    let response = state
+        .inference(request)
+        .expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(
@@ -32,7 +34,9 @@ pub fn test_sequence_classification_service() {
         metadata: None,
     };
 
-    let response = sequence_classification(request, &state).expect("Failed to compute embeddings");
+    let response = state
+        .inference(request)
+        .expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(
@@ -49,7 +53,9 @@ pub fn test_token_classification_service() {
         metadata: None,
     };
 
-    let response = token_classification(request, &state).expect("Failed to compute embeddings");
+    let response = state
+        .inference(request)
+        .expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(
@@ -66,7 +72,9 @@ pub fn test_sentence_embedding_service() {
         metadata: None,
     };
 
-    let response = sentence_embedding(request, &state).expect("Failed to compute embeddings");
+    let response = state
+        .inference(request)
+        .expect("Failed to compute embeddings");
 
     assert!(response.results.len() == 1, "Didn't return one result");
     assert!(

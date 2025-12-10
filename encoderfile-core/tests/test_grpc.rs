@@ -20,10 +20,7 @@ use encoderfile_core::{
             token_classification_inference_server::TokenClassificationInference,
         },
     },
-    transport::grpc::{
-        EmbeddingService, SentenceEmbeddingService, SequenceClassificationService,
-        TokenClassificationService,
-    },
+    transport::grpc::GrpcService,
 };
 
 macro_rules! test_grpc_service {
@@ -100,7 +97,7 @@ macro_rules! test_grpc_service {
 
 test_grpc_service!(
     embedding_grpc_tests,
-    { EmbeddingService::new(embedding_state()) },
+    { GrpcService::new(embedding_state()) },
     false,
     EmbeddingRequest {
         inputs: vec!["hello world".to_string(), "the quick brown fox".to_string()],
@@ -111,7 +108,7 @@ test_grpc_service!(
 
 test_grpc_service!(
     sequence_classification_tests,
-    { SequenceClassificationService::new(sequence_classification_state()) },
+    { GrpcService::new(sequence_classification_state()) },
     true,
     SequenceClassificationRequest {
         inputs: vec!["hello world".to_string(), "the quick brown fox".to_string()],
@@ -122,7 +119,7 @@ test_grpc_service!(
 
 test_grpc_service!(
     token_classification_tests,
-    { TokenClassificationService::new(token_classification_state()) },
+    { GrpcService::new(token_classification_state()) },
     true,
     TokenClassificationRequest {
         inputs: vec!["hello world".to_string(), "the quick brown fox".to_string()],
@@ -133,7 +130,7 @@ test_grpc_service!(
 
 test_grpc_service!(
     sentence_embedding_tests,
-    { SentenceEmbeddingService::new(sentence_embedding_state()) },
+    { GrpcService::new(sentence_embedding_state()) },
     false,
     SentenceEmbeddingRequest {
         inputs: vec!["hello world".to_string(), "the quick brown fox".to_string()],

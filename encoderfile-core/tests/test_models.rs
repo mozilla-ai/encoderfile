@@ -4,6 +4,7 @@ use encoderfile_core::inference::{
     token_classification::token_classification,
 };
 use encoderfile_core::runtime::encode_text;
+use encoderfile_core::transforms::Transform;
 
 #[test]
 fn test_embedding_model() {
@@ -20,8 +21,10 @@ fn test_embedding_model() {
 
     let session_lock = state.session.lock();
 
+    let transform = Transform::new(None).expect("Failed to create_transform");
+
     let results =
-        embedding(session_lock, &state, encodings.clone()).expect("Failed to compute results");
+        embedding(session_lock, &transform, encodings.clone()).expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -42,7 +45,9 @@ fn test_embedding_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    embedding(session_lock, &state, encodings.clone()).expect("Failed to compute results");
+    let transform = Transform::new(None).expect("Failed to create_transform");
+
+    embedding(session_lock, &transform, encodings.clone()).expect("Failed to compute results");
 }
 
 #[test]
@@ -60,8 +65,11 @@ fn test_sequence_classification_model() {
 
     let session_lock = state.session.lock();
 
-    let results = sequence_classification(session_lock, &state, encodings.clone())
-        .expect("Failed to compute results");
+    let transform = Transform::new(None).expect("Failed to create_transform");
+
+    let results =
+        sequence_classification(session_lock, &transform, &state.config, encodings.clone())
+            .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -82,7 +90,9 @@ fn test_sequence_classification_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    sequence_classification(session_lock, &state, encodings.clone())
+    let transform = Transform::new(None).expect("Failed to create_transform");
+
+    sequence_classification(session_lock, &transform, &state.config, encodings.clone())
         .expect("Failed to compute results");
 }
 
@@ -101,7 +111,9 @@ fn test_token_classification_model() {
 
     let session_lock = state.session.lock();
 
-    let results = token_classification(session_lock, &state, encodings.clone())
+    let transform = Transform::new(None).expect("Failed to create_transform");
+
+    let results = token_classification(session_lock, &transform, &state.config, encodings.clone())
         .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
@@ -123,6 +135,8 @@ fn test_token_classification_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    token_classification(session_lock, &state, encodings.clone())
+    let transform = Transform::new(None).expect("Failed to create_transform");
+
+    token_classification(session_lock, &transform, &state.config, encodings.clone())
         .expect("Failed to compute results");
 }

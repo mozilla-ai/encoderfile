@@ -1,7 +1,6 @@
 use crate::{
     common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo},
     error::ApiError,
-    runtime::AppState,
     transforms::{Postprocessor, TokenClassificationTransform},
 };
 use ndarray::{Array3, Axis, Ix3};
@@ -11,7 +10,8 @@ use tokenizers::Encoding;
 #[tracing::instrument(skip_all)]
 pub fn token_classification<'a>(
     mut session: crate::runtime::Model<'a>,
-    state: &AppState,
+    transform: &TokenClassificationTransform,
+    config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
@@ -25,9 +25,9 @@ pub fn token_classification<'a>(
         .expect("Model does not return tensor of shape [n_batch, n_tokens, n_labels]")
         .into_owned();
 
-    outputs = TokenClassificationTransform::new(state.transform_str())?.postprocess(outputs)?;
+    outputs = transform.postprocess(outputs)?;
 
-    let predictions = postprocess(outputs, encodings, &state.config);
+    let predictions = postprocess(outputs, encodings, config);
 
     Ok(predictions)
 }

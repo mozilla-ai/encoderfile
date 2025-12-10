@@ -17,6 +17,15 @@ pub enum ModelType {
 }
 
 impl ModelType {
+    pub fn to_ident(&self) -> &'static str {
+        match self {
+            ModelType::Embedding => "Embedding",
+            ModelType::SequenceClassification => "SequenceClassification",
+            ModelType::TokenClassification => "TokenClassification",
+            ModelType::SentenceEmbedding => "SentenceEmbedding",
+        }
+    }
+
     pub fn validate_model(&self, path: &Path) -> Result<()> {
         let model = load_model(path)?;
 

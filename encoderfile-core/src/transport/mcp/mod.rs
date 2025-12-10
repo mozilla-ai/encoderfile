@@ -1,65 +1,35 @@
-use crate::common::ModelType;
+use crate::common::model_type::ModelTypeSpec;
 use crate::runtime::AppState;
+use rmcp::ServerHandler;
 use rmcp::transport::streamable_http_server::{
     StreamableHttpService, session::local::LocalSessionManager,
 };
 
 mod error;
 
-// TODO figure out the lifetimes of a state so a ref can be safely passed
-pub fn make_router(state: AppState) -> axum::Router {
-    match state.model_type {
-        ModelType::Embedding => {
-            let service = StreamableHttpService::new(
-                move || Ok(embedding::EmbedderTool::new(state.clone())),
-                LocalSessionManager::default().into(),
-                Default::default(),
-            );
-            axum::Router::new().nest_service("/mcp", service)
-        }
-        ModelType::SequenceClassification => {
-            let service = StreamableHttpService::new(
-                move || {
-                    Ok(sequence_classification::SequenceClassificationTool::new(
-                        state.clone(),
-                    ))
-                },
-                LocalSessionManager::default().into(),
-                Default::default(),
-            );
-            axum::Router::new().nest_service("/mcp", service)
-        }
-        ModelType::TokenClassification => {
-            let service = StreamableHttpService::new(
-                move || {
-                    Ok(token_classification::TokenClassificationTool::new(
-                        state.clone(),
-                    ))
-                },
-                LocalSessionManager::default().into(),
-                Default::default(),
-            );
-            axum::Router::new().nest_service("/mcp", service)
-        }
-        ModelType::SentenceEmbedding => {
-            let service = StreamableHttpService::new(
-                move || {
-                    Ok(sentence_embedding::SentenceEmbeddingTool::new(
-                        state.clone(),
-                    ))
-                },
-                LocalSessionManager::default().into(),
-                Default::default(),
-            );
-            axum::Router::new().nest_service("/mcp", service)
-        }
+pub trait McpRouter: ModelTypeSpec {
+    type Tool: ServerHandler;
+    const NEW_TOOL: fn(AppState<Self>) -> Self::Tool;
+
+    // TODO figure out the lifetimes of a state so a ref can be safely passed
+    fn mcp_router(state: AppState<Self>) -> axum::Router
+    where
+        <Self as McpRouter>::Tool: rmcp::ServerHandler,
+    {
+        let service = StreamableHttpService::new(
+            move || Ok(Self::NEW_TOOL(state.clone())),
+            LocalSessionManager::default().into(),
+            Default::default(),
+        );
+
+        axum::Router::new().nest_service("/mcp", service)
     }
 }
 
 macro_rules! generate_mcp {
-    ($tool_name:ident, $fn_name:ident, $request_body:ident, $return_model:ident, $short_desc:literal, $long_desc:literal) => {
+    ($model_type:ident, $tool_name:ident, $fn_name:ident, $request_body:ident, $return_model:ident, $short_desc:literal, $long_desc:literal) => {
         mod $fn_name {
-            use $crate::services::$fn_name;
+            use crate::services::Inference;
             use $crate::common::$request_body;
             use $crate::runtime::AppState;
             use $crate::transport::mcp::error::to_mcp_error;
@@ -86,13 +56,18 @@ macro_rules! generate_mcp {
 
             #[derive(Clone)]
             pub struct $tool_name {
-                state: AppState,
+                state: AppState<$crate::common::model_type::$model_type>,
                 tool_router: ToolRouter<$tool_name>,
+            }
+
+            impl super::McpRouter for $crate::common::model_type::$model_type {
+                type Tool = $tool_name;
+                const NEW_TOOL: fn(AppState<Self>) -> Self::Tool = Self::Tool::new;
             }
 
             #[tool_router]
             impl $tool_name {
-                pub fn new(state: AppState) -> Self {
+                pub fn new(state: AppState<crate::common::model_type::$model_type>) -> Self {
                     Self {
                         state,
                         tool_router: Self::tool_router(),
@@ -101,7 +76,7 @@ macro_rules! generate_mcp {
 
                 #[tool(description = $short_desc)]
                 fn run_encoder(&self, Parameters(object): Parameters<$request_body>) -> Result<CallToolResult, McpError> {
-                    let response = $fn_name(object, &self.state)?;
+                    let response = self.state.inference(object)?;
                     let result = CallToolResult::structured(serde_json::to_value(response).map_err(to_mcp_error)?);
                     Ok(result)
                 }
@@ -137,6 +112,7 @@ macro_rules! generate_mcp {
 }
 
 generate_mcp!(
+    Embedding,
     EmbedderTool,
     embedding,
     EmbeddingRequest,
@@ -146,6 +122,7 @@ generate_mcp!(
 );
 
 generate_mcp!(
+    SequenceClassification,
     SequenceClassificationTool,
     sequence_classification,
     SequenceClassificationRequest,
@@ -155,6 +132,7 @@ generate_mcp!(
 );
 
 generate_mcp!(
+    TokenClassification,
     TokenClassificationTool,
     token_classification,
     TokenClassificationRequest,
@@ -164,6 +142,7 @@ generate_mcp!(
 );
 
 generate_mcp!(
+    SentenceEmbedding,
     SentenceEmbeddingTool,
     sentence_embedding,
     SentenceEmbeddingRequest,

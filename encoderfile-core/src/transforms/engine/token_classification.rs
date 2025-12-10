@@ -1,9 +1,9 @@
-use crate::error::ApiError;
+use crate::{common::model_type, error::ApiError};
 
-use super::{super::tensor::Tensor, Postprocessor, TokenClassificationTransform};
+use super::{super::tensor::Tensor, Postprocessor, Transform};
 use ndarray::{Array3, Ix3};
 
-impl Postprocessor for TokenClassificationTransform {
+impl Postprocessor for Transform<model_type::TokenClassification> {
     type Input = Array3<f32>;
     type Output = Array3<f32>;
 
@@ -50,8 +50,8 @@ mod tests {
 
     #[test]
     fn test_token_cls_no_transform() {
-        let engine =
-            TokenClassificationTransform::new(Some("")).expect("Failed to create Transform");
+        let engine = Transform::<model_type::TokenClassification>::new(Some(""))
+            .expect("Failed to create Transform");
 
         let arr = ndarray::Array3::<f32>::from_elem((32, 16, 2), 2.0);
 
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn test_token_cls_identity_transform() {
-        let engine = TokenClassificationTransform::new(Some(
+        let engine = Transform::<model_type::TokenClassification>::new(Some(
             r##"
         function Postprocess(arr)
             return arr
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn test_token_cls_transform_bad_fn() {
-        let engine = TokenClassificationTransform::new(Some(
+        let engine = Transform::<model_type::TokenClassification>::new(Some(
             r##"
         function Postprocess(arr)
             return 1
@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = TokenClassificationTransform::new(Some(
+        let engine = Transform::<model_type::TokenClassification>::new(Some(
             r##"
         function Postprocess(x)
             return x:sum_axis(1)

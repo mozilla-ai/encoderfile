@@ -1,6 +1,9 @@
 use crate::{
     cli::Cli,
-    runtime::{AppState, get_model, get_model_config, get_model_type, get_tokenizer},
+    common::model_type::ModelTypeSpec,
+    runtime::{AppState, get_model, get_model_config, get_tokenizer},
+    services::Inference,
+    transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
 
 #[macro_export]
@@ -39,7 +42,7 @@ macro_rules! factory {
         $model_weights_path:expr,
         $tokenizer_path:expr,
         $model_config_path:expr,
-        $model_type:expr,
+        $model_type:ident,
         $model_id:expr,
         $transform:expr,
     } => {
@@ -48,7 +51,6 @@ macro_rules! factory {
             $crate::embed_in_section!(TOKENIZER_JSON, $tokenizer_path, "tokenizer", String);
             $crate::embed_in_section!(MODEL_CONFIG_JSON, $model_config_path, "model_config", String);
 
-            pub const MODEL_TYPE_STR: &'static str = $model_type;
             pub const MODEL_ID: &'static str = $model_id;
 
             #[allow(dead_code)]
@@ -56,11 +58,10 @@ macro_rules! factory {
         }
 
         fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            $crate::entrypoint(
+            $crate::entrypoint::<$crate::common::model_type::$model_type>(
                 &assets::MODEL_WEIGHTS,
                 assets::MODEL_CONFIG_JSON,
                 assets::TOKENIZER_JSON,
-                assets::MODEL_TYPE_STR,
                 assets::MODEL_ID,
                 assets::TRANSFORM,
             )
@@ -68,14 +69,16 @@ macro_rules! factory {
     };
 }
 
-pub fn entrypoint(
+pub fn entrypoint<T: ModelTypeSpec + GrpcRouter + McpRouter + HttpRouter>(
     model_bytes: &[u8],
     config_str: &str,
     tokenizer_json: &str,
-    model_type: &str,
     model_id: &str,
     transform_str: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+where
+    AppState<T>: Inference,
+{
     use anyhow::Context;
     use clap::Parser;
 
@@ -89,20 +92,12 @@ pub fn entrypoint(
     let session = get_model(model_bytes);
     let config = get_model_config(config_str);
     let tokenizer = get_tokenizer(tokenizer_json, &config);
-    let model_type = get_model_type(model_type);
     let transform_str = transform_str.map(|t| t.to_string());
     let model_id = model_id.to_string();
 
-    let state = AppState {
-        session,
-        config,
-        tokenizer,
-        model_type,
-        model_id,
-        transform_str,
-    };
+    let state = AppState::new(session, tokenizer, config, model_id, transform_str);
 
-    rt.block_on(cli.command.execute(state))?;
+    rt.block_on(cli.command.execute::<T>(state))?;
 
     Ok(())
 }

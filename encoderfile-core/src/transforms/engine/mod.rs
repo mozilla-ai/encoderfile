@@ -1,4 +1,9 @@
-use crate::{common::ModelType, error::ApiError};
+use std::marker::PhantomData;
+
+use crate::{
+    common::model_type::{self, ModelTypeSpec},
+    error::ApiError,
+};
 
 use super::tensor::Tensor;
 use mlua::prelude::*;
@@ -10,7 +15,7 @@ mod token_classification;
 
 macro_rules! transform {
     ($type_name:ident, $mt:ident) => {
-        pub type $type_name = Transform<{ ModelType::$mt as u8 }>;
+        pub type $type_name = Transform<model_type::$mt>;
     };
 }
 
@@ -31,13 +36,14 @@ pub trait TransformSpec {
 }
 
 #[derive(Debug)]
-pub struct Transform<const MT: u8> {
+pub struct Transform<T: ModelTypeSpec> {
     #[allow(dead_code)]
     lua: Lua,
     postprocessor: Option<LuaFunction>,
+    _marker: PhantomData<T>,
 }
 
-impl<const MT: u8> Transform<MT> {
+impl<T: ModelTypeSpec> Transform<T> {
     fn postprocessor(&self) -> &Option<LuaFunction> {
         &self.postprocessor
     }
@@ -55,11 +61,15 @@ impl<const MT: u8> Transform<MT> {
             .get::<Option<LuaFunction>>("Postprocess")
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
-        Ok(Self { lua, postprocessor })
+        Ok(Self {
+            lua,
+            postprocessor,
+            _marker: PhantomData,
+        })
     }
 }
 
-impl<const MT: u8> TransformSpec for Transform<MT> {
+impl<T: ModelTypeSpec> TransformSpec for Transform<T> {
     fn has_postprocessor(&self) -> bool {
         self.postprocessor.is_some()
     }
