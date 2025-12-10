@@ -1,4 +1,4 @@
-use crate::transport::{http, mcp};
+use crate::transport::http;
 #[cfg(not(tarpaulin_include))]
 use crate::{
     AppState, common::model_type::ModelTypeSpec, services::Inference, transport::grpc::GrpcRouter,
@@ -141,7 +141,7 @@ pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
     // FIXME add otel around here
     let model_type = T::enum_val();
 
-    let router = mcp::make_router(state)
+    let router = T::mcp_router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
                 // TODO check if otel is enabled

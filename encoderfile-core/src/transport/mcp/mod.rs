@@ -11,7 +11,8 @@ pub trait McpRouter: ModelTypeSpec {
     type Tool: ServerHandler;
     const NEW_TOOL: fn(AppState<Self>) -> Self::Tool;
 
-    fn router(state: AppState<Self>) -> axum::Router
+    // TODO figure out the lifetimes of a state so a ref can be safely passed
+    fn mcp_router(state: AppState<Self>) -> axum::Router
     where
         <Self as McpRouter>::Tool: rmcp::ServerHandler,
     {
@@ -23,14 +24,6 @@ pub trait McpRouter: ModelTypeSpec {
 
         axum::Router::new().nest_service("/mcp", service)
     }
-}
-
-// TODO figure out the lifetimes of a state so a ref can be safely passed
-pub fn make_router<T: ModelTypeSpec>(state: AppState<T>) -> axum::Router
-where
-    T: McpRouter,
-{
-    T::router(state)
 }
 
 macro_rules! generate_mcp {
