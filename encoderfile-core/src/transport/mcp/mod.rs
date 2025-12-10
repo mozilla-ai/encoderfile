@@ -7,7 +7,7 @@ use rmcp::transport::streamable_http_server::{
 
 mod error;
 
-trait McpRouter: ModelTypeSpec + 'static {
+pub trait McpRouter: ModelTypeSpec + 'static {
     type Tool: ServerHandler;
     const NEW_TOOL: fn(AppState<Self>) -> Self::Tool;
 

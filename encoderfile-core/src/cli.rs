@@ -1,11 +1,11 @@
 use crate::{
     common::{
         EmbeddingRequest, ModelType, SentenceEmbeddingRequest, SequenceClassificationRequest,
-        TokenClassificationRequest,
+        TokenClassificationRequest, model_type::ModelTypeSpec,
     },
     runtime::AppState,
     server::{run_grpc, run_http, run_mcp},
-    services::{embedding, sentence_embedding, sequence_classification, token_classification},
+    services::Inference, transport::{grpc::GrpcRouter, mcp::McpRouter},
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
@@ -80,11 +80,17 @@ pub enum Commands {
         cert_file: Option<String>,
         #[arg(long)]
         key_file: Option<String>,
-    },
+    }
 }
 
 impl Commands {
-    pub async fn execute(self, state: AppState) -> Result<()> {
+    pub async fn execute<T: ModelTypeSpec + GrpcRouter + McpRouter>(self, state: AppState<T>) -> Result<()>
+    where 
+        T: ModelTypeSpec + 'static,
+        AppState<T>: Inference,
+        <AppState<T> as Inference>::Input: utoipa::ToSchema + serde::de::DeserializeOwned + Send + 'static,
+        <AppState<T> as Inference>::Output: utoipa::ToSchema + serde::Serialize
+    {
         match self {
             Commands::Serve {
                 grpc_hostname,
