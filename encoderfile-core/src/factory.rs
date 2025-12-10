@@ -1,5 +1,9 @@
 use crate::{
-    cli::Cli, common::model_type::ModelTypeSpec, runtime::{AppState, get_model, get_model_config, get_tokenizer}, services::Inference, transport::{grpc::GrpcRouter, mcp::McpRouter}
+    cli::Cli,
+    common::model_type::ModelTypeSpec,
+    runtime::{AppState, get_model, get_model_config, get_tokenizer},
+    services::Inference,
+    transport::{grpc::GrpcRouter, mcp::McpRouter},
 };
 
 #[macro_export]
@@ -76,9 +80,9 @@ pub fn entrypoint<T: ModelTypeSpec + GrpcRouter + McpRouter>(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
 where
     AppState<T>: Inference,
-    <AppState<T> as Inference>::Input: utoipa::ToSchema,
-    <AppState<T> as Inference>::Output: utoipa::ToSchema
-    {
+    <AppState<T> as Inference>::Input: From<Vec<String>> + utoipa::ToSchema,
+    <AppState<T> as Inference>::Output: utoipa::ToSchema,
+{
     use anyhow::Context;
     use clap::Parser;
 
@@ -95,13 +99,7 @@ where
     let transform_str = transform_str.map(|t| t.to_string());
     let model_id = model_id.to_string();
 
-    let state = AppState::new(
-        session,
-        tokenizer,
-        config,
-        model_id,
-        transform_str,
-    );
+    let state = AppState::new(session, tokenizer, config, model_id, transform_str);
 
     rt.block_on(cli.command.execute::<T>(state))?;
 

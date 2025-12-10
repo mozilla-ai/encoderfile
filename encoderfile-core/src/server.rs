@@ -1,6 +1,8 @@
-#[cfg(not(tarpaulin_include))]
-use crate::{AppState, common::model_type::ModelTypeSpec, services::Inference, transport::grpc::GrpcRouter};
 use crate::transport::{http, mcp};
+#[cfg(not(tarpaulin_include))]
+use crate::{
+    AppState, common::model_type::ModelTypeSpec, services::Inference, transport::grpc::GrpcRouter,
+};
 use anyhow::Result;
 use axum_server::tls_rustls::RustlsConfig;
 use std::path::Path;
@@ -79,8 +81,8 @@ pub async fn run_http<T: ModelTypeSpec + 'static>(
 where
     AppState<T>: Inference,
     <AppState<T> as Inference>::Input: utoipa::ToSchema,
-    <AppState<T> as Inference>::Output: utoipa::ToSchema
-    {
+    <AppState<T> as Inference>::Output: utoipa::ToSchema,
+{
     let addr = format!("{}:{}", &hostname, &port);
 
     let model_type = T::enum_val();

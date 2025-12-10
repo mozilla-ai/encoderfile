@@ -15,3 +15,7 @@ pub use sentence_embedding::*;
 pub use sequence_classification::*;
 pub use token::*;
 pub use token_classification::*;
+
+pub trait FromCliInput {
+    fn from_cli_input(inputs: Vec<String>) -> Self;
+}

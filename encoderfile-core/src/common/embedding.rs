@@ -10,6 +10,15 @@ pub struct EmbeddingRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
+impl super::FromCliInput for EmbeddingRequest {
+    fn from_cli_input(inputs: Vec<String>) -> Self {
+        Self {
+            inputs,
+            metadata: Some(HashMap::default()),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema, JsonSchema, utoipa::ToResponse)]
 pub struct EmbeddingResponse {
     pub results: Vec<TokenEmbeddingSequence>,
