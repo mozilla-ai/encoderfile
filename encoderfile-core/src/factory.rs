@@ -3,7 +3,7 @@ use crate::{
     common::model_type::ModelTypeSpec,
     runtime::{AppState, get_model, get_model_config, get_tokenizer},
     services::Inference,
-    transport::{grpc::GrpcRouter, mcp::McpRouter},
+    transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
 
 #[macro_export]
@@ -69,7 +69,7 @@ macro_rules! factory {
     };
 }
 
-pub fn entrypoint<T: ModelTypeSpec + GrpcRouter + McpRouter>(
+pub fn entrypoint<T: ModelTypeSpec + GrpcRouter + McpRouter + HttpRouter>(
     model_bytes: &[u8],
     config_str: &str,
     tokenizer_json: &str,

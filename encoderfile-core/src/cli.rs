@@ -3,7 +3,7 @@ use crate::{
     runtime::AppState,
     server::{run_grpc, run_http, run_mcp},
     services::Inference,
-    transport::{grpc::GrpcRouter, mcp::McpRouter},
+    transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
@@ -93,7 +93,7 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute<T: ModelTypeSpec + GrpcRouter + McpRouter>(
+    pub async fn execute<T: ModelTypeSpec + GrpcRouter + McpRouter + HttpRouter>(
         self,
         state: AppState<T>,
     ) -> Result<()>

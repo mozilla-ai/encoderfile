@@ -1,20 +1,10 @@
 use crate::{common::model_type::ModelTypeSpec, runtime::AppState, services::Inference};
 use axum::{Json, extract::State, response::IntoResponse};
-use utoipa::{
-    OpenApi, PartialSchema,
-    openapi::{ContentBuilder, path::Operation},
-};
 
 pub const HEALTH_ENDPOINT: &str = "/health";
 pub const MODEL_METADATA_ENDPOINT: &str = "/model";
 pub const PREDICT_ENDPOINT: &str = "/predict";
-
-#[derive(Debug, utoipa::OpenApi)]
-#[openapi(
-    paths(health, get_model_metadata, openapi),
-    components(responses(crate::common::GetModelMetadataResponse,))
-)]
-pub struct ApiDoc;
+pub const OPENAPI_ENDPOINT: &str = "/openapi.json";
 
 #[utoipa::path(
     get,
@@ -51,56 +41,4 @@ where
         .inference(req)
         .map(Json)
         .map_err(|e| e.to_axum_status())
-}
-
-#[utoipa::path(
-    get,
-    path = "/openapi.json",
-    responses(
-        (status = 200, description = "Successful")
-    )
-)]
-pub async fn openapi<T: ModelTypeSpec>() -> impl IntoResponse
-where
-    AppState<T>: Inference,
-{
-    let mut openapi = ApiDoc::openapi();
-
-    // insert custom /predict endpoint (thanks generics lol)
-    let (path, operation) = inference_endpoint_openapi::<T>();
-    openapi.paths.paths.insert(path.to_string(), operation);
-
-    Json(openapi)
-}
-
-fn inference_endpoint_openapi<T: ModelTypeSpec>() -> (&'static str, utoipa::openapi::path::PathItem)
-where
-    AppState<T>: Inference,
-{
-    let input_schema = <AppState<T> as Inference>::Input::schema();
-    let output_schema = <AppState<T> as Inference>::Output::schema();
-
-    let post = Operation::builder()
-        .request_body(Some(
-            utoipa::openapi::request_body::RequestBody::builder()
-                .content(
-                    "application/json",
-                    ContentBuilder::new().schema(Some(input_schema)).build(),
-                )
-                .required(Some(utoipa::openapi::Required::True))
-                .build(),
-        ))
-        .response(
-            "200",
-            utoipa::openapi::Response::builder().content(
-                "application/json",
-                ContentBuilder::new().schema(Some(output_schema)).build(),
-            ),
-        )
-        .build();
-
-    (
-        PREDICT_ENDPOINT,
-        utoipa::openapi::PathItem::new(utoipa::openapi::HttpMethod::Post, post),
-    )
 }
