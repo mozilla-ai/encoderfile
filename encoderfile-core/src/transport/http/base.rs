@@ -68,8 +68,6 @@ pub async fn openapi<'de, T: ModelTypeSpec>() -> impl IntoResponse
 where
     T: ModelTypeSpec,
     AppState<T>: Inference,
-    <AppState<T> as Inference>::Input: utoipa::ToSchema,
-    <AppState<T> as Inference>::Output: utoipa::ToSchema,
 {
     let mut openapi = ApiDoc::openapi();
 
@@ -84,8 +82,6 @@ fn inference_endpoint_openapi<'de, T>() -> (&'static str, utoipa::openapi::path:
 where
     T: ModelTypeSpec,
     AppState<T>: Inference,
-    <AppState<T> as Inference>::Input: utoipa::ToSchema,
-    <AppState<T> as Inference>::Output: utoipa::ToSchema,
 {
     let input_schema = <AppState<T> as Inference>::Input::schema();
     let output_schema = <AppState<T> as Inference>::Output::schema();

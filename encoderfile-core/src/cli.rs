@@ -103,11 +103,7 @@ impl Commands {
         state: AppState<T>,
     ) -> Result<()>
     where
-        T: ModelTypeSpec + 'static,
         AppState<T>: Inference,
-        <AppState<T> as Inference>::Input:
-            utoipa::ToSchema + serde::de::DeserializeOwned + Send + 'static,
-        <AppState<T> as Inference>::Output: utoipa::ToSchema + serde::Serialize,
     {
         match self {
             Commands::Serve {

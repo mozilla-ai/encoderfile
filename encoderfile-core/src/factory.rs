@@ -80,8 +80,6 @@ pub fn entrypoint<T: ModelTypeSpec + GrpcRouter + McpRouter>(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
 where
     AppState<T>: Inference,
-    <AppState<T> as Inference>::Input: From<Vec<String>> + utoipa::ToSchema,
-    <AppState<T> as Inference>::Output: utoipa::ToSchema,
 {
     use anyhow::Context;
     use clap::Parser;

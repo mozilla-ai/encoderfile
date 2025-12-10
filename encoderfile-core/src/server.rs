@@ -71,7 +71,7 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
 }
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_http<T: ModelTypeSpec + 'static>(
+pub async fn run_http<T: ModelTypeSpec>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
@@ -80,8 +80,6 @@ pub async fn run_http<T: ModelTypeSpec + 'static>(
 ) -> Result<()>
 where
     AppState<T>: Inference,
-    <AppState<T> as Inference>::Input: utoipa::ToSchema,
-    <AppState<T> as Inference>::Output: utoipa::ToSchema,
 {
     let addr = format!("{}:{}", &hostname, &port);
 
