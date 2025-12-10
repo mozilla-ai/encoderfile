@@ -17,7 +17,7 @@ impl Inference for AppState<model_type::SequenceClassification> {
 
         let session = self.session();
 
-        let encodings = crate::runtime::encode_text(&self.tokenizer(), request.inputs)?;
+        let encodings = crate::runtime::encode_text(self.tokenizer(), request.inputs)?;
 
         let transform = SequenceClassificationTransform::new(self.transform_str())?;
 

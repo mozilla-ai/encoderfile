@@ -5,9 +5,9 @@ use utoipa::{
     openapi::{ContentBuilder, path::Operation},
 };
 
-pub const HEALTH_ENDPOINT: &'static str = "/health";
-pub const MODEL_METADATA_ENDPOINT: &'static str = "/model";
-pub const PREDICT_ENDPOINT: &'static str = "/predict";
+pub const HEALTH_ENDPOINT: &str = "/health";
+pub const MODEL_METADATA_ENDPOINT: &str = "/model";
+pub const PREDICT_ENDPOINT: &str = "/predict";
 
 #[derive(Debug, utoipa::OpenApi)]
 #[openapi(

@@ -17,7 +17,7 @@ impl Inference for AppState<model_type::SentenceEmbedding> {
 
         let session = self.session();
 
-        let encodings = crate::runtime::encode_text(&self.tokenizer(), request.inputs)?;
+        let encodings = crate::runtime::encode_text(self.tokenizer(), request.inputs)?;
 
         let transform = SentenceEmbeddingTransform::new(self.transform_str())?;
 
