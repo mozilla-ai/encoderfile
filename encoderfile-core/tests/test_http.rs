@@ -1,14 +1,18 @@
 macro_rules! test_router_mod {
-    ($mod_name:ident, $state_func:ident, $test_input:expr) => {
+    ($model_type:ident, $mod_name:ident, $state_func:ident, $test_input:expr) => {
         mod $mod_name {
             use axum::http::{Request, StatusCode};
-            use encoderfile_core::{common::*, dev_utils::*, transport::http::router};
+            use encoderfile_core::{common::*, dev_utils::*, transport::http::HttpRouter};
             use tower::ServiceExt;
+
+            fn router() -> axum::Router {
+                let state = $state_func();
+                model_type::$model_type::http_router(state)
+            }
 
             #[tokio::test]
             async fn test_health_route() {
-                let state = $state_func();
-                let router = router(state);
+                let router = router();
 
                 // health should exist
                 let request = Request::get("/health")
@@ -22,8 +26,7 @@ macro_rules! test_router_mod {
 
             #[tokio::test]
             async fn test_openapi_route() {
-                let state = $state_func();
-                let router = router(state);
+                let router = router();
 
                 // openapi should exist
                 let request = Request::get("/openapi.json")
@@ -37,8 +40,7 @@ macro_rules! test_router_mod {
 
             #[tokio::test]
             async fn test_model_config_route() {
-                let state = $state_func();
-                let router = router(state);
+                let router = router();
 
                 // model should exist
                 let request = Request::get("/model")
@@ -52,8 +54,7 @@ macro_rules! test_router_mod {
 
             #[tokio::test]
             async fn test_predict_route() {
-                let state = $state_func();
-                let router = router(state);
+                let router = router();
 
                 let body = serde_json::to_string(&$test_input).unwrap();
 
@@ -73,8 +74,7 @@ macro_rules! test_router_mod {
 
             #[tokio::test]
             async fn test_predict_route_empty() {
-                let state = $state_func();
-                let router = router(state);
+                let router = router();
 
                 let mut inp = $test_input;
                 inp.inputs = vec![];
@@ -95,6 +95,7 @@ macro_rules! test_router_mod {
 }
 
 test_router_mod!(
+    Embedding,
     embedding_tests,
     embedding_state,
     EmbeddingRequest {
@@ -103,6 +104,7 @@ test_router_mod!(
     }
 );
 test_router_mod!(
+    SequenceClassification,
     sequence_classification_tests,
     sequence_classification_state,
     SequenceClassificationRequest {
@@ -111,6 +113,7 @@ test_router_mod!(
     }
 );
 test_router_mod!(
+    TokenClassification,
     token_classification_tests,
     token_classification_state,
     TokenClassificationRequest {
@@ -119,6 +122,7 @@ test_router_mod!(
     }
 );
 test_router_mod!(
+    SentenceEmbedding,
     sentence_embedding_tests,
     sentence_embedding_state,
     SentenceEmbeddingRequest {

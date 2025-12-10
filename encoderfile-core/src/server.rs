@@ -1,7 +1,8 @@
-use crate::transport::http;
-#[cfg(not(tarpaulin_include))]
 use crate::{
-    AppState, common::model_type::ModelTypeSpec, services::Inference, transport::grpc::GrpcRouter,
+    AppState,
+    common::model_type::ModelTypeSpec,
+    services::Inference,
+    transport::{grpc::GrpcRouter, http::HttpRouter},
 };
 use anyhow::Result;
 use axum_server::tls_rustls::RustlsConfig;
@@ -71,7 +72,7 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
 }
 
 #[cfg(not(tarpaulin_include))]
-pub async fn run_http<T: ModelTypeSpec>(
+pub async fn run_http<T: ModelTypeSpec + HttpRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
@@ -85,7 +86,7 @@ where
 
     let model_type = T::enum_val();
 
-    let router = http::router(state)
+    let router = T::http_router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
