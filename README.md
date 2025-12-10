@@ -76,7 +76,6 @@ Download the encoderfile CLI tool to build your own model binaries:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
-chmod +x encoderfile
 ```
 
 > **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for instructions on building from source.
@@ -351,8 +350,8 @@ make setup
 # Run tests
 make test
 
-# Build documentation - Check command with Raz
-make docs-serve
+# Build documentation 
+make docs
 ```
 
 ## 📄 License
