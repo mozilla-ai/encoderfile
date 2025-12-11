@@ -140,16 +140,16 @@ def write_version(path: Path, version: Version):
         data["package"]["version"] = str(version)
 
         # ALSO bump encoderfile-core dependency if it exists
-    deps = data.get("dependencies", {})
+        deps = data.get("dependencies", {})
 
-    core = deps.get("encoderfile-core")
-    if isinstance(core, dict):
-        # structured dependency
-        core["version"] = str(version)
-    elif isinstance(core, str):
-        # simple string form like: encoderfile-core = "0.1.2"
-        deps["encoderfile-core"] = str(version)
-    # if it's missing, nothing to do.
+        core = deps.get("encoderfile-core")
+        if isinstance(core, dict):
+            # structured dependency
+            core["version"] = str(version)
+        elif isinstance(core, str):
+            # simple string form like: encoderfile-core = "0.1.2"
+            deps["encoderfile-core"] = str(version)
+        # if it's missing, nothing to do.
 
     with open(path, "w") as f:
         toml.dump(data, f)
