@@ -39,7 +39,7 @@ required-features = [ "dev-utils",]
 
 [package]
 name = "encoderfile-core"
-version = "0.1.2"
+version = "0.2.1"
 edition = "2024"
 license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
@@ -52,14 +52,8 @@ runtime = [ "transforms", "tokenizers", "ort",]
 transforms = [ "mlua",]
 
 [dependencies]
-anyhow = { workspace = true }
-ndarray = { workspace = true }
 ndarray-stats = "0.6.0"
 parking_lot = "0.12.5"
-schemars = { workspace = true }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
 utoipa = "5.4.0"
 utoipa-axum = "0.2.0"
 
@@ -68,21 +62,26 @@ dotenv = "0.15.0"
 tonic-prost-build = "0.14.2"
 
 [dev-dependencies]
-rand = { workspace = true }
 tower = "0.5.2"
 test-log = "0.2.18"
 
-[dev-dependencies.hyper-util]
-version = "0.1.18"
-features = ["server-graceful"]
+[dependencies.anyhow]
+workspace = true
 
-[dev-dependencies.hyper]
-version = "1.8.1"
-features = ["http1"]
+[dependencies.ndarray]
+workspace = true
 
-[dev-dependencies.rmcp]
-version = "0.8.0"
-features = ["client", "transport-streamable-http-client-reqwest"]
+[dependencies.schemars]
+workspace = true
+
+[dependencies.serde_json]
+workspace = true
+
+[dependencies.thiserror]
+workspace = true
+
+[dependencies.tracing]
+workspace = true
 
 [dependencies.axum]
 version = "0.8.6"
@@ -90,7 +89,7 @@ optional = true
 
 [dependencies.axum-server]
 version = "0.7.3"
-features = ["tls-rustls"]
+features = [ "tls-rustls",]
 optional = true
 
 [dependencies.clap]
@@ -98,7 +97,7 @@ workspace = true
 optional = true
 
 [dependencies.clap_derive]
-workspace = true 
+workspace = true
 optional = true
 
 [dependencies.opentelemetry]
@@ -184,6 +183,21 @@ features = [ "fmt", "env-filter",]
 [dependencies.ort]
 workspace = true
 optional = true
+
+[dev-dependencies.rand]
+workspace = true
+
+[dev-dependencies.hyper-util]
+version = "0.1.18"
+features = [ "server-graceful",]
+
+[dev-dependencies.hyper]
+version = "1.8.1"
+features = [ "http1",]
+
+[dev-dependencies.rmcp]
+version = "0.8.0"
+features = [ "client", "transport-streamable-http-client-reqwest",]
 
 [dev-dependencies.divan]
 version = "4.0.5"

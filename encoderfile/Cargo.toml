@@ -4,24 +4,18 @@ path = "src/main.rs"
 
 [package]
 name = "encoderfile"
-version = "0.1.2"
+version = "0.2.1"
 edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
 description = "Distribute and run transformer encoders with a single file."
 
 [dependencies]
-anyhow = { workspace = true }
-clap = { workspace = true }
 clap_derive = "4.5.49"
 directories = "6.0.0"
 lazy_static = "1.5.0"
-rand = { workspace = true }
-schemars = { workspace = true }
-serde_json = { workspace = true }
 sha2 = "0.10.9"
 tera = "1.20.1"
-ndarray = { workspace = true }
 
 [features]
 dev-utils = []
@@ -29,9 +23,28 @@ dev-utils = []
 [dev-dependencies]
 tempfile = "3.23.0"
 
+[dependencies.anyhow]
+workspace = true
+
+[dependencies.clap]
+workspace = true
+
+[dependencies.rand]
+workspace = true
+
+[dependencies.schemars]
+workspace = true
+
+[dependencies.serde_json]
+workspace = true
+
+[dependencies.ndarray]
+workspace = true
+
 [dependencies.encoderfile-core]
 path = "../encoderfile-core"
-features = ["transforms"]
+version = "0.2.1"
+features = [ "transforms",]
 default-features = false
 
 [dependencies.figment]
