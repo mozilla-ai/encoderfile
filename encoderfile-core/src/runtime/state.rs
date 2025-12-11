@@ -54,10 +54,7 @@ impl<T: ModelTypeSpec> AppState<T> {
     }
 
     pub fn transform_str(&self) -> Option<String> {
-        match &self.config.transform {
-            Some(t) => Some(t.clone()),
-            None => None,
-        }
+        self.config.transform.clone()
     }
 
     pub fn model_type() -> ModelType {
