@@ -6,6 +6,11 @@ FROM rust:1.91 AS build
 
 WORKDIR /app
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    protobuf-compiler \
+    ca-certificates
+
 # copy source
 # NOTE: if new modules are added to the Cargo workspaces, they must be added here.
 COPY Cargo.toml Cargo.lock ./
