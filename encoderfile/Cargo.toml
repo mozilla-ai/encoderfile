@@ -43,6 +43,7 @@ workspace = true
 
 [dependencies.encoderfile-core]
 path = "../encoderfile-core"
+version = "0.2.0"
 features = [ "transforms",]
 default-features = false
 
