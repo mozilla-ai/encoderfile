@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, bail};
-use encoderfile_core::common::ModelConfig;
+use encoderfile_core::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
 use schemars::JsonSchema;
 use std::{
     fs::File,
@@ -7,7 +7,7 @@ use std::{
     path::PathBuf,
 };
 
-use super::model::ModelType;
+use super::model::ModelTypeExt as _;
 use figment::{
     Figment,
     providers::{Format, Yaml},
@@ -16,11 +16,11 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct Config {
+pub struct BuildConfig {
     pub encoderfile: EncoderfileConfig,
 }
 
-impl Config {
+impl BuildConfig {
     pub fn load(path: &PathBuf) -> Result<Self> {
         let config = Figment::new().merge(Yaml::file(path)).extract()?;
 
@@ -45,6 +45,17 @@ pub struct EncoderfileConfig {
 }
 
 impl EncoderfileConfig {
+    pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
+        let config = EmbeddedConfig {
+            name: self.name.clone(),
+            version: self.version.clone(),
+            model_type: self.model_type.clone(),
+            transform: self.transform()?,
+        };
+
+        Ok(config)
+    }
+
     pub fn model_config(&self) -> Result<ModelConfig> {
         let model_config_path = self.path.model_config_path()?;
 
@@ -73,6 +84,16 @@ impl EncoderfileConfig {
             None => default_cache_dir(),
         }
     }
+
+    pub fn transform(&self) -> Result<Option<String>> {
+        let transform = match &self.transform {
+            None => None,
+            Some(s) => Some(s.transform()?),
+        };
+
+        Ok(transform)
+    }
+
     pub fn to_tera_ctx(&self) -> Result<tera::Context> {
         let mut ctx = tera::Context::new();
 
@@ -351,7 +372,7 @@ encoderfile:
 
         fs::write(&path, yaml).unwrap();
 
-        let cfg = Config::load(&path).unwrap();
+        let cfg = BuildConfig::load(&path).unwrap();
         assert_eq!(cfg.encoderfile.name, "testy");
         assert_eq!(cfg.encoderfile.version, "0.9.0");
 

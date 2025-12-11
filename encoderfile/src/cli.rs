@@ -1,4 +1,4 @@
-use super::templates::TEMPLATES;
+use super::{model::ModelTypeExt as _, templates::TEMPLATES};
 use anyhow::{Context, Result, bail};
 use std::path::PathBuf;
 
@@ -60,7 +60,7 @@ pub struct BuildArgs {
 
 impl BuildArgs {
     fn run(self) -> Result<()> {
-        let mut config = super::config::Config::load(&self.config)?;
+        let mut config = super::config::BuildConfig::load(&self.config)?;
 
         // --- handle user flags ---------------------------------------------------
         if let Some(o) = &self.output_path {

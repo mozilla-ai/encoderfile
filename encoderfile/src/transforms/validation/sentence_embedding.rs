@@ -58,10 +58,8 @@ impl TransformValidatorExt for SentenceEmbeddingTransform {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        config::{EncoderfileConfig, ModelPath},
-        model::ModelType,
-    };
+    use crate::config::{EncoderfileConfig, ModelPath};
+    use encoderfile_core::common::ModelType;
 
     use super::*;
 

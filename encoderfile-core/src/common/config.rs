@@ -1,6 +1,4 @@
-use super::{
-    model_type::ModelType,
-};
+use super::model_type::ModelType;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

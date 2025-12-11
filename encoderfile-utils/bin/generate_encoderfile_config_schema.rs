@@ -2,7 +2,7 @@ use anyhow::Result;
 use encoderfile::config;
 
 fn main() -> Result<()> {
-    let schema = schemars::schema_for!(config::Config);
+    let schema = schemars::schema_for!(config::BuildConfig);
 
     let schema_str = serde_json::to_string_pretty(&schema)?;
 
