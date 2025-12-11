@@ -67,9 +67,13 @@ fn test_sequence_classification_model() {
 
     let transform = Transform::new(None).expect("Failed to create_transform");
 
-    let results =
-        sequence_classification(session_lock, &transform, &state.config, encodings.clone())
-            .expect("Failed to compute results");
+    let results = sequence_classification(
+        session_lock,
+        &transform,
+        &state.model_config,
+        encodings.clone(),
+    )
+    .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -92,8 +96,13 @@ fn test_sequence_classification_inference_with_bad_model() {
 
     let transform = Transform::new(None).expect("Failed to create_transform");
 
-    sequence_classification(session_lock, &transform, &state.config, encodings.clone())
-        .expect("Failed to compute results");
+    sequence_classification(
+        session_lock,
+        &transform,
+        &state.model_config,
+        encodings.clone(),
+    )
+    .expect("Failed to compute results");
 }
 
 #[test]
@@ -113,8 +122,13 @@ fn test_token_classification_model() {
 
     let transform = Transform::new(None).expect("Failed to create_transform");
 
-    let results = token_classification(session_lock, &transform, &state.config, encodings.clone())
-        .expect("Failed to compute results");
+    let results = token_classification(
+        session_lock,
+        &transform,
+        &state.model_config,
+        encodings.clone(),
+    )
+    .expect("Failed to compute results");
 
     assert!(results.len() == encodings.len());
 }
@@ -137,6 +151,11 @@ fn test_token_classification_inference_with_bad_model() {
 
     let transform = Transform::new(None).expect("Failed to create_transform");
 
-    token_classification(session_lock, &transform, &state.config, encodings.clone())
-        .expect("Failed to compute results");
+    token_classification(
+        session_lock,
+        &transform,
+        &state.model_config,
+        encodings.clone(),
+    )
+    .expect("Failed to compute results");
 }

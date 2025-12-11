@@ -89,7 +89,7 @@ mod tests {
         let model_config = test_model_config();
 
         SentenceEmbeddingTransform::new(Some(
-            "function Postprocess(arr, mask) return arr:mean_pool(mask) end",
+            "function Postprocess(arr, mask) return arr:mean_pool(mask) end".to_string(),
         ))
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config)
@@ -101,10 +101,11 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result =
-            SentenceEmbeddingTransform::new(Some("function Postprocess(arr, mask) return 1 end"))
-                .expect("Failed to create transform")
-                .validate(&encoderfile_config, &model_config);
+        let result = SentenceEmbeddingTransform::new(Some(
+            "function Postprocess(arr, mask) return 1 end".to_string(),
+        ))
+        .expect("Failed to create transform")
+        .validate(&encoderfile_config, &model_config);
 
         assert!(result.is_err());
     }
@@ -114,10 +115,11 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result =
-            SentenceEmbeddingTransform::new(Some("function Postprocess(arr, mask) return arr end"))
-                .expect("Failed to create transform")
-                .validate(&encoderfile_config, &model_config);
+        let result = SentenceEmbeddingTransform::new(Some(
+            "function Postprocess(arr, mask) return arr end".to_string(),
+        ))
+        .expect("Failed to create transform")
+        .validate(&encoderfile_config, &model_config);
 
         assert!(result.is_err());
     }

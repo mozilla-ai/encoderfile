@@ -26,7 +26,7 @@ impl Inference for AppState<model_type::SentenceEmbedding> {
 
         Ok(SentenceEmbeddingResponse {
             results,
-            model_id: self.model_id.clone(),
+            model_id: self.config.name.clone(),
             metadata: request.metadata,
         })
     }

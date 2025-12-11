@@ -56,7 +56,7 @@ pub fn validate_transform(
         None => return Ok(()),
     };
 
-    let transform_str = Some(transform_string.as_ref());
+    let transform_str = Some(transform_string);
 
     match encoderfile_config.model_type {
         ModelType::Embedding => validate_transform!(

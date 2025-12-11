@@ -96,19 +96,14 @@ impl EncoderfileConfig {
 
     pub fn to_tera_ctx(&self) -> Result<tera::Context> {
         let mut ctx = tera::Context::new();
+        let embedded_config = self.embedded_config()?;
 
-        let transform = match &self.transform {
-            None => None,
-            Some(s) => Some(s.transform()?),
-        };
-
-        ctx.insert("version", self.version.as_str());
-        ctx.insert("model_name", self.name.as_str());
+        ctx.insert("version", embedded_config.version.as_str());
+        ctx.insert("config_str", &serde_json::to_string(&embedded_config)?);
         ctx.insert("model_type", self.model_type.to_ident());
         ctx.insert("model_weights_path", &self.path.model_weights_path()?);
         ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
         ctx.insert("model_config_path", &self.path.model_config_path()?);
-        ctx.insert("transform", &transform);
         ctx.insert("encoderfile_version_str", &encoderfile_core_version());
 
         Ok(ctx)
@@ -350,9 +345,7 @@ mod tests {
             build: true,
         };
 
-        let ctx = cfg.to_tera_ctx().expect("Tera ctx error");
-
-        assert_eq!(ctx.get("model_name").unwrap().as_str().unwrap(), "sadness");
+        let _ctx = cfg.to_tera_ctx().expect("Tera ctx error");
 
         cleanup(&base);
     }
