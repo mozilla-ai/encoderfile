@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn test_no_pooling() {
-        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(""))
+        let engine = Transform::<model_type::SentenceEmbedding>::new(Some("".to_string()))
             .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
@@ -91,7 +91,8 @@ mod tests {
             -- sum along second axis (lol)
             return arr:sum_axis(2)
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .expect("Failed to create engine");
 
@@ -112,7 +113,8 @@ mod tests {
         function Postprocess(arr, mask)
             return arr
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .expect("Failed to create engine");
 
@@ -131,7 +133,8 @@ mod tests {
         function Postprocess(arr, mask)
             return 1
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .expect("Failed to create engine");
 
@@ -150,7 +153,8 @@ mod tests {
         function Postprocess(arr, mask)
             return arr
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .unwrap();
 

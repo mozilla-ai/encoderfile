@@ -49,10 +49,10 @@ impl<T: ModelTypeSpec> Transform<T> {
     }
 
     #[tracing::instrument(name = "new_transform", skip_all)]
-    pub fn new(transform: Option<&str>) -> Result<Self, ApiError> {
+    pub fn new(transform: Option<String>) -> Result<Self, ApiError> {
         let lua = new_lua()?;
 
-        lua.load(transform.unwrap_or(""))
+        lua.load(transform.unwrap_or("".to_string()))
             .exec()
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 

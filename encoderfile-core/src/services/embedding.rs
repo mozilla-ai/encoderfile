@@ -25,7 +25,7 @@ impl Inference for AppState<model_type::Embedding> {
 
         Ok(EmbeddingResponse {
             results,
-            model_id: self.model_id.clone(),
+            model_id: self.config.name.clone(),
             metadata: request.metadata,
         })
     }

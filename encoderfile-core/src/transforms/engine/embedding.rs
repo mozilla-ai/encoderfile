@@ -52,8 +52,8 @@ mod tests {
 
     #[test]
     fn test_embedding_no_transform() {
-        let engine =
-            Transform::<model_type::Embedding>::new(Some("")).expect("Failed to create Transform");
+        let engine = Transform::<model_type::Embedding>::new(Some("".to_string()))
+            .expect("Failed to create Transform");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
 
@@ -69,7 +69,8 @@ mod tests {
         function Postprocess(arr)
             return arr
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .expect("Failed to create engine");
 
@@ -87,7 +88,8 @@ mod tests {
         function Postprocess(arr)
             return 1
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .expect("Failed to create engine");
 
@@ -105,7 +107,8 @@ mod tests {
         function Postprocess(x)
             return x:sum_axis(1)
         end
-        "##,
+        "##
+            .to_string(),
         ))
         .unwrap();
 

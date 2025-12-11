@@ -1,23 +1,18 @@
 use anyhow::{Result, bail};
+use encoderfile_core::common::ModelType;
 use ort::{
     session::{Output, Session},
     tensor::Shape,
 };
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ModelType {
-    Embedding,
-    SequenceClassification,
-    TokenClassification,
-    SentenceEmbedding,
+pub trait ModelTypeExt {
+    fn to_ident(&self) -> &'static str;
+    fn validate_model(&self, path: &Path) -> Result<()>;
 }
 
-impl ModelType {
-    pub fn to_ident(&self) -> &'static str {
+impl ModelTypeExt for encoderfile_core::common::ModelType {
+    fn to_ident(&self) -> &'static str {
         match self {
             ModelType::Embedding => "Embedding",
             ModelType::SequenceClassification => "SequenceClassification",
@@ -26,7 +21,7 @@ impl ModelType {
         }
     }
 
-    pub fn validate_model(&self, path: &Path) -> Result<()> {
+    fn validate_model(&self, path: &Path) -> Result<()> {
         let model = load_model(path)?;
 
         match self {

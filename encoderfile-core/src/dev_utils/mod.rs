@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        ModelConfig,
+        Config, ModelConfig,
         model_type::{self, ModelTypeSpec},
     },
     runtime::AppState,
@@ -14,11 +14,18 @@ const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
 pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
-    let config = Arc::new(get_config(dir));
-    let tokenizer = Arc::new(get_tokenizer(dir, &config));
+    let model_config = Arc::new(get_model_config(dir));
+    let tokenizer = Arc::new(get_tokenizer(dir, &model_config));
     let session = Arc::new(get_model(dir));
 
-    AppState::new(session, tokenizer, config, "test-model".to_string(), None)
+    let config = Arc::new(Config {
+        name: "my-model".to_string(),
+        version: "0.0.1".to_string(),
+        model_type: T::enum_val(),
+        transform: None,
+    });
+
+    AppState::new(config, session, tokenizer, model_config)
 }
 
 pub fn embedding_state() -> AppState<model_type::Embedding> {
@@ -37,7 +44,7 @@ pub fn token_classification_state() -> AppState<model_type::TokenClassification>
     get_state(TOKEN_CLASSIFICATION_DIR)
 }
 
-fn get_config(dir: &str) -> ModelConfig {
+fn get_model_config(dir: &str) -> ModelConfig {
     let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
     let reader = BufReader::new(file);
 

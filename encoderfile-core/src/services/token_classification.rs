@@ -24,13 +24,13 @@ impl Inference for AppState<model_type::TokenClassification> {
         let results = inference::token_classification::token_classification(
             session,
             &transform,
-            &self.config,
+            &self.model_config,
             encodings,
         )?;
 
         Ok(TokenClassificationResponse {
             results,
-            model_id: self.model_id.clone(),
+            model_id: self.config.name.clone(),
             metadata: request.metadata,
         })
     }
