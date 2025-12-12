@@ -4,7 +4,7 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModelConfig {
     pub model_type: String,
-    pub pad_token_id: u32,
+    pub pad_token_id: Option<u32>,
     pub num_labels: Option<usize>,
     pub id2label: Option<HashMap<u32, String>>,
     pub label2id: Option<HashMap<String, u32>>,
@@ -56,7 +56,7 @@ mod tests {
 
         let config = ModelConfig {
             model_type: "MyModel".to_string(),
-            pad_token_id: 0,
+            pad_token_id: Some(0),
             num_labels: Some(3),
             id2label: Some(id2label.clone()),
             label2id: Some(label2id.clone()),
@@ -66,7 +66,7 @@ mod tests {
 
         let config = ModelConfig {
             model_type: "MyModel".to_string(),
-            pad_token_id: 0,
+            pad_token_id: Some(0),
             num_labels: None,
             id2label: Some(id2label.clone()),
             label2id: Some(label2id.clone()),
@@ -76,7 +76,7 @@ mod tests {
 
         let config = ModelConfig {
             model_type: "MyModel".to_string(),
-            pad_token_id: 0,
+            pad_token_id: Some(0),
             num_labels: None,
             id2label: None,
             label2id: Some(label2id.clone()),

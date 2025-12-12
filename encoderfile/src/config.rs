@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, bail};
-use encoderfile_core::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
+use encoderfile_core::common::{Config as EmbeddedConfig, ModelConfig, ModelType, TokenizerConfig};
 use schemars::JsonSchema;
 use std::{
     fs::File,
@@ -42,6 +42,7 @@ pub struct EncoderfileConfig {
     pub validate_transform: bool,
     #[serde(default = "default_build")]
     pub build: bool,
+    pub tokenizer: Option<TokenizerConfig>,
 }
 
 impl EncoderfileConfig {
@@ -51,6 +52,7 @@ impl EncoderfileConfig {
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
+            tokenizer: self.tokenizer.clone(),
         };
 
         Ok(config)
@@ -322,6 +324,7 @@ mod tests {
             validate_transform: false,
             transform: None,
             build: true,
+            tokenizer: None,
         };
 
         let generated = cfg.get_generated_dir();
@@ -343,6 +346,7 @@ mod tests {
             validate_transform: false,
             transform: Some(Transform::Inline("1+1".into())),
             build: true,
+            tokenizer: None,
         };
 
         let _ctx = cfg.to_tera_ctx().expect("Tera ctx error");

@@ -1,3 +1,4 @@
+use crate::common::{Config, PadDirectionEnum, TokenizerConfig};
 use crate::{common::ModelConfig, error::ApiError};
 use anyhow::Result;
 use std::str::FromStr;
@@ -8,14 +9,62 @@ use tokenizers::{
 
 static TOKENIZER: OnceLock<Arc<Tokenizer>> = OnceLock::new();
 
-pub fn get_tokenizer(tokenizer_json: &str, model_config: &Arc<ModelConfig>) -> Arc<Tokenizer> {
+pub fn get_tokenizer(
+    tokenizer_json: &str,
+    config: &Arc<Config>,
+    model_config: &Arc<ModelConfig>,
+) -> Arc<Tokenizer> {
     TOKENIZER
-        .get_or_init(|| Arc::new(get_tokenizer_from_string(tokenizer_json, model_config)))
+        .get_or_init(|| {
+            Arc::new(get_tokenizer_from_string(
+                tokenizer_json,
+                config,
+                model_config,
+            ))
+        })
         .clone()
 }
 
-pub fn get_tokenizer_from_string(s: &str, config: &Arc<ModelConfig>) -> Tokenizer {
-    let pad_token_id = config.pad_token_id;
+impl TokenizerConfig {
+    pub fn padding_params(&self) -> Result<PaddingParams, ApiError> {
+        let mut padding_params = PaddingParams::default();
+
+        if let Some(strategy) = &self.pad_strategy {
+            padding_params.strategy = match strategy {
+                crate::common::PadStrategyEnum::Longest => PaddingStrategy::BatchLongest,
+                crate::common::PadStrategyEnum::Fixed(i) => PaddingStrategy::Fixed(*i),
+            };
+        }
+
+        if let Some(direction) = &self.pad_direction {
+            padding_params.direction = match direction {
+                PadDirectionEnum::Left => PaddingDirection::Left,
+                PadDirectionEnum::Right => PaddingDirection::Right,
+            };
+        }
+
+        if let Some(mo) = &self.pad_to_multiple_of {
+            padding_params.pad_to_multiple_of = Some(*mo);
+        }
+
+        if let Some(pad_id) = &self.pad_id {
+            padding_params.pad_id = *pad_id;
+        }
+
+        if let Some(pad_type_id) = &self.pad_type_id {
+            padding_params.pad_type_id = *pad_type_id;
+        }
+
+        Ok(padding_params)
+    }
+}
+
+pub fn get_tokenizer_from_string(
+    s: &str,
+    _config: &Arc<Config>,
+    model_config: &Arc<ModelConfig>,
+) -> Tokenizer {
+    let pad_token_id = model_config.pad_token_id.unwrap();
 
     let mut tokenizer = match Tokenizer::from_str(s) {
         Ok(t) => t,
