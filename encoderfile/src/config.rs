@@ -52,7 +52,7 @@ impl EncoderfileConfig {
             model_type: self.model_type.clone(),
             transform: self.transform()?,
             // TODO: update
-            tokenizer: Default::default()
+            tokenizer: Default::default(),
         };
 
         Ok(config)

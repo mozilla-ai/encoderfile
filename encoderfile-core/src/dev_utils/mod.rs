@@ -1,6 +1,7 @@
 use crate::{
     common::{
-        Config, ModelConfig, model_type::{self, ModelTypeSpec}
+        Config, ModelConfig,
+        model_type::{self, ModelTypeSpec},
     },
     runtime::AppState,
 };
