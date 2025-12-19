@@ -206,8 +206,7 @@ macro_rules! asset_path {
                 _ => None,
             };
 
-            self
-                .resolve(explicit, |dir| dir.join($default), $err)?
+            self.resolve(explicit, |dir| dir.join($default), $err)?
                 .ok_or_else(|| anyhow::anyhow!("Missing required path: {}", $err))
         }
     };
@@ -308,7 +307,7 @@ mod tests {
             model_config_path: base.join("config.json"),
             tokenizer_path: base.join("tokenizer.json"),
             model_weights_path: base.join("model.onnx"),
-            tokenizer_config_path: Some(base.join("tokenizer_config.json"))
+            tokenizer_config_path: Some(base.join("tokenizer_config.json")),
         };
 
         assert!(mp.model_config_path().is_ok());
