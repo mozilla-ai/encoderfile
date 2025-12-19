@@ -51,6 +51,8 @@ impl EncoderfileConfig {
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
+            // TODO: update
+            tokenizer: Default::default()
         };
 
         Ok(config)

@@ -1,7 +1,6 @@
 use crate::{
     common::{
-        Config, ModelConfig,
-        model_type::{self, ModelTypeSpec},
+        Config, ModelConfig, model_type::{self, ModelTypeSpec}
     },
     runtime::AppState,
 };
@@ -23,6 +22,7 @@ pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
         version: "0.0.1".to_string(),
         model_type: T::enum_val(),
         transform: None,
+        tokenizer: Default::default(),
     });
 
     AppState::new(config, session, tokenizer, model_config)
