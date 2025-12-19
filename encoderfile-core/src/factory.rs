@@ -85,7 +85,7 @@ where
     let config = get_config(config_str);
     let session = get_model(model_bytes);
     let model_config = get_model_config(model_config_str);
-    let tokenizer = get_tokenizer(tokenizer_json, &model_config);
+    let tokenizer = get_tokenizer(tokenizer_json, &config);
 
     let state = AppState::new(config, session, tokenizer, model_config);
 
