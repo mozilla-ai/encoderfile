@@ -841,6 +841,7 @@ dependencies = [
  "sha2",
  "tempfile",
  "tera",
+ "tokenizers",
  "uuid",
 ]
 
