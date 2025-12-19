@@ -154,27 +154,61 @@ pub enum ModelPath {
         model_config_path: PathBuf,
         model_weights_path: PathBuf,
         tokenizer_path: PathBuf,
+        tokenizer_config_path: Option<PathBuf>,
     },
 }
 
-macro_rules! asset_path {
-    ($var:ident, $default:expr, $err:expr) => {
-        pub fn $var(&self) -> Result<PathBuf> {
-            let path = match self {
-                Self::Paths { $var, .. } => $var.clone(),
-                Self::Directory(dir) => {
-                    if !dir.is_dir() {
-                        bail!("No such directory: {:?}", dir);
-                    }
-                    dir.join($default)
+impl ModelPath {
+    fn resolve(
+        &self,
+        explicit: Option<PathBuf>,
+        default: impl FnOnce(&PathBuf) -> PathBuf,
+        err: &str,
+    ) -> Result<Option<PathBuf>> {
+        let path = match self {
+            Self::Paths { .. } => explicit,
+            Self::Directory(dir) => {
+                if !dir.is_dir() {
+                    bail!("No such directory: {:?}", dir);
                 }
+                Some(default(dir))
+            }
+        };
+
+        match path {
+            Some(p) => {
+                if !p.try_exists()? {
+                    bail!("Could not locate {} at path: {:?}", err, p);
+                }
+                Ok(Some(p.canonicalize()?))
+            }
+            None => Ok(None),
+        }
+    }
+}
+
+macro_rules! asset_path {
+    (@Optional $name:ident, $default:expr, $err:expr) => {
+        pub fn $name(&self) -> Result<Option<PathBuf>> {
+            let explicit = match self {
+                Self::Paths { $name, .. } => $name.clone(),
+                _ => None,
             };
 
-            if !path.try_exists()? {
-                bail!("Could not locate {} at path: {:?}", $err, path);
-            }
+            self.resolve(explicit, |dir| dir.join($default), $err)
+        }
+    };
 
-            Ok(path.canonicalize()?)
+    ($name:ident, $default:expr, $err:expr) => {
+        pub fn $name(&self) -> Result<PathBuf> {
+            let explicit = match self {
+                Self::Paths { $name, .. } => Some($name.clone()),
+                _ => None,
+            };
+
+            self
+                .resolve(explicit, |dir| dir.join($default), $err)?
+                .ok_or_else(|| anyhow::anyhow!("Missing required path: {}", $err))
         }
     };
 }
@@ -183,6 +217,7 @@ impl ModelPath {
     asset_path!(model_config_path, "config.json", "model config");
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
     asset_path!(model_weights_path, "model.onnx", "model weights");
+    asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
 }
 
 fn default_cache_dir() -> PathBuf {
@@ -273,6 +308,7 @@ mod tests {
             model_config_path: base.join("config.json"),
             tokenizer_path: base.join("tokenizer.json"),
             model_weights_path: base.join("model.onnx"),
+            tokenizer_config_path: Some(base.join("tokenizer_config.json"))
         };
 
         assert!(mp.model_config_path().is_ok());
