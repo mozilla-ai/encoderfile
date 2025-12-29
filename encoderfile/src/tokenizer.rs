@@ -30,6 +30,8 @@ impl EncoderfileConfig {
             }
         };
 
+        // TODO: insert any overrides from encoderfile.yml here
+
         Ok(config)
     }
 }
@@ -82,11 +84,14 @@ fn tokenizer_config_from_json_value(
     builder.field(
         "pad_to_multiple_of",
         |config, v| {
-            let pad_to_multiple_of = v.as_u64().map(|i| i as usize).ok_or(anyhow::anyhow!(
-                "pad_to_multiple_of must be an unsigned int"
-            ))?;
+            if v.is_null() {
+                config.padding.pad_to_multiple_of = None;
+                return Ok(());
+            }
 
-            config.padding.pad_to_multiple_of = Some(pad_to_multiple_of);
+            config.padding.pad_to_multiple_of = v.as_u64().map(|i| Some(i as usize)).ok_or(
+                anyhow::anyhow!("pad_to_multiple_of must be an unsigned int or null"),
+            )?;
 
             Ok(())
         },
