@@ -1,3 +1,28 @@
+// IMPORTANT NOTE:
+//
+// Tokenizer configuration is NOT a stable, self-contained artifact.
+//
+// In practice, tokenizer behavior is split across:
+//   - tokenizer.json (partially serialized runtime state) SOMETIMES in older models
+//   - tokenizer_config.json (optional, inconsistently populated)
+//   - implicit defaults inside the `tokenizers` library
+//   - and values that affect inference but are *never serialized*
+//
+// This means:
+//   - Missing fields fail silently and fall back to defaults
+//   - Backwards compatibility is heuristic, not contractual
+//   - Some critical values (e.g. pad_token_id) must be re-derived at runtime
+//   - A "valid" tokenizer config can still produce subtly wrong results
+//
+// This code exists to aggressively reconstruct a deterministic TokenizerConfig
+// for inference, emitting warnings where possible — but be aware:
+//
+// ⚠️ Incorrect or incomplete tokenizer configs may not crash.
+// ⚠️ They may instead produce silently incorrect model outputs.
+// ⚠️ If, khas v'shalem, something silently breaks in Encoderfile, I bet $5 it is going to be this feature.
+//
+// This is not ideal and will be revisited in v1.0.0.
+
 use anyhow::Result;
 use encoderfile_core::common::TokenizerConfig;
 use std::str::FromStr;
