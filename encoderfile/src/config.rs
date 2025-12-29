@@ -46,13 +46,13 @@ pub struct EncoderfileConfig {
 
 impl EncoderfileConfig {
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
+        let tokenizer = self.validate_tokenizer()?;
         let config = EmbeddedConfig {
             name: self.name.clone(),
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
-            // TODO: update
-            tokenizer: Default::default(),
+            tokenizer,
         };
 
         Ok(config)
