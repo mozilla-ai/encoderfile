@@ -21,7 +21,8 @@
 // ⚠️ They may instead produce silently incorrect model outputs.
 // ⚠️ If, khas v'shalem, something silently breaks in Encoderfile, I bet $5 it is going to be this feature.
 //
-// This is not ideal and will be revisited in v1.0.0.
+// This is not ideal and will be revisited in v1.0.0 once we have an opportunity to make breaking changes
+// in the way encoderfile.yml works, etc..
 
 use anyhow::Result;
 use encoderfile_core::common::TokenizerConfig;
