@@ -38,6 +38,7 @@ pub struct EncoderfileConfig {
     pub output_path: Option<PathBuf>,
     pub cache_dir: Option<PathBuf>,
     pub transform: Option<Transform>,
+    pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
     #[serde(default = "default_build")]
@@ -117,6 +118,18 @@ impl EncoderfileConfig {
         self.cache_dir()
             .join(format!("encoderfile-{:x}", filename_hash))
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct TokenizerBuildConfig {
+    pub pad_strategy: Option<TokenizerPadStrategy>,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(untagged, rename_all = "snake_case")]
+pub enum TokenizerPadStrategy {
+    BatchLongest,
+    Fixed { fixed: usize },
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -358,6 +371,7 @@ mod tests {
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: None,
+            tokenizer: None,
             build: true,
         };
 
@@ -379,6 +393,7 @@ mod tests {
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: Some(Transform::Inline("1+1".into())),
+            tokenizer: None,
             build: true,
         };
 

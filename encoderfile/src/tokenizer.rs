@@ -27,9 +27,9 @@
 use anyhow::Result;
 use encoderfile_core::common::TokenizerConfig;
 use std::str::FromStr;
-use tokenizers::{PaddingParams, Tokenizer};
+use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer};
 
-use crate::config::EncoderfileConfig;
+use crate::config::{EncoderfileConfig, TokenizerPadStrategy};
 
 impl EncoderfileConfig {
     pub fn validate_tokenizer(&self) -> Result<TokenizerConfig> {
@@ -40,7 +40,7 @@ impl EncoderfileConfig {
             Err(e) => anyhow::bail!("FATAL: Failed to load tokenizer: {:?}", e),
         };
 
-        let config = match self.path.tokenizer_config_path()? {
+        let mut config = match self.path.tokenizer_config_path()? {
             // if tokenizer_config.json is provided, use that
             Some(tokenizer_config_path) => {
                 // open tokenizer_config
@@ -57,6 +57,17 @@ impl EncoderfileConfig {
         };
 
         // TODO: insert any overrides from encoderfile.yml here
+        let tokenizer_build_config = match &self.tokenizer {
+            Some(t) => t,
+            None => return Ok(config),
+        };
+
+        if let Some(s) = &tokenizer_build_config.pad_strategy {
+            config.padding.strategy = match s {
+                TokenizerPadStrategy::BatchLongest => PaddingStrategy::BatchLongest,
+                TokenizerPadStrategy::Fixed { fixed } => PaddingStrategy::Fixed(*fixed),
+            }
+        };
 
         Ok(config)
     }
