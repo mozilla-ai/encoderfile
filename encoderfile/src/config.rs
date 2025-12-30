@@ -271,12 +271,19 @@ mod tests {
         base
     }
 
+    // Create temp output dir
+    fn create_temp_output_dir() -> PathBuf {
+        create_test_dir("model")
+    }
+
     // Create a model dir populated with the required files
-    fn create_model_dir() -> PathBuf {
+    fn create_temp_model_dir() -> PathBuf {
         let base = create_test_dir("model");
         fs::write(base.join("config.json"), "{}").expect("Failed to create config.json");
         fs::write(base.join("tokenizer.json"), "{}").expect("Failed to create tokenizer.json");
         fs::write(base.join("model.onnx"), "onnx").expect("Failed to create model.onnx");
+        fs::write(base.join("tokenizer_config.json"), "{}")
+            .expect("Failed to create tokenizer_config.json");
         base
     }
 
@@ -292,12 +299,18 @@ mod tests {
 
     #[test]
     fn test_modelpath_directory_valid() {
-        let base = create_model_dir();
+        let base = create_temp_model_dir();
         let mp = ModelPath::Directory(base.clone());
 
         assert!(mp.model_config_path().unwrap().ends_with("config.json"));
         assert!(mp.tokenizer_path().unwrap().ends_with("tokenizer.json"));
         assert!(mp.model_weights_path().unwrap().ends_with("model.onnx"));
+        assert!(
+            mp.tokenizer_config_path()
+                .unwrap()
+                .unwrap()
+                .ends_with("tokenizer_config.json")
+        );
 
         cleanup(&base);
     }
@@ -315,7 +328,7 @@ mod tests {
 
     #[test]
     fn test_modelpath_explicit_paths() {
-        let base = create_model_dir();
+        let base = create_temp_model_dir();
         let mp = ModelPath::Paths {
             model_config_path: base.join("config.json"),
             tokenizer_path: base.join("tokenizer.json"),
@@ -360,12 +373,12 @@ mod tests {
 
     #[test]
     fn test_encoderfile_generated_dir() {
-        let base = create_model_dir();
+        let base = create_temp_output_dir();
 
         let cfg = EncoderfileConfig {
             name: "my-cool-model".into(),
             version: "1.0".into(),
-            path: ModelPath::Directory(base.clone()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::Embedding,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
@@ -383,11 +396,11 @@ mod tests {
 
     #[test]
     fn test_encoderfile_to_tera_ctx() {
-        let base = create_model_dir();
+        let base = create_temp_output_dir();
         let cfg = EncoderfileConfig {
             name: "sadness".into(),
             version: "0.1.0".into(),
-            path: ModelPath::Directory(base.clone()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::SequenceClassification,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
