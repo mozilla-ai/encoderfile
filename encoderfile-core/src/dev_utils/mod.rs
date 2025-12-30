@@ -14,16 +14,17 @@ const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
 pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
-    let model_config = Arc::new(get_model_config(dir));
-    let tokenizer = Arc::new(get_tokenizer(dir, &model_config));
-    let session = Arc::new(get_model(dir));
-
     let config = Arc::new(Config {
         name: "my-model".to_string(),
         version: "0.0.1".to_string(),
         model_type: T::enum_val(),
         transform: None,
+        tokenizer: Default::default(),
     });
+
+    let model_config = Arc::new(get_model_config(dir));
+    let tokenizer = Arc::new(get_tokenizer(dir, &config));
+    let session = Arc::new(get_model(dir));
 
     AppState::new(config, session, tokenizer, model_config)
 }
@@ -52,11 +53,11 @@ fn get_model_config(dir: &str) -> ModelConfig {
     serde_json::from_reader(reader).expect("Invalid model config")
 }
 
-fn get_tokenizer(dir: &str, config: &Arc<ModelConfig>) -> tokenizers::Tokenizer {
+fn get_tokenizer(dir: &str, ec_config: &Arc<Config>) -> tokenizers::Tokenizer {
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
-    crate::runtime::get_tokenizer_from_string(tokenizer_str.as_str(), config)
+    crate::runtime::get_tokenizer_from_string(tokenizer_str.as_str(), ec_config)
 }
 
 fn get_model(dir: &str) -> Mutex<Session> {

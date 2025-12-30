@@ -105,6 +105,7 @@ mod tests {
             transform: None,
             validate_transform: true,
             build: true,
+            tokenizer: None,
         }
     }
 
@@ -148,6 +149,7 @@ mod tests {
             transform: Some(Transform::Inline(transform_str.to_string())),
             validate_transform: true,
             build: true,
+            tokenizer: None,
         };
 
         let model_config_str =
@@ -171,6 +173,7 @@ mod tests {
             transform: None,
             validate_transform: true,
             build: true,
+            tokenizer: None,
         };
 
         let model_config_str =

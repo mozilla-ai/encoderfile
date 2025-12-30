@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Config",
+  "title": "BuildConfig",
   "type": "object",
   "properties": {
     "encoderfile": {
@@ -38,6 +38,16 @@
         },
         "path": {
           "$ref": "#/$defs/ModelPath"
+        },
+        "tokenizer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TokenizerBuildConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "transform": {
           "anyOf": [
@@ -78,6 +88,12 @@
             "model_weights_path": {
               "type": "string"
             },
+            "tokenizer_config_path": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "tokenizer_path": {
               "type": "string"
             }
@@ -97,6 +113,41 @@
         "sequence_classification",
         "token_classification",
         "sentence_embedding"
+      ]
+    },
+    "TokenizerBuildConfig": {
+      "type": "object",
+      "properties": {
+        "pad_strategy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TokenizerPadStrategy"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "TokenizerPadStrategy": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fixed": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "fixed"
+          ]
+        }
       ]
     },
     "Transform": {

@@ -38,6 +38,7 @@ pub struct EncoderfileConfig {
     pub output_path: Option<PathBuf>,
     pub cache_dir: Option<PathBuf>,
     pub transform: Option<Transform>,
+    pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
     #[serde(default = "default_build")]
@@ -46,11 +47,13 @@ pub struct EncoderfileConfig {
 
 impl EncoderfileConfig {
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
+        let tokenizer = self.validate_tokenizer()?;
         let config = EmbeddedConfig {
             name: self.name.clone(),
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
+            tokenizer,
         };
 
         Ok(config)
@@ -118,6 +121,18 @@ impl EncoderfileConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct TokenizerBuildConfig {
+    pub pad_strategy: Option<TokenizerPadStrategy>,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(untagged, rename_all = "snake_case")]
+pub enum TokenizerPadStrategy {
+    BatchLongest,
+    Fixed { fixed: usize },
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum Transform {
     Path { path: PathBuf },
@@ -152,27 +167,60 @@ pub enum ModelPath {
         model_config_path: PathBuf,
         model_weights_path: PathBuf,
         tokenizer_path: PathBuf,
+        tokenizer_config_path: Option<PathBuf>,
     },
 }
 
-macro_rules! asset_path {
-    ($var:ident, $default:expr, $err:expr) => {
-        pub fn $var(&self) -> Result<PathBuf> {
-            let path = match self {
-                Self::Paths { $var, .. } => $var.clone(),
-                Self::Directory(dir) => {
-                    if !dir.is_dir() {
-                        bail!("No such directory: {:?}", dir);
-                    }
-                    dir.join($default)
+impl ModelPath {
+    fn resolve(
+        &self,
+        explicit: Option<PathBuf>,
+        default: impl FnOnce(&PathBuf) -> PathBuf,
+        err: &str,
+    ) -> Result<Option<PathBuf>> {
+        let path = match self {
+            Self::Paths { .. } => explicit,
+            Self::Directory(dir) => {
+                if !dir.is_dir() {
+                    bail!("No such directory: {:?}", dir);
                 }
+                Some(default(dir))
+            }
+        };
+
+        match path {
+            Some(p) => {
+                if !p.try_exists()? {
+                    bail!("Could not locate {} at path: {:?}", err, p);
+                }
+                Ok(Some(p.canonicalize()?))
+            }
+            None => Ok(None),
+        }
+    }
+}
+
+macro_rules! asset_path {
+    (@Optional $name:ident, $default:expr, $err:expr) => {
+        pub fn $name(&self) -> Result<Option<PathBuf>> {
+            let explicit = match self {
+                Self::Paths { $name, .. } => $name.clone(),
+                _ => None,
             };
 
-            if !path.try_exists()? {
-                bail!("Could not locate {} at path: {:?}", $err, path);
-            }
+            self.resolve(explicit, |dir| dir.join($default), $err)
+        }
+    };
 
-            Ok(path.canonicalize()?)
+    ($name:ident, $default:expr, $err:expr) => {
+        pub fn $name(&self) -> Result<PathBuf> {
+            let explicit = match self {
+                Self::Paths { $name, .. } => Some($name.clone()),
+                _ => None,
+            };
+
+            self.resolve(explicit, |dir| dir.join($default), $err)?
+                .ok_or_else(|| anyhow::anyhow!("Missing required path: {}", $err))
         }
     };
 }
@@ -181,6 +229,7 @@ impl ModelPath {
     asset_path!(model_config_path, "config.json", "model config");
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
     asset_path!(model_weights_path, "model.onnx", "model weights");
+    asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
 }
 
 fn default_cache_dir() -> PathBuf {
@@ -222,12 +271,19 @@ mod tests {
         base
     }
 
+    // Create temp output dir
+    fn create_temp_output_dir() -> PathBuf {
+        create_test_dir("model")
+    }
+
     // Create a model dir populated with the required files
-    fn create_model_dir() -> PathBuf {
+    fn create_temp_model_dir() -> PathBuf {
         let base = create_test_dir("model");
         fs::write(base.join("config.json"), "{}").expect("Failed to create config.json");
         fs::write(base.join("tokenizer.json"), "{}").expect("Failed to create tokenizer.json");
         fs::write(base.join("model.onnx"), "onnx").expect("Failed to create model.onnx");
+        fs::write(base.join("tokenizer_config.json"), "{}")
+            .expect("Failed to create tokenizer_config.json");
         base
     }
 
@@ -243,12 +299,18 @@ mod tests {
 
     #[test]
     fn test_modelpath_directory_valid() {
-        let base = create_model_dir();
+        let base = create_temp_model_dir();
         let mp = ModelPath::Directory(base.clone());
 
         assert!(mp.model_config_path().unwrap().ends_with("config.json"));
         assert!(mp.tokenizer_path().unwrap().ends_with("tokenizer.json"));
         assert!(mp.model_weights_path().unwrap().ends_with("model.onnx"));
+        assert!(
+            mp.tokenizer_config_path()
+                .unwrap()
+                .unwrap()
+                .ends_with("tokenizer_config.json")
+        );
 
         cleanup(&base);
     }
@@ -266,11 +328,12 @@ mod tests {
 
     #[test]
     fn test_modelpath_explicit_paths() {
-        let base = create_model_dir();
+        let base = create_temp_model_dir();
         let mp = ModelPath::Paths {
             model_config_path: base.join("config.json"),
             tokenizer_path: base.join("tokenizer.json"),
             model_weights_path: base.join("model.onnx"),
+            tokenizer_config_path: Some(base.join("tokenizer_config.json")),
         };
 
         assert!(mp.model_config_path().is_ok());
@@ -310,17 +373,18 @@ mod tests {
 
     #[test]
     fn test_encoderfile_generated_dir() {
-        let base = create_model_dir();
+        let base = create_temp_output_dir();
 
         let cfg = EncoderfileConfig {
             name: "my-cool-model".into(),
             version: "1.0".into(),
-            path: ModelPath::Directory(base.clone()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::Embedding,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: None,
+            tokenizer: None,
             build: true,
         };
 
@@ -332,16 +396,17 @@ mod tests {
 
     #[test]
     fn test_encoderfile_to_tera_ctx() {
-        let base = create_model_dir();
+        let base = create_temp_output_dir();
         let cfg = EncoderfileConfig {
             name: "sadness".into(),
             version: "0.1.0".into(),
-            path: ModelPath::Directory(base.clone()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::SequenceClassification,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: Some(Transform::Inline("1+1".into())),
+            tokenizer: None,
             build: true,
         };
 
