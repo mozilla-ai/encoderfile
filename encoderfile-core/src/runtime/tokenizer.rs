@@ -1,48 +1,24 @@
-use crate::{common::ModelConfig, error::ApiError};
+use crate::{common::Config, error::ApiError};
 use anyhow::Result;
 use std::str::FromStr;
 use std::sync::{Arc, OnceLock};
-use tokenizers::{
-    Encoding, PaddingDirection, PaddingParams, PaddingStrategy, tokenizer::Tokenizer,
-};
+use tokenizers::{Encoding, tokenizer::Tokenizer};
 
 static TOKENIZER: OnceLock<Arc<Tokenizer>> = OnceLock::new();
 
-pub fn get_tokenizer(tokenizer_json: &str, model_config: &Arc<ModelConfig>) -> Arc<Tokenizer> {
+pub fn get_tokenizer(tokenizer_json: &str, ec_config: &Arc<Config>) -> Arc<Tokenizer> {
     TOKENIZER
-        .get_or_init(|| Arc::new(get_tokenizer_from_string(tokenizer_json, model_config)))
+        .get_or_init(|| Arc::new(get_tokenizer_from_string(tokenizer_json, ec_config)))
         .clone()
 }
 
-pub fn get_tokenizer_from_string(s: &str, config: &Arc<ModelConfig>) -> Tokenizer {
-    let pad_token_id = config.pad_token_id;
-
+pub fn get_tokenizer_from_string(s: &str, ec_config: &Arc<Config>) -> Tokenizer {
     let mut tokenizer = match Tokenizer::from_str(s) {
         Ok(t) => t,
         Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
     };
 
-    let pad_token = match tokenizer.id_to_token(pad_token_id) {
-        Some(tok) => tok,
-        None => panic!("Model requires a padding token."),
-    };
-
-    if tokenizer.get_padding().is_none() {
-        let params = PaddingParams {
-            strategy: PaddingStrategy::BatchLongest,
-            direction: PaddingDirection::Right,
-            pad_to_multiple_of: None,
-            pad_id: pad_token_id,
-            pad_type_id: 0,
-            pad_token,
-        };
-
-        tracing::warn!(
-            "No padding strategy specified in tokenizer config. Setting default: {:?}",
-            &params
-        );
-        tokenizer.with_padding(Some(params));
-    }
+    tokenizer.with_padding(Some(ec_config.tokenizer.padding.clone()));
 
     tokenizer
 }

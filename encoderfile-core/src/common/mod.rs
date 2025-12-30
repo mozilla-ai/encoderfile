@@ -1,3 +1,4 @@
+mod config;
 mod embedding;
 mod model_config;
 mod model_metadata;
@@ -7,6 +8,7 @@ mod sequence_classification;
 mod token;
 mod token_classification;
 
+pub use config::*;
 pub use embedding::*;
 pub use model_config::*;
 pub use model_metadata::*;

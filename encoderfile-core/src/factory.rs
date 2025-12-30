@@ -1,7 +1,7 @@
 use crate::{
     cli::Cli,
     common::model_type::ModelTypeSpec,
-    runtime::{AppState, get_model, get_model_config, get_tokenizer},
+    runtime::{AppState, get_config, get_model, get_model_config, get_tokenizer},
     services::Inference,
     transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
@@ -39,42 +39,36 @@ macro_rules! embed_in_section {
 #[macro_export]
 macro_rules! factory {
     {
+        $config:expr,
         $model_weights_path:expr,
         $tokenizer_path:expr,
         $model_config_path:expr,
-        $model_type:ident,
-        $model_id:expr,
-        $transform:expr,
+        $model_type:ident
     } => {
         mod assets {
             $crate::embed_in_section!(MODEL_WEIGHTS, $model_weights_path, "model_weights", Bytes);
             $crate::embed_in_section!(TOKENIZER_JSON, $tokenizer_path, "tokenizer", String);
             $crate::embed_in_section!(MODEL_CONFIG_JSON, $model_config_path, "model_config", String);
 
-            pub const MODEL_ID: &'static str = $model_id;
-
-            #[allow(dead_code)]
-            pub const TRANSFORM: Option<&'static str> = $transform;
+            pub const CONFIG: &'static str = $config;
         }
 
         fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             $crate::entrypoint::<$crate::common::model_type::$model_type>(
+                assets::CONFIG,
                 &assets::MODEL_WEIGHTS,
                 assets::MODEL_CONFIG_JSON,
                 assets::TOKENIZER_JSON,
-                assets::MODEL_ID,
-                assets::TRANSFORM,
             )
         }
     };
 }
 
 pub fn entrypoint<T: ModelTypeSpec + GrpcRouter + McpRouter + HttpRouter>(
-    model_bytes: &[u8],
     config_str: &str,
+    model_bytes: &[u8],
+    model_config_str: &str,
     tokenizer_json: &str,
-    model_id: &str,
-    transform_str: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
 where
     AppState<T>: Inference,
@@ -88,14 +82,12 @@ where
         .with_context(|| "Failed to create Tokio runtime")?;
 
     let cli = Cli::parse();
-
+    let config = get_config(config_str);
     let session = get_model(model_bytes);
-    let config = get_model_config(config_str);
+    let model_config = get_model_config(model_config_str);
     let tokenizer = get_tokenizer(tokenizer_json, &config);
-    let transform_str = transform_str.map(|t| t.to_string());
-    let model_id = model_id.to_string();
 
-    let state = AppState::new(session, tokenizer, config, model_id, transform_str);
+    let state = AppState::new(config, session, tokenizer, model_config);
 
     rt.block_on(cli.command.execute::<T>(state))?;
 

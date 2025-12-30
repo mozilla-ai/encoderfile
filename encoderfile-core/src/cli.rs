@@ -113,7 +113,7 @@ impl Commands {
                 cert_file,
                 key_file,
             } => {
-                let banner = crate::get_banner(state.model_id.as_str());
+                let banner = crate::get_banner(state.config.name.as_str());
 
                 if disable_grpc && disable_http {
                     return Err(crate::error::ApiError::ConfigError(
@@ -167,7 +167,7 @@ impl Commands {
                 cert_file,
                 key_file,
             } => {
-                let banner = crate::get_banner(state.model_id.as_str());
+                let banner = crate::get_banner(state.config.name.as_str());
                 let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
                 println!("{}", banner);
                 let _ = tokio::join!(mcp_process);

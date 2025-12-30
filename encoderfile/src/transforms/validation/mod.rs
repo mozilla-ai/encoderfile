@@ -1,7 +1,10 @@
 use anyhow::{Context, Result};
-use encoderfile_core::{common::ModelConfig, transforms::TransformSpec};
+use encoderfile_core::{
+    common::{ModelConfig, ModelType},
+    transforms::TransformSpec,
+};
 
-use crate::{config::EncoderfileConfig, model::ModelType};
+use crate::config::EncoderfileConfig;
 
 mod embedding;
 mod sentence_embedding;
@@ -53,7 +56,7 @@ pub fn validate_transform(
         None => return Ok(()),
     };
 
-    let transform_str = Some(transform_string.as_ref());
+    let transform_str = Some(transform_string);
 
     match encoderfile_config.model_type {
         ModelType::Embedding => validate_transform!(
@@ -102,6 +105,7 @@ mod tests {
             transform: None,
             validate_transform: true,
             build: true,
+            tokenizer: None,
         }
     }
 
@@ -145,6 +149,7 @@ mod tests {
             transform: Some(Transform::Inline(transform_str.to_string())),
             validate_transform: true,
             build: true,
+            tokenizer: None,
         };
 
         let model_config_str =
@@ -168,6 +173,7 @@ mod tests {
             transform: None,
             validate_transform: true,
             build: true,
+            tokenizer: None,
         };
 
         let model_config_str =

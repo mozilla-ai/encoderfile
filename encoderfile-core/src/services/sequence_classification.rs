@@ -24,13 +24,13 @@ impl Inference for AppState<model_type::SequenceClassification> {
         let results = inference::sequence_classification::sequence_classification(
             session,
             &transform,
-            &self.config,
+            &self.model_config,
             encodings,
         )?;
 
         Ok(SequenceClassificationResponse {
             results,
-            model_id: self.model_id.clone(),
+            model_id: self.config.name.clone(),
             metadata: request.metadata,
         })
     }

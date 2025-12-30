@@ -1,7 +1,7 @@
 macro_rules! model_type {
     [ $( $x:ident ),* $(,)? ] => {
         // create enum
-        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, utoipa::ToSchema, schemars::JsonSchema)]
         #[serde(rename_all = "snake_case")]
         pub enum ModelType {
             $(

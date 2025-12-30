@@ -35,7 +35,7 @@ fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
 #[divan::bench(args = [8, 16, 64])]
 fn sequence_classification_postprocess(b: Bencher, batch: usize) {
     let state = sequence_classification_state();
-    let config = state.config;
+    let config = state.model_config;
     let n_labels = config.id2label.clone().unwrap().len();
 
     let mut rng = rand::rng();
@@ -51,7 +51,7 @@ fn sequence_classification_postprocess(b: Bencher, batch: usize) {
 #[divan::bench(args = [(8, 16), (16, 128), (64, 512)])]
 fn token_classification_postprocess(b: Bencher, dim: (usize, usize)) {
     let state = token_classification_state();
-    let config = state.config;
+    let config = state.model_config;
     let n_labels = config.id2label.clone().unwrap().len();
 
     let tokenizer = embedding_state().tokenizer;

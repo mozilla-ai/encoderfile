@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, bail};
-use encoderfile_core::common::ModelConfig;
+use encoderfile_core::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
 use schemars::JsonSchema;
 use std::{
     fs::File,
@@ -7,7 +7,7 @@ use std::{
     path::PathBuf,
 };
 
-use super::model::ModelType;
+use super::model::ModelTypeExt as _;
 use figment::{
     Figment,
     providers::{Format, Yaml},
@@ -16,11 +16,11 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct Config {
+pub struct BuildConfig {
     pub encoderfile: EncoderfileConfig,
 }
 
-impl Config {
+impl BuildConfig {
     pub fn load(path: &PathBuf) -> Result<Self> {
         let config = Figment::new().merge(Yaml::file(path)).extract()?;
 
@@ -38,6 +38,7 @@ pub struct EncoderfileConfig {
     pub output_path: Option<PathBuf>,
     pub cache_dir: Option<PathBuf>,
     pub transform: Option<Transform>,
+    pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
     #[serde(default = "default_build")]
@@ -45,6 +46,19 @@ pub struct EncoderfileConfig {
 }
 
 impl EncoderfileConfig {
+    pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
+        let tokenizer = self.validate_tokenizer()?;
+        let config = EmbeddedConfig {
+            name: self.name.clone(),
+            version: self.version.clone(),
+            model_type: self.model_type.clone(),
+            transform: self.transform()?,
+            tokenizer,
+        };
+
+        Ok(config)
+    }
+
     pub fn model_config(&self) -> Result<ModelConfig> {
         let model_config_path = self.path.model_config_path()?;
 
@@ -73,21 +87,26 @@ impl EncoderfileConfig {
             None => default_cache_dir(),
         }
     }
-    pub fn to_tera_ctx(&self) -> Result<tera::Context> {
-        let mut ctx = tera::Context::new();
 
+    pub fn transform(&self) -> Result<Option<String>> {
         let transform = match &self.transform {
             None => None,
             Some(s) => Some(s.transform()?),
         };
 
-        ctx.insert("version", self.version.as_str());
-        ctx.insert("model_name", self.name.as_str());
+        Ok(transform)
+    }
+
+    pub fn to_tera_ctx(&self) -> Result<tera::Context> {
+        let mut ctx = tera::Context::new();
+        let embedded_config = self.embedded_config()?;
+
+        ctx.insert("version", embedded_config.version.as_str());
+        ctx.insert("config_str", &serde_json::to_string(&embedded_config)?);
         ctx.insert("model_type", self.model_type.to_ident());
         ctx.insert("model_weights_path", &self.path.model_weights_path()?);
         ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
         ctx.insert("model_config_path", &self.path.model_config_path()?);
-        ctx.insert("transform", &transform);
         ctx.insert("encoderfile_version_str", &encoderfile_core_version());
 
         Ok(ctx)
@@ -99,6 +118,18 @@ impl EncoderfileConfig {
         self.cache_dir()
             .join(format!("encoderfile-{:x}", filename_hash))
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct TokenizerBuildConfig {
+    pub pad_strategy: Option<TokenizerPadStrategy>,
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(untagged, rename_all = "snake_case")]
+pub enum TokenizerPadStrategy {
+    BatchLongest,
+    Fixed { fixed: usize },
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -136,27 +167,60 @@ pub enum ModelPath {
         model_config_path: PathBuf,
         model_weights_path: PathBuf,
         tokenizer_path: PathBuf,
+        tokenizer_config_path: Option<PathBuf>,
     },
 }
 
-macro_rules! asset_path {
-    ($var:ident, $default:expr, $err:expr) => {
-        pub fn $var(&self) -> Result<PathBuf> {
-            let path = match self {
-                Self::Paths { $var, .. } => $var.clone(),
-                Self::Directory(dir) => {
-                    if !dir.is_dir() {
-                        bail!("No such directory: {:?}", dir);
-                    }
-                    dir.join($default)
+impl ModelPath {
+    fn resolve(
+        &self,
+        explicit: Option<PathBuf>,
+        default: impl FnOnce(&PathBuf) -> PathBuf,
+        err: &str,
+    ) -> Result<Option<PathBuf>> {
+        let path = match self {
+            Self::Paths { .. } => explicit,
+            Self::Directory(dir) => {
+                if !dir.is_dir() {
+                    bail!("No such directory: {:?}", dir);
                 }
+                Some(default(dir))
+            }
+        };
+
+        match path {
+            Some(p) => {
+                if !p.try_exists()? {
+                    bail!("Could not locate {} at path: {:?}", err, p);
+                }
+                Ok(Some(p.canonicalize()?))
+            }
+            None => Ok(None),
+        }
+    }
+}
+
+macro_rules! asset_path {
+    (@Optional $name:ident, $default:expr, $err:expr) => {
+        pub fn $name(&self) -> Result<Option<PathBuf>> {
+            let explicit = match self {
+                Self::Paths { $name, .. } => $name.clone(),
+                _ => None,
             };
 
-            if !path.try_exists()? {
-                bail!("Could not locate {} at path: {:?}", $err, path);
-            }
+            self.resolve(explicit, |dir| dir.join($default), $err)
+        }
+    };
 
-            Ok(path.canonicalize()?)
+    ($name:ident, $default:expr, $err:expr) => {
+        pub fn $name(&self) -> Result<PathBuf> {
+            let explicit = match self {
+                Self::Paths { $name, .. } => Some($name.clone()),
+                _ => None,
+            };
+
+            self.resolve(explicit, |dir| dir.join($default), $err)?
+                .ok_or_else(|| anyhow::anyhow!("Missing required path: {}", $err))
         }
     };
 }
@@ -165,6 +229,7 @@ impl ModelPath {
     asset_path!(model_config_path, "config.json", "model config");
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
     asset_path!(model_weights_path, "model.onnx", "model weights");
+    asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
 }
 
 fn default_cache_dir() -> PathBuf {
@@ -206,12 +271,19 @@ mod tests {
         base
     }
 
+    // Create temp output dir
+    fn create_temp_output_dir() -> PathBuf {
+        create_test_dir("model")
+    }
+
     // Create a model dir populated with the required files
-    fn create_model_dir() -> PathBuf {
+    fn create_temp_model_dir() -> PathBuf {
         let base = create_test_dir("model");
         fs::write(base.join("config.json"), "{}").expect("Failed to create config.json");
         fs::write(base.join("tokenizer.json"), "{}").expect("Failed to create tokenizer.json");
         fs::write(base.join("model.onnx"), "onnx").expect("Failed to create model.onnx");
+        fs::write(base.join("tokenizer_config.json"), "{}")
+            .expect("Failed to create tokenizer_config.json");
         base
     }
 
@@ -227,12 +299,18 @@ mod tests {
 
     #[test]
     fn test_modelpath_directory_valid() {
-        let base = create_model_dir();
+        let base = create_temp_model_dir();
         let mp = ModelPath::Directory(base.clone());
 
         assert!(mp.model_config_path().unwrap().ends_with("config.json"));
         assert!(mp.tokenizer_path().unwrap().ends_with("tokenizer.json"));
         assert!(mp.model_weights_path().unwrap().ends_with("model.onnx"));
+        assert!(
+            mp.tokenizer_config_path()
+                .unwrap()
+                .unwrap()
+                .ends_with("tokenizer_config.json")
+        );
 
         cleanup(&base);
     }
@@ -250,11 +328,12 @@ mod tests {
 
     #[test]
     fn test_modelpath_explicit_paths() {
-        let base = create_model_dir();
+        let base = create_temp_model_dir();
         let mp = ModelPath::Paths {
             model_config_path: base.join("config.json"),
             tokenizer_path: base.join("tokenizer.json"),
             model_weights_path: base.join("model.onnx"),
+            tokenizer_config_path: Some(base.join("tokenizer_config.json")),
         };
 
         assert!(mp.model_config_path().is_ok());
@@ -294,17 +373,18 @@ mod tests {
 
     #[test]
     fn test_encoderfile_generated_dir() {
-        let base = create_model_dir();
+        let base = create_temp_output_dir();
 
         let cfg = EncoderfileConfig {
             name: "my-cool-model".into(),
             version: "1.0".into(),
-            path: ModelPath::Directory(base.clone()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::Embedding,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: None,
+            tokenizer: None,
             build: true,
         };
 
@@ -316,22 +396,21 @@ mod tests {
 
     #[test]
     fn test_encoderfile_to_tera_ctx() {
-        let base = create_model_dir();
+        let base = create_temp_output_dir();
         let cfg = EncoderfileConfig {
             name: "sadness".into(),
             version: "0.1.0".into(),
-            path: ModelPath::Directory(base.clone()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::SequenceClassification,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: Some(Transform::Inline("1+1".into())),
+            tokenizer: None,
             build: true,
         };
 
-        let ctx = cfg.to_tera_ctx().expect("Tera ctx error");
-
-        assert_eq!(ctx.get("model_name").unwrap().as_str().unwrap(), "sadness");
+        let _ctx = cfg.to_tera_ctx().expect("Tera ctx error");
 
         cleanup(&base);
     }
@@ -351,7 +430,7 @@ encoderfile:
 
         fs::write(&path, yaml).unwrap();
 
-        let cfg = Config::load(&path).unwrap();
+        let cfg = BuildConfig::load(&path).unwrap();
         assert_eq!(cfg.encoderfile.name, "testy");
         assert_eq!(cfg.encoderfile.version, "0.9.0");
 
