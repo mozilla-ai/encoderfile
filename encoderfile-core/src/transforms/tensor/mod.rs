@@ -79,6 +79,9 @@ impl LuaUserData for Tensor {
         });
         methods.add_method("mean_pool", |_, this, mask| this.mean_pool(mask));
         methods.add_method("clamp", |_, this, (min, max)| this.clamp(min, max));
+        methods.add_method("layer_norm", |_, this, (axis, eps)| {
+            this.layer_norm(axis, eps)
+        })
     }
 }
 
