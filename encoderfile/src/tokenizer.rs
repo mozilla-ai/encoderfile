@@ -292,4 +292,43 @@ mod tests {
         assert!(tokenizer_config.padding.pad_to_multiple_of.is_none());
         assert_eq!(tokenizer_config.padding.pad_type_id, 0);
     }
+
+    #[test]
+    fn test_validate_tokenizer_no_config() {
+        let path = ModelPath::Directory("../models/token_classification".into());
+
+        let explicit_path = ModelPath::Paths {
+            model_config_path: path.model_config_path().unwrap(),
+            model_weights_path: path.model_weights_path().unwrap(),
+            tokenizer_path: path.tokenizer_path().unwrap(),
+            tokenizer_config_path: None,
+        };
+
+        let config = EncoderfileConfig {
+            name: "my-model".into(),
+            version: "0.0.1".into(),
+            path: explicit_path,
+            model_type: ModelType::Embedding,
+            output_path: None,
+            cache_dir: None,
+            transform: None,
+            tokenizer: None,
+            validate_transform: false,
+            build: false,
+        };
+
+        let tokenizer_config = config
+            .validate_tokenizer()
+            .expect("Failed to validate tokenizer");
+
+        assert_eq!(format!("{:?}", tokenizer_config.padding.direction), "Right");
+        assert_eq!(
+            format!("{:?}", tokenizer_config.padding.strategy),
+            "BatchLongest"
+        );
+        assert_eq!(tokenizer_config.padding.pad_id, 0);
+        assert_eq!(tokenizer_config.padding.pad_token, "[PAD]");
+        assert!(tokenizer_config.padding.pad_to_multiple_of.is_none());
+        assert_eq!(tokenizer_config.padding.pad_type_id, 0);
+    }
 }
