@@ -222,3 +222,74 @@ impl<'a> TokenizerConfigBuilder<'a> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use encoderfile_core::common::ModelType;
+
+    use crate::config::{ModelPath, TokenizerBuildConfig};
+
+    use super::*;
+
+    #[test]
+    fn test_validate_tokenizer() {
+        let config = EncoderfileConfig {
+            name: "my-model".into(),
+            version: "0.0.1".into(),
+            path: ModelPath::Directory("../models/embedding".into()),
+            model_type: ModelType::Embedding,
+            output_path: None,
+            cache_dir: None,
+            transform: None,
+            tokenizer: None,
+            validate_transform: false,
+            build: false,
+        };
+
+        let tokenizer_config = config
+            .validate_tokenizer()
+            .expect("Failed to validate tokenizer");
+
+        assert_eq!(format!("{:?}", tokenizer_config.padding.direction), "Right");
+        assert_eq!(
+            format!("{:?}", tokenizer_config.padding.strategy),
+            "BatchLongest"
+        );
+        assert_eq!(tokenizer_config.padding.pad_id, 0);
+        assert_eq!(tokenizer_config.padding.pad_token, "[PAD]");
+        assert!(tokenizer_config.padding.pad_to_multiple_of.is_none());
+        assert_eq!(tokenizer_config.padding.pad_type_id, 0);
+    }
+
+    #[test]
+    fn test_validate_tokenizer_fixed() {
+        let config = EncoderfileConfig {
+            name: "my-model".into(),
+            version: "0.0.1".into(),
+            path: ModelPath::Directory("../models/embedding".into()),
+            model_type: ModelType::Embedding,
+            output_path: None,
+            cache_dir: None,
+            transform: None,
+            tokenizer: Some(TokenizerBuildConfig {
+                pad_strategy: Some(TokenizerPadStrategy::Fixed { fixed: 512 }),
+            }),
+            validate_transform: false,
+            build: false,
+        };
+
+        let tokenizer_config = config
+            .validate_tokenizer()
+            .expect("Failed to validate tokenizer");
+
+        assert_eq!(format!("{:?}", tokenizer_config.padding.direction), "Right");
+        assert_eq!(
+            format!("{:?}", tokenizer_config.padding.strategy),
+            "Fixed(512)"
+        );
+        assert_eq!(tokenizer_config.padding.pad_id, 0);
+        assert_eq!(tokenizer_config.padding.pad_token, "[PAD]");
+        assert!(tokenizer_config.padding.pad_to_multiple_of.is_none());
+        assert_eq!(tokenizer_config.padding.pad_type_id, 0);
+    }
+}
