@@ -22,8 +22,8 @@ function Postprocess(arr, mask)
     ---Step 3: truncate along 2nd axis
     embeddings = embeddings:truncate_axis(2, MatryoshkaDim)
 
-    ---Step 4: l2 normalize along 2nd axis
-    embeddings = embeddings:lp_norm(2.0, 2)
+    ---Step 4: l2 normalize along 2nd axis (1st axis in PyTorch land)
+    embeddings = embeddings:lp_normalize(2.0, 2)
 
     return embeddings
 end
