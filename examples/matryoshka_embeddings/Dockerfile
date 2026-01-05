@@ -1,4 +1,4 @@
-FROM encoderfile:latest AS build
+FROM ghcr.io/mozilla-ai/encoderfile:latest AS build
 
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -14,12 +14,25 @@ COPY download_model.sh .
 COPY encoderfile.yml .
 COPY transform.lua .
 
+# ARG HF_TOKEN
+# ENV HF_TOKEN=${HF_TOKEN}
+
+# NOTE: Hugging Face may rate-limit unauthenticated downloads.
+# If this build fails with 429 errors, uncomment the lines above and pass an access token
+# (not recommended for prod/anywhere where security actually matters):
+#
+#   docker build --build-arg HF_TOKEN=your_token_here ...
+#
+# Or download the model assets ahead of time, mount them as a volume, and COPY
+# instead of fetching them during the Docker build.
 RUN sh download_model.sh
 
 RUN encoderfile build -f encoderfile.yml
 
 FROM debian:bookworm-slim AS final
 
-COPY --from=build /opt/encoderfile/nomic-embed-text-v1_5.encoderfile /usr/bin/nomic-embed-text-v1_5.encoderfile
+COPY --from=build \
+    /opt/encoderfile/nomic-embed-text-v1_5.encoderfile \
+    /usr/bin/nomic-embed-text-v1_5.encoderfile
 
 ENTRYPOINT ["nomic-embed-text-v1_5.encoderfile"]
