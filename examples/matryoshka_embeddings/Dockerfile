@@ -1,4 +1,4 @@
-FROM ghcr.io/mozilla-ai/encoderfile:latest AS build
+FROM ghcr.io/mozilla-ai/encoderfile:0.3.0-rc.0 AS build
 
 RUN apt-get update && apt-get install -y \
     python3 \
