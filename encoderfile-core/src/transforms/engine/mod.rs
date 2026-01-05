@@ -88,8 +88,7 @@ fn new_lua() -> Result<Lua, ApiError> {
         ApiError::InternalError("Failed to create new Lua engine")
     })?;
 
-    lua.register_userdata_type::<Tensor>(|_| {})
-    .map_err(|e| {
+    lua.register_userdata_type::<Tensor>(|_| {}).map_err(|e| {
         tracing::error!(
             "Failed to register Tensor as a UserType. This should not happen. More details: {:?}",
             e
