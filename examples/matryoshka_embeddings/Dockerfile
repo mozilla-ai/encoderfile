@@ -1,18 +1,16 @@
-FROM ghcr.io/mozilla-ai/encoderfile:0.3.0-rc.0 AS build
+FROM python:3.13-slim AS download_model
 
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3.13-venv \
     ca-certificates \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
 
 RUN curl -LsSf https://hf.co/cli/install.sh | bash \
     && mv /root/.local/bin/hf /usr/local/bin/hf
 
 COPY download_model.sh .
-COPY encoderfile.yml .
-COPY transform.lua .
 
 # ARG HF_TOKEN
 # ENV HF_TOKEN=${HF_TOKEN}
@@ -26,6 +24,13 @@ COPY transform.lua .
 # Or download the model assets ahead of time, mount them as a volume, and COPY
 # instead of fetching them during the Docker build.
 RUN sh download_model.sh
+
+FROM ghcr.io/mozilla-ai/encoderfile:0.3.0-rc.0 AS build
+
+COPY --from=download_model /app/model /opt/encoderfile/model
+
+COPY encoderfile.yml .
+COPY transform.lua .
 
 RUN encoderfile build -f encoderfile.yml
 
