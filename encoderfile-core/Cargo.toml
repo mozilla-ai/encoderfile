@@ -39,7 +39,7 @@ required-features = [ "dev-utils",]
 
 [package]
 name = "encoderfile-core"
-version = "0.2.1"
+version = "0.3.0-rc.0"
 edition = "2024"
 license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
