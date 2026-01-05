@@ -25,7 +25,7 @@ COPY download_model.sh .
 # instead of fetching them during the Docker build.
 RUN sh download_model.sh
 
-FROM ghcr.io/mozilla-ai/encoderfile:0.3.0-rc.0 AS build
+FROM ghcr.io/mozilla-ai/encoderfile:0.3.0-rc.1 AS build
 
 COPY --from=download_model /app/model /opt/encoderfile/model
 
