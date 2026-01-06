@@ -3,16 +3,11 @@ name: version management
 on:
   workflow_dispatch:
     inputs:
-      release_level:
+      level:
         type: choice
-        description: Release level (none, patch, minor, major)
+        description: Release level
         required: true
-        options: [none, patch, minor, major]
-      prerelease:
-        type: choice
-        description: Whether it's a prerelease
-        required: true
-        options: [alpha, beta, rc, release]
+        options: [alpha, beta, rc, release, patch, minor, major]
       local:
         type: string
         required: false
@@ -31,70 +26,118 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup project
+        uses: ./.github/actions/project-setup
+
+      - name: Install cargo release
+        run: cargo binstall cargo-release
+      
       - name: Get current version
         id: current_version
         run: |
-          echo "version=$(cat pyproject.toml | grep '^version = ".*"' | cut -d'"' -f2)" >> $GITHUB_OUTPUT
+          VERSION=$(cargo metadata --no-deps --format-version=1 \
+            | jq -r '.packages[]
+              | select(.name == "encoderfile-core")
+              | .version')
 
-      - name: Setup project
-        uses: ./.github/actions/project-setup
+          if [ -z "$VERSION" ]; then
+            echo "encoderfile-core not found in workspace"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      
+      - name: Compute prerelease metadata
+        id: prerelease_meta
+        run: |
+          SHA=$(git rev-parse --short=7 HEAD)
+          echo "meta=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Bump version
         id: bump
         run: |
-          NEW_VERSION=$(uv run scripts/bump_version.py \
-            "${{ github.event.inputs.release_level }}" \
-            "${{ github.event.inputs.prerelease }}" \
-            --local "${{ github.event.inputs.local }}" \
-            --start ".")
+          LEVEL="${{ github.event.inputs.level }}"
 
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          if [ "$LEVEL" = "alpha" ]; then
+            cargo release version alpha \
+              --metadata "${{ steps.prerelease_meta.outputs.meta }}" \
+              --execute \
+              --workspace \
+              --no-confirm
+          else
+            cargo release version \
+              "$LEVEL" \
+              --execute \
+              --workspace \
+              --no-confirm
+          fi
+
+      - name: Get new version
+        id: new_version
+        run: |
+          VERSION=$(cargo metadata --no-deps --format-version=1 \
+            | jq -r '.packages[]
+              | select(.name == "encoderfile-core")
+              | .version')
+
+          if [ -z "$VERSION" ]; then
+            echo "encoderfile-core not found in workspace"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      
+      - name: Abort if version did not change
+        run: |
+          if [ "${{ steps.current_version.outputs.version }}" = "${{ steps.new_version.outputs.version }}" ]; then
+            echo "Version did not change; aborting"
+            exit 1
+          fi
       
       - name: Update Cargo.lock
-        run: cargo update encoderfile-core encoderfile --precise ${{ steps.bump.outputs.version }}
-      
-      - name: Update uv.lock
-        run: uv lock
+        run: cargo generate-lockfile
 
-      # Generate appropriate labels based on release type
       - name: Generate PR labels
         id: generate_labels
         run: |
           LABELS="auto-generated\nversion-bump"
 
-          RELEASE_LEVEL="${{ github.event.inputs.release_level }}"
-          PRERELEASE="${{ github.event.inputs.prerelease }}"
+          LEVEL="${{ github.event.inputs.level }}"
 
-          # Add the base release level (patch/minor/major)
-          if [ "$RELEASE_LEVEL" != "none" ]; then
-            LABELS="$LABELS\n$RELEASE_LEVEL"
-          fi
+          case "$LEVEL" in
+            alpha|beta|rc)
+              LABELS="$LABELS\n$LEVEL\nprerelease"
+              ;;
+            release)
+              LABELS="$LABELS\nrelease"
+              ;;
+            patch|minor|major)
+              LABELS="$LABELS\n$LEVEL"
+              ;;
+            *)
+              echo "Invalid release level: $LEVEL"
+              exit 1
+              ;;
+          esac
 
-          # Add prerelease label if appropriate
-          if [ "$PRERELEASE" != "release" ]; then
-            LABELS="$LABELS\n$PRERELEASE\nprerelease"
-          else
-            LABELS="$LABELS\nrelease"
-          fi
-
-          echo "labels<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$LABELS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "labels<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$LABELS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Create Pull Request
         id: create_pr
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "version: bump version 🚀 ${{ steps.bump.outputs.version }}"
-          title: "version: Version Bump 🚀 ${{ steps.bump.outputs.version }}"
+          commit-message: "version: bump version 🚀 ${{ steps.new_version.outputs.version }}"
+          title: "version: Version Bump 🚀 ${{ steps.new_version.outputs.version }}"
           body: |
             ## 🎉 Version Bump 🎉
 
-            This PR bumps the version from ${{ steps.current_version.outputs.version }} to ${{ steps.bump.outputs.version }}.
+            This PR bumps the version from ${{ steps.current_version.outputs.version }} to ${{ steps.new_version.outputs.version }}.
 
             ### 🔄 Changes
-            - 📝 Updated version in pyproject.toml
+            - 📝 Updated version in Cargo.toml
             - 🔒 Updated Cargo.lock
 
             ✨ This PR was automatically generated by the Version Management workflow ✨
@@ -104,8 +147,6 @@ jobs:
           base: main
           delete-branch: true
           add-paths: |
-            pyproject.toml
             Cargo.lock
-            uv.lock
             **/Cargo.toml
           labels: ${{ steps.generate_labels.outputs.labels }}
