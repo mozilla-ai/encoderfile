@@ -4,7 +4,7 @@ path = "src/main.rs"
 
 [package]
 name = "encoderfile"
-version = "0.3.0"
+version = "0.3.1-alpha.1+c205c94"
 edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
@@ -46,7 +46,7 @@ workspace = true
 
 [dependencies.encoderfile-core]
 path = "../encoderfile-core"
-version = "0.3.0"
+version = "0.3.1-alpha.1"
 features = [ "transforms",]
 default-features = false
 
