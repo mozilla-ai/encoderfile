@@ -4,7 +4,7 @@ path = "bin/generate_encoderfile_config_schema.rs"
 
 [package]
 name = "encoderfile-utils"
-version = "0.3.0"
+version = "0.3.2-alpha.1+299f344"
 edition = "2024"
 publish = false
 
