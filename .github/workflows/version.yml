@@ -8,10 +8,6 @@ on:
         description: Release level
         required: true
         options: [alpha, beta, rc, release, patch, minor, major]
-      local:
-        type: string
-        required: false
-        description: "Local metadata (alpha only)"
 
 permissions:
   contents: write
