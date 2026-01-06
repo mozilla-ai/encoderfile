@@ -28,7 +28,6 @@ jobs:
           BUMP="${{ github.event.inputs.bump }}"
           STAGE="${{ github.event.inputs.stage }}"
 
-          # Disallow prerelease without a bump
           if [ "$BUMP" = "none" ] && [ "$STAGE" != "release" ]; then
             echo "Invalid input: prerelease stage '$STAGE' requires a version bump"
             exit 1
@@ -41,9 +40,9 @@ jobs:
       - name: Setup project
         uses: ./.github/actions/project-setup
 
-      - name: Install cargo release
-        run: cargo binstall cargo-release
-      
+      - name: Install cargo-goose
+        run: cargo install cargo-goose
+
       - name: Get current version
         id: current_version
         run: |
@@ -52,18 +51,14 @@ jobs:
               | select(.name == "encoderfile-core")
               | .version')
 
-          if [ -z "$VERSION" ]; then
-            echo "encoderfile-core not found in workspace"
-            exit 1
-          fi
+          [ -n "$VERSION" ] || { echo "encoderfile-core not found"; exit 1; }
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      
+
       - name: Compute prerelease metadata
         id: prerelease_meta
         run: |
-          SHA=$(git rev-parse --short=7 HEAD)
-          echo "meta=$SHA" >> "$GITHUB_OUTPUT"
+          echo "meta=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Bump version
         id: bump
@@ -72,41 +67,26 @@ jobs:
           STAGE="${{ github.event.inputs.stage }}"
           META="${{ steps.prerelease_meta.outputs.meta }}"
 
-          # Step 1: bump base version if requested
           if [ "$BUMP" != "none" ]; then
-            cargo release version \
-              "$BUMP" \
-              --execute \
-              --workspace \
-              --no-confirm
+            if [ "$STAGE" = "release" ]; then
+              cargo goose bump version "$BUMP"
+            else
+              cargo goose bump version "$BUMP" "$STAGE"
+            fi
+          else
+            case "$STAGE" in
+              alpha|beta|rc)
+                cargo goose bump prerelease "$STAGE"
+                ;;
+              release)
+                cargo goose bump release
+                ;;
+              *)
+                echo "Invalid stage: $STAGE"
+                exit 1
+                ;;
+            esac
           fi
-
-          # Step 2: apply prerelease stage
-          case "$STAGE" in
-            alpha)
-              cargo release version alpha \
-                --metadata "$META" \
-                --execute \
-                --workspace \
-                --no-confirm
-              ;;
-            beta|rc)
-              cargo release version "$STAGE" \
-                --execute \
-                --workspace \
-                --no-confirm
-              ;;
-            release)
-              cargo release version release \
-                --execute \
-                --workspace \
-                --no-confirm
-              ;;
-            *)
-              echo "Invalid stage: $STAGE"
-              exit 1
-              ;;
-          esac
 
       - name: Get new version
         id: new_version
@@ -116,20 +96,17 @@ jobs:
               | select(.name == "encoderfile-core")
               | .version')
 
-          if [ -z "$VERSION" ]; then
-            echo "encoderfile-core not found in workspace"
-            exit 1
-          fi
+          [ -n "$VERSION" ] || { echo "encoderfile-core not found"; exit 1; }
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      
+
       - name: Abort if version did not change
         run: |
           if [ "${{ steps.current_version.outputs.version }}" = "${{ steps.new_version.outputs.version }}" ]; then
             echo "Version did not change; aborting"
             exit 1
           fi
-      
+
       - name: Update Cargo.lock
         run: cargo generate-lockfile
 
@@ -141,22 +118,14 @@ jobs:
 
           LABELS="auto-generated\nversion-bump"
 
-          # Add bump label if present
-          if [ "$BUMP" != "none" ]; then
-            LABELS="$LABELS\n$BUMP"
-          fi
+          [ "$BUMP" != "none" ] && LABELS="$LABELS\n$BUMP"
 
-          # Add stage / prerelease labels
           case "$STAGE" in
             alpha|beta|rc)
               LABELS="$LABELS\n$STAGE\nprerelease"
               ;;
             release)
               LABELS="$LABELS\nrelease"
-              ;;
-            *)
-              echo "Invalid stage: $STAGE"
-              exit 1
               ;;
           esac
 
@@ -172,9 +141,8 @@ jobs:
           commit-message: "version: bump version 🚀 ${{ steps.new_version.outputs.version }}"
           title: "version: Version Bump 🚀 ${{ steps.new_version.outputs.version }}"
           body: |
-            ## 🎉 Version Bump 🎉
-
-            This PR bumps the version from ${{ steps.current_version.outputs.version }} to ${{ steps.new_version.outputs.version }}.
+            Version bumped from ${{ steps.current_version.outputs.version }}
+            to ${{ steps.new_version.outputs.version }}.
 
             ### 🔄 Changes
             - 📝 Updated version in Cargo.toml
