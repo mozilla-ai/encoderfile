@@ -46,7 +46,7 @@ description = "Distribute and run transformer encoders with a single file."
 
 [features]
 default = [ "transport",]
-transport = [ "runtime", "opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "axum-server", "clap", "clap_derive", "prost", "tonic-prost", "tonic-types", "tonic-web", "tracing-opentelemetry", "tonic", "tower-http",]
+transport = [ "runtime", "opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "axum-server", "clap", "clap_derive", "tonic-prost", "tonic-types", "tonic-web", "tracing-opentelemetry", "tower-http",]
 dev-utils = [ "runtime",]
 runtime = [ "transforms", "ort",]
 transforms = [ "mlua",]
@@ -118,7 +118,6 @@ optional = true
 
 [dependencies.prost]
 version = "0.14.1"
-optional = true
 
 [dependencies.tokenizers]
 workspace = true
@@ -168,7 +167,6 @@ features = [ "full",]
 [dependencies.tonic]
 version = "0.14.2"
 features = [ "router",]
-optional = true
 
 [dependencies.tower-http]
 version = "0.6.6"
