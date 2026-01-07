@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package encoderfile.manifest;
+
+import "proto/metadata.proto";
+
+// EncoderfileMetadata describes the embedded payload of a `.encoderfile`
+// deployment artifact.
+//
+// This message is stored as a protobuf footer appended to a precompiled
+// runtime binary. It is used at runtime to locate, validate, and load
+// embedded model assets.
+//
+// This schema is NOT a general-purpose manifest and MUST NOT be extended
+// to support dynamic loading, headless execution, or runtime configuration.
+message EncoderfileMetadata {
+	// ------------------------------------------------------------------
+	// 1–49: General model metadata
+	// ------------------------------------------------------------------
+
+	// Logical model type (e.g. embedding, sentence-embedding, classification).
+	// Used to validate compatibility with the runtime binary.
+	encoderfile.metadata.ModelType model_type = 1;
+
+	// User-declared model name.
+	// This value is informational and has no behavioral impact.
+	string name = 2;
+
+	// User-declared model version.
+	// This value is informational and has no behavioral impact.
+	string version = 3;
+
+    // Backend.
+    Backend backend = 4;
+
+	// ------------------------------------------------------------------
+	// 50–99: Transforms and preprocessing
+	// ------------------------------------------------------------------
+
+	// Optional preprocessing transform applied during model initialization.
+	// If present, the runtime must support the declared TransformType.
+	optional Transform transform = 50;
+
+	// ------------------------------------------------------------------
+	// 100–999: Embedded artifacts
+	// ------------------------------------------------------------------
+	// Artifacts are referenced via explicit fields, not a generic table.
+	// Each artifact reserves its own numeric range for future expansion.
+
+	// Model weights blob.
+	optional Artifact weights = 100;
+
+	// Model configuration (e.g. architecture, hyperparameters).
+	optional Artifact model_config = 110;
+
+	// Tokenizer data (vocab, merges, config).
+	optional Artifact tokenizer = 120;
+}
+
+// Transform describes an embedded preprocessing step applied to inputs
+// prior to inference.
+//
+// Transforms are embedded source code and executed by the runtime.
+// Only explicitly supported TransformTypes are allowed.
+message Transform {
+	// Declares the execution environment for the transform.
+	TransformType transform_type = 1;
+
+	// Transform source code.
+	// Interpretation is defined by the TransformType.
+	string transform = 2;
+}
+
+// Artifact describes a contiguous byte range within the embedded payload.
+//
+// Offsets are relative to the start of the payload region, not the binary.
+message Artifact {
+	// Byte offset from the start of the payload.
+	uint64 offset = 1;
+
+	// Length of the artifact in bytes.
+	uint64 length = 2;
+
+	// SHA-256 checksum of the artifact contents, hex-encoded.
+	// Used for integrity verification at runtime.
+	string sha256 = 3;
+}
+
+// Supported preprocessing transform types.
+enum TransformType {
+	// No transform declared.
+	UNDECLARED_TRANSFORM = 0;
+
+	// Lua source executed by the runtime.
+	LUA = 1;
+}
+
+// Execution backend required by the embedded runtime binary.
+//
+// This enum is informational here; backend compatibility is enforced
+// by the runtime binary itself, not by the payload.
+enum Backend {
+	// CPU-only execution (no hardware acceleration).
+	CPU = 0;
+
+	// NVIDIA CUDA backend.
+	CUDA = 1;
+
+	// Apple Metal backend.
+	METAL = 2;
+}
