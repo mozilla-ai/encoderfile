@@ -2,7 +2,7 @@ use divan::Bencher;
 use encoderfile_core::{
     dev_utils::*,
     inference::{embedding, sequence_classification, token_classification},
-    runtime::encode_text,
+    runtime::TokenizerService,
 };
 use ndarray::Array;
 use rand::Rng;
@@ -71,13 +71,14 @@ fn token_classification_postprocess(b: Bencher, dim: (usize, usize)) {
 }
 
 fn generate_dummy_encodings(
-    tokenizer: &tokenizers::Tokenizer,
+    tokenizer: &TokenizerService,
     batch: usize,
     max_len: usize,
 ) -> Vec<Encoding> {
     let inp = vec![LORUM.to_string(); batch];
 
-    encode_text(tokenizer, inp)
+    tokenizer
+        .encode_text(inp)
         .unwrap()
         .into_iter()
         .map(|mut enc| {

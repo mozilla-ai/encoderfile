@@ -11,7 +11,7 @@ pub struct Config {
     pub tokenizer: TokenizerConfig,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenizerConfig {
     pub padding: PaddingParams,
 }

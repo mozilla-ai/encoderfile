@@ -13,7 +13,7 @@ import "proto/metadata.proto";
 //
 // This schema is NOT a general-purpose manifest and MUST NOT be extended
 // to support dynamic loading, headless execution, or runtime configuration.
-message EncoderfileMetadata {
+message EncoderfileManifest {
 	// ------------------------------------------------------------------
 	// 1–49: General model metadata
 	// ------------------------------------------------------------------
@@ -37,10 +37,6 @@ message EncoderfileMetadata {
 	// 50–99: Transforms and preprocessing
 	// ------------------------------------------------------------------
 
-	// Optional preprocessing transform applied during model initialization.
-	// If present, the runtime must support the declared TransformType.
-	optional Transform transform = 50;
-
 	// ------------------------------------------------------------------
 	// 100–999: Embedded artifacts
 	// ------------------------------------------------------------------
@@ -50,11 +46,15 @@ message EncoderfileMetadata {
 	// Model weights blob.
 	optional Artifact weights = 100;
 
+	// Optional transform blob applied during model initialization.
+	// If present, the runtime must support the declared TransformType.
+	optional Artifact transform = 110;
+
 	// Model configuration (e.g. architecture, hyperparameters).
-	optional Artifact model_config = 110;
+	optional Artifact model_config = 120;
 
 	// Tokenizer data (vocab, merges, config).
-	optional Artifact tokenizer = 120;
+	optional Artifact tokenizer = 130;
 }
 
 // Transform describes an embedded preprocessing step applied to inputs

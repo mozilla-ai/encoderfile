@@ -53,7 +53,7 @@ fn get_model_config(dir: &str) -> ModelConfig {
     serde_json::from_reader(reader).expect("Invalid model config")
 }
 
-fn get_tokenizer(dir: &str, ec_config: &Arc<Config>) -> tokenizers::Tokenizer {
+fn get_tokenizer(dir: &str, ec_config: &Arc<Config>) -> crate::runtime::TokenizerService {
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
