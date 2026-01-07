@@ -54,6 +54,7 @@ message EncoderfileManifest {
 	optional Artifact model_config = 120;
 
 	// Tokenizer data (vocab, merges, config).
+	// Serialized runtime::tokenizer::TokenizerService
 	optional Artifact tokenizer = 130;
 }
 
