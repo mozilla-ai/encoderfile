@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [ "pip>=25.2", "protobuf>=6.33.0", "pydantic>=2.12.4", "toml>=0.10.2",]
+dependencies = [ "pip>=25.2", "protobuf>=6.33.0"]
 
 [dependency-groups]
 dev = [ "pre-commit>=4.3.0", "ruff>=0.14.2",]
