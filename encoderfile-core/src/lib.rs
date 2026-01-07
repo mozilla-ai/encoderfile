@@ -10,6 +10,7 @@ pub mod error;
 pub mod generated;
 #[cfg(feature = "transport")]
 pub mod factory;
+pub mod format;
 #[cfg(feature = "runtime")]
 pub mod inference;
 #[cfg(feature = "runtime")]
