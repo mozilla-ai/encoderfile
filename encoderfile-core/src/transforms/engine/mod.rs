@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use crate::{
     common::model_type::{self, ModelTypeSpec},
     error::ApiError,
+    generated::manifest::TransformType,
 };
 
 use super::tensor::Tensor;
@@ -66,6 +67,17 @@ impl<T: ModelTypeSpec> Transform<T> {
             postprocessor,
             _marker: PhantomData,
         })
+    }
+
+    pub fn from_proto(proto: crate::generated::manifest::Transform) -> Result<Self, ApiError> {
+        match proto.transform_type() {
+            TransformType::Lua => (),
+            TransformType::UndeclaredTransform => {
+                unreachable!("Undeclared transform type. This should not happen.")
+            }
+        };
+
+        Self::new(Some(proto.transform))
     }
 }
 
