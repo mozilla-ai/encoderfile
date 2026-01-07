@@ -829,7 +829,7 @@ dependencies = [
  "clap",
  "clap_derive",
  "directories",
- "encoderfile-core",
+ "encoderfile-core 0.3.0",
  "figment",
  "lazy_static",
  "ndarray",
@@ -891,6 +891,57 @@ dependencies = [
  "tracing-subscriber",
  "utoipa",
  "utoipa-axum",
+]
+
+[[package]]
+name = "encoderfile-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb910fbcfddceb1f0f30819833e86867c3220f081afcb277b417d15277314c43"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-server",
+ "clap",
+ "clap_derive",
+ "dotenv",
+ "mlua",
+ "ndarray",
+ "ndarray-stats",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "opentelemetry-semantic-conventions",
+ "opentelemetry-stdout",
+ "opentelemetry_sdk",
+ "ort",
+ "parking_lot",
+ "prost",
+ "rmcp",
+ "rmcp-macros",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokenizers",
+ "tokio",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+ "tonic-types",
+ "tonic-web",
+ "tower-http",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-axum",
+]
+
+[[package]]
+name = "encoderfile-runtime"
+version = "0.3.0"
+dependencies = [
+ "encoderfile-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
