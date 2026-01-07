@@ -4,13 +4,10 @@ mod assets;
 pub mod cli;
 pub mod common;
 pub mod error;
-#[cfg(not(tarpaulin_include))]
-#[rustfmt::skip]
-#[cfg(feature = "transport")]
-pub mod generated;
 #[cfg(feature = "transport")]
 pub mod factory;
 pub mod format;
+pub mod generated;
 #[cfg(feature = "runtime")]
 pub mod inference;
 #[cfg(feature = "runtime")]
