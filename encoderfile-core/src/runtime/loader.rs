@@ -5,7 +5,7 @@ use std::io::{Read, Seek};
 use ort::session::Session;
 
 use crate::{
-    common::{Config, ModelConfig},
+    common::{Config, ModelConfig, ModelType},
     format::{assets::AssetKind, container::Encoderfile},
     generated::manifest::TransformType,
     runtime::TokenizerService,
@@ -17,6 +17,17 @@ pub struct EncoderfileLoader<'a, R: Read + Seek> {
 }
 
 impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
+    pub fn new(encoderfile: Encoderfile, reader: &'a mut R) -> Self {
+        Self {
+            encoderfile,
+            reader,
+        }
+    }
+
+    pub fn model_type(&self) -> ModelType {
+        self.encoderfile.model_type()
+    }
+
     pub fn session(&mut self) -> Result<Session> {
         let session = match self
             .encoderfile

@@ -53,7 +53,6 @@ transforms = [ "mlua",]
 
 [dependencies]
 ndarray-stats = "0.6.0"
-parking_lot = "0.12.5"
 ring = "0.17.14"
 utoipa = "5.4.0"
 utoipa-axum = "0.2.0"
@@ -65,6 +64,9 @@ tonic-prost-build = "0.14.2"
 [dev-dependencies]
 tower = "0.5.2"
 test-log = "0.2.18"
+
+[dependencies.parking_lot]
+workspace = true
 
 [dependencies.anyhow]
 workspace = true
