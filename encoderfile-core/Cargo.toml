@@ -65,6 +65,10 @@ tonic-prost-build = "0.14.2"
 tower = "0.5.2"
 test-log = "0.2.18"
 
+[dev-dependencies.uuid]
+version = "1.18.1"
+features = [ "v4",]
+
 [dependencies.parking_lot]
 workspace = true
 

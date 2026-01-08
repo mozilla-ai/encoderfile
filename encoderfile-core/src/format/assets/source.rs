@@ -59,3 +59,96 @@ impl<'a> AssetSource<'a> {
         Ok((len, out))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        borrow::Cow,
+        fs,
+        path::PathBuf,
+    };
+
+    fn sha256(bytes: &[u8]) -> [u8; 32] {
+        use ring::digest;
+        let digest = digest::digest(&digest::SHA256, bytes);
+        let mut out = [0u8; 32];
+        out.copy_from_slice(digest.as_ref());
+        out
+    }
+
+    fn temp_file_with_contents(bytes: &[u8]) -> PathBuf {
+        let dir = std::env::temp_dir();
+        let path = dir.join(format!("asset_test_{}.bin", uuid::Uuid::new_v4()));
+        fs::write(&path, bytes).expect("failed to write temp file");
+        path
+    }
+
+    #[test]
+    fn in_memory_hash_and_len() {
+        let data = b"hello world";
+        let asset = AssetSource::InMemory(Cow::Borrowed(data));
+
+        let (len, hash) = asset.hash_and_len().unwrap();
+
+        assert_eq!(len, data.len() as u64);
+        assert_eq!(hash, sha256(data));
+    }
+
+    #[test]
+    fn file_hash_and_len() {
+        let data = b"hello world";
+        let path = temp_file_with_contents(data);
+        let asset = AssetSource::File(&path);
+
+        let (len, hash) = asset.hash_and_len().unwrap();
+
+        assert_eq!(len, data.len() as u64);
+        assert_eq!(hash, sha256(data));
+
+        fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn file_and_memory_match() {
+        let data = b"same bytes, different source";
+        let path = temp_file_with_contents(data);
+
+        let mem = AssetSource::InMemory(Cow::Borrowed(data));
+        let file = AssetSource::File(&path);
+
+        let mem_res = mem.hash_and_len().unwrap();
+        let file_res = file.hash_and_len().unwrap();
+
+        assert_eq!(mem_res, file_res);
+
+        fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn write_to_in_memory() {
+        let data = b"write me";
+        let asset = AssetSource::InMemory(Cow::Borrowed(data));
+
+        let mut out = Vec::new();
+        let written = asset.write_to(&mut out).unwrap();
+
+        assert_eq!(written, data.len() as u64);
+        assert_eq!(out, data);
+    }
+
+    #[test]
+    fn write_to_file() {
+        let data = b"file write test";
+        let path = temp_file_with_contents(data);
+        let asset = AssetSource::File(&path);
+
+        let mut out = Vec::new();
+        let written = asset.write_to(&mut out).unwrap();
+
+        assert_eq!(written, data.len() as u64);
+        assert_eq!(out, data);
+
+        fs::remove_file(path).ok();
+    }
+}

@@ -892,6 +892,7 @@ dependencies = [
  "tracing-subscriber",
  "utoipa",
  "utoipa-axum",
+ "uuid",
 ]
 
 [[package]]
