@@ -1,10 +1,12 @@
 use anyhow::{Context, Result};
 use encoderfile_core::{
     common::{ModelConfig, ModelType},
+    format::assets::{AssetKind, AssetSource, PlannedAsset},
     transforms::TransformSpec,
 };
 
 use crate::config::EncoderfileConfig;
+use prost::Message;
 
 mod embedding;
 mod sentence_embedding;
@@ -45,10 +47,10 @@ macro_rules! validate_transform {
     };
 }
 
-pub fn validate_transform(
-    encoderfile_config: &EncoderfileConfig,
-    model_config: &ModelConfig,
-) -> Result<Option<encoderfile_core::generated::manifest::Transform>> {
+pub fn validate_transform<'a>(
+    encoderfile_config: &'a EncoderfileConfig,
+    model_config: &'a ModelConfig,
+) -> Result<Option<PlannedAsset<'a>>> {
     // try to fetch transform string
     // will fail if a path to a transform does not exist
     let transform_string = match &encoderfile_config.transform {
@@ -85,10 +87,16 @@ pub fn validate_transform(
         ),
     }?;
 
-    Ok(Some(encoderfile_core::generated::manifest::Transform {
+    let proto = encoderfile_core::generated::manifest::Transform {
         transform_type: encoderfile_core::generated::manifest::TransformType::Lua.into(),
         transform: transform_str,
-    }))
+    };
+
+    PlannedAsset::from_asset_source(
+        AssetSource::InMemory(std::borrow::Cow::Owned(proto.encode_to_vec())),
+        AssetKind::Transform,
+    )
+    .map(Some)
 }
 
 #[cfg(test)]

@@ -1,16 +1,17 @@
 use anyhow::{Result, bail};
+use encoderfile_core::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use ort::{
     session::{Output, Session},
     tensor::Shape,
 };
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub trait ModelTypeExt {
-    fn validate_model(&self, path: &Path) -> Result<PathBuf>;
+    fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>>;
 }
 
 impl ModelTypeExt for encoderfile_core::common::ModelType {
-    fn validate_model(&self, path: &Path) -> Result<PathBuf> {
+    fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>> {
         let model = load_model(path)?;
 
         match self {
@@ -20,7 +21,7 @@ impl ModelTypeExt for encoderfile_core::common::ModelType {
             Self::SentenceEmbedding => validate_embedding_model(model),
         }?;
 
-        Ok(path.to_path_buf())
+        PlannedAsset::from_asset_source(AssetSource::File(path), AssetKind::ModelWeights)
     }
 }
 

@@ -25,21 +25,38 @@
 // in the way encoderfile.yml works, etc.
 
 use anyhow::Result;
-use encoderfile_core::common::TokenizerConfig;
+use encoderfile_core::{
+    common::TokenizerConfig,
+    format::assets::{AssetKind, AssetSource, PlannedAsset},
+    runtime::TokenizerService,
+};
 use std::str::FromStr;
 use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer};
 
 use crate::config::{EncoderfileConfig, TokenizerPadStrategy};
 
-impl EncoderfileConfig {
-    pub fn validate_tokenizer(&self) -> Result<TokenizerConfig> {
-        let tokenizer = match Tokenizer::from_str(
-            std::fs::read_to_string(self.path.tokenizer_path()?)?.as_str(),
-        ) {
+pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
+    let tokenizer =
+        match Tokenizer::from_str(std::fs::read_to_string(config.path.tokenizer_path()?)?.as_str())
+        {
             Ok(t) => t,
             Err(e) => anyhow::bail!("FATAL: Failed to load tokenizer: {:?}", e),
         };
 
+    let config = config.validate_tokenizer_config(&tokenizer)?;
+
+    let service = TokenizerService::new(tokenizer, config)?;
+
+    let serialized = serde_json::to_vec(&service)?;
+
+    PlannedAsset::from_asset_source(
+        AssetSource::InMemory(std::borrow::Cow::Owned(serialized)),
+        AssetKind::Tokenizer,
+    )
+}
+
+impl EncoderfileConfig {
+    pub fn validate_tokenizer_config(&self, tokenizer: &Tokenizer) -> Result<TokenizerConfig> {
         let mut config = match self.path.tokenizer_config_path()? {
             // if tokenizer_config.json is provided, use that
             Some(tokenizer_config_path) => {
@@ -73,7 +90,7 @@ impl EncoderfileConfig {
     }
 }
 
-fn from_tokenizer(tokenizer: Tokenizer) -> Result<TokenizerConfig> {
+fn from_tokenizer(tokenizer: &Tokenizer) -> Result<TokenizerConfig> {
     let padding = match tokenizer.get_padding() {
         Some(p) => p.clone(),
         None => {
@@ -93,7 +110,7 @@ fn from_tokenizer(tokenizer: Tokenizer) -> Result<TokenizerConfig> {
 
 fn tokenizer_config_from_json_value(
     val: serde_json::Value,
-    tokenizer: tokenizers::Tokenizer,
+    tokenizer: &tokenizers::Tokenizer,
 ) -> Result<TokenizerConfig> {
     let mut builder = TokenizerConfigBuilder::new(
         val.as_object()
@@ -162,7 +179,7 @@ fn tokenizer_config_from_json_value(
     )?;
 
     // now we fetch pad_token_id manually because it doesn't get serialized into tokenizer_config.json!
-    builder.set_pad_token_id(&tokenizer)?;
+    builder.set_pad_token_id(tokenizer)?;
 
     builder.build()
 }
@@ -231,6 +248,11 @@ mod tests {
 
     use super::*;
 
+    fn load_tokenizer_from_path(path: &std::path::Path) -> Result<Tokenizer> {
+        Tokenizer::from_file(path)
+            .map_err(|e| anyhow::anyhow!("Failed to load tokenizer from path: {e:?}"))
+    }
+
     #[test]
     fn test_validate_tokenizer() {
         let config = EncoderfileConfig {
@@ -246,9 +268,17 @@ mod tests {
             base_binary_path: None,
         };
 
+        let tokenizer = load_tokenizer_from_path(
+            &config
+                .path
+                .tokenizer_path()
+                .expect("Failed to load tokenizer"),
+        )
+        .expect("Failed to load tokenizer");
+
         let tokenizer_config = config
-            .validate_tokenizer()
-            .expect("Failed to validate tokenizer");
+            .validate_tokenizer_config(&tokenizer)
+            .expect("Failed to validate tokenizer config");
 
         assert_eq!(format!("{:?}", tokenizer_config.padding.direction), "Right");
         assert_eq!(
@@ -278,9 +308,17 @@ mod tests {
             base_binary_path: None,
         };
 
+        let tokenizer = load_tokenizer_from_path(
+            &config
+                .path
+                .tokenizer_path()
+                .expect("Failed to load tokenizer"),
+        )
+        .expect("Failed to load tokenizer");
+
         let tokenizer_config = config
-            .validate_tokenizer()
-            .expect("Failed to validate tokenizer");
+            .validate_tokenizer_config(&tokenizer)
+            .expect("Failed to validate tokenizer config");
 
         assert_eq!(format!("{:?}", tokenizer_config.padding.direction), "Right");
         assert_eq!(
@@ -317,9 +355,17 @@ mod tests {
             base_binary_path: None,
         };
 
+        let tokenizer = load_tokenizer_from_path(
+            &config
+                .path
+                .tokenizer_path()
+                .expect("Failed to load tokenizer"),
+        )
+        .expect("Failed to load tokenizer");
+
         let tokenizer_config = config
-            .validate_tokenizer()
-            .expect("Failed to validate tokenizer");
+            .validate_tokenizer_config(&tokenizer)
+            .expect("Failed to validate tokenizer config");
 
         assert_eq!(format!("{:?}", tokenizer_config.padding.direction), "Right");
         assert_eq!(

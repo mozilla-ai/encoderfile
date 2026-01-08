@@ -93,8 +93,6 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
             version: self.encoderfile.version().to_string(),
             model_type: self.encoderfile.model_type(),
             transform: self.transform()?,
-            // TODO: remove as we don't use this anymore
-            tokenizer: crate::common::TokenizerConfig::default(),
         };
 
         Ok(config)

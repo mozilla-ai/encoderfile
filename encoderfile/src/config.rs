@@ -1,8 +1,5 @@
 use anyhow::{Context, Result, bail};
-use encoderfile_core::{
-    common::{Config as EmbeddedConfig, ModelConfig, ModelType},
-    runtime::TokenizerService,
-};
+use encoderfile_core::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
 use schemars::JsonSchema;
 use std::{
     fs::File,
@@ -48,24 +45,14 @@ pub struct EncoderfileConfig {
 
 impl EncoderfileConfig {
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
-        let tokenizer = self.validate_tokenizer()?;
         let config = EmbeddedConfig {
             name: self.name.clone(),
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
-            tokenizer,
         };
 
         Ok(config)
-    }
-
-    pub fn tokenizer(&self) -> Result<TokenizerService> {
-        let tokenizer_config = self.validate_tokenizer()?;
-        match tokenizers::tokenizer::Tokenizer::from_file(self.path.tokenizer_path()?) {
-            Ok(t) => TokenizerService::new(t, tokenizer_config),
-            Err(e) => bail!("Failed to load tokenizer: {e:?}"),
-        }
     }
 
     pub fn model_config(&self) -> Result<ModelConfig> {

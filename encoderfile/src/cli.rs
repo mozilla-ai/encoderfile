@@ -7,7 +7,6 @@ use encoderfile_core::{
     },
     generated::manifest::Backend,
 };
-use prost::Message;
 use std::{borrow::Cow, fs::File, io::Seek, path::PathBuf};
 
 use clap_derive::{Args, Parser, Subcommand};
@@ -94,31 +93,25 @@ impl BuildArgs {
         )?);
 
         // validate model
-        let model_path = config
+        let model_weights_path = config.encoderfile.path.model_weights_path()?;
+
+        let model_asset = config
             .encoderfile
             .model_type
-            .validate_model(&config.encoderfile.path.model_weights_path()?)?;
+            .validate_model(&model_weights_path)?;
 
-        planned_assets.push(PlannedAsset::from_asset_source(
-            AssetSource::File(model_path.as_path()),
-            AssetKind::ModelWeights,
-        )?);
+        planned_assets.push(model_asset);
 
         // validate transform
-        if let Some(t) = crate::transforms::validate_transform(&config.encoderfile, &model_config)?
+        if let Some(asset) =
+            crate::transforms::validate_transform(&config.encoderfile, &model_config)?
         {
-            planned_assets.push(PlannedAsset::from_asset_source(
-                AssetSource::InMemory(Cow::Owned(t.encode_to_vec())),
-                AssetKind::Transform,
-            )?);
+            planned_assets.push(asset);
         }
 
         // validate tokenizer
-        let tokenizer = config.encoderfile.tokenizer()?;
-        planned_assets.push(PlannedAsset::from_asset_source(
-            AssetSource::InMemory(Cow::Owned(serde_json::to_vec(&tokenizer)?)),
-            AssetKind::Tokenizer,
-        )?);
+        let tokenizer_asset = crate::tokenizer::validate_tokenizer(&config.encoderfile)?;
+        planned_assets.push(tokenizer_asset);
 
         // load base binary
         let base_path = match &config.encoderfile.base_binary_path {

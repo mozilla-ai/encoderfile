@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        Config, ModelConfig,
+        Config, ModelConfig, TokenizerConfig,
         model_type::{self, ModelTypeSpec},
     },
     runtime::AppState,
@@ -20,11 +20,10 @@ pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
         version: "0.0.1".to_string(),
         model_type: T::enum_val(),
         transform: None,
-        tokenizer: Default::default(),
     });
 
     let model_config = Arc::new(get_model_config(dir));
-    let tokenizer = Arc::new(get_tokenizer(dir, &config));
+    let tokenizer = Arc::new(get_tokenizer(dir));
     let session = Arc::new(get_model(dir));
 
     AppState::new(config, session, tokenizer, model_config)
@@ -54,11 +53,11 @@ fn get_model_config(dir: &str) -> ModelConfig {
     serde_json::from_reader(reader).expect("Invalid model config")
 }
 
-fn get_tokenizer(dir: &str, ec_config: &Arc<Config>) -> crate::runtime::TokenizerService {
+fn get_tokenizer(dir: &str) -> crate::runtime::TokenizerService {
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
-    get_tokenizer_from_string(tokenizer_str.as_str(), ec_config)
+    get_tokenizer_from_string(tokenizer_str.as_str())
 }
 
 fn get_model(dir: &str) -> Mutex<Session> {
@@ -70,13 +69,12 @@ fn get_model(dir: &str) -> Mutex<Session> {
     )
 }
 
-fn get_tokenizer_from_string(s: &str, ec_config: &Arc<Config>) -> crate::runtime::TokenizerService {
+fn get_tokenizer_from_string(s: &str) -> crate::runtime::TokenizerService {
     let tokenizer = match tokenizers::tokenizer::Tokenizer::from_str(s) {
         Ok(t) => t,
         Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
     };
 
-    let config = ec_config.tokenizer.clone();
-
-    crate::runtime::TokenizerService::new(tokenizer, config).expect("Error loading tokenizer")
+    crate::runtime::TokenizerService::new(tokenizer, TokenizerConfig::default())
+        .expect("Error loading tokenizer")
 }
