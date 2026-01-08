@@ -27,13 +27,13 @@ impl EncoderfileCodec {
         T: AssetPolicySpec,
         W: Write,
     {
-        // validate assets
+        // 1. Validate assets
         Self::validate_assets::<T>(plan)?;
 
-        let model_type: crate::generated::metadata::ModelType = From::from(model_type);
-
+        let model_type: crate::generated::metadata::ModelType = model_type.into();
         let assets = plan.assets();
 
+        // 2. Build manifest skeleton (NO OFFSETS YET)
         let mut manifest = EncoderfileManifest {
             name,
             version,
@@ -45,39 +45,68 @@ impl EncoderfileCodec {
             tokenizer: None,
         };
 
+        // Populate artifacts with length + hash
         for asset in assets {
             let artifact = Artifact::new(0, asset.length, asset.sha256);
-
             manifest.set_artifact(&asset.kind, artifact);
         }
 
-        // compute manifest size
-        let manifest_bytes = manifest.encode_to_vec();
-        let manifest_len = manifest_bytes.len() as u64;
+        // ------------------------------------------------------------
+        // 3. Stabilize manifest size + offsets (two-pass fixup)
+        // ------------------------------------------------------------
 
-        // assign offsets
+        // Pass 1: encode without offsets
+        let mut manifest_bytes = manifest.encode_to_vec();
+        let mut manifest_len = manifest_bytes.len() as u64;
+
+        // Pass 2: assign offsets
         let mut offset = manifest_len;
-
         for asset in assets {
             manifest.set_offset(&asset.kind, offset)?;
             offset += asset.length;
         }
 
-        // write manifest
-        let manifest_bytes = manifest.encode_to_vec();
-        out.write_all(&manifest_bytes)?;
+        // Re-encode
+        manifest_bytes = manifest.encode_to_vec();
+        let new_len = manifest_bytes.len() as u64;
 
-        // write assets
-        for asset in assets {
-            let written_len = asset.source.write_to(out)?;
-            debug_assert_eq!(written_len, asset.length);
+        // Pass 3 (only if needed): reassign offsets once more
+        if new_len != manifest_len {
+            manifest_len = new_len;
+
+            let mut offset = manifest_len;
+            for asset in assets {
+                manifest.set_offset(&asset.kind, offset)?;
+                offset += asset.length;
+            }
+
+            manifest_bytes = manifest.encode_to_vec();
         }
 
-        // write footer
+        debug_assert_eq!(
+            manifest.encode_to_vec().len() as u64,
+            manifest_bytes.len() as u64,
+            "manifest size did not stabilize after offset fixup"
+        );
+
+        // ------------------------------------------------------------
+        // 4. Write output
+        // ------------------------------------------------------------
+
+        // Write manifest
+        out.write_all(&manifest_bytes)?;
+
+        // Write assets
+        for asset in assets {
+            let written = asset.source.write_to(out)?;
+            debug_assert_eq!(written, asset.length);
+        }
+
+        // Write footer
         let footer = EncoderfileFooter::new(
             self.absolute_offset,
             manifest_bytes.len() as u64,
-            true, // metadata is protobuf
+            true, // protobuf metadata
         );
 
         footer.write_to(out)?;

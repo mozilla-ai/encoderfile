@@ -12,6 +12,12 @@ pub struct EncoderfileCodec {
     absolute_offset: u64,
 }
 
+impl EncoderfileCodec {
+    pub fn new(absolute_offset: u64) -> Self {
+        Self { absolute_offset }
+    }
+}
+
 impl EncoderfileManifest {
     fn set_artifact(&mut self, kind: &AssetKind, artifact: Artifact) {
         let slot = self.get_mut_slot(kind);
