@@ -51,11 +51,6 @@ pub struct BuildArgs {
         help = "Cache directory. This is used for build artifacts. Optional."
     )]
     cache_dir: Option<PathBuf>,
-    #[arg(
-        long = "no-build",
-        help = "Skips build stage. Only generates files to directory in `cache_dir`. Defaults to False."
-    )]
-    no_build: bool,
 }
 
 impl BuildArgs {
