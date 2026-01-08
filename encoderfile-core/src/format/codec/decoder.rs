@@ -47,7 +47,7 @@ impl EncoderfileCodec {
 mod tests {
     use super::*;
     use crate::{
-        common::model_type::{Embedding, ModelType},
+        common::model_type::ModelType,
         format::assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
         generated::manifest::Backend,
     };
@@ -77,7 +77,7 @@ mod tests {
         let mut buf = Vec::new();
 
         codec
-            .write::<Embedding, _>(
+            .write::<_>(
                 "test-model".to_string(),
                 "0.1.0".to_string(),
                 ModelType::Embedding,
@@ -109,7 +109,7 @@ mod tests {
 
         let mut buf = vec![0u8; 128]; // fake prefix (llamafile-style)
         codec
-            .write::<Embedding, _>(
+            .write::<_>(
                 "offset-test".to_string(),
                 "1.0.0".to_string(),
                 ModelType::Embedding,

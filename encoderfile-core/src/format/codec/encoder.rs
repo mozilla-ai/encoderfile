@@ -2,7 +2,9 @@ use super::EncoderfileCodec;
 use anyhow::{Result, bail};
 
 use crate::{
-    common::model_type::ModelType,
+    common::model_type::{
+        Embedding, ModelType, SentenceEmbedding, SequenceClassification, TokenClassification,
+    },
     format::{
         assets::{AssetPlan, AssetPolicySpec},
         footer::EncoderfileFooter,
@@ -63,7 +65,7 @@ impl EncoderfileCodec {
     /// Do NOT refactor this function to compute offsets in a single pass or to
     /// assume protobuf encoding size is value-independent. Doing so will corrupt
     /// artifact offsets and cause runtime reads to return incorrect data.
-    pub fn write<T, W>(
+    pub fn write<W>(
         &self,
         name: String,
         version: String,
@@ -73,11 +75,18 @@ impl EncoderfileCodec {
         out: &mut W,
     ) -> Result<()>
     where
-        T: AssetPolicySpec,
         W: Write,
     {
         // 1. Validate assets
-        Self::validate_assets::<T>(plan)?;
+        // TODO: This does not need to be that complicated
+        match &model_type {
+            ModelType::Embedding => Self::validate_assets::<Embedding>(plan)?,
+            ModelType::SequenceClassification => {
+                Self::validate_assets::<SequenceClassification>(plan)?
+            }
+            ModelType::TokenClassification => Self::validate_assets::<TokenClassification>(plan)?,
+            ModelType::SentenceEmbedding => Self::validate_assets::<SentenceEmbedding>(plan)?,
+        };
 
         let model_type: crate::generated::metadata::ModelType = model_type.into();
         let assets = plan.assets();
@@ -268,7 +277,7 @@ mod tests {
         let mut out = Vec::new();
 
         codec
-            .write::<Embedding, _>(
+            .write(
                 "test-model".to_string(),
                 "0.1.0".to_string(),
                 ModelType::Embedding,

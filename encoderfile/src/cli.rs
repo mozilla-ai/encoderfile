@@ -1,6 +1,14 @@
-use super::{model::ModelTypeExt as _, templates::TEMPLATES};
-use anyhow::{Context, Result, bail};
-use std::path::PathBuf;
+use super::model::ModelTypeExt as _;
+use anyhow::Result;
+use encoderfile_core::{
+    format::{
+        assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
+        codec::EncoderfileCodec,
+    },
+    generated::manifest::Backend,
+};
+use prost::Message;
+use std::{borrow::Cow, fs::File, io::Seek, path::PathBuf};
 
 use clap_derive::{Args, Parser, Subcommand};
 
@@ -51,6 +59,11 @@ pub struct BuildArgs {
         help = "Cache directory. This is used for build artifacts. Optional."
     )]
     cache_dir: Option<PathBuf>,
+    #[arg(
+        long = "base-binary-path",
+        help = "Path to base binary to use. Optional."
+    )]
+    base_binary_path: Option<PathBuf>,
 }
 
 impl BuildArgs {
@@ -66,96 +79,75 @@ impl BuildArgs {
             config.encoderfile.cache_dir = Some(cache_dir.to_path_buf());
         }
 
+        let mut planned_assets: Vec<PlannedAsset<'_>> = Vec::new();
+
         // validate model config
         let model_config = config.encoderfile.model_config()?;
 
+        planned_assets.push(PlannedAsset::from_asset_source(
+            AssetSource::InMemory(Cow::Owned(serde_json::to_vec(&model_config)?)),
+            AssetKind::ModelConfig,
+        )?);
+
         // validate model
-        config
+        let model_path = config
             .encoderfile
             .model_type
             .validate_model(&config.encoderfile.path.model_weights_path()?)?;
 
+        planned_assets.push(PlannedAsset::from_asset_source(
+            AssetSource::File(model_path.as_path()),
+            AssetKind::ModelWeights,
+        )?);
+
         // validate transform
-        crate::transforms::validate_transform(&config.encoderfile, &model_config)?;
-
-        // setup write directory
-        let write_dir = config.encoderfile.get_generated_dir();
-        std::fs::create_dir_all(write_dir.join("src/"))
-            .with_context(|| format!("Failed creating {}", write_dir.display()))?;
-
-        // render templates
-        let ctx = config.encoderfile.to_tera_ctx()?;
-
-        render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
-        render("Cargo.toml.tera", &ctx, &write_dir, "Cargo.toml")?;
-
-        // canonicalize paths
-        let cargo_toml_path = write_dir
-            .join("Cargo.toml")
-            .canonicalize()
-            .context("Canonicalizing Cargo.toml failed")?;
-
-        // run cargo build with environment isolation
-        let manifest_path = cargo_toml_path.to_string_lossy();
-        let status = std::process::Command::new("cargo")
-            .arg("build")
-            .arg("--release")
-            .arg("--manifest-path")
-            .arg(&*manifest_path)
-            // full workspace isolation (stops parent workspace detection)
-            .env("CARGO_WORKSPACE_DIR", "/nonexistent")
-            // ensure temp files stay local
-            .env("CARGO_TARGET_DIR", write_dir.join("target"))
-            .env("CARGO_HOME", write_dir.join(".cargo"))
-            .status()
-            .context("Failed to run cargo build")?;
-
-        if !status.success() {
-            bail!("cargo build failed with exit status {:?}", status);
+        if let Some(t) = crate::transforms::validate_transform(&config.encoderfile, &model_config)?
+        {
+            planned_assets.push(PlannedAsset::from_asset_source(
+                AssetSource::InMemory(Cow::Owned(t.encode_to_vec())),
+                AssetKind::Transform,
+            )?);
         }
 
-        // locate generated binary
-        let generated_binary = write_dir.join("target/release/encoderfile");
-        if !generated_binary.exists() {
-            bail!(
-                "ERROR: generated binary {:?} does not exist.",
-                generated_binary
-            );
-        }
+        // validate tokenizer
+        let tokenizer = config.encoderfile.tokenizer()?;
+        planned_assets.push(PlannedAsset::from_asset_source(
+            AssetSource::InMemory(Cow::Owned(serde_json::to_vec(&tokenizer)?)),
+            AssetKind::Tokenizer,
+        )?);
 
-        // final output move (filesystem-safe)
-        move_across_filesystems(&generated_binary, &config.encoderfile.output_path())?;
+        // load base binary
+        let base_path = match self.base_binary_path {
+            Some(p) => p,
+            None => unimplemented!("No support for downloading default binaries yet."),
+        };
+
+        // initialize final binary
+        let mut out = File::create(config.encoderfile.output_path())?;
+        let mut base = File::open(base_path.as_path())?;
+
+        // copy base binary to out
+        std::io::copy(&mut base, &mut out)?;
+
+        // get metadata start position
+        let payload_start = out.stream_position()?;
+
+        // create codec
+        let codec = EncoderfileCodec::new(payload_start);
+
+        // create asset plan
+        let asset_plan = AssetPlan::new(planned_assets)?;
+
+        // write to file
+        codec.write(
+            config.encoderfile.name.clone(),
+            config.encoderfile.version.clone(),
+            config.encoderfile.model_type.clone(),
+            Backend::Cpu,
+            &asset_plan,
+            &mut out,
+        )?;
 
         Ok(())
-    }
-}
-
-fn render(
-    template_name: &str,
-    ctx: &tera::Context,
-    write_dir: &std::path::Path,
-    out_path: &str,
-) -> Result<()> {
-    let rendered = TEMPLATES.render(template_name, ctx)?;
-
-    let file = write_dir.join(out_path);
-
-    std::fs::write(file, rendered)?;
-
-    Ok(())
-}
-
-// -----------------------------------------------------------------------------
-// Safe move across filesystems (avoids EXDEV)
-// -----------------------------------------------------------------------------
-fn move_across_filesystems(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
-    match std::fs::rename(src, dst) {
-        Ok(_) => Ok(()),
-        Err(e) if e.kind() == std::io::ErrorKind::CrossesDevices => {
-            std::fs::copy(src, dst).with_context(|| format!("copying {:?} → {:?}", src, dst))?;
-            std::fs::remove_file(src).with_context(|| format!("removing {:?}", src))?;
-            Ok(())
-        }
-        Err(e) => Err(e.into()),
     }
 }

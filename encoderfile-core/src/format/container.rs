@@ -109,7 +109,7 @@ impl<'a, R: Read + Seek> Read for ArtifactReader<'a, R> {
 mod tests {
     use super::*;
     use crate::{
-        common::model_type::{Embedding, ModelType},
+        common::model_type::ModelType,
         format::{
             assets::{AssetPlan, AssetSource, PlannedAsset},
             codec::EncoderfileCodec,
@@ -137,7 +137,7 @@ mod tests {
         let mut buf = Vec::new();
 
         codec
-            .write::<Embedding, _>(
+            .write::<_>(
                 "test-model".into(),
                 "1.0.0".into(),
                 ModelType::Embedding,

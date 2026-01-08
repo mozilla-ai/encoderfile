@@ -4,11 +4,11 @@ use ort::{
     session::{Output, Session},
     tensor::Shape,
 };
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub trait ModelTypeExt {
     fn to_ident(&self) -> &'static str;
-    fn validate_model(&self, path: &Path) -> Result<()>;
+    fn validate_model(&self, path: &Path) -> Result<PathBuf>;
 }
 
 impl ModelTypeExt for encoderfile_core::common::ModelType {
@@ -21,7 +21,7 @@ impl ModelTypeExt for encoderfile_core::common::ModelType {
         }
     }
 
-    fn validate_model(&self, path: &Path) -> Result<()> {
+    fn validate_model(&self, path: &Path) -> Result<PathBuf> {
         let model = load_model(path)?;
 
         match self {
@@ -29,7 +29,9 @@ impl ModelTypeExt for encoderfile_core::common::ModelType {
             Self::SequenceClassification => validate_sequence_classification_model(model),
             Self::TokenClassification => validate_token_classification_model(model),
             Self::SentenceEmbedding => validate_embedding_model(model),
-        }
+        }?;
+
+        Ok(path.to_path_buf())
     }
 }
 

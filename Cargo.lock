@@ -834,6 +834,7 @@ dependencies = [
  "lazy_static",
  "ndarray",
  "ort",
+ "prost",
  "rand 0.9.2",
  "schemars",
  "serde",

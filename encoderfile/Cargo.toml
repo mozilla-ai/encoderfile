@@ -60,6 +60,9 @@ workspace = true
 [dependencies.ort]
 workspace = true
 
+[dependencies.prost]
+workspace = true
+
 [dev-dependencies.uuid]
 version = "1.18.1"
 features = [ "v4",]

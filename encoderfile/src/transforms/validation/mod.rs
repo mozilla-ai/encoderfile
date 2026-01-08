@@ -39,7 +39,7 @@ pub trait TransformValidatorExt: TransformSpec {
 
 macro_rules! validate_transform {
     ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
-        encoderfile_core::transforms::$transform_type::new($transform_str)
+        encoderfile_core::transforms::$transform_type::new(Some($transform_str.clone()))
             .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
             .validate($encoderfile_config, $model_config)
     };
@@ -48,15 +48,15 @@ macro_rules! validate_transform {
 pub fn validate_transform(
     encoderfile_config: &EncoderfileConfig,
     model_config: &ModelConfig,
-) -> Result<()> {
+) -> Result<Option<encoderfile_core::generated::manifest::Transform>> {
     // try to fetch transform string
     // will fail if a path to a transform does not exist
     let transform_string = match &encoderfile_config.transform {
         Some(t) => t.transform()?,
-        None => return Ok(()),
+        None => return Ok(None),
     };
 
-    let transform_str = Some(transform_string);
+    let transform_str = transform_string;
 
     match encoderfile_config.model_type {
         ModelType::Embedding => validate_transform!(
@@ -83,7 +83,12 @@ pub fn validate_transform(
             encoderfile_config,
             model_config
         ),
-    }
+    }?;
+
+    Ok(Some(encoderfile_core::generated::manifest::Transform {
+        transform_type: encoderfile_core::generated::manifest::TransformType::Lua.into(),
+        transform: transform_str,
+    }))
 }
 
 #[cfg(test)]

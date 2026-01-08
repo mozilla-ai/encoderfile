@@ -28,3 +28,6 @@ features = [ "std", "tracing", "ndarray",]
 [workspace.dependencies.tokio]
 version = "1.48.0"
 features = [ "full",]
+
+[workspace.dependencies.prost]
+version = "0.14.1"

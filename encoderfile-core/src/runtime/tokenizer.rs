@@ -11,6 +11,12 @@ pub struct TokenizerService {
 }
 
 impl TokenizerService {
+    pub fn new(tokenizer: Tokenizer, config: crate::common::TokenizerConfig) -> Result<Self> {
+        let service = TokenizerService { tokenizer, config };
+
+        service.init()
+    }
+
     pub fn init(mut self) -> Result<Self> {
         self.tokenizer
             .with_padding(Some(self.config.padding.clone()));
