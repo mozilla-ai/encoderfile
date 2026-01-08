@@ -1,14 +1,12 @@
 use anyhow::{Result, bail};
-use std::{collections::HashSet, marker::PhantomData};
+use std::collections::HashSet;
 
 use crate::format::assets::{AssetPolicySpec, PlannedAsset};
 
-pub struct EncoderfileCodec<T: AssetPolicySpec> {
-    _data: PhantomData<T>,
-}
+pub struct EncoderfileCodec;
 
-impl<T: AssetPolicySpec> EncoderfileCodec<T> {
-    pub fn validate_assets(assets: &[PlannedAsset]) -> Result<()> {
+impl EncoderfileCodec {
+    pub fn validate_assets<T: AssetPolicySpec>(assets: &[PlannedAsset]) -> Result<()> {
         let mut kinds: Vec<_> = assets.iter().map(|a| a.kind).collect();
         kinds.sort();
 
