@@ -9,7 +9,7 @@ pub mod encoder;
 
 #[derive(Debug)]
 pub struct EncoderfileCodec {
-    absolute_offset: u64
+    absolute_offset: u64,
 }
 
 impl EncoderfileManifest {

@@ -114,3 +114,99 @@ impl EncoderfileCodec {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::common::model_type::{Embedding, ModelType};
+    use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
+    use crate::generated::manifest::Backend;
+    use std::borrow::Cow;
+
+    fn planned(kind: AssetKind, bytes: &'static [u8]) -> PlannedAsset<'static> {
+        PlannedAsset::from_asset_source(AssetSource::InMemory(Cow::Borrowed(bytes)), kind).unwrap()
+    }
+
+    fn valid_plan() -> AssetPlan<'static> {
+        AssetPlan::new(vec![
+            planned(AssetKind::ModelWeights, b"weights"),
+            planned(AssetKind::ModelConfig, b"config"),
+            planned(AssetKind::Tokenizer, b"tokenizer"),
+        ])
+        .unwrap()
+    }
+
+    #[test]
+    fn validate_assets_accepts_required_only() {
+        let plan = valid_plan();
+        EncoderfileCodec::validate_assets::<Embedding>(&plan).unwrap();
+    }
+
+    #[test]
+    fn validate_assets_accepts_optional() {
+        let plan = AssetPlan::new(vec![
+            planned(AssetKind::ModelWeights, b"weights"),
+            planned(AssetKind::ModelConfig, b"config"),
+            planned(AssetKind::Tokenizer, b"tokenizer"),
+            planned(AssetKind::Transform, b"fn transform(x) { x }"),
+        ])
+        .unwrap();
+
+        EncoderfileCodec::validate_assets::<Embedding>(&plan).unwrap();
+    }
+
+    #[test]
+    fn validate_assets_rejects_missing_required() {
+        let plan = AssetPlan::new(vec![
+            planned(AssetKind::ModelWeights, b"weights"),
+            planned(AssetKind::ModelConfig, b"config"),
+            // missing tokenizer
+        ])
+        .unwrap();
+
+        let err = EncoderfileCodec::validate_assets::<Embedding>(&plan).unwrap_err();
+        assert!(err.to_string().contains("missing required asset"));
+    }
+
+    #[test]
+    fn validate_assets_rejects_disallowed_kind() {
+        let plan = AssetPlan::new(vec![
+            planned(AssetKind::ModelWeights, b"weights"),
+            planned(AssetKind::ModelConfig, b"config"),
+            planned(AssetKind::Tokenizer, b"tokenizer"),
+            // not allowed by Encoder policy
+            planned(AssetKind::ModelWeights, b"oops"),
+        ]);
+        // Duplicate check happens earlier; this test intentionally documents behavior
+        assert!(plan.is_err());
+    }
+
+    #[test]
+    fn write_smoke_test() {
+        let codec = EncoderfileCodec { absolute_offset: 0 };
+
+        let plan = valid_plan();
+
+        let mut out = Vec::new();
+
+        codec
+            .write::<Embedding, _>(
+                "test-model".to_string(),
+                "0.1.0".to_string(),
+                ModelType::Embedding,
+                Backend::Cpu,
+                &plan,
+                &mut out,
+            )
+            .unwrap();
+
+        assert!(!out.is_empty());
+
+        let asset_bytes: usize = plan.assets().iter().map(|a| a.length as usize).sum();
+
+        assert!(
+            out.len() > asset_bytes,
+            "output should include manifest + footer in addition to assets"
+        );
+    }
+}

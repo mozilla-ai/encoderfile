@@ -18,6 +18,14 @@ impl Encoderfile {
         Self { manifest, footer }
     }
 
+    pub fn manifest(&self) -> &EncoderfileManifest {
+        &self.manifest
+    }
+
+    pub fn footer(&self) -> &EncoderfileFooter {
+        &self.footer
+    }
+
     pub fn name(&self) -> &str {
         self.manifest.name.as_ref()
     }
