@@ -77,10 +77,10 @@ message Transform {
 // Offsets are relative to the start of the payload region, not the binary.
 message Artifact {
 	// Byte offset from the start of the payload.
-	uint64 offset = 1;
+	fixed64 offset = 1;
 
 	// Length of the artifact in bytes.
-	uint64 length = 2;
+	fixed64 length = 2;
 
 	// SHA-256 checksum of the artifact contents, hex-encoded.
 	// Used for integrity verification at runtime.

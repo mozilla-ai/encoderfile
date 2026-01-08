@@ -8,3 +8,10 @@ pub struct EncoderAssetPlan {
     tokenizer_path: PathBuf,
     model_config_path: PathBuf,
 }
+
+pub enum AssetKind {
+    RuntimeConfig,
+    ModelWeights,
+    Tokenizer,
+    ModelConfig,
+}
