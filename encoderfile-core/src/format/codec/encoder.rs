@@ -14,6 +14,55 @@ use prost::Message;
 use std::{collections::HashSet, io::Write};
 
 impl EncoderfileCodec {
+    /// Write an encoderfile payload consisting of:
+    /// - a protobuf-encoded manifest
+    /// - the raw asset bytes
+    /// - a fixed-size footer appended at the end
+    ///
+    /// # Layout
+    ///
+    /// The on-disk layout is:
+    ///
+    /// ```text
+    /// [ EncoderfileManifest (protobuf) ]
+    /// [ Asset 0 bytes              ]
+    /// [ Asset 1 bytes              ]
+    /// [ ...                         ]
+    /// [ EncoderfileFooter (32 B)    ]
+    /// ```
+    ///
+    /// All artifact offsets stored in the manifest are **relative to the start
+    /// of the manifest**, not the start of the file. The footer records the
+    /// absolute file offset at which the manifest begins.
+    ///
+    /// # Protobuf size stability
+    ///
+    /// Protobuf encoding is *not* size-stable in general: even when fields use
+    /// fixed-width numeric types (e.g. `fixed64`), the surrounding protobuf
+    /// framing (field tags and length delimiters) may change size depending on
+    /// encoded values.
+    ///
+    /// As a result, writing correct artifact offsets requires **stabilizing the
+    /// encoded manifest size before writing any asset bytes**.
+    ///
+    /// This implementation performs a bounded, two-pass layout fixup:
+    ///
+    /// 1. Encode the manifest with placeholder offsets to determine its size.
+    /// 2. Assign artifact offsets relative to that size and re-encode.
+    /// 3. If the encoded size changes, reassign offsets once more.
+    ///
+    /// In practice, this converges immediately; a debug assertion enforces that
+    /// the manifest size is stable before bytes are written.
+    ///
+    /// # Important invariants
+    ///
+    /// - Artifact offsets MUST be computed from the *final* encoded manifest size.
+    /// - Assets MUST be written immediately after the manifest, in the same order.
+    /// - The footer MUST be written last and MUST reflect the final manifest size.
+    ///
+    /// Do NOT refactor this function to compute offsets in a single pass or to
+    /// assume protobuf encoding size is value-independent. Doing so will corrupt
+    /// artifact offsets and cause runtime reads to return incorrect data.
     pub fn write<T, W>(
         &self,
         name: String,
