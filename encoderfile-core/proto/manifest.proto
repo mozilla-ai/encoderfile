@@ -76,9 +76,9 @@ message Transform {
 
 // Artifact describes a contiguous byte range within the embedded payload.
 //
-// Offsets are relative to the start of the payload region, not the binary.
+// Byte offsets are relative to manifest offset found in footer, not the start of the binary.
 message Artifact {
-	// Byte offset from the start of the payload.
+	// Byte offset relative to manifest offset found in footer
 	fixed64 offset = 1;
 
 	// Length of the artifact in bytes.
