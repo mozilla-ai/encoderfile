@@ -1,5 +1,4 @@
 use anyhow::{Result, bail};
-use encoderfile_core::common::ModelType;
 use ort::{
     session::{Output, Session},
     tensor::Shape,
@@ -7,20 +6,10 @@ use ort::{
 use std::path::{Path, PathBuf};
 
 pub trait ModelTypeExt {
-    fn to_ident(&self) -> &'static str;
     fn validate_model(&self, path: &Path) -> Result<PathBuf>;
 }
 
 impl ModelTypeExt for encoderfile_core::common::ModelType {
-    fn to_ident(&self) -> &'static str {
-        match self {
-            ModelType::Embedding => "Embedding",
-            ModelType::SequenceClassification => "SequenceClassification",
-            ModelType::TokenClassification => "TokenClassification",
-            ModelType::SentenceEmbedding => "SentenceEmbedding",
-        }
-    }
-
     fn validate_model(&self, path: &Path) -> Result<PathBuf> {
         let model = load_model(path)?;
 
