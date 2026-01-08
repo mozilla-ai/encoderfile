@@ -44,29 +44,4 @@ impl<'a> AssetSource<'a> {
 
         Ok((len, out))
     }
-
-    pub fn planned_asset(&self, kind: AssetKind) -> Result<PlannedAsset> {
-        let (length, sha256) = self.hash_and_len()?;
-
-        Ok(PlannedAsset {
-            kind,
-            length,
-            sha256,
-        })
-    }
-}
-
-#[derive(Debug)]
-pub struct PlannedAsset {
-    pub kind: AssetKind,
-    pub length: u64,
-    pub sha256: [u8; 32],
-}
-
-#[derive(Debug)]
-pub enum AssetKind {
-    ModelWeights,
-    Transform,
-    ModelConfig,
-    Tokenizer,
 }
