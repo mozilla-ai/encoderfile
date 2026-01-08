@@ -42,6 +42,8 @@ message EncoderfileManifest {
 	// ------------------------------------------------------------------
 	// Artifacts are referenced via explicit fields, not a generic table.
 	// Each artifact reserves its own numeric range for future expansion.
+	// Any protobuf field ≥100 that participates in layout or runtime loading
+	// MUST have value-independent encoded size.
 
 	// Model weights blob.
 	optional Artifact weights = 100;
