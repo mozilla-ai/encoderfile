@@ -1,4 +1,3 @@
 [env]
 
 RUST_LOG = "info,tower_http=debug,ort=warn,encoderfile_core=debug,encoderfile=debug"
-ENCODERFILE_DEV = "true"
