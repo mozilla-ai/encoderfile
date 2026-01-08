@@ -1,5 +1,3 @@
-use anyhow::Result;
-
 mod kind;
 mod plan;
 mod source;
