@@ -8,7 +8,7 @@ pub struct AssetPlan<'a> {
 
 impl<'a> AssetPlan<'a> {
     pub fn new(mut assets: Vec<PlannedAsset<'a>>) -> Result<Self> {
-        assets.sort_by_key(|a| a.kind.clone());
+        assets.sort_by_key(|a| a.kind);
 
         for w in assets.windows(2) {
             if w[0].kind == w[1].kind {
