@@ -21,3 +21,7 @@ version = "0.22.1"
 [workspace.dependencies.ort]
 version = "=2.0.0-rc.10"
 features = [ "std", "tracing", "ndarray",]
+
+[workspace.dependencies.tokio]
+version = "1.48.0"
+features = [ "full",]

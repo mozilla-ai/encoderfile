@@ -161,8 +161,7 @@ optional = true
 workspace = true
 
 [dependencies.tokio]
-version = "1.48.0"
-features = [ "full",]
+workspace = true
 
 [dependencies.tonic]
 version = "0.14.2"
