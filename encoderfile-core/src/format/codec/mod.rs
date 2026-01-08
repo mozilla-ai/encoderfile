@@ -1,11 +1,15 @@
 use anyhow::{Result, bail};
 use prost::Message;
-use std::{collections::HashSet, io::Write};
+use std::{
+    collections::HashSet,
+    io::{Read, Seek, SeekFrom, Write},
+};
 
 use crate::{
     common::ModelType,
     format::{
         assets::{AssetKind, AssetPlan, AssetPolicySpec},
+        container::Encoderfile,
         footer::EncoderfileFooter,
     },
     generated::manifest::{Artifact, Backend, EncoderfileManifest},
@@ -14,6 +18,20 @@ use crate::{
 pub struct EncoderfileCodec;
 
 impl EncoderfileCodec {
+    pub fn read<R: Read + Seek>(reader: &mut R) -> Result<Encoderfile> {
+        let footer = EncoderfileFooter::read_from(reader)?;
+
+        // seek to manifest
+        reader.seek(SeekFrom::Start(footer.metadata_offset))?;
+
+        let mut buf = vec![0u8; footer.metadata_length as usize];
+        reader.read_exact(&mut buf)?;
+
+        let manifest = EncoderfileManifest::decode(&*buf)?;
+
+        Ok(Encoderfile::new(manifest, footer))
+    }
+
     pub fn write<T, W>(
         name: String,
         version: String,
@@ -138,5 +156,20 @@ impl EncoderfileManifest {
             AssetKind::Transform => &mut self.transform,
             AssetKind::Tokenizer => &mut self.tokenizer,
         }
+    }
+
+    pub fn get_slot(&self, kind: &AssetKind) -> &Option<Artifact> {
+        match kind {
+            AssetKind::ModelWeights => &self.weights,
+            AssetKind::ModelConfig => &self.model_config,
+            AssetKind::Transform => &self.transform,
+            AssetKind::Tokenizer => &self.tokenizer,
+        }
+    }
+
+    pub fn artifacts_iter(&self) -> impl Iterator<Item = (AssetKind, &Artifact)> {
+        AssetKind::ORDERED
+            .iter()
+            .filter_map(|kind| self.get_slot(kind).as_ref().map(|a| (*kind, a)))
     }
 }

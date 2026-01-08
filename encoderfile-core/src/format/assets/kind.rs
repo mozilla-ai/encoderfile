@@ -18,6 +18,9 @@ use crate::common::model_type::ModelTypeSpec;
 /// Reordering existing variants will change artifact layout, break
 /// determinism, and invalidate previously written encoderfiles.
 ///
+/// If you append a new AssetKind, the new value MUST be additionally added to AssetKind::ORDERED
+/// IN THE SAME ORDER as it is in the enum.
+///
 /// ## Evolution
 ///
 /// New artifact kinds may be added in future format versions by
@@ -36,6 +39,15 @@ pub enum AssetKind {
 
     /// Tokenizer data required for text-based models.
     Tokenizer,
+}
+
+impl AssetKind {
+    pub const ORDERED: &'static [AssetKind] = &[
+        AssetKind::ModelWeights,
+        AssetKind::Transform,
+        AssetKind::ModelConfig,
+        AssetKind::Tokenizer,
+    ];
 }
 
 pub trait AssetPolicySpec: ModelTypeSpec {

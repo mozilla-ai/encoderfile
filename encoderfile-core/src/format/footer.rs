@@ -44,7 +44,7 @@ impl EncoderfileFooter {
         Ok(())
     }
 
-    pub fn read_from<R: Read + Seek>(mut r: R) -> Result<Self> {
+    pub fn read_from<R: Read + Seek>(r: &mut R) -> Result<Self> {
         r.seek(SeekFrom::End(-(Self::SIZE as i64)))?;
 
         let mut magic = [0u8; 8];
