@@ -84,7 +84,8 @@ message Artifact {
 
 	// SHA-256 checksum of the artifact contents, hex-encoded.
 	// Used for integrity verification at runtime.
-	string sha256 = 3;
+	// MUST always be 32 bytes.
+	bytes sha256 = 3;
 }
 
 // Supported preprocessing transform types.
