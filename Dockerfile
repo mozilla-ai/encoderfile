@@ -1,4 +1,8 @@
 ### For local builds ##########################################################
+# IMPORTANT:
+# This image intentionally builds on Debian bookworm (glibc 2.36).
+# Do NOT switch the build stage to rust:<version> or newer distros,
+# or the resulting binary will not run on stable Linux systems.
 
 # ---- Build stage ------------------------------------------------------------
 # Install dependencies
