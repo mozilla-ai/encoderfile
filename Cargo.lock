@@ -870,6 +870,7 @@ dependencies = [
  "parking_lot",
  "prost",
  "rand 0.9.2",
+ "ring",
  "rmcp",
  "rmcp-macros",
  "schemars",

@@ -7,7 +7,7 @@ impl Artifact {
         Artifact {
             offset,
             length,
-            sha256: sha256.to_vec()
+            sha256: sha256.to_vec(),
         }
     }
 }

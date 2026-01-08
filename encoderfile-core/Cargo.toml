@@ -54,6 +54,7 @@ transforms = [ "mlua",]
 [dependencies]
 ndarray-stats = "0.6.0"
 parking_lot = "0.12.5"
+ring = "0.17.14"
 utoipa = "5.4.0"
 utoipa-axum = "0.2.0"
 
