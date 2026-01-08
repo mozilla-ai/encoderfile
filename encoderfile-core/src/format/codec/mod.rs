@@ -7,6 +7,7 @@ use anyhow::{Result, bail};
 pub mod decoder;
 pub mod encoder;
 
+#[derive(Debug)]
 pub struct EncoderfileCodec;
 
 impl EncoderfileManifest {
