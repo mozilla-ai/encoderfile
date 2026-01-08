@@ -14,6 +14,20 @@ pub enum AssetSource<'a> {
 }
 
 impl<'a> AssetSource<'a> {
+    pub fn write_to<W: std::io::Write>(&self, out: &mut W) -> std::io::Result<u64> {
+        match self {
+            AssetSource::File(path) => {
+                let file = File::open(path)?;
+                let mut reader = BufReader::new(file);
+                std::io::copy(&mut reader, out)
+            }
+            AssetSource::InMemory(bytes) => {
+                out.write_all(bytes)?;
+                Ok(bytes.len() as u64)
+            }
+        }
+    }
+
     fn open(&'a self) -> std::io::Result<Box<dyn Read + 'a>> {
         match self {
             AssetSource::File(path) => Ok(Box::new(File::open(path)?)),

@@ -16,7 +16,24 @@ pub struct EncoderfileFooter {
 
 impl EncoderfileFooter {
     pub const MAGIC: [u8; 8] = *b"ENCFILE\0";
+    pub const CURRENT_VERSION: u32 = 1;
     pub const SIZE: usize = 32;
+
+    pub fn new(metadata_offset: u64, metadata_length: u64, metadata_is_protobuf: bool) -> Self {
+        let mut flags = 0;
+
+        if metadata_is_protobuf {
+            flags |= FLAG_METADATA_PROTOBUF;
+        }
+
+        EncoderfileFooter {
+            magic: Self::MAGIC,
+            format_version: Self::CURRENT_VERSION,
+            metadata_offset,
+            metadata_length,
+            flags,
+        }
+    }
 
     pub fn write_to<W: Write>(&self, mut w: W) -> Result<()> {
         w.write_all(&self.magic)?;
