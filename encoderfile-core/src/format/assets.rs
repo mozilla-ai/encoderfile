@@ -7,6 +7,7 @@ use std::{
     path::Path,
 };
 
+#[derive(Debug)]
 pub enum AssetSource<'a> {
     File(&'a Path),
     InMemory(Cow<'a, [u8]>),
@@ -55,12 +56,14 @@ impl<'a> AssetSource<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct PlannedAsset {
     pub kind: AssetKind,
     pub length: u64,
     pub sha256: [u8; 32],
 }
 
+#[derive(Debug)]
 pub enum AssetKind {
     ModelWeights,
     Transform,
