@@ -7,6 +7,7 @@ use crate::{
 };
 use ort::session::Session;
 use parking_lot::Mutex;
+use std::str::FromStr;
 use std::{fs::File, io::BufReader, sync::Arc};
 
 const EMBEDDING_DIR: &str = "../models/embedding";
@@ -57,7 +58,7 @@ fn get_tokenizer(dir: &str, ec_config: &Arc<Config>) -> crate::runtime::Tokenize
     let tokenizer_str = std::fs::read_to_string(format!("{}/{}", dir, "tokenizer.json"))
         .expect("Tokenizer json not found");
 
-    crate::runtime::get_tokenizer_from_string(tokenizer_str.as_str(), ec_config)
+    get_tokenizer_from_string(tokenizer_str.as_str(), ec_config)
 }
 
 fn get_model(dir: &str) -> Mutex<Session> {
@@ -67,4 +68,15 @@ fn get_model(dir: &str) -> Mutex<Session> {
             .commit_from_file(format!("{}/{}", dir, "model.onnx"))
             .expect("Failed to load model"),
     )
+}
+
+fn get_tokenizer_from_string(s: &str, ec_config: &Arc<Config>) -> crate::runtime::TokenizerService {
+    let tokenizer = match tokenizers::tokenizer::Tokenizer::from_str(s) {
+        Ok(t) => t,
+        Err(e) => panic!("FATAL: Error loading tokenizer: {e:?}"),
+    };
+
+    let config = ec_config.tokenizer.clone();
+
+    crate::runtime::TokenizerService::new(tokenizer, config).expect("Error loading tokenizer")
 }

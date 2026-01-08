@@ -4,8 +4,6 @@ mod assets;
 pub mod cli;
 pub mod common;
 pub mod error;
-#[cfg(feature = "transport")]
-pub mod factory;
 pub mod format;
 pub mod generated;
 #[cfg(feature = "runtime")]
@@ -25,7 +23,5 @@ pub mod transport;
 pub mod dev_utils;
 
 pub use assets::get_banner;
-#[cfg(feature = "transport")]
-pub use factory::entrypoint;
 #[cfg(feature = "runtime")]
 pub use runtime::AppState;
