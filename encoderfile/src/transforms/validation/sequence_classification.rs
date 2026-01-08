@@ -70,6 +70,7 @@ mod tests {
             transform: None,
             validate_transform: true,
             tokenizer: None,
+            base_binary_path: None,
         }
     }
 

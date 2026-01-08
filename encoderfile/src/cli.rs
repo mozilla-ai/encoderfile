@@ -79,6 +79,10 @@ impl BuildArgs {
             config.encoderfile.cache_dir = Some(cache_dir.to_path_buf());
         }
 
+        if let Some(base_binary_path) = &self.base_binary_path {
+            config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf())
+        }
+
         let mut planned_assets: Vec<PlannedAsset<'_>> = Vec::new();
 
         // validate model config
@@ -117,14 +121,14 @@ impl BuildArgs {
         )?);
 
         // load base binary
-        let base_path = match self.base_binary_path {
-            Some(p) => p,
+        let base_path = match &config.encoderfile.base_binary_path {
+            Some(p) => p.as_path(),
             None => unimplemented!("No support for downloading default binaries yet."),
         };
 
         // initialize final binary
         let mut out = File::create(config.encoderfile.output_path())?;
-        let mut base = File::open(base_path.as_path())?;
+        let mut base = File::open(base_path)?;
 
         // copy base binary to out
         std::io::copy(&mut base, &mut out)?;

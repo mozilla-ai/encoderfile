@@ -39,6 +39,7 @@ pub struct EncoderfileConfig {
     pub model_type: ModelType,
     pub output_path: Option<PathBuf>,
     pub cache_dir: Option<PathBuf>,
+    pub base_binary_path: Option<PathBuf>,
     pub transform: Option<Transform>,
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
@@ -365,6 +366,7 @@ mod tests {
             validate_transform: false,
             transform: None,
             tokenizer: None,
+            base_binary_path: None,
         };
 
         let generated = cfg.get_generated_dir();
