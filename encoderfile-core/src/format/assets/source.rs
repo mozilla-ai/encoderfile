@@ -63,11 +63,7 @@ impl<'a> AssetSource<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        borrow::Cow,
-        fs,
-        path::PathBuf,
-    };
+    use std::{borrow::Cow, fs, path::PathBuf};
 
     fn sha256(bytes: &[u8]) -> [u8; 32] {
         use ring::digest;

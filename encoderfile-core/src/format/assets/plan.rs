@@ -50,15 +50,8 @@ mod tests {
     use super::*;
     use std::borrow::Cow;
 
-    fn planned(
-        kind: AssetKind,
-        bytes: &'static [u8],
-    ) -> PlannedAsset<'static> {
-        PlannedAsset::from_asset_source(
-            AssetSource::InMemory(Cow::Borrowed(bytes)),
-            kind,
-        )
-        .unwrap()
+    fn planned(kind: AssetKind, bytes: &'static [u8]) -> PlannedAsset<'static> {
+        PlannedAsset::from_asset_source(AssetSource::InMemory(Cow::Borrowed(bytes)), kind).unwrap()
     }
 
     #[test]
