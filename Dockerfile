@@ -5,7 +5,6 @@
 # or the resulting binary will not run on stable Linux systems.
 
 # ---- Build stage ------------------------------------------------------------
-# Install dependencies
 FROM debian:bookworm AS base
 
 RUN apt-get update && \
@@ -43,7 +42,7 @@ RUN cargo build --bin encoderfile --release
 
 
 # ---- Final stage ------------------------------------------------------------
-FROM debian:bookworm AS final
+FROM debian:bookworm-slim AS final
 
 # Default working directory.
 WORKDIR /opt/encoderfile
@@ -56,6 +55,9 @@ RUN chmod +x /usr/local/bin/encoderfile
 # Add documentation and license material.
 RUN mkdir -p /usr/share/docs/encoderfile
 COPY README.md THIRDPARTY.md LICENSE /usr/share/docs/encoderfile/
+
+# smoke test
+RUN /usr/local/bin/encoderfile version
 
 # Default command entry.
 ENTRYPOINT ["/usr/local/bin/encoderfile"]
