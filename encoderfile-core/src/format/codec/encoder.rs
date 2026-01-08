@@ -15,6 +15,7 @@ use std::{collections::HashSet, io::Write};
 
 impl EncoderfileCodec {
     pub fn write<T, W>(
+        &self,
         name: String,
         version: String,
         model_type: ModelType,
@@ -74,7 +75,7 @@ impl EncoderfileCodec {
 
         // write footer
         let footer = EncoderfileFooter::new(
-            offset,
+            self.absolute_offset,
             manifest_bytes.len() as u64,
             true, // metadata is protobuf
         );

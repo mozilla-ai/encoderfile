@@ -8,7 +8,9 @@ pub mod decoder;
 pub mod encoder;
 
 #[derive(Debug)]
-pub struct EncoderfileCodec;
+pub struct EncoderfileCodec {
+    absolute_offset: u64
+}
 
 impl EncoderfileManifest {
     fn set_artifact(&mut self, kind: &AssetKind, artifact: Artifact) {
