@@ -34,6 +34,7 @@ impl Encoderfile {
     }
 }
 
+#[derive(Debug)]
 pub struct ArtifactReader<'a, R: Read + Seek> {
     reader: &'a mut R,
     /// Absolute file offset of artifact start
