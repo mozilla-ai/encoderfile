@@ -113,11 +113,3 @@ enum Backend {
 	// Apple Metal backend.
 	METAL = 2;
 }
-
-enum ModelType {
-  MODEL_TYPE_UNSPECIFIED = 0;
-  EMBEDDING = 1;
-  SEQUENCE_CLASSIFICATION = 2;
-  TOKEN_CLASSIFICATION = 3;
-  SENTENCE_EMBEDDING = 4;
-}
