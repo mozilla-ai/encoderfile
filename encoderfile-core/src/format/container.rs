@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::Result;
 use std::io::{Read, Seek, SeekFrom};
 
 use crate::{
@@ -9,15 +9,12 @@ use crate::{
 #[derive(Debug)]
 pub struct Encoderfile {
     manifest: EncoderfileManifest,
-    _footer: EncoderfileFooter,
+    footer: EncoderfileFooter,
 }
 
 impl Encoderfile {
     pub fn new(manifest: EncoderfileManifest, footer: EncoderfileFooter) -> Self {
-        Self {
-            manifest,
-            _footer: footer,
-        }
+        Self { manifest, footer }
     }
 
     pub fn open_required<'a, R: Read + Seek>(
@@ -25,12 +22,19 @@ impl Encoderfile {
         reader: &'a mut R,
         kind: AssetKind,
     ) -> Result<ArtifactReader<'a, R>> {
-        let artifact = match self.manifest.get_slot(&kind) {
-            Some(s) => s,
-            None => bail!("missing required artifact: {kind:?}"),
-        };
+        self.open_optional(reader, kind)
+            .ok_or_else(|| anyhow::anyhow!("Missing required artifact: {kind:?}"))
+    }
 
-        Ok(ArtifactReader::new(reader, artifact))
+    pub fn open_optional<'a, R: Read + Seek>(
+        &self,
+        reader: &'a mut R,
+        kind: AssetKind,
+    ) -> Option<ArtifactReader<'a, R>> {
+        match self.manifest.get_slot(&kind) {
+            Some(a) => Some(ArtifactReader::new(self.footer.metadata_offset, reader, a)),
+            None => None,
+        }
     }
 }
 
@@ -46,10 +50,10 @@ pub struct ArtifactReader<'a, R: Read + Seek> {
 }
 
 impl<'a, R: Read + Seek> ArtifactReader<'a, R> {
-    pub fn new(reader: &'a mut R, artifact: &Artifact) -> Self {
+    pub fn new(manifest_offset: u64, reader: &'a mut R, artifact: &Artifact) -> Self {
         Self {
             reader,
-            start: artifact.offset,
+            start: manifest_offset + artifact.offset,
             pos: 0,
             length: artifact.length,
         }
