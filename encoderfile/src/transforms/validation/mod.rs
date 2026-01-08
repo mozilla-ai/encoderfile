@@ -104,7 +104,6 @@ mod tests {
             output_path: None,
             transform: None,
             validate_transform: true,
-            build: true,
             tokenizer: None,
         }
     }
@@ -148,7 +147,6 @@ mod tests {
             output_path: None,
             transform: Some(Transform::Inline(transform_str.to_string())),
             validate_transform: true,
-            build: true,
             tokenizer: None,
         };
 
@@ -172,7 +170,6 @@ mod tests {
             output_path: None,
             transform: None,
             validate_transform: true,
-            build: true,
             tokenizer: None,
         };
 

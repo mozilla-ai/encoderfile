@@ -71,10 +71,6 @@ impl BuildArgs {
             config.encoderfile.cache_dir = Some(cache_dir.to_path_buf());
         }
 
-        if self.no_build {
-            config.encoderfile.build = false;
-        }
-
         // validate model config
         let model_config = config.encoderfile.model_config()?;
 
@@ -97,11 +93,6 @@ impl BuildArgs {
 
         render("main.rs.tera", &ctx, &write_dir, "src/main.rs")?;
         render("Cargo.toml.tera", &ctx, &write_dir, "Cargo.toml")?;
-
-        // short circuit if build stage skipped
-        if !config.encoderfile.build {
-            return Ok(());
-        }
 
         // canonicalize paths
         let cargo_toml_path = write_dir

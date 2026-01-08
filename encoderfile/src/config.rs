@@ -41,8 +41,6 @@ pub struct EncoderfileConfig {
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
-    #[serde(default = "default_build")]
-    pub build: bool,
 }
 
 impl EncoderfileConfig {
@@ -243,10 +241,6 @@ fn default_version() -> String {
     "0.1.0".to_string()
 }
 
-fn default_build() -> bool {
-    true
-}
-
 fn default_validate_transform() -> bool {
     true
 }
@@ -385,7 +379,6 @@ mod tests {
             validate_transform: false,
             transform: None,
             tokenizer: None,
-            build: true,
         };
 
         let generated = cfg.get_generated_dir();
@@ -407,7 +400,6 @@ mod tests {
             validate_transform: false,
             transform: Some(Transform::Inline("1+1".into())),
             tokenizer: None,
-            build: true,
         };
 
         let _ctx = cfg.to_tera_ctx().expect("Tera ctx error");

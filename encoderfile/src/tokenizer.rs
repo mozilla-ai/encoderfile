@@ -243,7 +243,6 @@ mod tests {
             transform: None,
             tokenizer: None,
             validate_transform: false,
-            build: false,
         };
 
         let tokenizer_config = config
@@ -275,7 +274,6 @@ mod tests {
                 pad_strategy: Some(TokenizerPadStrategy::Fixed { fixed: 512 }),
             }),
             validate_transform: false,
-            build: false,
         };
 
         let tokenizer_config = config
@@ -314,7 +312,6 @@ mod tests {
             transform: None,
             tokenizer: None,
             validate_transform: false,
-            build: false,
         };
 
         let tokenizer_config = config
