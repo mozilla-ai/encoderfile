@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::io::{Read, Seek, SeekFrom};
 
 use crate::{
+    common::ModelType,
     format::{assets::AssetKind, footer::EncoderfileFooter},
     generated::manifest::{Artifact, EncoderfileManifest},
 };
@@ -15,6 +16,18 @@ pub struct Encoderfile {
 impl Encoderfile {
     pub fn new(manifest: EncoderfileManifest, footer: EncoderfileFooter) -> Self {
         Self { manifest, footer }
+    }
+
+    pub fn name(&self) -> &str {
+        self.manifest.name.as_ref()
+    }
+
+    pub fn version(&self) -> &str {
+        self.manifest.version.as_str()
+    }
+
+    pub fn model_type(&self) -> ModelType {
+        self.manifest.model_type().into()
     }
 
     pub fn open_required<'a, R: Read + Seek>(

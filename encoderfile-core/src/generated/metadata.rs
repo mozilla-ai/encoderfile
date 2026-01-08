@@ -22,3 +22,17 @@ impl From<common::ModelType> for ModelType {
         }
     }
 }
+
+impl From<ModelType> for common::ModelType {
+    fn from(val: ModelType) -> Self {
+        match val {
+            ModelType::Embedding => common::ModelType::Embedding,
+            ModelType::SequenceClassification => common::ModelType::SequenceClassification,
+            ModelType::TokenClassification => common::ModelType::TokenClassification,
+            ModelType::SentenceEmbedding => common::ModelType::SentenceEmbedding,
+            ModelType::Unspecified => {
+                unreachable!("Unspecified model type. This should not happen.")
+            }
+        }
+    }
+}
