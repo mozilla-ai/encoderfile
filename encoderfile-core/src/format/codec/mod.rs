@@ -116,14 +116,14 @@ impl EncoderfileCodec {
 
         // Required must exist
         for req in T::required_assets() {
-            if !present.contains(&req) {
+            if !present.contains(req) {
                 bail!("missing required asset {:?}. This should not happen.", req);
             }
         }
 
         // Present must be either required or optional
         for kind in &present {
-            if !(T::required_assets().contains(&kind) || T::optional_assets().contains(&kind)) {
+            if !(T::required_assets().contains(kind) || T::optional_assets().contains(kind)) {
                 bail!("asset {:?} not permitted for this model type", kind);
             }
         }

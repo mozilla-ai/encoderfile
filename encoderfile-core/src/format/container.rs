@@ -1,5 +1,5 @@
 use anyhow::{Result, bail};
-use std::io::{Read, Seek};
+use std::io::{Read, Seek, SeekFrom};
 
 use crate::{
     format::{assets::AssetKind, footer::EncoderfileFooter},
@@ -30,22 +30,51 @@ impl Encoderfile {
             None => bail!("missing required artifact: {kind:?}"),
         };
 
-        Ok(ArtifactReader::new(reader, &artifact))
+        Ok(ArtifactReader::new(reader, artifact))
     }
 }
 
 pub struct ArtifactReader<'a, R: Read + Seek> {
     reader: &'a mut R,
-    offset: u64,
-    remaining: u64,
+    /// Absolute file offset of artifact start
+    start: u64,
+    /// Current position within artifact
+    pos: u64,
+    /// Total artifact length
+    length: u64,
 }
 
 impl<'a, R: Read + Seek> ArtifactReader<'a, R> {
-    fn new(reader: &'a mut R, artifact: &Artifact) -> Self {
+    pub fn new(reader: &'a mut R, artifact: &Artifact) -> Self {
         Self {
             reader,
-            offset: artifact.offset,
-            remaining: artifact.length,
+            start: artifact.offset,
+            pos: 0,
+            length: artifact.length,
         }
+    }
+
+    pub fn len(&self) -> u64 {
+        self.length
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+}
+
+impl<'a, R: Read + Seek> Read for ArtifactReader<'a, R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        if self.pos >= self.length {
+            return Ok(0);
+        }
+
+        let max = buf.len().min((self.length - self.pos) as usize);
+
+        self.reader.seek(SeekFrom::Start(self.start + self.pos))?;
+        let n = self.reader.read(&mut buf[..max])?;
+
+        self.pos += n as u64;
+        Ok(n)
     }
 }
