@@ -33,8 +33,7 @@ license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
 
 [features]
-default = [ "transport",]
-transport = [ "runtime", "opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "axum-server", "clap", "clap_derive", "tonic-types", "tonic-web", "tracing-opentelemetry", "tower-http",]
+default = [ "runtime" ]
 dev-utils = [ "runtime",]
 runtime = [ "transforms", "ort",]
 transforms = [ "mlua",]
@@ -43,7 +42,6 @@ transforms = [ "mlua",]
 ndarray-stats = "0.6.0"
 ring = "0.17.14"
 utoipa = "5.4.0"
-utoipa-axum = "0.2.0"
 
 [build-dependencies]
 dotenv = "0.15.0"
@@ -78,39 +76,6 @@ workspace = true
 [dependencies.tracing]
 workspace = true
 
-[dependencies.axum]
-version = "0.8.6"
-optional = true
-
-[dependencies.axum-server]
-version = "0.7.3"
-features = [ "tls-rustls",]
-optional = true
-
-[dependencies.clap]
-workspace = true
-optional = true
-
-[dependencies.clap_derive]
-workspace = true
-optional = true
-
-[dependencies.opentelemetry]
-version = "0.31.0"
-optional = true
-
-[dependencies.opentelemetry-semantic-conventions]
-version = "0.31.0"
-optional = true
-
-[dependencies.opentelemetry-stdout]
-version = "0.31.0"
-optional = true
-
-[dependencies.opentelemetry_sdk]
-version = "0.31.0"
-optional = true
-
 [dependencies.prost]
 version = "0.14.1"
 
@@ -120,35 +85,9 @@ workspace = true
 [dependencies.tonic-prost]
 version = "0.14.2"
 
-[dependencies.tonic-types]
-version = "0.14.2"
-optional = true
-
-[dependencies.tonic-web]
-version = "0.14.2"
-optional = true
-
-[dependencies.tracing-opentelemetry]
-version = "0.32.0"
-optional = true
-
 [dependencies.mlua]
 version = "0.11.4"
 features = [ "lua54", "vendored",]
-optional = true
-
-[dependencies.opentelemetry-otlp]
-version = "0.31.0"
-features = [ "grpc-tonic",]
-optional = true
-
-[dependencies.rmcp]
-version = "0.8.0"
-features = [ "server", "transport-streamable-http-server",]
-optional = true
-
-[dependencies.rmcp-macros]
-version = "0.8.0"
 optional = true
 
 [dependencies.serde]
@@ -158,13 +97,7 @@ workspace = true
 workspace = true
 
 [dependencies.tonic]
-version = "0.14.2"
-features = [ "router",]
-
-[dependencies.tower-http]
-version = "0.6.6"
-features = [ "trace",]
-optional = true
+workspace = true
 
 [dependencies.tracing-subscriber]
 version = "0.3.20"
