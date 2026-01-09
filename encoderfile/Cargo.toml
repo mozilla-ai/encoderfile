@@ -1,6 +1,29 @@
 [[bin]]
+name = "encoderfile-runtime"
+path = "bin/runtime.rs"
+features = ["runtime"]
+publish = false
+
+[[bin]]
 name = "encoderfile"
 path = "src/main.rs"
+features = ["cli"]
+publish = true
+
+[[test]]
+name = "test_grpc"
+path = "tests/runtime/test_grpc.rs"
+required-features = ["dev-utils", "runtime"]
+
+[[test]]
+name = "test_http"
+path = "tests/runtime/test_http.rs"
+required-features = ["dev-utils", "runtime"]
+
+[[test]]
+name = "test_mcp"
+path = "tests/runtime/test_mcp.rs"
+required-features = ["dev-utils", "runtime"]
 
 [package]
 name = "encoderfile"
@@ -9,6 +32,28 @@ edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
 description = "Distribute and run transformer encoders with a single file."
+
+[features]
+default = ["cli"]
+dev-utils = []
+cli = ["dep:console"]
+runtime = [
+  "dep:utoipa",
+  "dep:utoipa-axum",
+  "dep:axum",
+  "dep:rmcp",
+  "dep:rmcp-macros",
+  "dep:tonic",
+  "dep:opentelemetry",
+  "dep:opentelemetry-semantic-conventions",
+  "dep:opentelemetry-stdout",
+  "dep:opentelemetry_sdk",
+  "dep:opentelemetry-otlp",
+  "dep:tracing-opentelemetry",
+  "dep:tower-http",
+  "dep:axum-server",
+  "dep:parking_lot",
+]
 
 [dependencies]
 clap_derive = "4.5.49"
@@ -20,13 +65,44 @@ tar = "0.4.44"
 tempfile = "3.23.0"
 url = "2.5.8"
 
-[features]
-default = ["cli"]
-dev-utils = []
-cli = ["dep:console"]
-
 [dev-dependencies]
 tempfile = "3.23.0"
+tower = "0.5.2"
+test-log = "0.2.18"
+
+[dependencies.utoipa]
+workspace = true
+optional = true
+
+[dependencies.utoipa-axum]
+workspace = true
+optional = true
+
+[dependencies.axum]
+version = "0.8.6"
+optional = true
+
+[dependencies.axum-server]
+version = "0.7.3"
+features = ["tls-rustls"]
+optional = true
+
+[dependencies.rmcp]
+version = "0.8.0"
+features = ["server", "transport-streamable-http-server"]
+optional = true
+
+[dependencies.rmcp-macros]
+version = "0.8.0"
+optional = true
+
+[dependencies.tracing]
+workspace = true
+
+[dependencies.tonic]
+workspace = true
+features = ["router"]
+optional = true
 
 [dependencies.reqwest]
 version = "0.13.1"
@@ -56,12 +132,12 @@ workspace = true
 [dependencies.encoderfile-core]
 path = "../encoderfile-core"
 version = "0.4.0-beta.3"
-features = [ "transforms", "runtime"]
+features = ["transforms", "runtime"]
 default-features = false
 
 [dependencies.figment]
 version = "0.10.19"
-features = [ "env", "serde_yaml", "yaml",]
+features = ["env", "serde_yaml", "yaml"]
 
 [dependencies.serde]
 workspace = true
@@ -72,6 +148,47 @@ workspace = true
 [dependencies.prost]
 workspace = true
 
+[dependencies.opentelemetry]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry-semantic-conventions]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry-stdout]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry_sdk]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry-otlp]
+version = "0.31.0"
+features = ["grpc-tonic"]
+optional = true
+
+[dependencies.tracing-subscriber]
+version = "0.3.20"
+features = ["fmt", "env-filter"]
+
+[dependencies.tokio]
+workspace = true
+
+[dependencies.tracing-opentelemetry]
+version = "0.32.0"
+optional = true
+
+[dependencies.tower-http]
+version = "0.6.6"
+features = ["trace"]
+optional = true
+
+[dependencies.parking_lot]
+workspace = true
+optional = true
+
 [dev-dependencies.uuid]
 version = "1.18.1"
-features = [ "v4",]
+features = ["v4"]

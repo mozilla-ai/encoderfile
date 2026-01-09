@@ -6,15 +6,15 @@ publish = false
 
 [[test]]
 name = "test_grpc"
-required-features = [ "dev-utils", "transport",]
+required-features = ["dev-utils", "transport"]
 
 [[test]]
 name = "test_http"
-required-features = [ "dev-utils", "transport",]
+required-features = ["dev-utils", "transport"]
 
 [[test]]
 name = "test_mcp"
-required-features = [ "dev-utils", "transport",]
+required-features = ["dev-utils", "transport"]
 
 [dependencies]
 utoipa = { workspace = true }
@@ -30,18 +30,18 @@ version = "0.4.0-beta.3"
 
 [dependencies.axum-server]
 version = "0.7.3"
-features = [ "tls-rustls",]
+features = ["tls-rustls"]
 
 [dependencies.tracing]
 workspace = true
 
 [dependencies.tower-http]
 version = "0.6.6"
-features = [ "trace",]
+features = ["trace"]
 
 [dependencies.rmcp]
 version = "0.8.0"
-features = [ "server", "transport-streamable-http-server",]
+features = ["server", "transport-streamable-http-server"]
 
 [dependencies.rmcp-macros]
 version = "0.8.0"
@@ -66,11 +66,11 @@ version = "0.31.0"
 
 [dependencies.opentelemetry-otlp]
 version = "0.31.0"
-features = [ "grpc-tonic",]
+features = ["grpc-tonic"]
 
 [dependencies.tracing-subscriber]
 version = "0.3.20"
-features = [ "fmt", "env-filter",]
+features = ["fmt", "env-filter"]
 
 [dependencies.tracing-opentelemetry]
 version = "0.32.0"
@@ -88,8 +88,8 @@ workspace = true
 workspace = true
 
 [dependencies.tonic]
-version = "0.14.2"
-features = [ "router",]
+workspace = true
+features = ["router"]
 
 [dependencies.axum]
 version = "0.8.6"

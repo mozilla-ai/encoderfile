@@ -5,6 +5,7 @@
   "rust-analyzer.linkedProjects": [
     "Cargo.toml"
   ],
+  "rust-analyzer.check.features": "all",
   "rust-analyzer.workspace.symbol.search.scope": "workspace",
   "yaml.schemas": {
     "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"

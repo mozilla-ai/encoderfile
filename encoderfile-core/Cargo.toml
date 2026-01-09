@@ -1,29 +1,29 @@
 [[bench]]
 name = "l2_norm"
 harness = false
-required-features = [ "dev-utils",]
+required-features = ["dev-utils"]
 
 [[bench]]
 name = "postprocessing"
 harness = false
-required-features = [ "dev-utils",]
+required-features = ["dev-utils"]
 
 [[bench]]
 name = "benchmark_transforms"
 harness = false
-required-features = [ "dev-utils",]
+required-features = ["dev-utils"]
 
 [[test]]
 name = "transforms"
-required-features = [ "dev-utils",]
+required-features = ["dev-utils"]
 
 [[test]]
 name = "test_models"
-required-features = [ "dev-utils",]
+required-features = ["dev-utils"]
 
 [[test]]
 name = "test_services"
-required-features = [ "dev-utils",]
+required-features = ["dev-utils"]
 
 [package]
 name = "encoderfile-core"
@@ -33,10 +33,10 @@ license = "Apache-2.0"
 description = "Distribute and run transformer encoders with a single file."
 
 [features]
-default = [ "runtime" ]
-dev-utils = [ "runtime",]
-runtime = [ "transforms", "ort",]
-transforms = [ "mlua",]
+default = ["runtime"]
+dev-utils = ["runtime"]
+runtime = ["transforms", "ort"]
+transforms = ["mlua"]
 
 [dependencies]
 ndarray-stats = "0.6.0"
@@ -53,7 +53,7 @@ test-log = "0.2.18"
 
 [dev-dependencies.uuid]
 version = "1.18.1"
-features = [ "v4",]
+features = ["v4"]
 
 [dependencies.parking_lot]
 workspace = true
@@ -87,7 +87,7 @@ version = "0.14.2"
 
 [dependencies.mlua]
 version = "0.11.4"
-features = [ "lua54", "vendored",]
+features = ["lua54", "vendored"]
 optional = true
 
 [dependencies.serde]
@@ -101,7 +101,7 @@ workspace = true
 
 [dependencies.tracing-subscriber]
 version = "0.3.20"
-features = [ "fmt", "env-filter",]
+features = ["fmt", "env-filter"]
 
 [dependencies.ort]
 workspace = true
@@ -112,15 +112,15 @@ workspace = true
 
 [dev-dependencies.hyper-util]
 version = "0.1.18"
-features = [ "server-graceful",]
+features = ["server-graceful"]
 
 [dev-dependencies.hyper]
 version = "1.8.1"
-features = [ "http1",]
+features = ["http1"]
 
 [dev-dependencies.rmcp]
 version = "0.8.0"
-features = [ "client", "transport-streamable-http-client-reqwest",]
+features = ["client", "transport-streamable-http-client-reqwest"]
 
 [dev-dependencies.divan]
 version = "4.0.5"
@@ -128,4 +128,4 @@ package = "codspeed-divan-compat"
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
-check-cfg = [ "cfg(tarpaulin_include)",]
+check-cfg = ["cfg(tarpaulin_include)"]
