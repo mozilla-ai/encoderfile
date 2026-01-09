@@ -149,7 +149,7 @@ optional = true
 
 [dependencies.rmcp]
 version = "0.8.0"
-features = [ "server", "transport-streamable-http-server",]
+features = [ "server", "transport-streamable-http-server"]
 optional = true
 
 [dependencies.rmcp-macros]
@@ -216,3 +216,7 @@ workspace = true
 [dev-dependencies.divan]
 version = "4.0.5"
 package = "codspeed-divan-compat"
+
+[dev-dependencies.rmcp]
+version = "0.8.0"
+features = [ "client", "transport-streamable-http-client-reqwest",]
