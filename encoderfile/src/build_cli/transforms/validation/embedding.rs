@@ -55,7 +55,7 @@ impl TransformValidatorExt for EmbeddingTransform {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{EncoderfileConfig, ModelPath};
+    use crate::build_cli::config::{EncoderfileConfig, ModelPath};
     use encoderfile_core::common::ModelType;
 
     use super::*;
@@ -77,7 +77,7 @@ mod tests {
     }
 
     fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../models/embedding/config.json");
+        let config_json = include_str!("../../../../../models/embedding/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }

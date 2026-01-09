@@ -5,7 +5,7 @@ use encoderfile_core::{
     transforms::TransformSpec,
 };
 
-use crate::config::EncoderfileConfig;
+use crate::build_cli::config::EncoderfileConfig;
 use prost::Message;
 
 mod embedding;
@@ -103,7 +103,7 @@ pub fn validate_transform<'a>(
 mod tests {
     use encoderfile_core::transforms::EmbeddingTransform;
 
-    use crate::config::{ModelPath, Transform};
+    use crate::build_cli::config::{ModelPath, Transform};
 
     use super::*;
 
@@ -124,7 +124,7 @@ mod tests {
     }
 
     fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../models/embedding/config.json");
+        let config_json = include_str!("../../../../../models/embedding/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }
@@ -167,8 +167,11 @@ mod tests {
             target: None,
         };
 
-        let model_config_str =
-            include_str!(concat!("../../../../models/", "embedding", "/config.json"));
+        let model_config_str = include_str!(concat!(
+            "../../../../../models/",
+            "embedding",
+            "/config.json"
+        ));
 
         let model_config =
             serde_json::from_str(model_config_str).expect("Failed to create model config");
@@ -192,8 +195,11 @@ mod tests {
             target: None,
         };
 
-        let model_config_str =
-            include_str!(concat!("../../../../models/", "embedding", "/config.json"));
+        let model_config_str = include_str!(concat!(
+            "../../../../../models/",
+            "embedding",
+            "/config.json"
+        ));
 
         let model_config =
             serde_json::from_str(model_config_str).expect("Failed to create model config");

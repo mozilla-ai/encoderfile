@@ -2,7 +2,7 @@ pub mod transforms {
     macro_rules! embed_transform_template {
         ($name:ident, $path:expr) => {
             pub const $name: &'static str =
-                include_str!(concat!("../templates/transforms/", $path, ".lua"));
+                include_str!(concat!("../../templates/transforms/", $path, ".lua"));
         };
     }
 

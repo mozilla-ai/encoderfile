@@ -1,6 +1,6 @@
 [[bin]]
 name = "encoderfile"
-path = "src/main.rs"
+path = "bin/encoderfile.rs"
 
 [package]
 name = "encoderfile"

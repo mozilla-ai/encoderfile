@@ -1,4 +1,4 @@
-use crate::{
+use crate::build_cli::{
     base_binary::{BaseBinaryResolver, TargetSpec},
     terminal,
 };
@@ -57,7 +57,7 @@ pub struct BuildArgs {
 impl BuildArgs {
     pub fn run(self, global: &GlobalArguments) -> Result<()> {
         terminal::info("Loading config...");
-        let mut config = crate::config::BuildConfig::load(&self.config)?;
+        let mut config = crate::build_cli::config::BuildConfig::load(&self.config)?;
 
         // --- handle user flags ---------------------------------------------------
         if let Some(o) = &self.output_path {
@@ -116,14 +116,14 @@ impl BuildArgs {
 
         // validate transform
         if let Some(asset) =
-            crate::transforms::validate_transform(&config.encoderfile, &model_config)?
+            crate::build_cli::transforms::validate_transform(&config.encoderfile, &model_config)?
         {
             planned_assets.push(asset);
             terminal::success("Transform validated");
         }
 
         // validate tokenizer
-        let tokenizer_asset = crate::tokenizer::validate_tokenizer(&config.encoderfile)?;
+        let tokenizer_asset = crate::build_cli::tokenizer::validate_tokenizer(&config.encoderfile)?;
         planned_assets.push(tokenizer_asset);
         terminal::success("Tokenizer validated");
 

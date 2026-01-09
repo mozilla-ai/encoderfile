@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use encoderfile::model::ModelTypeExt as _;
+use encoderfile::build_cli::model::ModelTypeExt as _;
 use encoderfile_core::common::ModelType;
 
 #[test]

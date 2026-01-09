@@ -1,23 +1,23 @@
 use super::{
     TransformValidatorExt,
-    utils::{BATCH_SIZE, random_tensor, validation_err, validation_err_ctx},
+    utils::{BATCH_SIZE, SEQ_LEN, random_tensor, validation_err, validation_err_ctx},
 };
 use anyhow::{Context, Result};
 use encoderfile_core::{
     common::ModelConfig,
-    transforms::{Postprocessor, SequenceClassificationTransform},
+    transforms::{Postprocessor, TokenClassificationTransform},
 };
 
-impl TransformValidatorExt for SequenceClassificationTransform {
+impl TransformValidatorExt for TokenClassificationTransform {
     fn dry_run(&self, model_config: &ModelConfig) -> Result<()> {
         let num_labels = match model_config.num_labels() {
             Some(n) => n,
             None => validation_err(
-                "Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a SequenceClassification model.",
+                "Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a TokenClassification model.",
             )?,
         };
 
-        let dummy_logits = random_tensor(&[BATCH_SIZE, num_labels], (-1.0, 1.0))?;
+        let dummy_logits = random_tensor(&[BATCH_SIZE, SEQ_LEN, num_labels], (-1.0, 1.0))?;
         let shape = dummy_logits.shape().to_owned();
 
         let res = self.postprocess(dummy_logits)
@@ -30,10 +30,10 @@ impl TransformValidatorExt for SequenceClassificationTransform {
                 )
             })?;
 
-        // result must return tensor of rank 2
-        if res.ndim() != 2 {
+        // result must return tensor of rank 3
+        if res.ndim() != 3 {
             validation_err(format!(
-                "Transform must return tensor of rank 2. Got tensor of shape {:?}.",
+                "Transform must return tensor of rank 3. Got tensor of shape {:?}.",
                 res.shape()
             ))?
         }
@@ -41,8 +41,9 @@ impl TransformValidatorExt for SequenceClassificationTransform {
         // result must have same shape as original
         if res.shape() != shape {
             validation_err(format!(
-                "Transform must return Tensor of shape [batch_size, num_labels]. Expected shape [{}, {}], got shape {:?}",
+                "Transform must return Tensor of shape [batch_size, seq_len, num_labels]. Expected shape [{}, {}, {}], got shape {:?}",
                 BATCH_SIZE,
+                SEQ_LEN,
                 num_labels,
                 res.shape()
             ))?
@@ -54,7 +55,7 @@ impl TransformValidatorExt for SequenceClassificationTransform {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{EncoderfileConfig, ModelPath};
+    use crate::build_cli::config::{EncoderfileConfig, ModelPath};
     use encoderfile_core::common::ModelType;
 
     use super::*;
@@ -63,8 +64,8 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/sequence_classification")),
-            model_type: ModelType::SequenceClassification,
+            path: ModelPath::Directory(std::path::PathBuf::from("models/token_classification")),
+            model_type: ModelType::TokenClassification,
             cache_dir: None,
             output_path: None,
             transform: None,
@@ -76,7 +77,7 @@ mod tests {
     }
 
     fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../models/sequence_classification/config.json");
+        let config_json = include_str!("../../../../../models/token_classification/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }
@@ -86,7 +87,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        SequenceClassificationTransform::new(Some(
+        TokenClassificationTransform::new(Some(
             "function Postprocess(arr) return arr end".to_string(),
         ))
         .expect("Failed to create transform")
@@ -99,7 +100,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = SequenceClassificationTransform::new(Some(
+        let result = TokenClassificationTransform::new(Some(
             "function Postprocess(arr) return 1 end".to_string(),
         ))
         .expect("Failed to create transform")
@@ -113,7 +114,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = SequenceClassificationTransform::new(Some(
+        let result = TokenClassificationTransform::new(Some(
             "function Postprocess(arr) return arr:sum_axis(1) end".to_string(),
         ))
         .expect("Failed to create transform")

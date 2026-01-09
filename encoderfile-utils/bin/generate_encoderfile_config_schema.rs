@@ -1,5 +1,5 @@
 use anyhow::Result;
-use encoderfile::config;
+use encoderfile::build_cli::config;
 
 fn main() -> Result<()> {
     let schema = schemars::schema_for!(config::BuildConfig);

@@ -33,7 +33,7 @@ use encoderfile_core::{
 use std::str::FromStr;
 use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer};
 
-use crate::config::{EncoderfileConfig, TokenizerPadStrategy};
+use super::config::{EncoderfileConfig, TokenizerPadStrategy};
 
 pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
     let tokenizer =
@@ -244,7 +244,7 @@ impl<'a> TokenizerConfigBuilder<'a> {
 mod tests {
     use encoderfile_core::common::ModelType;
 
-    use crate::config::{ModelPath, TokenizerBuildConfig};
+    use crate::build_cli::config::{ModelPath, TokenizerBuildConfig};
 
     use super::*;
 

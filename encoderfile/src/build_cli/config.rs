@@ -15,7 +15,7 @@ use figment::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::base_binary::TargetSpec;
+use super::base_binary::TargetSpec;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct BuildConfig {
@@ -91,7 +91,7 @@ impl EncoderfileConfig {
     pub fn cache_dir(&self) -> PathBuf {
         match &self.cache_dir {
             Some(c) => c.to_path_buf(),
-            None => crate::cache::default_cache_dir(),
+            None => super::cache::default_cache_dir(),
         }
     }
 
