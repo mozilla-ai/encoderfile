@@ -7,6 +7,11 @@ macro_rules! terminal_print_fn {
                 use console::style;
                 $body
             }
+
+            #[cfg(not(feature = "cli"))]
+            {
+                let _ = &$msg;
+            }
         }
     };
 
@@ -17,6 +22,11 @@ macro_rules! terminal_print_fn {
             {
                 use console::style;
                 $body
+            }
+
+            #[cfg(not(feature = "cli"))]
+            {
+                let _ = (&$key, &$value);
             }
         }
     };
