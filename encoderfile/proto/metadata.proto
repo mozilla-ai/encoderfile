@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package encoderfile.metadata;
+
+message GetModelMetadataRequest {}
+
+message GetModelMetadataResponse {
+  string model_id = 1;
+  ModelType model_type = 2;
+  map<uint32, string> id2label = 3;
+}
+
+enum ModelType {
+  MODEL_TYPE_UNSPECIFIED = 0;
+  EMBEDDING = 1;
+  SEQUENCE_CLASSIFICATION = 2;
+  TOKEN_CLASSIFICATION = 3;
+  SENTENCE_EMBEDDING = 4;
+}

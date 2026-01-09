@@ -1,5 +1,5 @@
+use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use anyhow::{Result, bail};
-use encoderfile_core::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use ort::{
     session::{Output, Session},
     tensor::Shape,
@@ -10,7 +10,7 @@ pub trait ModelTypeExt {
     fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>>;
 }
 
-impl ModelTypeExt for encoderfile_core::common::ModelType {
+impl ModelTypeExt for crate::common::ModelType {
     fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>> {
         let model = load_model(path)?;
 

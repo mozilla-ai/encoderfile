@@ -24,12 +24,12 @@
 // This is not ideal and will be revisited in v1.0.0 once we have an opportunity to make breaking changes
 // in the way encoderfile.yml works, etc.
 
-use anyhow::Result;
-use encoderfile_core::{
+use crate::{
     common::TokenizerConfig,
     format::assets::{AssetKind, AssetSource, PlannedAsset},
     runtime::TokenizerService,
 };
+use anyhow::Result;
 use std::str::FromStr;
 use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer};
 
@@ -242,9 +242,8 @@ impl<'a> TokenizerConfigBuilder<'a> {
 
 #[cfg(test)]
 mod tests {
-    use encoderfile_core::common::ModelType;
-
     use crate::build_cli::config::{ModelPath, TokenizerBuildConfig};
+    use crate::common::ModelType;
 
     use super::*;
 

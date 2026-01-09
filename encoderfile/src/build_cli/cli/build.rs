@@ -4,14 +4,14 @@ use crate::build_cli::{
 };
 
 use super::{super::model::ModelTypeExt as _, GlobalArguments};
-use anyhow::Result;
-use encoderfile_core::{
+use crate::{
     format::{
         assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
         codec::EncoderfileCodec,
     },
     generated::manifest::Backend,
 };
+use anyhow::Result;
 use std::{
     borrow::Cow,
     fs::File,

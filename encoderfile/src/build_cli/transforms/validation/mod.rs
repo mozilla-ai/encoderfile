@@ -1,9 +1,9 @@
-use anyhow::{Context, Result};
-use encoderfile_core::{
+use crate::{
     common::{ModelConfig, ModelType},
     format::assets::{AssetKind, AssetSource, PlannedAsset},
     transforms::TransformSpec,
 };
+use anyhow::{Context, Result};
 
 use crate::build_cli::config::EncoderfileConfig;
 use prost::Message;
@@ -41,7 +41,7 @@ pub trait TransformValidatorExt: TransformSpec {
 
 macro_rules! validate_transform {
     ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
-        encoderfile_core::transforms::$transform_type::new(Some($transform_str.clone()))
+        crate::transforms::$transform_type::new(Some($transform_str.clone()))
             .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
             .validate($encoderfile_config, $model_config)
     };
@@ -87,8 +87,8 @@ pub fn validate_transform<'a>(
         ),
     }?;
 
-    let proto = encoderfile_core::generated::manifest::Transform {
-        transform_type: encoderfile_core::generated::manifest::TransformType::Lua.into(),
+    let proto = crate::generated::manifest::Transform {
+        transform_type: crate::generated::manifest::TransformType::Lua.into(),
         transform: transform_str,
     };
 
@@ -101,7 +101,7 @@ pub fn validate_transform<'a>(
 
 #[cfg(test)]
 mod tests {
-    use encoderfile_core::transforms::EmbeddingTransform;
+    use crate::transforms::EmbeddingTransform;
 
     use crate::build_cli::config::{ModelPath, Transform};
 

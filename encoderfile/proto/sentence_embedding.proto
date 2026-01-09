@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package encoderfile.sentence_embedding;
+
+import "proto/token.proto";
+import "proto/metadata.proto";
+
+service SentenceEmbeddingInference {
+  rpc Predict(SentenceEmbeddingRequest) returns (SentenceEmbeddingResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message SentenceEmbeddingRequest {
+  repeated string inputs = 1;
+  map<string, string> metadata = 3;
+}
+
+message SentenceEmbeddingResponse {
+  // len(embeddings) == len(inputs)
+  repeated SentenceEmbedding results = 1;
+  string model_id = 2;
+  map<string, string> metadata = 3;
+}
+
+message SentenceEmbedding {
+  repeated float embedding = 1;
+}

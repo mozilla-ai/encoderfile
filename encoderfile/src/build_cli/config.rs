@@ -1,5 +1,5 @@
+use crate::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
 use anyhow::{Context, Result, bail};
-use encoderfile_core::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
 use schemars::JsonSchema;
 use std::{
     fs::File,

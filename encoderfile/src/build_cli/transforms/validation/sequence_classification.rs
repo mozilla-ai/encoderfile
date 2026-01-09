@@ -2,11 +2,11 @@ use super::{
     TransformValidatorExt,
     utils::{BATCH_SIZE, random_tensor, validation_err, validation_err_ctx},
 };
-use anyhow::{Context, Result};
-use encoderfile_core::{
+use crate::{
     common::ModelConfig,
     transforms::{Postprocessor, SequenceClassificationTransform},
 };
+use anyhow::{Context, Result};
 
 impl TransformValidatorExt for SequenceClassificationTransform {
     fn dry_run(&self, model_config: &ModelConfig) -> Result<()> {
@@ -55,7 +55,7 @@ impl TransformValidatorExt for SequenceClassificationTransform {
 #[cfg(test)]
 mod tests {
     use crate::build_cli::config::{EncoderfileConfig, ModelPath};
-    use encoderfile_core::common::ModelType;
+    use crate::common::ModelType;
 
     use super::*;
 

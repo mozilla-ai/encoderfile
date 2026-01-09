@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package encoderfile.sequence_classification;
+
+import "proto/metadata.proto";
+
+service SequenceClassificationInference {
+  rpc Predict(SequenceClassificationRequest) returns (SequenceClassificationResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message SequenceClassificationRequest {
+  repeated string inputs = 1;
+  map<string, string> metadata = 2;
+}
+
+message SequenceClassificationResponse {
+  repeated SequenceClassificationResult results = 1;
+  string model_id = 2;
+  map<string, string> metadata = 3;
+}
+
+message SequenceClassificationResult {
+  repeated float logits = 1;
+  repeated float scores = 2;
+  uint32 predicted_index = 3;
+  optional string predicted_label = 4;
+}

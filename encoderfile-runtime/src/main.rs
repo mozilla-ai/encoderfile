@@ -1,4 +1,3 @@
-use clap::Parser;
 use parking_lot::Mutex;
 use std::{
     fs::File,
@@ -7,7 +6,7 @@ use std::{
 };
 
 use anyhow::Result;
-use encoderfile_core::{
+use encoderfile::{
     AppState,
     cli::Cli,
     common::{
@@ -17,6 +16,7 @@ use encoderfile_core::{
     format::codec::EncoderfileCodec,
     runtime::EncoderfileLoader,
 };
+use clap::Parser;
 
 #[tokio::main]
 async fn main() -> Result<()> {

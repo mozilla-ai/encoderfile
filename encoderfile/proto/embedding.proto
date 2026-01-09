@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package encoderfile.embedding;
+
+import "proto/token.proto";
+import "proto/metadata.proto";
+
+service EmbeddingInference {
+  rpc Predict(EmbeddingRequest) returns (EmbeddingResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message EmbeddingRequest {
+  repeated string inputs = 1;
+  map<string, string> metadata = 3;
+}
+
+message EmbeddingResponse {
+  // len(embeddings) == len(inputs)
+  repeated TokenEmbeddingSequence results = 1;
+  string model_id = 2;
+  map<string, string> metadata = 3;
+}
+
+message TokenEmbeddingSequence {
+  repeated TokenEmbedding embeddings = 1;
+}
+
+message TokenEmbedding {
+  repeated float embedding = 1;
+  encoderfile.token.TokenInfo token_info = 2;
+}

@@ -2,11 +2,11 @@ use super::{
     TransformValidatorExt,
     utils::{BATCH_SIZE, HIDDEN_DIM, SEQ_LEN, random_tensor, validation_err, validation_err_ctx},
 };
-use anyhow::{Context, Result};
-use encoderfile_core::{
+use crate::{
     common::ModelConfig,
     transforms::{EmbeddingTransform, Postprocessor},
 };
+use anyhow::{Context, Result};
 
 impl TransformValidatorExt for EmbeddingTransform {
     fn dry_run(&self, _model_config: &ModelConfig) -> Result<()> {
@@ -56,7 +56,7 @@ impl TransformValidatorExt for EmbeddingTransform {
 #[cfg(test)]
 mod tests {
     use crate::build_cli::config::{EncoderfileConfig, ModelPath};
-    use encoderfile_core::common::ModelType;
+    use crate::common::ModelType;
 
     use super::*;
 

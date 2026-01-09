@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
-use encoderfile::build_cli::model::ModelTypeExt as _;
-use encoderfile_core::common::ModelType;
+use encoderfile::{build_cli::model::ModelTypeExt as _, common::ModelType};
 
 #[test]
 pub fn test_embedding() {
