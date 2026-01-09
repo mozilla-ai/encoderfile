@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use clap_derive::{Args, Parser, Subcommand};
 
-mod runtime;
 mod build;
+mod runtime;
 
 #[derive(Debug, Parser)]
 pub struct Cli {

@@ -1,4 +1,7 @@
-use crate::{base_binary::{BaseBinaryResolver, TargetSpec}, terminal};
+use crate::{
+    base_binary::{BaseBinaryResolver, TargetSpec},
+    terminal,
+};
 
 use super::{super::model::ModelTypeExt as _, GlobalArguments};
 use anyhow::Result;
@@ -17,7 +20,6 @@ use std::{
 };
 
 use clap_derive::Args;
-
 
 #[derive(Debug, Args)]
 pub struct BuildArgs {
