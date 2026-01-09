@@ -9,13 +9,13 @@ use anyhow::Result;
 use clap::Parser;
 use encoderfile::{
     AppState,
-    transport::cli::Cli,
     common::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
     format::codec::EncoderfileCodec,
     runtime::EncoderfileLoader,
+    transport::cli::Cli,
 };
 
 #[tokio::main]

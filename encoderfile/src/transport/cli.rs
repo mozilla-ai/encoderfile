@@ -2,7 +2,12 @@ use crate::{
     common::{FromCliInput, model_type::ModelTypeSpec},
     runtime::AppState,
     services::Inference,
-    transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter, server::{run_grpc, run_http, run_mcp}},
+    transport::{
+        grpc::GrpcRouter,
+        http::HttpRouter,
+        mcp::McpRouter,
+        server::{run_grpc, run_http, run_mcp},
+    },
 };
 use anyhow::Result;
 use clap_derive::{Parser, Subcommand, ValueEnum};
