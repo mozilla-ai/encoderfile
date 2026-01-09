@@ -33,7 +33,6 @@ WORKDIR /app
 # NOTE: if new modules are added to the Cargo workspaces, they must be added here.
 COPY Cargo.toml Cargo.lock ./
 COPY encoderfile ./encoderfile
-COPY encoderfile-core ./encoderfile-core
 COPY encoderfile-runtime ./encoderfile-runtime
 
 # Build release binary.

@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
 
-members = [ "encoderfile","encoderfile-core", "encoderfile-runtime"]
+members = [ "encoderfile","encoderfile-runtime"]
 
 [workspace.dependencies]
 anyhow = "1.0.100"
