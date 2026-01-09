@@ -75,19 +75,19 @@ tonic-prost-build = "0.14.2"
 [features]
 default = ["cli"]
 transport = [
-  "opentelemetry",
-  "opentelemetry-semantic-conventions",
-  "opentelemetry-stdout",
-  "opentelemetry_sdk",
-  "opentelemetry-otlp",
-  "rmcp",
-  "rmcp-macros",
-  "axum",
-  "axum-server",
-  "tonic-types",
-  "tonic-web",
-  "tracing-opentelemetry",
-  "tower-http",
+  "dep:opentelemetry",
+  "dep:opentelemetry-semantic-conventions",
+  "dep:opentelemetry-stdout",
+  "dep:opentelemetry_sdk",
+  "dep:opentelemetry-otlp",
+  "dep:rmcp",
+  "dep:rmcp-macros",
+  "dep:axum",
+  "dep:axum-server",
+  "dep:tonic-types",
+  "dep:tonic-web",
+  "dep:tracing-opentelemetry",
+  "dep:tower-http",
 ]
 dev-utils = ["transport"]
 cli = ["dep:console"]
