@@ -1,12 +1,10 @@
 mod assets;
-pub mod cli;
 pub mod common;
 pub mod error;
 pub mod format;
 pub mod generated;
 pub mod inference;
 pub mod runtime;
-pub mod server;
 pub mod services;
 pub mod transforms;
 #[cfg(feature = "transport")]

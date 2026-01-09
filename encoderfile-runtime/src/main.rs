@@ -6,9 +6,10 @@ use std::{
 };
 
 use anyhow::Result;
+use clap::Parser;
 use encoderfile::{
     AppState,
-    cli::Cli,
+    transport::cli::Cli,
     common::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
@@ -16,7 +17,6 @@ use encoderfile::{
     format::codec::EncoderfileCodec,
     runtime::EncoderfileLoader,
 };
-use clap::Parser;
 
 #[tokio::main]
 async fn main() -> Result<()> {

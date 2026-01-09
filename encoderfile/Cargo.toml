@@ -1,3 +1,18 @@
+[[bench]]
+name = "l2_norm"
+harness = false
+required-features = [ "dev-utils",]
+
+[[bench]]
+name = "postprocessing"
+harness = false
+required-features = [ "dev-utils",]
+
+[[bench]]
+name = "benchmark_transforms"
+harness = false
+required-features = [ "dev-utils",]
+
 [[bin]]
 name = "encoderfile"
 path = "bin/encoderfile.rs"
@@ -7,6 +22,30 @@ required-features = ["cli"]
 name = "generate-encoderfile-config-schema"
 path = "bin/utils/generate_encoderfile_config_schema.rs"
 required-features = ["internal", "cli"]
+
+[[test]]
+name = "transforms"
+required-features = [ "dev-utils",]
+
+[[test]]
+name = "test_grpc"
+required-features = [ "dev-utils", "transport",]
+
+[[test]]
+name = "test_http"
+required-features = [ "dev-utils", "transport",]
+
+[[test]]
+name = "test_mcp"
+required-features = [ "dev-utils", "transport",]
+
+[[test]]
+name = "test_models"
+required-features = [ "dev-utils",]
+
+[[test]]
+name = "test_services"
+required-features = [ "dev-utils",]
 
 [package]
 name = "encoderfile"
@@ -35,13 +74,15 @@ tonic-prost-build = "0.14.2"
 
 [features]
 default = ["cli"]
-transport = [ "opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "axum-server", "tonic-types", "tonic-web", "tracing-opentelemetry", "tower-http", "utoipa-axum"]
-dev-utils = []
+transport = ["opentelemetry", "opentelemetry-semantic-conventions", "opentelemetry-stdout", "opentelemetry_sdk", "opentelemetry-otlp", "rmcp", "rmcp-macros", "axum", "axum-server", "tonic-types", "tonic-web", "tracing-opentelemetry", "tower-http",]
+dev-utils = ["transport"]
 cli = ["dep:console"]
 internal = []
 
 [dev-dependencies]
 tempfile = "3.23.0"
+tower = "0.5.2"
+test-log = "0.2.18"
 
 [dev-dependencies.uuid]
 version = "1.18.1"
@@ -171,3 +212,7 @@ features = [ "lua54", "vendored",]
 
 [dependencies.parking_lot]
 workspace = true
+
+[dev-dependencies.divan]
+version = "4.0.5"
+package = "codspeed-divan-compat"
