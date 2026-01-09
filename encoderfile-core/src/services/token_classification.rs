@@ -17,7 +17,7 @@ impl Inference for AppState<model_type::TokenClassification> {
 
         let session = self.session.lock();
 
-        let encodings = crate::runtime::encode_text(&self.tokenizer, request.inputs)?;
+        let encodings = self.tokenizer.encode_text(request.inputs)?;
 
         let transform = TokenClassificationTransform::new(self.transform_str())?;
 

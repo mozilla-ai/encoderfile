@@ -1,10 +1,12 @@
 use anyhow::{Context, Result};
 use encoderfile_core::{
     common::{ModelConfig, ModelType},
+    format::assets::{AssetKind, AssetSource, PlannedAsset},
     transforms::TransformSpec,
 };
 
 use crate::config::EncoderfileConfig;
+use prost::Message;
 
 mod embedding;
 mod sentence_embedding;
@@ -39,24 +41,24 @@ pub trait TransformValidatorExt: TransformSpec {
 
 macro_rules! validate_transform {
     ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
-        encoderfile_core::transforms::$transform_type::new($transform_str)
+        encoderfile_core::transforms::$transform_type::new(Some($transform_str.clone()))
             .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
             .validate($encoderfile_config, $model_config)
     };
 }
 
-pub fn validate_transform(
-    encoderfile_config: &EncoderfileConfig,
-    model_config: &ModelConfig,
-) -> Result<()> {
+pub fn validate_transform<'a>(
+    encoderfile_config: &'a EncoderfileConfig,
+    model_config: &'a ModelConfig,
+) -> Result<Option<PlannedAsset<'a>>> {
     // try to fetch transform string
     // will fail if a path to a transform does not exist
     let transform_string = match &encoderfile_config.transform {
         Some(t) => t.transform()?,
-        None => return Ok(()),
+        None => return Ok(None),
     };
 
-    let transform_str = Some(transform_string);
+    let transform_str = transform_string;
 
     match encoderfile_config.model_type {
         ModelType::Embedding => validate_transform!(
@@ -83,7 +85,18 @@ pub fn validate_transform(
             encoderfile_config,
             model_config
         ),
-    }
+    }?;
+
+    let proto = encoderfile_core::generated::manifest::Transform {
+        transform_type: encoderfile_core::generated::manifest::TransformType::Lua.into(),
+        transform: transform_str,
+    };
+
+    PlannedAsset::from_asset_source(
+        AssetSource::InMemory(std::borrow::Cow::Owned(proto.encode_to_vec())),
+        AssetKind::Transform,
+    )
+    .map(Some)
 }
 
 #[cfg(test)]
@@ -104,8 +117,8 @@ mod tests {
             output_path: None,
             transform: None,
             validate_transform: true,
-            build: true,
             tokenizer: None,
+            base_binary_path: None,
         }
     }
 
@@ -148,8 +161,8 @@ mod tests {
             output_path: None,
             transform: Some(Transform::Inline(transform_str.to_string())),
             validate_transform: true,
-            build: true,
             tokenizer: None,
+            base_binary_path: None,
         };
 
         let model_config_str =
@@ -172,8 +185,8 @@ mod tests {
             output_path: None,
             transform: None,
             validate_transform: true,
-            build: true,
             tokenizer: None,
+            base_binary_path: None,
         };
 
         let model_config_str =

@@ -1,5 +1,5 @@
 use anyhow::{Result, bail};
-use encoderfile_core::common::ModelType;
+use encoderfile_core::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use ort::{
     session::{Output, Session},
     tensor::Shape,
@@ -7,21 +7,11 @@ use ort::{
 use std::path::Path;
 
 pub trait ModelTypeExt {
-    fn to_ident(&self) -> &'static str;
-    fn validate_model(&self, path: &Path) -> Result<()>;
+    fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>>;
 }
 
 impl ModelTypeExt for encoderfile_core::common::ModelType {
-    fn to_ident(&self) -> &'static str {
-        match self {
-            ModelType::Embedding => "Embedding",
-            ModelType::SequenceClassification => "SequenceClassification",
-            ModelType::TokenClassification => "TokenClassification",
-            ModelType::SentenceEmbedding => "SentenceEmbedding",
-        }
-    }
-
-    fn validate_model(&self, path: &Path) -> Result<()> {
+    fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>> {
         let model = load_model(path)?;
 
         match self {
@@ -29,7 +19,9 @@ impl ModelTypeExt for encoderfile_core::common::ModelType {
             Self::SequenceClassification => validate_sequence_classification_model(model),
             Self::TokenClassification => validate_token_classification_model(model),
             Self::SentenceEmbedding => validate_embedding_model(model),
-        }
+        }?;
+
+        PlannedAsset::from_asset_source(AssetSource::File(path), AssetKind::ModelWeights)
     }
 }
 

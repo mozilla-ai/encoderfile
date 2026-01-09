@@ -8,10 +8,9 @@ pub struct Config {
     pub version: String,
     pub model_type: ModelType,
     pub transform: Option<String>,
-    pub tokenizer: TokenizerConfig,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenizerConfig {
     pub padding: PaddingParams,
 }

@@ -7,7 +7,6 @@ use std::{
     path::PathBuf,
 };
 
-use super::model::ModelTypeExt as _;
 use figment::{
     Figment,
     providers::{Format, Yaml},
@@ -37,23 +36,20 @@ pub struct EncoderfileConfig {
     pub model_type: ModelType,
     pub output_path: Option<PathBuf>,
     pub cache_dir: Option<PathBuf>,
+    pub base_binary_path: Option<PathBuf>,
     pub transform: Option<Transform>,
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
-    #[serde(default = "default_build")]
-    pub build: bool,
 }
 
 impl EncoderfileConfig {
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
-        let tokenizer = self.validate_tokenizer()?;
         let config = EmbeddedConfig {
             name: self.name.clone(),
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
-            tokenizer,
         };
 
         Ok(config)
@@ -95,21 +91,6 @@ impl EncoderfileConfig {
         };
 
         Ok(transform)
-    }
-
-    pub fn to_tera_ctx(&self) -> Result<tera::Context> {
-        let mut ctx = tera::Context::new();
-        let embedded_config = self.embedded_config()?;
-
-        ctx.insert("version", embedded_config.version.as_str());
-        ctx.insert("config_str", &serde_json::to_string(&embedded_config)?);
-        ctx.insert("model_type", self.model_type.to_ident());
-        ctx.insert("model_weights_path", &self.path.model_weights_path()?);
-        ctx.insert("tokenizer_path", &self.path.tokenizer_path()?);
-        ctx.insert("model_config_path", &self.path.model_config_path()?);
-        ctx.insert("encoderfile_version_str", &encoderfile_core_version());
-
-        Ok(ctx)
     }
 
     pub fn get_generated_dir(&self) -> PathBuf {
@@ -243,16 +224,8 @@ fn default_version() -> String {
     "0.1.0".to_string()
 }
 
-fn default_build() -> bool {
-    true
-}
-
 fn default_validate_transform() -> bool {
     true
-}
-
-fn encoderfile_core_version() -> &'static str {
-    env!("ENCODERFILE_CORE_DEP_STR")
 }
 
 #[cfg(test)]
@@ -290,11 +263,6 @@ mod tests {
     // Clean up (best-effort, don't panic)
     fn cleanup(path: &PathBuf) {
         let _ = fs::remove_dir_all(path);
-    }
-
-    #[test]
-    fn test_get_encoderfile_core_version() {
-        encoderfile_core_version();
     }
 
     #[test]
@@ -385,32 +353,11 @@ mod tests {
             validate_transform: false,
             transform: None,
             tokenizer: None,
-            build: true,
+            base_binary_path: None,
         };
 
         let generated = cfg.get_generated_dir();
         assert!(generated.to_string_lossy().contains("encoderfile-"));
-
-        cleanup(&base);
-    }
-
-    #[test]
-    fn test_encoderfile_to_tera_ctx() {
-        let base = create_temp_output_dir();
-        let cfg = EncoderfileConfig {
-            name: "sadness".into(),
-            version: "0.1.0".into(),
-            path: ModelPath::Directory("../models/embedding".into()),
-            model_type: ModelType::SequenceClassification,
-            output_path: Some(base.clone()),
-            cache_dir: Some(base.clone()),
-            validate_transform: false,
-            transform: Some(Transform::Inline("1+1".into())),
-            tokenizer: None,
-            build: true,
-        };
-
-        let _ctx = cfg.to_tera_ctx().expect("Tera ctx error");
 
         cleanup(&base);
     }

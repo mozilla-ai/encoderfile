@@ -2,9 +2,7 @@ use crate::common;
 
 tonic::include_proto!("encoderfile.token_classification");
 
-impl From<TokenClassificationRequest>
-    for common::TokenClassificationRequest
-{
+impl From<TokenClassificationRequest> for common::TokenClassificationRequest {
     fn from(val: TokenClassificationRequest) -> Self {
         Self {
             inputs: val.inputs,
@@ -13,9 +11,7 @@ impl From<TokenClassificationRequest>
     }
 }
 
-impl From<common::TokenClassificationResponse>
-    for TokenClassificationResponse
-{
+impl From<common::TokenClassificationResponse> for TokenClassificationResponse {
     fn from(val: common::TokenClassificationResponse) -> Self {
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
@@ -25,9 +21,7 @@ impl From<common::TokenClassificationResponse>
     }
 }
 
-impl From<common::TokenClassificationResult>
-    for TokenClassificationResult
-{
+impl From<common::TokenClassificationResult> for TokenClassificationResult {
     fn from(val: common::TokenClassificationResult) -> Self {
         Self {
             tokens: val.tokens.into_iter().map(|i| i.into()).collect(),

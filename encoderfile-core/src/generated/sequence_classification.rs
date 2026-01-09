@@ -2,9 +2,7 @@ use crate::common;
 
 tonic::include_proto!("encoderfile.sequence_classification");
 
-impl From<SequenceClassificationRequest>
-    for common::SequenceClassificationRequest
-{
+impl From<SequenceClassificationRequest> for common::SequenceClassificationRequest {
     fn from(val: SequenceClassificationRequest) -> Self {
         Self {
             inputs: val.inputs,
@@ -13,9 +11,7 @@ impl From<SequenceClassificationRequest>
     }
 }
 
-impl From<common::SequenceClassificationResponse>
-    for SequenceClassificationResponse
-{
+impl From<common::SequenceClassificationResponse> for SequenceClassificationResponse {
     fn from(val: common::SequenceClassificationResponse) -> Self {
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),
@@ -25,9 +21,7 @@ impl From<common::SequenceClassificationResponse>
     }
 }
 
-impl From<common::SequenceClassificationResult>
-    for SequenceClassificationResult
-{
+impl From<common::SequenceClassificationResult> for SequenceClassificationResult {
     fn from(val: common::SequenceClassificationResult) -> Self {
         Self {
             logits: val.logits,

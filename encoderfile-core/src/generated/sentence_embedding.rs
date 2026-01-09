@@ -2,9 +2,7 @@ use crate::common;
 
 tonic::include_proto!("encoderfile.sentence_embedding");
 
-impl From<SentenceEmbeddingRequest>
-    for common::SentenceEmbeddingRequest
-{
+impl From<SentenceEmbeddingRequest> for common::SentenceEmbeddingRequest {
     fn from(val: SentenceEmbeddingRequest) -> Self {
         Self {
             inputs: val.inputs,
@@ -13,9 +11,7 @@ impl From<SentenceEmbeddingRequest>
     }
 }
 
-impl From<common::SentenceEmbeddingResponse>
-    for SentenceEmbeddingResponse
-{
+impl From<common::SentenceEmbeddingResponse> for SentenceEmbeddingResponse {
     fn from(val: common::SentenceEmbeddingResponse) -> Self {
         Self {
             results: val.results.into_iter().map(|i| i.into()).collect(),

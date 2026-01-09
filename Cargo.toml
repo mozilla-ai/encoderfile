@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
 
-members = [ "encoderfile","encoderfile-core", "encoderfile-utils"]
+members = [ "encoderfile","encoderfile-core", "encoderfile-runtime", "encoderfile-utils"]
 
 [workspace.dependencies]
 anyhow = "1.0.100"
@@ -15,9 +15,19 @@ serde = { version = "1.0.228", features = [ "serde_derive",] }
 tracing = "0.1.41"
 thiserror = "2.0.17"
 
+[workspace.dependencies.parking_lot]
+version = "0.12.5"
+
 [workspace.dependencies.tokenizers]
 version = "0.22.1"
 
 [workspace.dependencies.ort]
 version = "=2.0.0-rc.10"
 features = [ "std", "tracing", "ndarray",]
+
+[workspace.dependencies.tokio]
+version = "1.48.0"
+features = [ "full",]
+
+[workspace.dependencies.prost]
+version = "0.14.1"

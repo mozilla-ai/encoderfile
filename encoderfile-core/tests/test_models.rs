@@ -3,21 +3,19 @@ use encoderfile_core::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
 };
-use encoderfile_core::runtime::encode_text;
 use encoderfile_core::transforms::Transform;
 
 #[test]
 fn test_embedding_model() {
     let state = embedding_state();
 
-    let encodings = encode_text(
-        &state.tokenizer,
-        vec![
+    let encodings = state
+        .tokenizer
+        .encode_text(vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
-        ],
-    )
-    .expect("Failed to encode text");
+        ])
+        .expect("Failed to encode text");
 
     let session_lock = state.session.lock();
 
@@ -34,14 +32,13 @@ fn test_embedding_model() {
 fn test_embedding_inference_with_bad_model() {
     let state = token_classification_state();
 
-    let encodings = encode_text(
-        &state.tokenizer,
-        vec![
+    let encodings = state
+        .tokenizer
+        .encode_text(vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
-        ],
-    )
-    .expect("Failed to encode text");
+        ])
+        .expect("Failed to encode text");
 
     let session_lock = state.session.lock();
 
@@ -54,14 +51,13 @@ fn test_embedding_inference_with_bad_model() {
 fn test_sequence_classification_model() {
     let state = sequence_classification_state();
 
-    let encodings = encode_text(
-        &state.tokenizer,
-        vec![
+    let encodings = state
+        .tokenizer
+        .encode_text(vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
-        ],
-    )
-    .expect("Failed to encode text");
+        ])
+        .expect("Failed to encode text");
 
     let session_lock = state.session.lock();
 
@@ -83,14 +79,13 @@ fn test_sequence_classification_model() {
 fn test_sequence_classification_inference_with_bad_model() {
     let state = embedding_state();
 
-    let encodings = encode_text(
-        &state.tokenizer,
-        vec![
+    let encodings = state
+        .tokenizer
+        .encode_text(vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
-        ],
-    )
-    .expect("Failed to encode text");
+        ])
+        .expect("Failed to encode text");
 
     let session_lock = state.session.lock();
 
@@ -109,14 +104,13 @@ fn test_sequence_classification_inference_with_bad_model() {
 fn test_token_classification_model() {
     let state = token_classification_state();
 
-    let encodings = encode_text(
-        &state.tokenizer,
-        vec![
+    let encodings = state
+        .tokenizer
+        .encode_text(vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
-        ],
-    )
-    .expect("Failed to encode text");
+        ])
+        .expect("Failed to encode text");
 
     let session_lock = state.session.lock();
 
@@ -138,14 +132,13 @@ fn test_token_classification_model() {
 fn test_token_classification_inference_with_bad_model() {
     let state = sequence_classification_state();
 
-    let encodings = encode_text(
-        &state.tokenizer,
-        vec![
+    let encodings = state
+        .tokenizer
+        .encode_text(vec![
             "hello world".to_string(),
             "the quick brown fox jumps over the lazy dog".to_string(),
-        ],
-    )
-    .expect("Failed to encode text");
+        ])
+        .expect("Failed to encode text");
 
     let session_lock = state.session.lock();
 
