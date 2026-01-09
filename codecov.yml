@@ -1,4 +1,3 @@
 ignore:
-  - "encoderfile-core/tests"
-  - "encoderfile-core/benches"
   - "encoderfile/tests"
+  - "encoderfile/benches"

@@ -41,6 +41,12 @@
         "path": {
           "$ref": "#/$defs/ModelPath"
         },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "tokenizer": {
           "anyOf": [
             {

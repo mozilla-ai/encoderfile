@@ -79,10 +79,10 @@ jobs:
         run: |
           VERSION=$(cargo metadata --no-deps --format-version=1 \
             | jq -r '.packages[]
-              | select(.name == "encoderfile-core")
+              | select(.name == "encoderfile")
               | .version')
 
-          [ -n "$VERSION" ] || { echo "encoderfile-core not found"; exit 1; }
+          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -115,10 +115,10 @@ jobs:
         run: |
           VERSION=$(cargo metadata --no-deps --format-version=1 \
             | jq -r '.packages[]
-              | select(.name == "encoderfile-core")
+              | select(.name == "encoderfile")
               | .version')
 
-          [ -n "$VERSION" ] || { echo "encoderfile-core not found"; exit 1; }
+          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 

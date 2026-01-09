@@ -34,7 +34,7 @@ With a handful of exceptions, the `Postprocess` function must return a `Tensor` 
 !!! note "Note on indexing"
     Lua is 1-indexed, meaning that it starts counting at 1 instead of 0. The `Tensor` API reflects this, meaning that you must count your axes and indices starting at 1 instead of 0.
 
-We provide a built-in API for standard tensor operations. To learn more, check out our [Tensor API reference page](reference.md). You can find the stub file [here](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile-core/stubs/lua/tensor.lua).
+We provide a built-in API for standard tensor operations. To learn more, check out our [Tensor API reference page](reference.md). You can find the stub file [here](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/stubs/lua/tensor.lua).
 
 If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
 

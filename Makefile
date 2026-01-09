@@ -74,4 +74,5 @@ clean:
 generate-docs:
 # 	generate JSON schema for encoderfile config
 	@cargo run \
-		--bin generate-encoderfile-config-schema
+		--bin generate-encoderfile-config-schema \
+		--all-features

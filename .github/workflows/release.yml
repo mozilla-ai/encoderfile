@@ -65,11 +65,11 @@ jobs:
             VERSION=$(
               cargo metadata --no-deps --format-version=1 \
                 | jq -r '.packages[]
-                  | select(.name == "encoderfile-core")
+                  | select(.name == "encoderfile")
                   | .version'
             )
 
-            [ -n "$VERSION" ] || { echo "encoderfile-core not found"; exit 1; }
+            [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
 
             # 3) Determine prerelease type from PR labels
             if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]] || \
@@ -94,28 +94,8 @@ jobs:
             git push origin "v${VERSION}"
           fi
 
-  publish-encoderfile-core:
-    needs: create-tag
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Project setup
-        uses: ./.github/actions/project-setup
-
-      - name: Publish encoderfile-core (dry-run)
-        run: cargo publish -p encoderfile-core --dry-run
-
-      - name: Publish encoderfile-core
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish -p encoderfile-core
-
-      - name: Wait for crates.io index
-        run: sleep 30
-
   publish-encoderfile:
-    needs: publish-encoderfile-core
+    needs: create-tag
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

@@ -1,4 +1,3 @@
-use clap::Parser;
 use parking_lot::Mutex;
 use std::{
     fs::File,
@@ -7,15 +6,16 @@ use std::{
 };
 
 use anyhow::Result;
-use encoderfile_core::{
+use clap::Parser;
+use encoderfile::{
     AppState,
-    cli::Cli,
     common::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
     format::codec::EncoderfileCodec,
     runtime::EncoderfileLoader,
+    transport::cli::Cli,
 };
 
 #[tokio::main]

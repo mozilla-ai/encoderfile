@@ -27,7 +27,7 @@ By default the binary runs `serve`, so you’re immediately hosting sentence emb
 
 ## 🧠 `transform.lua`
 
-Encoderfile supports small Lua hooks for post-processing using a small tensor library described in `encoderfile-core/stubs/lua/tensor.lua`.
+Encoderfile supports small Lua hooks for post-processing using a small tensor library described in `encoderfile/stubs/lua/tensor.lua`.
 For `BAAI/bge-small-en-v1.5`, we stick to the standard recipe: masked mean pooling followed by L2 normalization.
 
 ```lua
