@@ -1,11 +1,12 @@
 [[bin]]
 name = "encoderfile"
 path = "bin/encoderfile.rs"
+required-features = ["cli"]
 
 [[bin]]
 name = "generate-encoderfile-config-schema"
 path = "bin/utils/generate_encoderfile_config_schema.rs"
-required-features = ["internal"]
+required-features = ["internal", "cli"]
 
 [package]
 name = "encoderfile"
