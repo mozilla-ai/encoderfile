@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -64,7 +64,7 @@ impl BaseBinaryResolver<'_> {
         }
     }
 
-    pub fn resolve(&self) -> Result<PathBuf> {
+    pub fn resolve(&self, no_download: bool) -> Result<PathBuf> {
         // 1. Explicit override always wins
         if let Some(path) = self.base_binary_path {
             return Ok(path.to_path_buf());
@@ -79,7 +79,10 @@ impl BaseBinaryResolver<'_> {
         }
 
         // 3. Cache miss → download
-        self.download_and_install(&final_path)?;
+        match no_download {
+            false => self.download_and_install(&final_path)?,
+            true => bail!("Cannot download {:?}", self.file_name()),
+        }
 
         // 4. Final sanity check
         self.validate_binary(&final_path)?;
@@ -192,6 +195,60 @@ impl BaseBinaryResolver<'_> {
             Ok(Url::parse(DOWNLOAD_URL)?)
         }
     }
+}
+
+#[derive(Debug)]
+pub struct DownloadedRuntime {
+    pub target: TargetSpec,
+    pub version: String,
+    pub path: PathBuf,
+}
+
+pub fn list_downloaded_runtimes(cache_dir: &Path) -> Result<Vec<DownloadedRuntime>> {
+    let mut results = Vec::new();
+
+    let root = cache_dir.join("base-binaries").join("encoderfile");
+
+    if !root.exists() {
+        return Ok(results);
+    }
+
+    for version_entry in fs::read_dir(&root)? {
+        let version_entry = version_entry?;
+        if !version_entry.file_type()?.is_dir() {
+            continue;
+        }
+
+        let version = version_entry.file_name().to_string_lossy().to_string();
+        let version_dir = version_entry.path();
+
+        for target_entry in fs::read_dir(&version_dir)? {
+            let target_entry = target_entry?;
+            if !target_entry.file_type()?.is_dir() {
+                continue;
+            }
+
+            let target_entry_file_name = target_entry.file_name();
+
+            let target_str = target_entry_file_name.to_string_lossy();
+            let target: TargetSpec = match target_str.parse() {
+                Ok(t) => t,
+                Err(_) => continue, // skip unknown junk
+            };
+
+            let runtime_path = target_entry.path().join(ENCODERFILE_RUNTIME_NAME);
+
+            if runtime_path.exists() {
+                results.push(DownloadedRuntime {
+                    target,
+                    version: version.clone(),
+                    path: runtime_path,
+                });
+            }
+        }
+    }
+
+    Ok(results)
 }
 
 // -------- env access seam --------

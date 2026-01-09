@@ -34,34 +34,59 @@ impl FromStr for TargetSpec {
     fn from_str(s: &str) -> Result<Self> {
         let parts: Vec<&str> = s.split('-').collect();
 
-        if parts.len() != 4 {
-            anyhow::bail!("invalid target triple `{s}` (expected <arch>-<vendor>-<os>-<abi>)");
+        match parts.as_slice() {
+            // ---------- Linux ----------
+            [arch, "unknown", "linux", abi] => {
+                let arch = match *arch {
+                    "x86_64" => Architecture::X86_64,
+                    "aarch64" => Architecture::Aarch64,
+                    other => anyhow::bail!("unsupported architecture `{other}`"),
+                };
+
+                let abi = match *abi {
+                    "gnu" => Abi::Gnu,
+                    "musl" => Abi::Musl,
+                    other => anyhow::bail!("unsupported linux ABI `{other}`"),
+                };
+
+                Ok(Self {
+                    arch,
+                    os: OperatingSystem::Linux,
+                    abi,
+                })
+            }
+
+            // ---------- macOS ----------
+            [arch, "apple", "darwin"] => {
+                let arch = match *arch {
+                    "x86_64" => Architecture::X86_64,
+                    "aarch64" => Architecture::Aarch64,
+                    other => anyhow::bail!("unsupported architecture `{other}`"),
+                };
+
+                Ok(Self {
+                    arch,
+                    os: OperatingSystem::MacOS,
+                    abi: Abi::Gnu, // placeholder, not used on macOS
+                })
+            }
+
+            // ---------- Windows ----------
+            [arch, "pc", "windows", "msvc"] => {
+                let arch = match *arch {
+                    "x86_64" => Architecture::X86_64,
+                    other => anyhow::bail!("unsupported architecture `{other}`"),
+                };
+
+                Ok(Self {
+                    arch,
+                    os: OperatingSystem::Windows,
+                    abi: Abi::Msvc,
+                })
+            }
+
+            _ => anyhow::bail!("invalid or unsupported target triple `{s}`"),
         }
-
-        let arch = match parts[0] {
-            "x86_64" => Architecture::X86_64,
-            "aarch64" => Architecture::Aarch64,
-            other => anyhow::bail!("unsupported architecture `{other}`"),
-        };
-
-        // parts[1] = vendor (ignored for now, must be "unknown")
-        match parts[1] {
-            "unknown" => {}
-            other => anyhow::bail!("unsupported vendor `{other}`"),
-        }
-
-        let os = match parts[2] {
-            "linux" => OperatingSystem::Linux,
-            other => anyhow::bail!("unsupported operating system `{other}`"),
-        };
-
-        let abi = match parts[3] {
-            "gnu" => Abi::Gnu,
-            "musl" => Abi::Musl,
-            other => anyhow::bail!("unsupported ABI `{other}`"),
-        };
-
-        Ok(Self { arch, os, abi })
     }
 }
 
@@ -75,12 +100,16 @@ impl TargetSpec {
 
         let os = match std::env::consts::OS {
             "linux" => OperatingSystem::Linux,
+            "macos" => OperatingSystem::MacOS,
+            "windows" => OperatingSystem::Windows,
             other => anyhow::bail!("unsupported operating system: {other}"),
         };
 
-        // For now, default to gnu
-        // Later this can probe libc or be overridden by flags
-        let abi = Abi::Gnu;
+        let abi = match os {
+            OperatingSystem::Linux => Abi::Gnu,
+            OperatingSystem::MacOS => Abi::Gnu, // unused but harmless
+            OperatingSystem::Windows => Abi::Msvc,
+        };
 
         Ok(Self { arch, os, abi })
     }
@@ -88,21 +117,11 @@ impl TargetSpec {
 
 impl std::fmt::Display for TargetSpec {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let arch = match self.arch {
-            Architecture::X86_64 => "x86_64",
-            Architecture::Aarch64 => "aarch64",
-        };
-
-        let abi = match self.abi {
-            Abi::Gnu => "gnu",
-            Abi::Musl => "musl",
-        };
-
-        let os = match self.os {
-            OperatingSystem::Linux => "unknown-linux",
-        };
-
-        write!(f, "{arch}-{os}-{abi}")
+        match self.os {
+            OperatingSystem::Linux => write!(f, "{}-unknown-linux-{}", self.arch, self.abi),
+            OperatingSystem::MacOS => write!(f, "{}-apple-darwin", self.arch),
+            OperatingSystem::Windows => write!(f, "{}-pc-windows-msvc", self.arch),
+        }
     }
 }
 
@@ -112,13 +131,35 @@ pub enum Architecture {
     Aarch64,
 }
 
+impl std::fmt::Display for Architecture {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::X86_64 => write!(f, "x86_64"),
+            Self::Aarch64 => write!(f, "aarch64"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OperatingSystem {
     Linux,
+    MacOS,
+    Windows,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Abi {
     Gnu,
     Musl,
+    Msvc,
+}
+
+impl std::fmt::Display for Abi {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Gnu => write!(f, "gnu"),
+            Self::Musl => write!(f, "musl"),
+            Self::Msvc => write!(f, "msvc"),
+        }
+    }
 }

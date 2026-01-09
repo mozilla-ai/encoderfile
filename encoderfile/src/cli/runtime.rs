@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap_derive::{Args, Subcommand};
 
 use crate::{
-    base_binary::{BaseBinaryResolver, TargetSpec},
+    base_binary::{BaseBinaryResolver, TargetSpec, list_downloaded_runtimes},
     cli::GlobalArguments,
 };
 
@@ -31,7 +31,7 @@ impl RuntimeArgs {
             version: self.version.clone(),
         };
 
-        let _out_path = resolver.resolve()?;
+        let _out_path = resolver.resolve(true)?;
 
         Ok(())
     }
@@ -53,7 +53,14 @@ impl Runtime {
         match self {
             Self::Add(args) => args.add(global),
             Self::List => {
-                todo!()
+                let runtimes = list_downloaded_runtimes(global.cache_dir().as_path())?;
+
+                // TODO: Make pretty
+                for runtime in runtimes {
+                    println!("{} {}", runtime.version, runtime.target)
+                }
+
+                Ok(())
             }
             Self::Remove(args) => args.remove(global),
         }

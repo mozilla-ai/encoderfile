@@ -100,6 +100,12 @@ pub struct BuildArgs {
         help = "Encoderfile version override (defaults to current version)."
     )]
     version: Option<String>,
+    #[arg(
+        long = "no-download",
+        help = "Disable downloading",
+        default_value = "false"
+    )]
+    no_download: bool,
 }
 
 impl BuildArgs {
@@ -139,7 +145,7 @@ impl BuildArgs {
                     version: self.version.clone(),
                 };
 
-                resolver.resolve()?
+                resolver.resolve(self.no_download)?
             }
         };
 
