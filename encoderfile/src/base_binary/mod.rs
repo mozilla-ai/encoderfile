@@ -1,10 +1,10 @@
+use crate::terminal;
 use anyhow::{Context, Result, bail};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 use url::Url;
-use crate::terminal;
 
 #[cfg(test)]
 use std::cell::RefCell;

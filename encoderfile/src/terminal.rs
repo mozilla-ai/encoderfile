@@ -12,10 +12,7 @@ macro_rules! terminal_print_fn {
 
     // ----- key/value -----
     ($fn_name:ident, $key:ident, $value:ident => $body:block) => {
-        pub fn $fn_name(
-            $key: impl std::fmt::Display,
-            $value: impl std::fmt::Display,
-        ) {
+        pub fn $fn_name($key: impl std::fmt::Display, $value: impl std::fmt::Display) {
             #[cfg(feature = "cli")]
             {
                 use console::style;
