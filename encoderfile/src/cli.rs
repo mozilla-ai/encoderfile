@@ -1,3 +1,5 @@
+use crate::base_binary::TargetSpec;
+
 use super::model::ModelTypeExt as _;
 use anyhow::Result;
 use encoderfile_core::{
@@ -68,6 +70,11 @@ pub struct BuildArgs {
         help = "Path to base binary to use. Optional."
     )]
     base_binary_path: Option<PathBuf>,
+    #[arg(
+        long = "platform",
+        help = "Target platform to build. Follows standard rust target triple format."
+    )]
+    platform: Option<TargetSpec>,
 }
 
 impl BuildArgs {

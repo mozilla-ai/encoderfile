@@ -1,3 +1,4 @@
+pub mod base_binary;
 pub mod cli;
 pub mod config;
 pub mod model;
