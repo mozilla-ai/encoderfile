@@ -92,8 +92,8 @@ message Artifact {
 
 // Supported preprocessing transform types.
 enum TransformType {
-	// No transform declared.
-	UNDECLARED_TRANSFORM = 0;
+	// Unspecified transform type. This should not be used.
+	TRANSFORM_TYPE_UNSPECIFIED = 0;
 
 	// Lua source executed by the runtime.
 	LUA = 1;

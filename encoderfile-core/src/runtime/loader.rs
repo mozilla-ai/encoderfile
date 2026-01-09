@@ -74,7 +74,7 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
                 // NOTE: update if we ever support other transform types besides Lua (unlikely)
                 match transform_proto.transform_type() {
                     TransformType::Lua => (),
-                    TransformType::UndeclaredTransform => {
+                    TransformType::Unspecified => {
                         bail!("Unspecified transform type. This should not happen.")
                     }
                 };
