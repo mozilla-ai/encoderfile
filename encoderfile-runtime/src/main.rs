@@ -9,7 +9,6 @@ use std::{
 use anyhow::Result;
 use encoderfile_core::{
     AppState,
-    cli::Cli,
     common::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
@@ -17,6 +16,8 @@ use encoderfile_core::{
     format::codec::EncoderfileCodec,
     runtime::EncoderfileLoader,
 };
+
+use encoderfile_runtime::cli::Cli;
 
 #[tokio::main]
 async fn main() -> Result<()> {

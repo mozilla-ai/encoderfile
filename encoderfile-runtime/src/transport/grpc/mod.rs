@@ -1,10 +1,11 @@
-#[cfg(not(tarpaulin_include))]
-use crate::common::model_type::{self, ModelTypeSpec};
-use crate::{
+use encoderfile_core::{
+    common::model_type::{self, ModelTypeSpec},
     generated::{embedding, sentence_embedding, sequence_classification, token_classification},
     runtime::AppState,
     services::Inference,
 };
+
+use error::ToTonicStatus;
 
 mod error;
 
@@ -16,11 +17,11 @@ where
 }
 
 pub struct GrpcService<T: ModelTypeSpec> {
-    state: crate::runtime::AppState<T>,
+    state: encoderfile_core::runtime::AppState<T>,
 }
 
 impl<T: ModelTypeSpec> GrpcService<T> {
-    pub fn new(state: crate::runtime::AppState<T>) -> Self {
+    pub fn new(state: encoderfile_core::runtime::AppState<T>) -> Self {
         Self { state }
     }
 }
@@ -47,14 +48,14 @@ macro_rules! generate_grpc_server {
         }
 
         #[tonic::async_trait]
-        impl $crate::generated::$generated_mod::$server_mod::$trait_path
+        impl encoderfile_core::generated::$generated_mod::$server_mod::$trait_path
             for GrpcService<model_type::$model_type>
         {
             async fn predict(
                 &self,
-                request: tonic::Request<$crate::generated::$generated_mod::$request_path>,
+                request: tonic::Request<encoderfile_core::generated::$generated_mod::$request_path>,
             ) -> Result<
-                tonic::Response<$crate::generated::$generated_mod::$response_path>,
+                tonic::Response<encoderfile_core::generated::$generated_mod::$response_path>,
                 tonic::Status,
             > {
                 Ok(tonic::Response::new(
@@ -67,13 +68,15 @@ macro_rules! generate_grpc_server {
 
             async fn get_model_metadata(
                 &self,
-                _request: tonic::Request<$crate::generated::metadata::GetModelMetadataRequest>,
+                _request: tonic::Request<
+                    encoderfile_core::generated::metadata::GetModelMetadataRequest,
+                >,
             ) -> Result<
-                tonic::Response<$crate::generated::metadata::GetModelMetadataResponse>,
+                tonic::Response<encoderfile_core::generated::metadata::GetModelMetadataResponse>,
                 tonic::Status,
             > {
                 Ok(tonic::Response::new(
-                    $crate::services::get_model_metadata(&self.state).into(),
+                    encoderfile_core::services::get_model_metadata(&self.state).into(),
                 ))
             }
         }

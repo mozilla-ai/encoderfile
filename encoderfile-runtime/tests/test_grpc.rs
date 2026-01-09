@@ -20,8 +20,8 @@ use encoderfile_core::{
             token_classification_inference_server::TokenClassificationInference,
         },
     },
-    transport::grpc::GrpcService,
 };
+use encoderfile_runtime::transport::grpc::GrpcService;
 
 macro_rules! test_grpc_service {
     (

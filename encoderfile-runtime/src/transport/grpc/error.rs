@@ -1,7 +1,11 @@
 use tonic::Status;
 
-impl crate::error::ApiError {
-    pub fn to_tonic_status(&self) -> Status {
+pub trait ToTonicStatus {
+    fn to_tonic_status(&self) -> Status;
+}
+
+impl ToTonicStatus for encoderfile_core::error::ApiError {
+    fn to_tonic_status(&self) -> Status {
         match self {
             Self::InputError(s) => Status::invalid_argument(*s),
             Self::InternalError(s) => Status::internal(*s),

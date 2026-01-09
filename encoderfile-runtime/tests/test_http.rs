@@ -2,7 +2,8 @@ macro_rules! test_router_mod {
     ($model_type:ident, $mod_name:ident, $state_func:ident, $test_input:expr) => {
         mod $mod_name {
             use axum::http::{Request, StatusCode};
-            use encoderfile_core::{common::*, dev_utils::*, transport::http::HttpRouter};
+            use encoderfile_core::{common::*, dev_utils::*};
+            use encoderfile_runtime::transport::http::HttpRouter;
             use tower::ServiceExt;
 
             fn router() -> axum::Router {

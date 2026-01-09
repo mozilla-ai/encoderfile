@@ -1,5 +1,4 @@
-use crate::common::model_type::ModelTypeSpec;
-use crate::runtime::AppState;
+use encoderfile_core::{common::model_type::ModelTypeSpec, runtime::AppState};
 use rmcp::ServerHandler;
 use rmcp::transport::streamable_http_server::{
     StreamableHttpService, session::local::LocalSessionManager,
@@ -29,10 +28,10 @@ pub trait McpRouter: ModelTypeSpec {
 macro_rules! generate_mcp {
     ($model_type:ident, $tool_name:ident, $fn_name:ident, $request_body:ident, $return_model:ident, $short_desc:literal, $long_desc:literal) => {
         mod $fn_name {
-            use crate::services::Inference;
-            use $crate::common::$request_body;
-            use $crate::runtime::AppState;
-            use $crate::transport::mcp::error::to_mcp_error;
+            use encoderfile_core::services::Inference;
+            use encoderfile_core::common::$request_body;
+            use encoderfile_core::runtime::AppState;
+            use super::error::{to_mcp_error, ToMcpError};
             use rmcp::{
                 ErrorData as McpError,
                 ServerHandler,
@@ -56,18 +55,18 @@ macro_rules! generate_mcp {
 
             #[derive(Clone)]
             pub struct $tool_name {
-                state: AppState<$crate::common::model_type::$model_type>,
+                state: AppState<encoderfile_core::common::model_type::$model_type>,
                 tool_router: ToolRouter<$tool_name>,
             }
 
-            impl super::McpRouter for $crate::common::model_type::$model_type {
+            impl super::McpRouter for encoderfile_core::common::model_type::$model_type {
                 type Tool = $tool_name;
                 const NEW_TOOL: fn(AppState<Self>) -> Self::Tool = Self::Tool::new;
             }
 
             #[tool_router]
             impl $tool_name {
-                pub fn new(state: AppState<crate::common::model_type::$model_type>) -> Self {
+                pub fn new(state: AppState<encoderfile_core::common::model_type::$model_type>) -> Self {
                     Self {
                         state,
                         tool_router: Self::tool_router(),
@@ -76,7 +75,7 @@ macro_rules! generate_mcp {
 
                 #[tool(description = $short_desc)]
                 fn run_encoder(&self, Parameters(object): Parameters<$request_body>) -> Result<CallToolResult, McpError> {
-                    let response = self.state.inference(object)?;
+                    let response = self.state.inference(object).map_err(|e| e.to_mcp_error())?;
                     let result = CallToolResult::structured(serde_json::to_value(response).map_err(to_mcp_error)?);
                     Ok(result)
                 }

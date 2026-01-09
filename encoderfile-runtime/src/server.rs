@@ -1,15 +1,10 @@
-use crate::{
-    AppState,
-    common::model_type::ModelTypeSpec,
-    services::Inference,
-    transport::{grpc::GrpcRouter, http::HttpRouter},
-};
+use crate::transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter};
 use anyhow::Result;
 use axum_server::tls_rustls::RustlsConfig;
+use encoderfile_core::{AppState, common::model_type::ModelTypeSpec, services::Inference};
 use std::path::Path;
 use tower_http::trace::DefaultOnResponse;
 
-#[cfg(not(tarpaulin_include))]
 pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
     hostname: String,
     port: String,
@@ -50,12 +45,12 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
                 .await?
         }
         (None, Some(_)) => {
-            return Err(crate::error::ApiError::ConfigError(
+            return Err(encoderfile_core::error::ApiError::ConfigError(
                 "Both cert and key file need to be set. Only the key file has been set.",
             ))?;
         }
         (Some(_), None) => {
-            return Err(crate::error::ApiError::ConfigError(
+            return Err(encoderfile_core::error::ApiError::ConfigError(
                 "Both cert and key file need to be set. Only the cert file has been set.",
             ))?;
         }
@@ -71,7 +66,6 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
     Ok(())
 }
 
-#[cfg(not(tarpaulin_include))]
 pub async fn run_http<T: ModelTypeSpec + HttpRouter>(
     hostname: String,
     port: String,
@@ -129,8 +123,7 @@ where
     Ok(())
 }
 
-#[cfg(not(tarpaulin_include))]
-pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
+pub async fn run_mcp<T: ModelTypeSpec + McpRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,

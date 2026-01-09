@@ -905,10 +905,30 @@ name = "encoderfile-runtime"
 version = "0.4.0-beta.3"
 dependencies = [
  "anyhow",
+ "axum",
+ "axum-server",
  "clap",
+ "clap_derive",
  "encoderfile-core",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "opentelemetry-semantic-conventions",
+ "opentelemetry-stdout",
+ "opentelemetry_sdk",
  "parking_lot",
+ "rmcp",
+ "rmcp-macros",
+ "serde_json",
+ "test-log",
  "tokio",
+ "tonic",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-axum",
 ]
 
 [[package]]

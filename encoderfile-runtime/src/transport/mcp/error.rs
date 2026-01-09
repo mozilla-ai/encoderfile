@@ -1,10 +1,14 @@
-use crate::error::ApiError;
+use encoderfile_core::error::ApiError;
 use rmcp::{ErrorData as McpError, model::ErrorCode};
 use serde_json::value::Value::String as SerdeString;
 
-impl From<ApiError> for McpError {
-    fn from(api_error: ApiError) -> McpError {
-        match api_error {
+pub trait ToMcpError {
+    fn to_mcp_error(&self) -> McpError;
+}
+
+impl ToMcpError for ApiError {
+    fn to_mcp_error(&self) -> McpError {
+        match self {
             ApiError::InputError(str) => McpError {
                 code: ErrorCode::INVALID_REQUEST,
                 message: std::borrow::Cow::Borrowed(str),
@@ -22,7 +26,7 @@ impl From<ApiError> for McpError {
             },
             ApiError::LuaError(str) => McpError {
                 code: ErrorCode::INTERNAL_ERROR,
-                message: std::borrow::Cow::Owned(str),
+                message: std::borrow::Cow::Owned(str.clone()),
                 data: None,
             },
         }

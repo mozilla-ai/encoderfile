@@ -1,4 +1,4 @@
-use crate::{common::model_type::ModelTypeSpec, runtime::AppState};
+use encoderfile_core::{common::model_type::ModelTypeSpec, runtime::AppState};
 
 mod base;
 mod error;
@@ -11,11 +11,11 @@ macro_rules! predict_endpoint {
     ($mod_name:ident, $model_type:ident) => {
         mod $mod_name {
             use super::base;
-            use crate::{runtime::AppState, services::Inference};
             use axum::{Json, extract::State, response::IntoResponse};
+            use encoderfile_core::{runtime::AppState, services::Inference};
             use utoipa::OpenApi;
 
-            type ModelType = crate::common::model_type::$model_type;
+            type ModelType = encoderfile_core::common::model_type::$model_type;
             type PredictInput = <AppState<ModelType> as Inference>::Input;
             type PredictOutput = <AppState<ModelType> as Inference>::Output;
 
@@ -25,30 +25,30 @@ macro_rules! predict_endpoint {
                 components(schemas(
                     PredictInput,
                     PredictOutput,
-                    crate::common::GetModelMetadataResponse,
+                    encoderfile_core::common::GetModelMetadataResponse,
                 ))
             )]
             pub struct ApiDoc;
 
             #[utoipa::path(
-                                                get,
-                                                path = base::OPENAPI_ENDPOINT,
-                                                responses(
-                                                    (status = 200, description = "Successful")
-                                                )
-                                            )]
+                                get,
+                                path = base::OPENAPI_ENDPOINT,
+                                responses(
+                                    (status = 200, description = "Successful")
+                                )
+                            )]
             pub async fn openapi() -> impl IntoResponse {
                 Json(ApiDoc::openapi())
             }
 
             #[utoipa::path(
-                                                post,
-                                                path = base::PREDICT_ENDPOINT,
-                                                request_body = PredictInput,
-                                                responses(
-                                                    (status = 200, response = PredictOutput)
-                                                ),
-                                            )]
+                                post,
+                                path = base::PREDICT_ENDPOINT,
+                                request_body = PredictInput,
+                                responses(
+                                    (status = 200, response = PredictOutput)
+                                ),
+                            )]
             pub async fn predict(
                 State(state): State<AppState<ModelType>>,
                 Json(req): Json<PredictInput>,

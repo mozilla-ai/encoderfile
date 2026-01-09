@@ -1,7 +1,7 @@
 use anyhow::Result;
 use encoderfile_core::AppState;
 use encoderfile_core::common::model_type::ModelTypeSpec;
-use encoderfile_core::transport::mcp::McpRouter;
+use encoderfile_runtime::transport::mcp::McpRouter;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 use tower_http::trace::DefaultOnResponse;

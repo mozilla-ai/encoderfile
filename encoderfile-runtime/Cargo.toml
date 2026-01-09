@@ -4,12 +4,80 @@ version = "0.4.0-beta.3"
 edition = "2024"
 publish = false
 
+[[test]]
+name = "test_grpc"
+required-features = [ "dev-utils", "transport",]
+
+[[test]]
+name = "test_http"
+required-features = [ "dev-utils", "transport",]
+
+[[test]]
+name = "test_mcp"
+required-features = [ "dev-utils", "transport",]
+
 [dependencies]
+utoipa = "5.4.0"
+utoipa-axum = "0.2.0"
+
+[dev-dependencies]
+tower = "0.5.2"
+test-log = "0.2.18"
 
 [dependencies.encoderfile-core]
 path = "../encoderfile-core"
 version = "0.4.0-beta.3"
 features = ["transport"]
+
+[dependencies.axum-server]
+version = "0.7.3"
+features = [ "tls-rustls",]
+
+[dependencies.tracing]
+workspace = true
+
+[dependencies.tower-http]
+version = "0.6.6"
+features = [ "trace",]
+
+[dependencies.rmcp]
+version = "0.8.0"
+features = [ "server", "transport-streamable-http-server",]
+
+[dependencies.rmcp-macros]
+version = "0.8.0"
+
+[dependencies.clap]
+workspace = true
+
+[dependencies.clap_derive]
+workspace = true
+
+[dependencies.opentelemetry]
+version = "0.31.0"
+
+[dependencies.opentelemetry-semantic-conventions]
+version = "0.31.0"
+
+[dependencies.opentelemetry-stdout]
+version = "0.31.0"
+
+[dependencies.opentelemetry_sdk]
+version = "0.31.0"
+
+[dependencies.opentelemetry-otlp]
+version = "0.31.0"
+features = [ "grpc-tonic",]
+
+[dependencies.tracing-subscriber]
+version = "0.3.20"
+features = [ "fmt", "env-filter",]
+
+[dependencies.tracing-opentelemetry]
+version = "0.32.0"
+
+[dependencies.serde_json]
+workspace = true
 
 [dependencies.anyhow]
 workspace = true
@@ -17,11 +85,15 @@ workspace = true
 [dependencies.parking_lot]
 workspace = true
 
-[dependencies.clap]
-workspace = true
-
 [dependencies.tokio]
 workspace = true
+
+[dependencies.tonic]
+version = "0.14.2"
+features = [ "router",]
+
+[dependencies.axum]
+version = "0.8.6"
 
 [features]
 bench = []
