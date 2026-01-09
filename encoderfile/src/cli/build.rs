@@ -1,4 +1,9 @@
-use super::model::ModelTypeExt as _;
+use crate::{
+    base_binary::{BaseBinaryResolver, TargetSpec},
+    terminal,
+};
+
+use super::{super::model::ModelTypeExt as _, GlobalArguments};
 use anyhow::Result;
 use encoderfile_core::{
     format::{
@@ -14,39 +19,7 @@ use std::{
     path::PathBuf,
 };
 
-use clap_derive::{Args, Parser, Subcommand};
-
-#[derive(Debug, Parser)]
-pub struct Cli {
-    #[command(subcommand)]
-    pub command: Commands,
-}
-
-#[derive(Debug, Subcommand)]
-pub enum Commands {
-    #[command(about = "Build an encoderfile.")]
-    Build(BuildArgs),
-    #[command(about = "Get Encoderfile version.")]
-    Version(()),
-    #[command(about = "Generate a new transform.")]
-    NewTransform {
-        #[arg(short = 'm', long = "model-type", help = "Model type")]
-        model_type: String,
-    },
-}
-
-impl Commands {
-    pub fn run(self) -> Result<()> {
-        match self {
-            Self::Build(args) => args.run(),
-            Self::Version(_) => {
-                println!("Encoderfile {}", env!("CARGO_PKG_VERSION"));
-                Ok(())
-            }
-            Self::NewTransform { model_type } => super::transforms::new_transform(model_type),
-        }
-    }
-}
+use clap_derive::Args;
 
 #[derive(Debug, Args)]
 pub struct BuildArgs {
@@ -59,33 +32,65 @@ pub struct BuildArgs {
     )]
     output_path: Option<PathBuf>,
     #[arg(
-        long = "cache-dir",
-        help = "Cache directory. This is used for build artifacts. Optional."
-    )]
-    cache_dir: Option<PathBuf>,
-    #[arg(
         long = "base-binary-path",
         help = "Path to base binary to use. Optional."
     )]
     base_binary_path: Option<PathBuf>,
+    #[arg(
+        long = "platform",
+        help = "Target platform to build. Follows standard rust target triple format."
+    )]
+    platform: Option<TargetSpec>,
+    #[arg(
+        long,
+        help = "Encoderfile version override (defaults to current version)."
+    )]
+    version: Option<String>,
+    #[arg(
+        long = "no-download",
+        help = "Disable downloading",
+        default_value = "false"
+    )]
+    no_download: bool,
 }
 
 impl BuildArgs {
-    fn run(self) -> Result<()> {
-        let mut config = super::config::BuildConfig::load(&self.config)?;
+    pub fn run(self, global: &GlobalArguments) -> Result<()> {
+        terminal::info("Loading config...");
+        let mut config = crate::config::BuildConfig::load(&self.config)?;
 
         // --- handle user flags ---------------------------------------------------
         if let Some(o) = &self.output_path {
             config.encoderfile.output_path = Some(o.to_path_buf());
         }
 
-        if let Some(cache_dir) = &self.cache_dir {
+        if let Some(cache_dir) = &global.cache_dir {
             config.encoderfile.cache_dir = Some(cache_dir.to_path_buf());
         }
 
         if let Some(base_binary_path) = &self.base_binary_path {
             config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf())
         }
+
+        let target = config
+            .encoderfile
+            .target()?
+            .unwrap_or(TargetSpec::detect_host()?);
+
+        // load base binary
+        let base_path = {
+            let cache_dir = config.encoderfile.cache_dir();
+            let base_binary_path = config.encoderfile.base_binary_path.as_deref();
+
+            let resolver = BaseBinaryResolver {
+                cache_dir: cache_dir.as_path(),
+                base_binary_path,
+                target,
+                version: self.version.clone(),
+            };
+
+            resolver.resolve(self.no_download)?
+        };
 
         let mut planned_assets: Vec<PlannedAsset<'_>> = Vec::new();
 
@@ -96,6 +101,7 @@ impl BuildArgs {
             AssetSource::InMemory(Cow::Owned(serde_json::to_vec(&model_config)?)),
             AssetKind::ModelConfig,
         )?);
+        terminal::success("Model config validated");
 
         // validate model
         let model_weights_path = config.encoderfile.path.model_weights_path()?;
@@ -106,26 +112,25 @@ impl BuildArgs {
             .validate_model(&model_weights_path)?;
 
         planned_assets.push(model_asset);
+        terminal::success("Model weights validated");
 
         // validate transform
         if let Some(asset) =
             crate::transforms::validate_transform(&config.encoderfile, &model_config)?
         {
             planned_assets.push(asset);
+            terminal::success("Transform validated");
         }
 
         // validate tokenizer
         let tokenizer_asset = crate::tokenizer::validate_tokenizer(&config.encoderfile)?;
         planned_assets.push(tokenizer_asset);
-
-        // load base binary
-        let base_path = match &config.encoderfile.base_binary_path {
-            Some(p) => p.as_path(),
-            None => unimplemented!("No support for downloading default binaries yet."),
-        };
+        terminal::success("Tokenizer validated");
 
         // initialize final binary
-        let out = File::create(config.encoderfile.output_path())?;
+        terminal::info("Writing encoderfile...");
+        let output_path = config.encoderfile.output_path();
+        let out = File::create(output_path.clone())?;
         let mut out = BufWriter::new(out);
         let mut base = File::open(base_path)?;
 
@@ -152,6 +157,8 @@ impl BuildArgs {
         )?;
 
         out.flush()?;
+
+        terminal::success_kv("Encoderfile written to", output_path.display());
 
         Ok(())
     }

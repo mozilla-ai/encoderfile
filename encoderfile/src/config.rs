@@ -5,6 +5,7 @@ use std::{
     fs::File,
     io::{BufReader, Read},
     path::PathBuf,
+    str::FromStr,
 };
 
 use figment::{
@@ -13,6 +14,8 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+
+use crate::base_binary::TargetSpec;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct BuildConfig {
@@ -41,9 +44,17 @@ pub struct EncoderfileConfig {
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
+    pub target: Option<String>,
 }
 
 impl EncoderfileConfig {
+    pub fn target(&self) -> Result<Option<TargetSpec>> {
+        self.target
+            .as_ref()
+            .map(|s| TargetSpec::from_str(s.as_str()))
+            .transpose()
+    }
+
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
         let config = EmbeddedConfig {
             name: self.name.clone(),
@@ -80,7 +91,7 @@ impl EncoderfileConfig {
     pub fn cache_dir(&self) -> PathBuf {
         match &self.cache_dir {
             Some(c) => c.to_path_buf(),
-            None => default_cache_dir(),
+            None => crate::cache::default_cache_dir(),
         }
     }
 
@@ -211,13 +222,6 @@ impl ModelPath {
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
     asset_path!(model_weights_path, "model.onnx", "model weights");
     asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
-}
-
-fn default_cache_dir() -> PathBuf {
-    directories::ProjectDirs::from("com", "mozilla-ai", "encoderfile")
-        .expect("Cannot locate")
-        .cache_dir()
-        .to_path_buf()
 }
 
 fn default_version() -> String {
@@ -354,6 +358,7 @@ mod tests {
             transform: None,
             tokenizer: None,
             base_binary_path: None,
+            target: None,
         };
 
         let generated = cfg.get_generated_dir();

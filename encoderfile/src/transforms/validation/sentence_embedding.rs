@@ -75,6 +75,7 @@ mod tests {
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
+            target: None,
         }
     }
 

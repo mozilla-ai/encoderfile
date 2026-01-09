@@ -266,6 +266,7 @@ mod tests {
             tokenizer: None,
             validate_transform: false,
             base_binary_path: None,
+            target: None,
         };
 
         let tokenizer = load_tokenizer_from_path(
@@ -306,6 +307,7 @@ mod tests {
             }),
             validate_transform: false,
             base_binary_path: None,
+            target: None,
         };
 
         let tokenizer = load_tokenizer_from_path(
@@ -353,6 +355,7 @@ mod tests {
             tokenizer: None,
             validate_transform: false,
             base_binary_path: None,
+            target: None,
         };
 
         let tokenizer = load_tokenizer_from_path(
