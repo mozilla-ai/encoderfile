@@ -278,7 +278,7 @@ fn base_url_override() -> Option<String> {
 
 #[cfg(test)]
 thread_local! {
-    static TEST_BASE_URL: RefCell<Option<String>> = RefCell::new(None);
+    static TEST_BASE_URL: RefCell<Option<String>> = const { RefCell::new(None) }
 }
 
 #[cfg(test)]
@@ -390,7 +390,7 @@ mod tests {
 
             assert_eq!(
                 url.as_str(),
-                "https://github.com/mozilla-ai/encoderfile/releases/download/0.3.1/encoderfile-runtime-x86_64-unknown-linux-gnu.tar.gz"
+                "https://github.com/mozilla-ai/encoderfile/releases/download/v0.3.1/encoderfile-runtime-x86_64-unknown-linux-gnu.tar.gz"
             );
         });
     }
