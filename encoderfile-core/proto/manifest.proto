@@ -60,7 +60,7 @@ message EncoderfileManifest {
 	optional Artifact tokenizer = 130;
 }
 
-// Transform describes an embedded preprocessing step applied to inputs
+// Transform describes embedded preprocessing/postprocessing steps applied to inputs
 // prior to inference.
 //
 // Transforms are embedded source code and executed by the runtime.
@@ -90,7 +90,7 @@ message Artifact {
 	bytes sha256 = 3;
 }
 
-// Supported preprocessing transform types.
+// Supported transform types.
 enum TransformType {
 	// Unspecified transform type. This should not be used.
 	TRANSFORM_TYPE_UNSPECIFIED = 0;
