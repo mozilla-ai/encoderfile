@@ -1,4 +1,4 @@
-use crate::base_binary::TargetSpec;
+use crate::base_binary::{BaseBinaryResolver, TargetSpec};
 
 use super::model::ModelTypeExt as _;
 use anyhow::Result;
@@ -95,6 +95,11 @@ pub struct BuildArgs {
         help = "Target platform to build. Follows standard rust target triple format."
     )]
     platform: Option<TargetSpec>,
+    #[arg(
+        long,
+        help = "Encoderfile version override (defaults to current version)."
+    )]
+    version: Option<String>,
 }
 
 impl BuildArgs {
@@ -113,6 +118,30 @@ impl BuildArgs {
         if let Some(base_binary_path) = &self.base_binary_path {
             config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf())
         }
+
+        let target = config
+            .encoderfile
+            .target()?
+            .unwrap_or(TargetSpec::detect_host()?);
+
+        // load base binary
+        let base_path = match &config.encoderfile.base_binary_path {
+            Some(p) => p.clone(),
+            None => {
+                let cache_dir = config.encoderfile.cache_dir();
+
+                let base_binary_path = config.encoderfile.base_binary_path.as_deref();
+
+                let resolver = BaseBinaryResolver {
+                    cache_dir: cache_dir.as_path(),
+                    base_binary_path,
+                    target,
+                    version: self.version.clone(),
+                };
+
+                resolver.resolve()?
+            }
+        };
 
         let mut planned_assets: Vec<PlannedAsset<'_>> = Vec::new();
 
@@ -144,12 +173,6 @@ impl BuildArgs {
         // validate tokenizer
         let tokenizer_asset = crate::tokenizer::validate_tokenizer(&config.encoderfile)?;
         planned_assets.push(tokenizer_asset);
-
-        // load base binary
-        let base_path = match &config.encoderfile.base_binary_path {
-            Some(p) => p.as_path(),
-            None => unimplemented!("No support for downloading default binaries yet."),
-        };
 
         // initialize final binary
         let out = File::create(config.encoderfile.output_path())?;

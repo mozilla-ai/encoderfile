@@ -5,6 +5,7 @@ use std::{
     fs::File,
     io::{BufReader, Read},
     path::PathBuf,
+    str::FromStr,
 };
 
 use figment::{
@@ -13,6 +14,8 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+
+use crate::base_binary::TargetSpec;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct BuildConfig {
@@ -41,9 +44,17 @@ pub struct EncoderfileConfig {
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
+    pub target: Option<String>,
 }
 
 impl EncoderfileConfig {
+    pub fn target(&self) -> Result<Option<TargetSpec>> {
+        self.target
+            .as_ref()
+            .map(|s| TargetSpec::from_str(s.as_str()))
+            .transpose()
+    }
+
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {
         let config = EmbeddedConfig {
             name: self.name.clone(),
@@ -347,6 +358,7 @@ mod tests {
             transform: None,
             tokenizer: None,
             base_binary_path: None,
+            target: None,
         };
 
         let generated = cfg.get_generated_dir();

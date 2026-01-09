@@ -119,6 +119,7 @@ mod tests {
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
+            target: None,
         }
     }
 
@@ -163,6 +164,7 @@ mod tests {
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
+            target: None,
         };
 
         let model_config_str =
@@ -187,6 +189,7 @@ mod tests {
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
+            target: None,
         };
 
         let model_config_str =
