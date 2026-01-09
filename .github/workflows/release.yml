@@ -55,33 +55,33 @@ jobs:
         run: |
           # 1) If manual workflow_dispatch override given, use that
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && \
-             [[ -n "${{ github.event.inputs.version_override }}" ]]; then
-             VERSION="${{ github.event.inputs.version_override }}"
-             PRE="false"
-             echo "Using manual override: $VERSION"
-          else
-            # 2) Extract version from pyproject.toml or Cargo.toml
-            if [ -f "pyproject.toml" ]; then
-              VERSION=$(grep '^version = "' pyproject.toml | cut -d'"' -f2)
-            elif [ -f "ptolemy-py/Cargo.toml" ]; then
-              VERSION=$(grep '^version = "' ptolemy-py/Cargo.toml | head -1 | cut -d'"' -f2 | sed 's/+.*//')
-            else
-              echo "Could not find version file."
-              exit 1
-            fi
+            [[ -n "${{ github.event.inputs.version_override }}" ]]; then
+            VERSION="${{ github.event.inputs.version_override }}"
+            PRE="false"
+            echo "Using manual override: $VERSION"
 
-            # 3) Determine prerelease type
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]]; then
-              PRE="true"
-            elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
+          else
+            # 2) Extract version from Cargo metadata
+            VERSION=$(
+              cargo metadata --no-deps --format-version=1 \
+                | jq -r '.packages[]
+                  | select(.name == "encoderfile-core")
+                  | .version'
+            )
+
+            [ -n "$VERSION" ] || { echo "encoderfile-core not found"; exit 1; }
+
+            # 3) Determine prerelease type from PR labels
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]] || \
+              [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
               PRE="true"
             else
               PRE="false"
             fi
           fi
 
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-          echo "PRERELEASE=${PRE}" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "PRERELEASE=${PRE}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag if missing
         run: |
