@@ -34,7 +34,6 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY encoderfile ./encoderfile
 COPY encoderfile-core ./encoderfile-core
-COPY encoderfile-utils ./encoderfile-utils
 COPY encoderfile-runtime ./encoderfile-runtime
 
 # Build release binary.
