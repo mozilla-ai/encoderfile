@@ -18,10 +18,32 @@ use std::{
 
 use clap_derive::{Args, Parser, Subcommand};
 
+mod runtime;
+
 #[derive(Debug, Parser)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
+
+    #[command(flatten)]
+    pub global_args: GlobalArguments,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct GlobalArguments {
+    #[arg(
+        long = "cache-dir",
+        help = "Cache directory. This is used for build artifacts. Optional."
+    )]
+    cache_dir: Option<PathBuf>,
+}
+
+impl GlobalArguments {
+    pub fn cache_dir(&self) -> PathBuf {
+        self.cache_dir
+            .clone()
+            .unwrap_or(crate::cache::default_cache_dir())
+    }
 }
 
 #[derive(Debug, Subcommand)]
@@ -30,6 +52,8 @@ pub enum Commands {
     Build(BuildArgs),
     #[command(about = "Get Encoderfile version.")]
     Version(()),
+    #[command(subcommand, about = "Manage Encoderfile runtimes.")]
+    Runtime(runtime::Runtime),
     #[command(about = "Generate a new transform.")]
     NewTransform {
         #[arg(short = 'm', long = "model-type", help = "Model type")]
@@ -38,13 +62,14 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub fn run(self) -> Result<()> {
+    pub fn run(self, global: &GlobalArguments) -> Result<()> {
         match self {
-            Self::Build(args) => args.run(),
+            Self::Build(args) => args.run(global),
             Self::Version(_) => {
                 println!("Encoderfile {}", env!("CARGO_PKG_VERSION"));
                 Ok(())
             }
+            Self::Runtime(r) => r.execute(global),
             Self::NewTransform { model_type } => super::transforms::new_transform(model_type),
         }
     }
@@ -61,11 +86,6 @@ pub struct BuildArgs {
     )]
     output_path: Option<PathBuf>,
     #[arg(
-        long = "cache-dir",
-        help = "Cache directory. This is used for build artifacts. Optional."
-    )]
-    cache_dir: Option<PathBuf>,
-    #[arg(
         long = "base-binary-path",
         help = "Path to base binary to use. Optional."
     )]
@@ -78,7 +98,7 @@ pub struct BuildArgs {
 }
 
 impl BuildArgs {
-    fn run(self) -> Result<()> {
+    fn run(self, global: &GlobalArguments) -> Result<()> {
         let mut config = super::config::BuildConfig::load(&self.config)?;
 
         // --- handle user flags ---------------------------------------------------
@@ -86,7 +106,7 @@ impl BuildArgs {
             config.encoderfile.output_path = Some(o.to_path_buf());
         }
 
-        if let Some(cache_dir) = &self.cache_dir {
+        if let Some(cache_dir) = &global.cache_dir {
             config.encoderfile.cache_dir = Some(cache_dir.to_path_buf());
         }
 

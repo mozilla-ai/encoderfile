@@ -80,7 +80,7 @@ impl EncoderfileConfig {
     pub fn cache_dir(&self) -> PathBuf {
         match &self.cache_dir {
             Some(c) => c.to_path_buf(),
-            None => default_cache_dir(),
+            None => crate::cache::default_cache_dir(),
         }
     }
 
@@ -211,13 +211,6 @@ impl ModelPath {
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
     asset_path!(model_weights_path, "model.onnx", "model weights");
     asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
-}
-
-fn default_cache_dir() -> PathBuf {
-    directories::ProjectDirs::from("com", "mozilla-ai", "encoderfile")
-        .expect("Cannot locate")
-        .cache_dir()
-        .to_path_buf()
 }
 
 fn default_version() -> String {

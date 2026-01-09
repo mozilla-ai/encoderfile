@@ -4,5 +4,5 @@ use clap::Parser;
 fn main() -> Result<()> {
     let cli = encoderfile::cli::Cli::parse();
 
-    cli.command.run()
+    cli.command.run(&cli.global_args)
 }

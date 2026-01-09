@@ -18,13 +18,52 @@ const ENCODERFILE_RUNTIME_NAME: &str = "encoderfile-runtime";
 
 #[derive(Debug)]
 pub struct BaseBinaryResolver<'a> {
-    cache_dir: &'a Path,
-    base_binary_path: Option<&'a Path>,
-    target: TargetSpec,
-    version: Option<&'a str>,
+    pub cache_dir: &'a Path,
+    pub base_binary_path: Option<&'a Path>,
+    pub target: TargetSpec,
+    pub version: Option<String>,
 }
 
 impl BaseBinaryResolver<'_> {
+    pub fn remove(&self) -> Result<()> {
+        // Explicit path overrides cache semantics
+        if self.base_binary_path.is_some() {
+            anyhow::bail!("cannot remove an explicitly provided base binary path");
+        }
+
+        let path = self.cache_path();
+
+        if !path.exists() {
+            // idempotent: removing something that isn't there is fine
+            return Ok(());
+        }
+
+        fs::remove_file(&path).with_context(|| format!("failed to remove {}", path.display()))?;
+
+        self.cleanup_empty_parents(path.parent());
+
+        Ok(())
+    }
+
+    fn cleanup_empty_parents(&self, mut dir: Option<&Path>) {
+        while let Some(d) = dir {
+            // Stop at cache_dir — never go above it
+            if d == self.cache_dir {
+                break;
+            }
+
+            match fs::read_dir(d) {
+                Ok(mut entries) => {
+                    if entries.next().is_none() {
+                        let _ = fs::remove_dir(d);
+                        dir = d.parent();
+                    }
+                }
+                _ => break,
+            }
+        }
+    }
+
     pub fn resolve(&self) -> Result<PathBuf> {
         // 1. Explicit override always wins
         if let Some(path) = self.base_binary_path {
@@ -123,16 +162,18 @@ impl BaseBinaryResolver<'_> {
         let file_name = self.file_name();
 
         self.base_url()?
-            .join(&format!("{}/", version))?
+            .join(&format!("v{}/", version))?
             .join(&file_name)
             .context("Failed to construct download url")
     }
 
-    fn version(&self) -> &str {
-        self.version.unwrap_or(env!("CARGO_PKG_VERSION"))
+    fn version(&self) -> String {
+        self.version
+            .clone()
+            .unwrap_or(env!("CARGO_PKG_VERSION").to_string())
     }
 
-    fn file_name(&self) -> String {
+    pub fn file_name(&self) -> String {
         format!("{ENCODERFILE_RUNTIME_NAME}-{}.tar.gz", self.target)
     }
 
@@ -194,7 +235,7 @@ mod tests {
                 cache_dir: Path::new("/tmp"),
                 base_binary_path: None,
                 target,
-                version,
+                version: version.map(|i| i.to_string()),
             }
         }
     }
