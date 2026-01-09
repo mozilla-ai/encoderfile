@@ -7,7 +7,12 @@ use encoderfile_core::{
     },
     generated::manifest::Backend,
 };
-use std::{borrow::Cow, fs::File, io::Seek, path::PathBuf};
+use std::{
+    borrow::Cow,
+    fs::File,
+    io::{BufWriter, Seek, Write},
+    path::PathBuf,
+};
 
 use clap_derive::{Args, Parser, Subcommand};
 
@@ -120,7 +125,8 @@ impl BuildArgs {
         };
 
         // initialize final binary
-        let mut out = File::create(config.encoderfile.output_path())?;
+        let out = File::create(config.encoderfile.output_path())?;
+        let mut out = BufWriter::new(out);
         let mut base = File::open(base_path)?;
 
         // copy base binary to out
@@ -144,6 +150,8 @@ impl BuildArgs {
             &asset_plan,
             &mut out,
         )?;
+
+        out.flush()?;
 
         Ok(())
     }

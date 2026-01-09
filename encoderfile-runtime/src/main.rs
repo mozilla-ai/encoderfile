@@ -2,7 +2,7 @@ use clap::Parser;
 use parking_lot::Mutex;
 use std::{
     fs::File,
-    io::{Read, Seek},
+    io::{BufReader, Read, Seek},
     sync::Arc,
 };
 
@@ -22,7 +22,8 @@ use encoderfile_core::{
 async fn main() -> Result<()> {
     // open current executable
     let path = std::env::current_exe()?;
-    let mut file = File::open(path)?;
+    let file = File::open(path)?;
+    let mut file = BufReader::new(file);
     // load encoderfile
     let mut loader = load_assets(&mut file)?;
 
@@ -73,7 +74,7 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
     }
 }
 
-fn load_assets<'a>(file: &'a mut File) -> Result<EncoderfileLoader<'a, std::fs::File>> {
+fn load_assets<'a, R: Read + Seek>(file: &'a mut R) -> Result<EncoderfileLoader<'a, R>> {
     let encoderfile = EncoderfileCodec::read(file)?;
     let loader = EncoderfileLoader::new(encoderfile, file);
 
