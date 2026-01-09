@@ -4,7 +4,7 @@ path = "bin/generate_encoderfile_config_schema.rs"
 
 [package]
 name = "encoderfile-utils"
-version = "0.3.0"
+version = "0.4.0-beta.1"
 edition = "2024"
 publish = false
 
@@ -19,3 +19,4 @@ bench = []
 
 [dependencies.encoderfile]
 path = "../encoderfile"
+version = "0.4.0-beta.1"
