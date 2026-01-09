@@ -4,6 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use url::Url;
+use crate::terminal;
 
 #[cfg(test)]
 use std::cell::RefCell;
@@ -67,6 +68,8 @@ impl BaseBinaryResolver<'_> {
     pub fn resolve(&self, no_download: bool) -> Result<PathBuf> {
         // 1. Explicit override always wins
         if let Some(path) = self.base_binary_path {
+            terminal::info_kv("Using local binary target:", path.display());
+
             return Ok(path.to_path_buf());
         }
 
@@ -74,6 +77,7 @@ impl BaseBinaryResolver<'_> {
 
         // 2. Cache hit
         if final_path.exists() {
+            terminal::success("Binary already cached");
             self.validate_binary(&final_path)?;
             return Ok(final_path);
         }
@@ -100,6 +104,7 @@ impl BaseBinaryResolver<'_> {
     }
 
     fn validate_binary(&self, path: &Path) -> Result<()> {
+        terminal::info("Validating binary...");
         use std::os::unix::fs::PermissionsExt;
 
         let meta = fs::metadata(path)
@@ -114,12 +119,16 @@ impl BaseBinaryResolver<'_> {
             anyhow::bail!("base binary is not executable: {}", path.display());
         }
 
+        terminal::success("Binary validated");
+
         Ok(())
     }
 
     fn download_and_install(&self, final_path: &Path) -> Result<()> {
         use std::io;
         use tempfile::{NamedTempFile, TempDir};
+
+        terminal::info("Base binary not found locally. Downloading...");
 
         let url = self.download_url()?;
 
@@ -154,6 +163,8 @@ impl BaseBinaryResolver<'_> {
         }
 
         fs::rename(extracted, final_path)?;
+
+        terminal::success("Binary successfully downloaded");
 
         Ok(())
     }

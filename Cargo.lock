@@ -829,6 +829,7 @@ dependencies = [
  "anyhow",
  "clap",
  "clap_derive",
+ "console",
  "directories",
  "encoderfile-core",
  "figment",

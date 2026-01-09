@@ -131,22 +131,18 @@ impl BuildArgs {
             .unwrap_or(TargetSpec::detect_host()?);
 
         // load base binary
-        let base_path = match &config.encoderfile.base_binary_path {
-            Some(p) => p.clone(),
-            None => {
-                let cache_dir = config.encoderfile.cache_dir();
+        let base_path = {
+            let cache_dir = config.encoderfile.cache_dir();
+            let base_binary_path = config.encoderfile.base_binary_path.as_deref();
 
-                let base_binary_path = config.encoderfile.base_binary_path.as_deref();
+            let resolver = BaseBinaryResolver {
+                cache_dir: cache_dir.as_path(),
+                base_binary_path,
+                target,
+                version: self.version.clone(),
+            };
 
-                let resolver = BaseBinaryResolver {
-                    cache_dir: cache_dir.as_path(),
-                    base_binary_path,
-                    target,
-                    version: self.version.clone(),
-                };
-
-                resolver.resolve(self.no_download)?
-            }
+            resolver.resolve(self.no_download)?
         };
 
         let mut planned_assets: Vec<PlannedAsset<'_>> = Vec::new();

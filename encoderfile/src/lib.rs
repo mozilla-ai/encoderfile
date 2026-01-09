@@ -4,5 +4,7 @@ pub mod cli;
 pub mod config;
 pub mod model;
 pub mod templates;
+/// Terminal logging utilities.
+pub mod terminal;
 pub mod tokenizer;
 pub mod transforms;
