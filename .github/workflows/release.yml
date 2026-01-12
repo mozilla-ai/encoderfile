@@ -24,6 +24,10 @@ jobs:
       is_dry_run: ${{ github.event.inputs.dry_run }}
 
     steps:
+      - name: Echo raw input
+        run: |
+          echo "${{ github.event.inputs.dry_run }}"
+
       - name: Announce dry-run mode
         run: |
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
