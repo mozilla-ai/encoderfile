@@ -97,6 +97,8 @@ jobs:
   publish-encoderfile:
     needs: create-tag
     runs-on: ubuntu-24.04
+    container:
+      image: debian:bookworm
     steps:
       - uses: actions/checkout@v4
 
