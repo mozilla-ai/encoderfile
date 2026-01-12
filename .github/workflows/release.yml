@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: Don't publish artifacts
+        description: Dry run
         required: true
         default: true
         type: boolean
