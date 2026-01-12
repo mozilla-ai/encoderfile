@@ -8,8 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: Publish artifacts
+        description: Don't publish artifacts
         required: true
+        default: true
         type: boolean
 
 permissions:
@@ -21,16 +22,13 @@ jobs:
   compute-dry-run:
     runs-on: ubuntu-latest
     outputs:
-      is_dry_run: ${{ github.event.inputs.dry_run }}
+      is_dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || 'false' }}
 
     steps:
-      - name: Echo raw input
+      - name: Compute effective dry-run
         run: |
-          echo "${{ github.event.inputs.dry_run }}"
-
-      - name: Announce dry-run mode
-        run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] \
+             && [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             echo "Running in DRY-RUN mode"
           else
             echo "Running in LIVE mode"
