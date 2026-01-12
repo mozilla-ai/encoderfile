@@ -88,14 +88,6 @@ fn new_lua() -> Result<Lua, ApiError> {
         ApiError::InternalError("Failed to create new Lua engine")
     })?;
 
-    lua.register_userdata_type::<Tensor>(|_| {}).map_err(|e| {
-        tracing::error!(
-            "Failed to register Tensor as a UserType. This should not happen. More details: {:?}",
-            e
-        );
-        ApiError::InternalError("Failed to create new Lua engine")
-    })?;
-
     let globals = lua.globals();
     globals
         .set(
@@ -216,5 +208,75 @@ mod tests {
 
         // io.open should NOT exist
         assert!(lua.load("return io.open").eval::<mlua::Value>().is_err());
+    }
+
+    #[test]
+    fn test_tensor_metatable_preserved() {
+        let lua = new_test_lua();
+
+        lua.load(
+            r#"
+            function mt(t)
+                local a = t:layer_norm(1, 1e-5)
+                return getmetatable(a) == getmetatable(t)
+            end
+        "#,
+        )
+        .exec()
+        .unwrap();
+
+        let t = Tensor(ndarray::Array1::<f32>::ones(3).into_dyn());
+        let f = lua.globals().get::<LuaFunction>("mt").unwrap();
+
+        let same: bool = f.call(t).unwrap();
+        assert!(same, "returned tensor lost its metatable");
+    }
+
+    #[test]
+    fn test_tensor_return_type() {
+        let lua = new_test_lua();
+
+        lua.load(
+            r#"
+            function ty(t)
+                local a = t:layer_norm(1, 1e-5)
+                return type(a)
+            end
+        "#,
+        )
+        .exec()
+        .unwrap();
+
+        let t = Tensor(ndarray::Array1::<f32>::ones(3).into_dyn());
+        let f = lua.globals().get::<LuaFunction>("ty").unwrap();
+
+        let ty: String = f.call(t).unwrap();
+        assert_eq!(ty, "userdata");
+    }
+
+    #[test]
+    fn test_tensor_methods_chain_twice() {
+        let lua = new_test_lua();
+
+        lua.load(
+            r#"
+            function chain(t)
+                return t
+                    :layer_norm(1, 1e-5)
+                    :layer_norm(1, 1e-5)
+            end
+        "#,
+        )
+        .exec()
+        .unwrap();
+
+        let t = Tensor(ndarray::Array1::from_vec(vec![1.0, 2.0, 3.0]).into_dyn());
+
+        let f = lua.globals().get::<LuaFunction>("chain").unwrap();
+
+        let out: Tensor = f.call(t).unwrap();
+
+        // shape should be preserved
+        assert_eq!(out.0.shape(), &[3]);
     }
 }
