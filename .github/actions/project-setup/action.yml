@@ -38,6 +38,7 @@ runs:
           libssl-dev \
           pkg-config \
           cmake \
+          curl \
           zlib1g-dev \
           libdw-dev \
           binutils-dev \
