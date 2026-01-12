@@ -815,7 +815,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "encoderfile"
-version = "0.4.0-beta.11"
+version = "0.4.0-beta.12"
 dependencies = [
  "anyhow",
  "axum",
@@ -872,7 +872,7 @@ dependencies = [
 
 [[package]]
 name = "encoderfile-runtime"
-version = "0.4.0-beta.11"
+version = "0.4.0-beta.12"
 dependencies = [
  "anyhow",
  "clap",
@@ -3620,9 +3620,9 @@ dependencies = [
 
 [[package]]
 name = "tower"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d039ad9159c98b70ecfd540b2573b97f7f52c3e8d9f8ad57a24b916a536975f9"
+checksum = "ebe5ef63511595f1344e2d5cfa636d973292adc0eec1f0ad45fae9f0851ab1d4"
 dependencies = [
  "futures-core",
  "futures-util",
