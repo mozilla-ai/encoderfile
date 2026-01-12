@@ -26,7 +26,7 @@ COPY download_model.sh .
 RUN sh download_model.sh
 
 # TODO: Switch to ghcr.io/mozilla-ai/encoderfile:0.4.0
-FROM ghcr.io/mozilla-ai/encoderfile:0.4.0-beta.5 AS build
+FROM ghcr.io/mozilla-ai/encoderfile:0.4.0-beta.6 AS build
 
 RUN apt-get update && apt-get install -y \
     ca-certificates \
@@ -46,4 +46,8 @@ COPY --from=build \
     /opt/encoderfile/nomic-embed-text-v1_5.encoderfile \
     /usr/bin/nomic-embed-text-v1_5.encoderfile
 
-ENTRYPOINT ["nomic-embed-text-v1_5.encoderfile"]
+RUN chmod +x /usr/bin/nomic-embed-text-v1_5.encoderfile
+
+ENTRYPOINT ["/usr/bin/nomic-embed-text-v1_5.encoderfile"]
+
+CMD ["help"]
