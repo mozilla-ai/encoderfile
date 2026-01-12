@@ -130,7 +130,7 @@ jobs:
 
   build-linux:
     needs: [create-tag, compute-dry-run]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
@@ -148,16 +148,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Build (bookworm, ${{ matrix.arch }})
         run: |
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
+          docker build \
             -f Dockerfile \
             --target build \
             --load \
