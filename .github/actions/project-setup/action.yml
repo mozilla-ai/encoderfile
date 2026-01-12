@@ -21,8 +21,14 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
-        apt-get update
-        apt-get install -y \
+        if command -v sudo >/dev/null 2>&1; then
+          SUDO=sudo
+        else
+          SUDO=
+        fi
+
+        $SUDO apt-get update
+        $SUDO apt-get install -y \
           protobuf-compiler \
           libssl-dev \
           pkg-config \
@@ -31,7 +37,9 @@ runs:
           zlib1g-dev \
           libdw-dev \
           binutils-dev \
-          libelf-dev
+          libelf-dev \
+          ca-certificates \
+          build-essential
 
     # macOS deps (Homebrew)
     - name: Install system dependencies (macOS)
