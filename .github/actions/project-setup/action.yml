@@ -62,10 +62,19 @@ runs:
         toolchain: ${{ inputs.toolchain }}
         target: ${{ inputs.target }}
 
-    # Python
+    # Python Native runners (macOS, non-container Linux)
     - uses: actions/setup-python@v5
+      if: runner.os != 'Linux'
       with:
         python-version: "3.13"
+
+    # Python Container Linux
+    - name: Install Python (container)
+      shell: bash
+      if: runner.os == 'Linux'
+      run: |
+        apt-get update
+        apt-get install -y python3 python3-venv python3-pip
 
     # ----- Universal steps -----
 
