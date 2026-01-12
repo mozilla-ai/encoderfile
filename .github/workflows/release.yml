@@ -119,18 +119,39 @@ jobs:
     needs: create-tag
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build (bookworm)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (bookworm, ${{ matrix.arch }})
         run: |
-          docker build \
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
             -f Dockerfile \
             --target build \
-            -t encoderfile-build:bookworm \
+            --load \
+            -t encoderfile-build:${{ matrix.arch }} \
             .
 
-          CID=$(docker create encoderfile-build:bookworm)
+          CID=$(docker create encoderfile-build:${{ matrix.arch }})
           mkdir -p dist
           docker cp "$CID:/app/target/release/encoderfile" dist/
           docker cp "$CID:/app/target/release/encoderfile-runtime" dist/
@@ -141,13 +162,14 @@ jobs:
           mkdir pkg
           cp dist/* README.md LICENSE pkg/
           test -f THIRDPARTY.md && cp THIRDPARTY.md pkg/
-          tar -czf encoderfile-x86_64-linux-gnu.tar.gz -C pkg .
-          tar -czf encoderfile-runtime-x86_64-linux-gnu.tar.gz -C pkg .
+
+          tar -czf encoderfile-${{ matrix.target }}.tar.gz -C pkg .
+          tar -czf encoderfile-runtime-${{ matrix.target }}.tar.gz -C pkg .
 
       - uses: actions/upload-artifact@v4
         if: env.IS_DRY_RUN != 'true'
         with:
-          name: linux
+          name: linux-${{ matrix.arch }}
           path: "*.tar.gz"
 
   release:
