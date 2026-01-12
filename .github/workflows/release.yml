@@ -96,7 +96,7 @@ jobs:
 
   publish-encoderfile:
     needs: create-tag
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -113,7 +113,7 @@ jobs:
 
   upload-install-script:
     needs: create-tag
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Upload artifact
@@ -133,9 +133,9 @@ jobs:
             target: x86_64-apple-darwin
           - runner: macos-14
             target: aarch64-apple-darwin
-          - runner: ubuntu-22.04
+          - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
@@ -170,7 +170,7 @@ jobs:
           name: encoderfile-runtime-${{ matrix.platform.target }}
           path: encoderfile-runtime-${{ matrix.platform.target }}.tar.gz
 
-  build-encoderfile:
+  build-encoderfile-macos:
     needs: create-tag
     runs-on: ${{ matrix.platform.runner }}
     strategy:
@@ -180,9 +180,50 @@ jobs:
             target: x86_64-apple-darwin
           - runner: macos-14
             target: aarch64-apple-darwin
-          - runner: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+
+      - name: Install target
+        run: rustup target add ${{ matrix.platform.target }}
+
+      - name: Build
+        run: cargo build --bin encoderfile --release --target ${{ matrix.platform.target }}
+
+      - name: Create release tarball
+        run: |
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          TARGET="${{ matrix.platform.target }}"
+          mkdir -p dist
+
+          cp target/${TARGET}/release/encoderfile dist/encoderfile
+          cp README.md dist/README.md
+          cp LICENSE dist/LICENSE
+          test -f THIRDPARTY.md && cp THIRDPARTY.md dist/THIRDPARTY.md
+
+          TAR="encoderfile-${TARGET}.tar.gz"
+          tar -czf "$TAR" -C dist .
+          echo "Created $TAR"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: encoderfile-${{ matrix.platform.target }}
+          path: encoderfile-${{ matrix.platform.target }}.tar.gz
+
+  build-encoderfile-linux:
+    needs: create-tag
+    runs-on: ${{ matrix.platform.runner }}
+    container:
+      image: debian:bookworm
+    strategy:
+      matrix:
+        platform:
+          - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
@@ -218,7 +259,13 @@ jobs:
           path: encoderfile-${{ matrix.platform.target }}.tar.gz
 
   create-release:
-    needs: [create-tag, build-encoderfile, publish-encoderfile, upload-install-script, build-encoderfile-runtime]
+    needs:
+      - create-tag
+      - build-encoderfile-linux
+      - build-encoderfile-macos
+      - publish-encoderfile
+      - upload-install-script
+      - build-encoderfile-runtime
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -249,7 +296,7 @@ jobs:
             runner: ubuntu-latest
           - arch: arm64
             platform: linux/arm64
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v4
