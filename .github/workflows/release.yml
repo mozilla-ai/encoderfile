@@ -10,8 +10,7 @@ on:
       dry_run:
         description: Publish artifacts
         required: true
-        type: choice
-        options: ["true", "false"]
+        type: boolean
 
 permissions:
   contents: write
@@ -22,16 +21,15 @@ jobs:
   compute-dry-run:
     runs-on: ubuntu-latest
     outputs:
-      is_dry_run: ${{ steps.compute.outputs.IS_DRY_RUN }}
+      is_dry_run: ${{ github.event.inputs.dry_run }}
 
     steps:
-      - id: compute
+      - name: Announce dry-run mode
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && \
-                "${{ github.event.inputs.dry_run }}" == "false" ]]; then
-            echo "IS_DRY_RUN=false" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "Running in DRY-RUN mode"
           else
-            echo "IS_DRY_RUN=true" >> "$GITHUB_OUTPUT"
+            echo "Running in LIVE mode"
           fi
 
   create-tag:
