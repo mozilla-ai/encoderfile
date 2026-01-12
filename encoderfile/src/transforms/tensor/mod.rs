@@ -82,6 +82,9 @@ impl LuaUserData for Tensor {
         methods.add_method("layer_norm", |_, this, (axis, eps)| {
             this.layer_norm(axis, eps)
         });
+        methods.add_method("truncate_axis", |_, this, (axis, len)| {
+            this.truncate_axis(axis, len)
+        });
     }
 }
 
