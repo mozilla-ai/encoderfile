@@ -33,17 +33,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      # - name: Cache cargo
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       ~/.cargo/git
+      #       target
+      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
-      - name: Cargo clean if target too large
-        run: make clean
+      # - name: Cargo clean if target too large
+      #   run: make clean
 
       - name: Cache uv
         uses: actions/cache@v4
@@ -51,11 +51,11 @@ jobs:
           path: ~/.cache/uv
           key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
 
-      - name: Cache cargo binaries
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-bins
+      # - name: Cache cargo binaries
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cargo/bin
+      #     key: ${{ runner.os }}-cargo-bins
 
       - name: Project setup
         uses: ./.github/actions/project-setup
@@ -72,7 +72,7 @@ jobs:
       - name: Run the benchmarks
         uses: CodSpeedHQ/action@v4
         with:
-          mode: instrumentation
+          mode: simulation
           run: cargo codspeed run
           token: ${{ secrets.CODSPEED_TOKEN }}
 
@@ -82,17 +82,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      # - name: Cache cargo
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       ~/.cargo/git
+      #       target
+      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
-      - name: Cargo clean if target too large
-        run: make clean
+      # - name: Cargo clean if target too large
+      #   run: make clean
 
       - name: Cache uv
         uses: actions/cache@v4
@@ -100,11 +100,11 @@ jobs:
           path: ~/.cache/uv
           key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
 
-      - name: Cache cargo binaries
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-bins
+      # - name: Cache cargo binaries
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cargo/bin
+      #     key: ${{ runner.os }}-cargo-bins
 
       - name: Project setup
         uses: ./.github/actions/project-setup
@@ -134,17 +134,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      # - name: Cache cargo
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       ~/.cargo/git
+      #       target
+      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
-      - name: Cargo clean if target too large
-        run: make clean
+      # - name: Cargo clean if target too large
+      #   run: make clean
 
       - name: Cache uv
         uses: actions/cache@v4
@@ -152,11 +152,11 @@ jobs:
           path: ~/.cache/uv
           key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
 
-      - name: Cache cargo binaries
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-bins
+      # - name: Cache cargo binaries
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cargo/bin
+      #     key: ${{ runner.os }}-cargo-bins
 
       - name: Project setup
         uses: ./.github/actions/project-setup

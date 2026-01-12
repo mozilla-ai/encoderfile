@@ -1,29 +1,26 @@
-use std::path::PathBuf;
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv::dotenv().ok();
 
-fn main() {
-    let encoderfile_core_dep_str = match option_env!("ENCODERFILE_DEV") {
-        // include local path if in dev mode
-        Some("true") => get_local_encoderfile_dep(),
-        // otherwise use coupled version. encoderfile and encoderfile-core
-        // should ALWAYS have the same version.
-        Some("false") | None => get_versioned_encoderfile_dep(),
-        _ => panic!("ENCODERFILE_DEV must either be \"true\" or \"false\""),
-    };
+    tonic_prost_build::configure()
+        .protoc_arg("--experimental_allow_proto3_optional")
+        .build_server(true)
+        // .out_dir("src/generated")
+        .compile_protos(
+            &[
+                "proto/embedding.proto",
+                "proto/sequence_classification.proto",
+                "proto/token_classification.proto",
+                "proto/sentence_embedding.proto",
+                "proto/manifest.proto",
+            ],
+            &[
+                "proto/embedding",
+                "proto/sequence_classification",
+                "proto/token_classification",
+                "proto/sentence_embedding",
+                "proto/manifest",
+            ],
+        )?;
 
-    println!(
-        "cargo:rustc-env=ENCODERFILE_CORE_DEP_STR={}",
-        encoderfile_core_dep_str
-    );
-}
-
-fn get_local_encoderfile_dep() -> String {
-    let encoderfile_dir: PathBuf = PathBuf::from("../encoderfile-core")
-        .canonicalize()
-        .expect("Failed to find encoderfile-core directory. This should not happen.");
-
-    format!("path = {:?}", encoderfile_dir.to_str().unwrap())
-}
-
-fn get_versioned_encoderfile_dep() -> String {
-    format!("version = \"{}\"", env!("CARGO_PKG_VERSION"))
+    Ok(())
 }

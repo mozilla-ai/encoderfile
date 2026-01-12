@@ -1,27 +1,110 @@
+[[bench]]
+name = "l2_norm"
+harness = false
+required-features = ["dev-utils"]
+
+[[bench]]
+name = "postprocessing"
+harness = false
+required-features = ["dev-utils"]
+
+[[bench]]
+name = "benchmark_transforms"
+harness = false
+required-features = ["dev-utils"]
+
 [[bin]]
 name = "encoderfile"
-path = "src/main.rs"
+path = "bin/encoderfile.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "generate-encoderfile-config-schema"
+path = "bin/utils/generate_encoderfile_config_schema.rs"
+required-features = ["internal", "cli"]
+
+[[test]]
+name = "transforms"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_grpc"
+required-features = ["dev-utils", "transport"]
+
+[[test]]
+name = "test_http"
+required-features = ["dev-utils", "transport"]
+
+[[test]]
+name = "test_mcp"
+required-features = ["dev-utils", "transport"]
+
+[[test]]
+name = "test_models"
+required-features = ["dev-utils"]
+
+[[test]]
+name = "test_services"
+required-features = ["dev-utils"]
 
 [package]
 name = "encoderfile"
-version = "0.3.0-rc.1"
+version = "0.4.0-beta.4"
 edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
 description = "Distribute and run transformer encoders with a single file."
 
 [dependencies]
+ndarray-stats = "0.6.0"
+ring = "0.17.14"
 clap_derive = "4.5.49"
+console = { version = "0.16.2", optional = true }
 directories = "6.0.0"
-lazy_static = "1.5.0"
+flate2 = "1.1.5"
 sha2 = "0.10.9"
-tera = "1.20.1"
+tar = "0.4.44"
+tempfile = "3.23.0"
+url = "2.5.8"
+utoipa = "5.4.0"
+
+[build-dependencies]
+dotenv = "0.15.0"
+tonic-prost-build = "0.14.2"
 
 [features]
-dev-utils = []
+default = ["cli"]
+transport = [
+  "dep:opentelemetry",
+  "dep:opentelemetry-semantic-conventions",
+  "dep:opentelemetry-stdout",
+  "dep:opentelemetry_sdk",
+  "dep:opentelemetry-otlp",
+  "dep:rmcp",
+  "dep:rmcp-macros",
+  "dep:axum",
+  "dep:axum-server",
+  "dep:tonic-types",
+  "dep:tonic-web",
+  "dep:tracing-opentelemetry",
+  "dep:tower-http",
+]
+dev-utils = ["transport"]
+cli = ["dep:console"]
+internal = []
 
 [dev-dependencies]
 tempfile = "3.23.0"
+tower = "0.5.2"
+test-log = "0.2.18"
+
+[dev-dependencies.uuid]
+version = "1.18.1"
+features = ["v4"]
+
+[dependencies.reqwest]
+version = "0.13.1"
+features = ["blocking"]
 
 [dependencies.tokenizers]
 workspace = true
@@ -44,15 +127,9 @@ workspace = true
 [dependencies.ndarray]
 workspace = true
 
-[dependencies.encoderfile-core]
-path = "../encoderfile-core"
-version = "0.3.0-rc.1"
-features = [ "transforms",]
-default-features = false
-
 [dependencies.figment]
 version = "0.10.19"
-features = [ "env", "serde_yaml", "yaml",]
+features = ["env", "serde_yaml", "yaml"]
 
 [dependencies.serde]
 workspace = true
@@ -60,6 +137,100 @@ workspace = true
 [dependencies.ort]
 workspace = true
 
-[dev-dependencies.uuid]
-version = "1.18.1"
-features = [ "v4",]
+[dependencies.prost]
+workspace = true
+
+[dependencies.opentelemetry]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry-semantic-conventions]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry-stdout]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry_sdk]
+version = "0.31.0"
+optional = true
+
+[dependencies.opentelemetry-otlp]
+version = "0.31.0"
+features = ["grpc-tonic"]
+optional = true
+
+[dependencies.rmcp]
+version = "0.8.0"
+features = ["server", "transport-streamable-http-server"]
+optional = true
+
+[dependencies.rmcp-macros]
+version = "0.8.0"
+optional = true
+
+[dependencies.utoipa-axum]
+version = "0.2.0"
+optional = true
+
+[dependencies.tonic-prost]
+version = "0.14.2"
+
+[dependencies.tonic-types]
+version = "0.14.2"
+optional = true
+
+[dependencies.tonic-web]
+version = "0.14.2"
+optional = true
+
+[dependencies.tracing-opentelemetry]
+version = "0.32.0"
+optional = true
+
+[dependencies.tower-http]
+version = "0.6.6"
+features = ["trace"]
+optional = true
+
+[dependencies.axum]
+version = "0.8.6"
+optional = true
+
+[dependencies.axum-server]
+version = "0.7.3"
+features = ["tls-rustls"]
+optional = true
+
+[dependencies.tracing]
+workspace = true
+
+[dependencies.tonic]
+version = "0.14.2"
+features = ["router"]
+
+[dependencies.tokio]
+workspace = true
+
+[dependencies.tracing-subscriber]
+version = "0.3.20"
+features = ["fmt", "env-filter"]
+
+[dependencies.thiserror]
+workspace = true
+
+[dependencies.mlua]
+version = "0.11.4"
+features = ["lua54", "vendored"]
+
+[dependencies.parking_lot]
+workspace = true
+
+[dev-dependencies.divan]
+version = "4.0.5"
+package = "codspeed-divan-compat"
+
+[dev-dependencies.rmcp]
+version = "0.8.0"
+features = ["client", "transport-streamable-http-client-reqwest"]

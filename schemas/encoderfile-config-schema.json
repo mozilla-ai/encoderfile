@@ -14,9 +14,11 @@
     "EncoderfileConfig": {
       "type": "object",
       "properties": {
-        "build": {
-          "type": "boolean",
-          "default": true
+        "base_binary_path": {
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "cache_dir": {
           "type": [
@@ -38,6 +40,12 @@
         },
         "path": {
           "$ref": "#/$defs/ModelPath"
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "tokenizer": {
           "anyOf": [

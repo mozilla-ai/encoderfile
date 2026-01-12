@@ -3,20 +3,28 @@ name: version management
 on:
   workflow_dispatch:
     inputs:
-      release_level:
+      action:
         type: choice
-        description: Release level (none, patch, minor, major)
+        description: What do you want to do?
         required: true
-        options: [none, patch, minor, major]
-      prerelease:
+        options:
+          - bump-version          # 1.2.3 -> 1.2.4
+          - start-prerelease      # 1.2.3 -> 1.3.0-beta.1
+          - bump-prerelease       # beta.5 -> beta.6
+          - transition-prerelease # beta.5 -> rc.1
+          - finalize              # 1.3.0-rc.2 -> 1.3.0
+
+      level:
         type: choice
-        description: Whether it's a prerelease
-        required: true
-        options: [alpha, beta, rc, release]
-      local:
-        type: string
+        description: Version bump level (required for bump-version / start-prerelease)
         required: false
-        description: "Local metadata (alpha only)"
+        options: [patch, minor, major]
+
+      stage:
+        type: choice
+        description: Prerelease stage (required for start-prerelease / transition-prerelease)
+        required: false
+        options: [alpha, beta, rc]
 
 permissions:
   contents: write
@@ -27,74 +35,137 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate inputs
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          LEVEL="${{ github.event.inputs.level }}"
+          STAGE="${{ github.event.inputs.stage }}"
+
+          case "$ACTION" in
+            bump-version)
+              [ -n "$LEVEL" ] || { echo "level is required"; exit 1; }
+              ;;
+            start-prerelease)
+              [ -n "$LEVEL" ] && [ -n "$STAGE" ] || {
+                echo "level and stage are required"
+                exit 1
+              }
+              ;;
+            bump-prerelease)
+              ;;
+            transition-prerelease)
+              [ -n "$STAGE" ] || { echo "stage is required"; exit 1; }
+              ;;
+            finalize)
+              ;;
+            *)
+              echo "Invalid action"
+              exit 1
+              ;;
+          esac
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get current version
-        id: current_version
-        run: |
-          echo "version=$(cat pyproject.toml | grep '^version = ".*"' | cut -d'"' -f2)" >> $GITHUB_OUTPUT
-
       - name: Setup project
         uses: ./.github/actions/project-setup
 
+      - name: Install cargo-goose
+        run: cargo install cargo-goose
+
+      - name: Get current version
+        id: current_version
+        run: |
+          VERSION=$(cargo metadata --no-deps --format-version=1 \
+            | jq -r '.packages[]
+              | select(.name == "encoderfile")
+              | .version')
+
+          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Bump version
-        id: bump
         run: |
-          NEW_VERSION=$(uv run scripts/bump_version.py \
-            "${{ github.event.inputs.release_level }}" \
-            "${{ github.event.inputs.prerelease }}" \
-            --local "${{ github.event.inputs.local }}" \
-            --start ".")
+          ACTION="${{ github.event.inputs.action }}"
+          LEVEL="${{ github.event.inputs.level }}"
+          STAGE="${{ github.event.inputs.stage }}"
 
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-      
-      - name: Update Cargo.lock
-        run: cargo update encoderfile-core encoderfile --precise ${{ steps.bump.outputs.version }}
-      
-      - name: Update uv.lock
-        run: uv lock
+          case "$ACTION" in
+            bump-version)
+              cargo goose bump version "$LEVEL"
+              ;;
+            start-prerelease)
+              cargo goose bump version "$LEVEL" "$STAGE"
+              ;;
+            bump-prerelease)
+              cargo goose bump prerelease
+              ;;
+            transition-prerelease)
+              cargo goose bump prerelease "$STAGE"
+              ;;
+            finalize)
+              cargo goose bump release
+              ;;
+          esac
 
-      # Generate appropriate labels based on release type
-      - name: Generate PR labels
-        id: generate_labels
+      - name: Get new version
+        id: new_version
         run: |
-          LABELS="auto-generated\nversion-bump"
+          VERSION=$(cargo metadata --no-deps --format-version=1 \
+            | jq -r '.packages[]
+              | select(.name == "encoderfile")
+              | .version')
 
-          RELEASE_LEVEL="${{ github.event.inputs.release_level }}"
-          PRERELEASE="${{ github.event.inputs.prerelease }}"
+          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
 
-          # Add the base release level (patch/minor/major)
-          if [ "$RELEASE_LEVEL" != "none" ]; then
-            LABELS="$LABELS\n$RELEASE_LEVEL"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Abort if version did not change
+        run: |
+          if [ "${{ steps.current_version.outputs.version }}" = \
+               "${{ steps.new_version.outputs.version }}" ]; then
+            echo "Version did not change; aborting"
+            exit 1
           fi
 
-          # Add prerelease label if appropriate
-          if [ "$PRERELEASE" != "release" ]; then
-            LABELS="$LABELS\n$PRERELEASE\nprerelease"
-          else
+      - name: Update Cargo.lock
+        run: cargo generate-lockfile
+
+      - name: Generate PR labels
+        id: labels
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          LEVEL="${{ github.event.inputs.level }}"
+          STAGE="${{ github.event.inputs.stage }}"
+
+          LABELS="auto-generated\nversion-bump\n$ACTION"
+
+          [ -n "$LEVEL" ] && LABELS="$LABELS\n$LEVEL"
+          [ -n "$STAGE" ] && LABELS="$LABELS\n$STAGE\nprerelease"
+
+          if [ "$ACTION" = "finalize" ]; then
             LABELS="$LABELS\nrelease"
           fi
 
-          echo "labels<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$LABELS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "labels<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$LABELS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Create Pull Request
         id: create_pr
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "version: bump version 🚀 ${{ steps.bump.outputs.version }}"
-          title: "version: Version Bump 🚀 ${{ steps.bump.outputs.version }}"
+          commit-message: "version: bump version 🚀 ${{ steps.new_version.outputs.version }}"
+          title: "version: Version Bump 🚀 ${{ steps.new_version.outputs.version }}"
           body: |
-            ## 🎉 Version Bump 🎉
-
-            This PR bumps the version from ${{ steps.current_version.outputs.version }} to ${{ steps.bump.outputs.version }}.
+            Version bumped from ${{ steps.current_version.outputs.version }}
+            to ${{ steps.new_version.outputs.version }}.
 
             ### 🔄 Changes
-            - 📝 Updated version in pyproject.toml
+            - 📝 Updated version in Cargo.toml
             - 🔒 Updated Cargo.lock
 
             ✨ This PR was automatically generated by the Version Management workflow ✨
@@ -104,8 +175,6 @@ jobs:
           base: main
           delete-branch: true
           add-paths: |
-            pyproject.toml
             Cargo.lock
-            uv.lock
             **/Cargo.toml
-          labels: ${{ steps.generate_labels.outputs.labels }}
+          labels: ${{ steps.labels.outputs.labels }}
