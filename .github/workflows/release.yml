@@ -96,7 +96,7 @@ jobs:
 
   publish-encoderfile:
     needs: create-tag
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -113,7 +113,7 @@ jobs:
 
   upload-install-script:
     needs: create-tag
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Upload artifact
@@ -133,9 +133,9 @@ jobs:
             target: x86_64-apple-darwin
           - runner: macos-14
             target: aarch64-apple-darwin
-          - runner: ubuntu-24.04
+          - runner: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
@@ -180,9 +180,9 @@ jobs:
             target: x86_64-apple-darwin
           - runner: macos-14
             target: aarch64-apple-darwin
-          - runner: ubuntu-24.04
+          - runner: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
@@ -249,7 +249,7 @@ jobs:
             runner: ubuntu-latest
           - arch: arm64
             platform: linux/arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm
 
     steps:
       - uses: actions/checkout@v4
