@@ -58,7 +58,7 @@ jobs:
           PRE="false"
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             if [[ "${{ contains(github.event.pull_request.labels.*.name, 'alpha') }}" == "true" ]] || \
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]] || \
+              [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]] || \
               [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
               PRE="true"
             fi
