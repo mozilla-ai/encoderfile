@@ -36,7 +36,7 @@ COPY encoderfile ./encoderfile
 COPY encoderfile-runtime ./encoderfile-runtime
 
 # Build release binary.
-RUN cargo build --release
+RUN cargo build --workspace --release
 
 # ---- Final stage ------------------------------------------------------------
 FROM debian:bookworm-slim AS final

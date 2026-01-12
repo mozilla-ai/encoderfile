@@ -96,7 +96,7 @@ jobs:
 
       - name: Build
         run: |
-          cargo build -p encoderfile --release --target ${{ matrix.target }}
+          cargo build -p encoderfile ---workspace -release --target ${{ matrix.target }}
           mkdir -p dist
           cp target/${{ matrix.target }}/release/encoderfile dist/
           cp target/${{ matrix.target }}/release/encoderfile-runtime dist/
