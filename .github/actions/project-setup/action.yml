@@ -14,17 +14,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Rust toolchain
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
-      with:
-        toolchain: ${{ inputs.toolchain }}
-        target: ${{ inputs.target }}
-
-    # Python
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.13"
-
     # ----- OS-Specific System Dependencies -----
 
     # Linux deps
@@ -58,6 +47,17 @@ runs:
           zlib \
           libelf \
           binutils || true  # binutils conflicts with Apple toolchain, so ignore failure
+
+    # Rust toolchain
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        target: ${{ inputs.target }}
+
+    # Python
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
 
     # ----- Universal steps -----
 
