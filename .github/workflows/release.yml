@@ -22,7 +22,7 @@ jobs:
   compute-dry-run:
     runs-on: ubuntu-latest
     outputs:
-      is_dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || 'false' }}
+      is_dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
 
     steps:
       - name: Compute effective dry-run
