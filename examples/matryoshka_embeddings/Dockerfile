@@ -25,7 +25,8 @@ COPY download_model.sh .
 # instead of fetching them during the Docker build.
 RUN sh download_model.sh
 
-FROM ghcr.io/mozilla-ai/encoderfile:0.4.0-beta.4 AS build
+# TODO: Switch to ghcr.io/mozilla-ai/encoderfile:0.4.0
+FROM ghcr.io/mozilla-ai/encoderfile:0.4.0-beta.5 AS build
 
 RUN apt-get update && apt-get install -y \
     ca-certificates \
