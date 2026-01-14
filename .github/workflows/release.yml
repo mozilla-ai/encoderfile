@@ -42,55 +42,29 @@ jobs:
     needs: ["compute-dry-run"]
 
     outputs:
-      version: ${{ steps.version.outputs.VERSION }}
-      prerelease: ${{ steps.version.outputs.PRERELEASE }}
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-
-      - name: Determine version
+      
+      - name: Get current version
         id: version
-        run: |
-          set -euo pipefail
-
-          # Extract version from Cargo metadata
-          VERSION=$(
-            cargo metadata --no-deps --format-version=1 \
-              | jq -r '.packages[]
-                | select(.name == "encoderfile")
-                | .version'
-          )
-
-          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-            echo "encoderfile package not found in cargo metadata"
-            exit 1
-          fi
-
-          # Determine prerelease (PRs only)
-          PRE="false"
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'alpha') }}" == "true" ]] || \
-              [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]] || \
-              [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
-              PRE="true"
-            fi
-          fi
-
-          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "PRERELEASE=$PRE" >> "$GITHUB_OUTPUT"
-
+        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        with:
+          force-single-version: true
 
       - name: Create git tag
         if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         run: |
-          VERSION=${{ steps.version.outputs.VERSION }}
+          VERSION=${{ steps.version.outputs.version }}
           git tag -a "v$VERSION" -m "Version $VERSION" || true
           git push origin "v$VERSION" || true
 
       - name: Dry-run tag
         if: needs.compute-dry-run.outputs.is_dry_run == 'true'
-        run: echo "[DRY RUN] would create tag v${{ steps.version.outputs.VERSION }}"
+        run: echo "[DRY RUN] would create tag v${{ steps.version.outputs.version }}"
 
   build-macos:
     needs: [create-tag, compute-dry-run]
