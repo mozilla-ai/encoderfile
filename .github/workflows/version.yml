@@ -126,7 +126,7 @@ jobs:
           IS_PRE="${{ steps.new_version.outputs.is_prerelease }}"
           PRE="${{ steps.new_version.outputs.pre }}"
 
-          LABELS="version-bump\n$ACTION"
+          LABELS="version-bump\nauto-generated\n$ACTION"
 
           if [ "$IS_PRE" = "true" ]; then
             LABELS="$LABELS\nprerelease\n$PRE"
