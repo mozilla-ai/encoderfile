@@ -70,21 +70,12 @@ jobs:
 
       - name: Setup project
         uses: ./.github/actions/project-setup
-
-      - name: Install cargo-goose
-        run: cargo install cargo-goose
-
+      
       - name: Get current version
         id: current_version
-        run: |
-          VERSION=$(cargo metadata --no-deps --format-version=1 \
-            | jq -r '.packages[]
-              | select(.name == "encoderfile")
-              | .version')
-
-          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        with:
+          force-single-version: true
 
       - name: Bump version
         run: |
@@ -112,15 +103,9 @@ jobs:
 
       - name: Get new version
         id: new_version
-        run: |
-          VERSION=$(cargo metadata --no-deps --format-version=1 \
-            | jq -r '.packages[]
-              | select(.name == "encoderfile")
-              | .version')
-
-          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        with:
+          force-single-version: true
 
       - name: Abort if version did not change
         run: |
