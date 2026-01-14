@@ -118,20 +118,20 @@ jobs:
       - name: Update Cargo.lock
         run: cargo generate-lockfile
 
-      - name: Generate PR labels
+      - name: Generate labels
         id: labels
         run: |
           ACTION="${{ github.event.inputs.action }}"
           LEVEL="${{ github.event.inputs.level }}"
-          STAGE="${{ github.event.inputs.stage }}"
+          IS_PRE="${{ steps.new_version.outputs.is_prerelease }}"
+          PRE="${{ steps.new_version.outputs.pre }}"
 
-          LABELS="auto-generated\nversion-bump\n$ACTION"
+          LABELS="version-bump\n$ACTION"
 
-          [ -n "$LEVEL" ] && LABELS="$LABELS\n$LEVEL"
-          [ -n "$STAGE" ] && LABELS="$LABELS\n$STAGE\nprerelease"
-
-          if [ "$ACTION" = "finalize" ]; then
-            LABELS="$LABELS\nrelease"
+          if [ "$IS_PRE" = "true" ]; then
+            LABELS="$LABELS\nprerelease\n$PRE"
+          else
+            [ -n "$LEVEL" ] && LABELS="$LABELS\n$LEVEL"
           fi
 
           echo "labels<<EOF" >> "$GITHUB_OUTPUT"
