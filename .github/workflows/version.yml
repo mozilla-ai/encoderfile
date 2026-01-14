@@ -110,30 +110,6 @@ jobs:
         with:
           args: ${{ steps.goose_args.outputs.args }}
 
-      # - name: Bump version
-      #   run: |
-      #     ACTION="${{ github.event.inputs.action }}"
-      #     LEVEL="${{ github.event.inputs.level }}"
-      #     STAGE="${{ github.event.inputs.stage }}"
-
-      #     case "$ACTION" in
-      #       bump-version)
-      #         cargo goose bump version "$LEVEL"
-      #         ;;
-      #       start-prerelease)
-      #         cargo goose bump version "$LEVEL" "$STAGE"
-      #         ;;
-      #       bump-prerelease)
-      #         cargo goose bump prerelease
-      #         ;;
-      #       transition-prerelease)
-      #         cargo goose bump prerelease "$STAGE"
-      #         ;;
-      #       finalize)
-      #         cargo goose bump release
-      #         ;;
-      #     esac
-
       - name: Get new version
         id: new_version
         uses: mozilla-ai/cargo-goose/actions/current-version@v1
