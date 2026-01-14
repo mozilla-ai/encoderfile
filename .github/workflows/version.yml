@@ -68,8 +68,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup project
-        uses: ./.github/actions/project-setup
+      # - name: Setup project
+      #   uses: ./.github/actions/project-setup
       
       - name: Get current version
         id: current_version
