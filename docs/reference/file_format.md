@@ -49,3 +49,11 @@ encoderfile build \
     -f encoderfile.yml \
     --base-binary-path target/release/encoderfile-runtime
 ```
+
+If you do not want to download base binaries and instead rely on cached binaries or a custom binary, you can pass the `--no-download` flag like this:
+
+```bash
+encoderfile build \
+    -f encoderfile.yml \
+    --no-download
+```

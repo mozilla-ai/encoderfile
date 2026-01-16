@@ -214,12 +214,14 @@ encoderfile build -f config.yml
 
 The build process will:
 
-1. Load and validate the configuration
-2. Check for required model files
-3. Validate the ONNX model structure
-4. Generate a Rust project with embedded assets
-5. Compile the project into a self-contained binary
+1. Detect your system platform and download the base runtime binary
+2. Load and validate the configuration
+3. Check for required model files
+4. Validate the ONNX model structure
+5. Format assets and append to the base binary
 6. Output the binary to the specified path (or `./<name>.encoderfile` if not specified)
+
+For more information on encoderfile file formats and build process, check out our page on [Encoderfile File Format](./file_format.md).
 
 **Build output:**
 ```
