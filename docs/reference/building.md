@@ -6,9 +6,12 @@ This guide explains how to build custom encoderfile binaries from HuggingFace tr
 
 Before building encoderfiles, ensure you have:
 
-- [Rust](https://rust-lang.org/tools/install/) - For building the CLI tool and binaries
 - [Python 3.13+](https://www.python.org/downloads/) - For exporting models to ONNX
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
+
+If you are compiling the encoderfile CLI from source, make sure you also have:
+
+- [Rust](https://rust-lang.org/tools/install/) - For building the CLI tool and binaries
 - [protoc](https://protobuf.dev/installation/) - Protocol Buffer compiler
 
 ### Installing Prerequisites

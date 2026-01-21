@@ -11,7 +11,7 @@ docker pull ghcr.io/mozilla-ai/encoderfile:latest
 ```
 
 !!! note "Note on Architecture"
-    Images are published for both `x86_64` and `arm64`. If you're on a more exotic architecture, you'll need to build the Encoderfile CLI from source — see our guide on [Building from Source](../reference/building.md) for more details.
+    Images are published for both `x86_64` and `arm64`. If you're on a more exotic architecture, you'll need to build the encoderfile CLI from source — see our guide on [Building from Source](../reference/building.md) for more details.
 
 ## Mounting Assets
 
@@ -84,8 +84,7 @@ Your path in config.yml doesn’t match where the file appears inside the contai
 Most of the time this is a missing -v "$(pwd):/opt/encoderfile" or a mismatched working directory.
 
 ### “cargo not found”
-You’re not using the correct image.
-Use ghcr.io/mozilla-ai/encoderfile:latest — it includes the full Rust toolchain needed for builds.
+You’re not using the correct image. Make sure you are using `ghcr.io/mozilla-ai/encoderfile:latest`
 
 ### Paths behave differently on Windows
 Use absolute paths or WSL. Docker-for-Windows path translation varies by shell.

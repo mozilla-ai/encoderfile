@@ -40,7 +40,7 @@ If you don't see an op that you need, please don't hesitate to [create an issue]
 
 ## Creating a New Transform
 
-To create a new transform, use the Encoderfile CLI:
+To create a new transform, use the encoderfile CLI:
 
 ```
 encoderfile new-transform --model-type [embedding|sequence_classification|etc.] > /path/to/your/transform/file.lua
