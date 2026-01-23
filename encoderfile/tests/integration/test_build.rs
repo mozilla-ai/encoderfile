@@ -94,9 +94,13 @@ fn test_build_encoderfile() -> Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(encoderfile_path.as_path())?.permissions();
+        let mut perms = fs::metadata(encoderfile_path.as_path())
+            .expect("Failed to get path for built encoderfile")
+            .permissions();
+
         perms.set_mode(0o755);
-        fs::set_permissions(encoderfile_path.as_path(), perms)?;
+        fs::set_permissions(encoderfile_path.as_path(), perms)
+            .expect("Failed to set permissions");
     }
 
     // serve encoderfile
