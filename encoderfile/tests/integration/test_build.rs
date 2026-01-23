@@ -87,7 +87,9 @@ fn test_build_encoderfile() -> Result<()> {
     // build encoderfile
     let global_args = GlobalArguments::default();
 
-    build_args.run(&global_args)?;
+    build_args
+        .run(&global_args)
+        .context("Failed to build encoderfile")?;
 
     #[cfg(unix)]
     {
