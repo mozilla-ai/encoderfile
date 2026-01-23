@@ -303,6 +303,33 @@ encoderfile:
 
 ## Advanced Features
 
+### Cross-compilation
+
+Specify a target architecture for your encoderfile by using the `--platform` argument:
+
+```bash
+encoderfile build -f encoderfile.yml --platform <insert_target_here>
+```
+
+Encoderfile releases pre-built base binaries for the following architectures:
+
+- `x86_64-unknown-linux-gnu`
+- `aarch64-unknown-linux-gnu`
+- `x86_64-apple-darwin`
+- `aarch64-apple-darwin`
+
+If you want to build the base binary locally, you can also point to a path. For example:
+
+```bash
+# build encoderfile base binary from source (will be at ./target/release/encoderfile-runtime)
+cargo build -p encoderfile-runtime --release
+
+# create encoderfile
+encoderfile build \
+  -f encoderfile.yml \
+  --base-binary-path ./target/release/encoderfile-runtime
+```
+
 ### Lua Transforms
 
 Add custom post-processing with Lua scripts:
