@@ -10,7 +10,7 @@ use std::{
 };
 use tempfile::tempdir;
 
-const BINARY_NAME: &'static str = "test.encoderfile";
+const BINARY_NAME: &str = "test.encoderfile";
 
 fn config(model_path: &Path, output_path: &Path) -> String {
     format!(
@@ -40,7 +40,7 @@ encoderfile:
     )
 }
 
-const MODEL_ASSETS_PATH: &'static str = "../models/token_classification";
+const MODEL_ASSETS_PATH: &str = "../models/token_classification";
 
 #[test]
 fn test_build_encoderfile() -> Result<()> {
@@ -125,10 +125,10 @@ fn wait_for_http(url: &str, timeout: Duration) -> Result<()> {
             anyhow::bail!("server did not become ready in time");
         }
 
-        if let Ok(resp) = client.get(url).send() {
-            if resp.status().is_success() {
-                return Ok(());
-            }
+        if let Ok(resp) = client.get(url).send()
+            && resp.status().is_success()
+        {
+            return Ok(());
         }
 
         sleep(Duration::from_millis(200));
