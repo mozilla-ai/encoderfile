@@ -20,7 +20,7 @@ Protobuf specification for encoderfile manifest can be found [here](https://gith
 
 ## Base Binaries
 
-The source code for the base binary to which model artifacts are appended can be found in the [encoderfile-runtime](TODO) crate. By default, the encoderfile CLI pulls pre-built binaries from Github Releases. Currently, we offer pre-built binaries for `aarch64` and `x86_64` architectures of `unknown-linux-gnu` and `apple-darwin`.
+The source code for the base binary to which model artifacts are appended can be found in the [encoderfile-runtime](https://github.com/mozilla-ai/encoderfile/tree/main/encoderfile-runtime) crate. By default, the encoderfile CLI pulls pre-built binaries from Github Releases. Currently, we offer pre-built binaries for `aarch64` and `x86_64` architectures of `unknown-linux-gnu` and `apple-darwin`.
 
 Base binaries are built in a `debian:bookworm` image and are compatible with glibc ≥ 2.36. If you are using an older version of glibc, see instructions on compiling custom base binaries below.
 
