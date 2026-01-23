@@ -81,10 +81,8 @@ fn test_build_encoderfile() -> Result<()> {
     fs::write(ef_config_path.as_path(), config.as_bytes())
         .expect("Failed to write encoderfile config");
 
-    let build_args = encoderfile::build_cli::cli::test_build_args(
-        ef_config_path.as_path(),
-        base_binary_path,
-    );
+    let build_args =
+        encoderfile::build_cli::cli::test_build_args(ef_config_path.as_path(), base_binary_path);
 
     // build encoderfile
     let global_args = GlobalArguments::default();
@@ -99,8 +97,7 @@ fn test_build_encoderfile() -> Result<()> {
             .permissions();
 
         perms.set_mode(0o755);
-        fs::set_permissions(encoderfile_path.as_path(), perms)
-            .expect("Failed to set permissions");
+        fs::set_permissions(encoderfile_path.as_path(), perms).expect("Failed to set permissions");
     }
 
     // serve encoderfile
