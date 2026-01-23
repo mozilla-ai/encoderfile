@@ -2,7 +2,7 @@ use anyhow::{Context, Result, bail};
 
 use encoderfile::build_cli::cli::GlobalArguments;
 use std::{
-    fs, io,
+    fs,
     path::Path,
     process::{Child, Command},
     thread::sleep,
@@ -45,16 +45,20 @@ const MODEL_ASSETS_PATH: &str = "../models/token_classification";
 #[test]
 fn test_build_encoderfile() -> Result<()> {
     let dir = tempdir()?;
-    let path = dir.path();
+    let path = dir
+        .path()
+        .canonicalize()
+        .expect("Failed to canonicalize temp path");
 
     let tmp_model_path = path.join("models").join("token_classification");
 
     let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")?;
-    let ef_config_path = fs::canonicalize(path)?.join("encoderfile.yml");
-    let encoderfile_path = fs::canonicalize(path)?.join(BINARY_NAME);
+    let ef_config_path = path.join("encoderfile.yml");
+    let encoderfile_path = path.join(BINARY_NAME);
 
     // copy model assets to temp dir
-    copy_dir_all(MODEL_ASSETS_PATH, tmp_model_path.as_path())?;
+    copy_dir_all(MODEL_ASSETS_PATH, tmp_model_path.as_path())
+        .expect("Failed to copy model assets to temp directory");
 
     if !tmp_model_path.join("model.onnx").exists() {
         bail!(
@@ -146,7 +150,7 @@ fn spawn_encoderfile(path: &str) -> Result<Child> {
         .context("failed to spawn encoderfile process")
 }
 
-fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<()> {
     let src = src.as_ref();
     let dst = dst.as_ref();
 
@@ -158,9 +162,17 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
         let dest_path = dst.join(entry.file_name());
 
         if ty.is_dir() {
-            copy_dir_all(entry.path(), dest_path)?;
+            copy_dir_all(entry.path(), dest_path.as_path()).context(format!(
+                "Failed to copy {:?} to {:?}",
+                entry.path(),
+                dest_path.as_path()
+            ))?;
         } else {
-            fs::copy(entry.path(), dest_path)?;
+            fs::copy(entry.path(), dest_path.as_path()).context(format!(
+                "Failed to copy {:?} to {:?}",
+                entry.path(),
+                dest_path.as_path()
+            ))?;
         }
     }
 
