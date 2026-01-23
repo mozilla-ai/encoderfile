@@ -52,7 +52,6 @@ fn test_build_encoderfile() -> Result<()> {
 
     let tmp_model_path = path.join("models").join("token_classification");
 
-    let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")?;
     let ef_config_path = path.join("encoderfile.yml");
     let encoderfile_path = path.join(BINARY_NAME);
 
@@ -73,11 +72,8 @@ fn test_build_encoderfile() -> Result<()> {
         .status()
         .expect("Failed to build encoderfile-runtime");
 
-    fs::copy(
-        "../target/debug/encoderfile-runtime",
-        base_binary_path.as_path(),
-    )
-    .expect("Failed to write base binary");
+    let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")
+        .expect("Failed to canonicalize base binary path");
 
     // write encoderfile config
     let config = config(tmp_model_path.as_path(), encoderfile_path.as_path());
@@ -154,7 +150,7 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<
     let src = src.as_ref();
     let dst = dst.as_ref();
 
-    fs::create_dir_all(dst)?;
+    fs::create_dir_all(dst).context(format!("Failed to create directory {:?}", &dst))?;
 
     for entry in fs::read_dir(src)? {
         let entry = entry?;
