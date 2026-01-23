@@ -1,0 +1,59 @@
+name: benchmark
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled]
+  workflow_dispatch:
+
+jobs:
+  run_benchmarks:
+    runs-on: ubuntu-latest
+    if: >
+        contains(github.event.pull_request.labels.*.name, 'benchmark') ||
+        github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # - name: Cache cargo
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       ~/.cargo/git
+      #       target
+      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      # - name: Cargo clean if target too large
+      #   run: make clean
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
+
+      # - name: Cache cargo binaries
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cargo/bin
+      #     key: ${{ runner.os }}-cargo-bins
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+
+      - name: Install test dependencies
+        run: make setup
+
+      - name: Install codspeed
+        run: cargo binstall cargo-codspeed --no-confirm --force
+
+      - name: Build the benchmark target(s)
+        run: cargo codspeed build --all-features
+
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@v4
+        with:
+          mode: simulation
+          run: cargo codspeed run
+          token: ${{ secrets.CODSPEED_TOKEN }}
