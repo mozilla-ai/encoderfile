@@ -163,3 +163,18 @@ impl BuildArgs {
         Ok(())
     }
 }
+
+#[cfg(feature = "dev-utils")]
+pub fn test_build_args(
+    config: impl Into<PathBuf>,
+    base_binary_path: impl Into<PathBuf>,
+) -> BuildArgs {
+    BuildArgs {
+        config: config.into(),
+        output_path: None,
+        base_binary_path: Some(base_binary_path.into()),
+        platform: None,
+        version: None,
+        no_download: true,
+    }
+}
