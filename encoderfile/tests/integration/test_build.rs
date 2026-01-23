@@ -83,7 +83,7 @@ fn test_build_encoderfile() -> Result<()> {
 
     let build_args = encoderfile::build_cli::cli::test_build_args(
         ef_config_path.as_path(),
-        "../target/release/encoderfile-runtime",
+        base_binary_path,
     );
 
     // build encoderfile

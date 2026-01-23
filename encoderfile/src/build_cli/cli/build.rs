@@ -11,7 +11,7 @@ use crate::{
     },
     generated::manifest::Backend,
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::{
     borrow::Cow,
     fs::File,
@@ -130,12 +130,16 @@ impl BuildArgs {
         // initialize final binary
         terminal::info("Writing encoderfile...");
         let output_path = config.encoderfile.output_path();
-        let out = File::create(output_path.clone())?;
+        let out = File::create(output_path.clone())
+            .context(format!("Failed to create final encoderfile at {:?}", output_path.as_path()))?;
+
         let mut out = BufWriter::new(out);
-        let mut base = File::open(base_path)?;
+        let mut base = File::open(base_path.as_path())
+            .context(format!("Failed to open base binary at {:?}", base_path.as_path()))?;
 
         // copy base binary to out
-        std::io::copy(&mut base, &mut out)?;
+        std::io::copy(&mut base, &mut out)
+            .context(format!("Failed to copy base binary to {:?}", output_path.as_path()))?;
 
         // get metadata start position
         let payload_start = out.stream_position()?;
