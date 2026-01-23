@@ -1,6 +1,18 @@
 name: benchmark
 
 on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - .github/**
+      - docs/**
+      - CONTRIBUTING.md
+      - CODE_OF_CONDUCT.md
+      - README.md
+      - mkdocs.yml
+      - examples/**
+      - .vscode/**
+      - scripts/**
   pull_request:
     types: [opened, reopened, labeled, unlabeled]
   workflow_dispatch:
