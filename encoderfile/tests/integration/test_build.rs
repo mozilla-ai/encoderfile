@@ -49,11 +49,9 @@ fn test_build_encoderfile() -> Result<()> {
 
     let tmp_model_path = path.join("models").join("token_classification");
 
-    let ef_config_path = path.join("encoderfile.yml");
-
-    let base_binary_path = path.join("encoderfile-runtime");
-
-    let encoderfile_path = path.join(BINARY_NAME);
+    let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")?;
+    let ef_config_path = fs::canonicalize(path)?.join("encoderfile.yml");
+    let encoderfile_path = fs::canonicalize(path)?.join(BINARY_NAME);
 
     // copy model assets to temp dir
     copy_dir_all(MODEL_ASSETS_PATH, tmp_model_path.as_path())?;
