@@ -20,7 +20,7 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
 
     let model_type = T::enum_val();
 
-    let router = T::router(state)
+    let router = T::grpc_router(state)
         .layer(
             tower_http::trace::TraceLayer::new_for_grpc()
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
