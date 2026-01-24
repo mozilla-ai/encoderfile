@@ -2,7 +2,6 @@ use parking_lot::Mutex;
 use std::{
     fs::File,
     io::{BufReader, Read, Seek},
-    sync::Arc,
 };
 
 use anyhow::Result;
@@ -41,10 +40,10 @@ macro_rules! run_cli {
 
 async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -> Result<()> {
     let cli = Cli::parse();
-    let session = Arc::new(Mutex::new(loader.session()?));
-    let model_config = Arc::new(loader.model_config()?);
-    let tokenizer = Arc::new(loader.tokenizer()?);
-    let config = Arc::new(loader.encoderfile_config()?);
+    let session = Mutex::new(loader.session()?);
+    let model_config = loader.model_config()?;
+    let tokenizer = loader.tokenizer()?;
+    let config = loader.encoderfile_config()?;
 
     match loader.model_type() {
         ModelType::Embedding => run_cli!(Embedding, cli, config, session, tokenizer, model_config),
