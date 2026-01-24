@@ -2,7 +2,7 @@ use crate::{
     common::{EmbeddingRequest, EmbeddingResponse, model_type},
     error::ApiError,
     inference,
-    runtime::{AppState, InferenceState},
+    runtime::AppState,
     transforms::EmbeddingTransform,
 };
 
@@ -15,13 +15,11 @@ impl Inference for AppState<model_type::Embedding> {
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
 
-        let session = self.session();
-
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
         let transform = EmbeddingTransform::new(self.transform_str())?;
 
-        let results = inference::embedding::embedding(session, &transform, encodings)?;
+        let results = inference::embedding::embedding(self.session.lock(), &transform, encodings)?;
 
         Ok(EmbeddingResponse {
             results,

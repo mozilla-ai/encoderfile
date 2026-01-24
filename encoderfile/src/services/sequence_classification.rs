@@ -2,7 +2,7 @@ use crate::{
     common::{SequenceClassificationRequest, SequenceClassificationResponse, model_type},
     error::ApiError,
     inference,
-    runtime::{AppState, InferenceState},
+    runtime::AppState,
     transforms::SequenceClassificationTransform,
 };
 
@@ -15,14 +15,12 @@ impl Inference for AppState<model_type::SequenceClassification> {
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
 
-        let session = self.session();
-
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
         let transform = SequenceClassificationTransform::new(self.transform_str())?;
 
         let results = inference::sequence_classification::sequence_classification(
-            session,
+            self.session.lock(),
             &transform,
             &self.model_config,
             encodings,
