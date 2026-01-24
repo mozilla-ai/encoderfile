@@ -100,11 +100,11 @@ async fn serve_with_optional_tls<T: ModelTypeSpec>(
     maybe_key_file: Option<String>,
     server_type_str: &str,
     state: AppState<T>,
-    into_router_fn: impl Fn(AppState<T>) -> IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
+    into_service_fn: impl Fn(AppState<T>) -> IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
 ) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let router = into_router_fn(state);
+    let router = into_service_fn(state);
 
     let model_type = T::enum_val();
 
