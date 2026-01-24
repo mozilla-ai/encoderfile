@@ -27,7 +27,7 @@ fn embedding_postprocess(b: Bencher, dim: (usize, usize, usize)) {
     let outputs = Array::from_shape_vec((batch, tokens, hidden), data).unwrap();
 
     // Dummy encodings
-    let encodings = generate_dummy_encodings(&tokenizer, batch, tokens);
+    let encodings = generate_dummy_encodings(tokenizer, batch, tokens);
 
     b.bench(|| embedding::postprocess(outputs.clone(), encodings.clone()));
 }
@@ -45,7 +45,7 @@ fn sequence_classification_postprocess(b: Bencher, batch: usize) {
 
     let outputs = Array::from_shape_vec((batch, n_labels), data).unwrap();
 
-    b.bench(|| sequence_classification::postprocess(outputs.clone(), &config));
+    b.bench(|| sequence_classification::postprocess(outputs.clone(), config));
 }
 
 #[divan::bench(args = [(8, 16), (16, 128), (64, 512)])]
@@ -65,9 +65,9 @@ fn token_classification_postprocess(b: Bencher, dim: (usize, usize)) {
     let outputs = Array::from_shape_vec((batch, tokens, n_labels), data).unwrap();
 
     // Dummy encodings
-    let encodings = generate_dummy_encodings(&tokenizer, batch, tokens);
+    let encodings = generate_dummy_encodings(tokenizer, batch, tokens);
 
-    b.bench(|| token_classification::postprocess(outputs.clone(), encodings.clone(), &config));
+    b.bench(|| token_classification::postprocess(outputs.clone(), encodings.clone(), config));
 }
 
 fn generate_dummy_encodings(
