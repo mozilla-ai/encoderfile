@@ -1,12 +1,13 @@
 use crate::{
     AppState,
-    common::model_type::ModelTypeSpec,
+    common::{ModelType, model_type::ModelTypeSpec},
     services::Inference,
     transport::{grpc::GrpcRouter, http::HttpRouter},
 };
 use anyhow::Result;
+use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
 use axum_server::tls_rustls::RustlsConfig;
-use std::path::Path;
+use std::{net::SocketAddr, path::Path};
 use tower_http::trace::DefaultOnResponse;
 
 pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
@@ -27,47 +28,14 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
-    tracing::debug!(
-        "TLS configuration: cert file: {:?}, cert key: {:?}",
+    serve_with_optional_tls(
+        addr.as_str(),
+        router,
         maybe_cert_file,
-        maybe_key_file
-    );
-
-    tracing::info!("Running {:?} gRPC server on {}", model_type, &addr);
-
-    match (maybe_cert_file, maybe_key_file) {
-        (Some(cert_file), Some(key_file)) => {
-            // ref: https://github.com/tokio-rs/axum/blob/main/examples/tls-rustls/src/main.rs#L45
-            // configure certificate and private key used by https
-            let config =
-                RustlsConfig::from_pem_file(Path::new(&cert_file), Path::new(&key_file)).await?;
-
-            let socket_addr = addr.parse()?;
-
-            axum_server::bind_rustls(socket_addr, config)
-                .serve(router)
-                .await?
-        }
-        (None, Some(_)) => {
-            return Err(crate::error::ApiError::ConfigError(
-                "Both cert and key file need to be set. Only the key file has been set.",
-            ))?;
-        }
-        (Some(_), None) => {
-            return Err(crate::error::ApiError::ConfigError(
-                "Both cert and key file need to be set. Only the cert file has been set.",
-            ))?;
-        }
-        (None, None) => {
-            let listener = tokio::net::TcpListener::bind(&addr)
-                .await
-                .expect("Invalid address: {addr}");
-
-            axum::serve(listener, router).await?;
-        }
-    }
-
-    Ok(())
+        maybe_key_file,
+        model_type,
+        "gRPC",
+    ).await
 }
 
 pub async fn run_http<T: ModelTypeSpec + HttpRouter>(
@@ -91,40 +59,14 @@ where
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
-    tracing::info!(
-        "TLS configuration: cert file: {:?}, cert key: {:?}",
+    serve_with_optional_tls(
+        addr.as_str(),
+        router,
         maybe_cert_file,
-        maybe_key_file
-    );
-
-    match (maybe_cert_file, maybe_key_file) {
-        (Some(cert_file), Some(key_file)) => {
-            tracing::info!("Running {:?} HTTPS server on {}", model_type, &addr);
-
-            // ref: https://github.com/tokio-rs/axum/blob/main/examples/tls-rustls/src/main.rs#L45
-            // configure certificate and private key used by https
-            let config = RustlsConfig::from_pem_file(Path::new(&cert_file), Path::new(&key_file))
-                .await
-                .unwrap();
-
-            let socket_addr = addr.parse()?;
-
-            axum_server::bind_rustls(socket_addr, config)
-                .serve(router)
-                .await?
-        }
-        _ => {
-            tracing::info!("Running {:?} HTTP server on {}", model_type, &addr);
-
-            let listener = tokio::net::TcpListener::bind(&addr)
-                .await
-                .expect("Invalid address: {addr}");
-
-            axum::serve(listener, router).await?;
-        }
-    }
-
-    Ok(())
+        maybe_key_file,
+        model_type,
+        "HTTP",
+    ).await
 }
 
 pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
@@ -148,36 +90,48 @@ pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
         )
         .into_make_service_with_connect_info::<std::net::SocketAddr>();
 
-    tracing::info!(
-        "TLS configuration: cert file: {:?}, cert key: {:?}",
+    serve_with_optional_tls(
+        addr.as_str(),
+        router,
         maybe_cert_file,
-        maybe_key_file
-    );
+        maybe_key_file,
+        model_type,
+        "MCP",
+    ).await
+}
 
+async fn serve_with_optional_tls(
+    addr: &str,
+    router: IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
+    maybe_cert_file: Option<String>,
+    maybe_key_file: Option<String>,
+    model_type: ModelType,
+    server_type_str: &str
+) -> Result<()> {
     match (maybe_cert_file, maybe_key_file) {
-        (Some(cert_file), Some(key_file)) => {
-            tracing::info!("Running {:?} MPC-on-TLS server on {}", model_type, &addr);
+        (Some(cert), Some(key)) => {
+            tracing::debug!(
+                "TLS configuration: cert file: {:?}, cert key: {:?}",
+                cert.as_str(),
+                key.as_str()
+            );
 
-            // ref: https://github.com/tokio-rs/axum/blob/main/examples/tls-rustls/src/main.rs#L45
-            // configure certificate and private key used by https
-            let config = RustlsConfig::from_pem_file(Path::new(&cert_file), Path::new(&key_file))
-                .await
-                .unwrap();
+            tracing::info!("Running {:?} {:?} server with TLS on {}", model_type, server_type_str, &addr);
 
+            let config =
+                RustlsConfig::from_pem_file(Path::new(&cert), Path::new(&key)).await?;
             let socket_addr = addr.parse()?;
-
             axum_server::bind_rustls(socket_addr, config)
                 .serve(router)
-                .await?
+                .await?;
+        }
+        (None, None) => {
+            tracing::info!("Running {:?} {:?} server on {}", model_type, server_type_str, &addr);
+            let listener = tokio::net::TcpListener::bind(addr).await?;
+            axum::serve(listener, router).await?;
         }
         _ => {
-            tracing::info!("Running {:?} MCP server on {}", model_type, &addr);
-
-            let listener = tokio::net::TcpListener::bind(&addr)
-                .await
-                .expect("Invalid address: {addr}");
-
-            axum::serve(listener, router).await?;
+            anyhow::bail!("Both cert and key file must be set when TLS is enabled");
         }
     }
 
