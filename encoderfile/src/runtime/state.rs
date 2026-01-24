@@ -1,34 +1,12 @@
 use std::{marker::PhantomData, sync::Arc};
 
 use ort::session::Session;
-use parking_lot::{Mutex, RawMutex, lock_api::MutexGuard};
+use parking_lot::Mutex;
 
 use crate::{
     common::{Config, ModelConfig, ModelType, model_type::ModelTypeSpec},
     runtime::TokenizerService,
 };
-
-pub trait InferenceState {
-    fn config(&self) -> &Arc<Config>;
-    fn session(&self) -> MutexGuard<'_, RawMutex, Session>;
-    fn tokenizer(&self) -> &Arc<TokenizerService>;
-    fn model_config(&self) -> &Arc<ModelConfig>;
-}
-
-impl<T: ModelTypeSpec> InferenceState for AppState<T> {
-    fn config(&self) -> &Arc<Config> {
-        &self.config
-    }
-    fn session(&self) -> MutexGuard<'_, RawMutex, Session> {
-        self.session.lock()
-    }
-    fn tokenizer(&self) -> &Arc<TokenizerService> {
-        &self.tokenizer
-    }
-    fn model_config(&self) -> &Arc<ModelConfig> {
-        &self.model_config
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct AppState<T: ModelTypeSpec> {
