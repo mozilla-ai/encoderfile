@@ -8,23 +8,25 @@ use crate::{
     runtime::TokenizerService,
 };
 
-#[derive(Debug, Clone)]
-pub struct AppState<T: ModelTypeSpec> {
-    pub config: Arc<Config>,
-    pub session: Arc<Mutex<Session>>,
-    pub tokenizer: Arc<TokenizerService>,
-    pub model_config: Arc<ModelConfig>,
+pub type AppState<T> = Arc<EncoderfileState<T>>;
+
+#[derive(Debug)]
+pub struct EncoderfileState<T: ModelTypeSpec> {
+    pub config: Config,
+    pub session: Mutex<Session>,
+    pub tokenizer: TokenizerService,
+    pub model_config: ModelConfig,
     _marker: PhantomData<T>,
 }
 
-impl<T: ModelTypeSpec> AppState<T> {
+impl<T: ModelTypeSpec> EncoderfileState<T> {
     pub fn new(
-        config: Arc<Config>,
-        session: Arc<Mutex<Session>>,
-        tokenizer: Arc<TokenizerService>,
-        model_config: Arc<ModelConfig>,
-    ) -> AppState<T> {
-        AppState {
+        config: Config,
+        session: Mutex<Session>,
+        tokenizer: TokenizerService,
+        model_config: ModelConfig,
+    ) -> EncoderfileState<T> {
+        EncoderfileState {
             config,
             session,
             tokenizer,

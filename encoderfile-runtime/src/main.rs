@@ -8,13 +8,12 @@ use std::{
 use anyhow::Result;
 use clap::Parser;
 use encoderfile::{
-    AppState,
     common::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
     format::codec::EncoderfileCodec,
-    runtime::EncoderfileLoader,
+    runtime::{EncoderfileLoader, EncoderfileState},
     transport::cli::Cli,
 };
 
@@ -33,7 +32,9 @@ async fn main() -> Result<()> {
 
 macro_rules! run_cli {
     ($model_type:ident, $cli:expr, $config:expr, $session:expr, $tokenizer:expr, $model_config:expr) => {{
-        let state = AppState::<$model_type>::new($config, $session, $tokenizer, $model_config);
+        let state =
+            EncoderfileState::<$model_type>::new($config, $session, $tokenizer, $model_config)
+                .into();
         $cli.command.execute(state).await
     }};
 }

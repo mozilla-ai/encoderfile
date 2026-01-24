@@ -19,8 +19,11 @@ impl Inference for AppState<model_type::SentenceEmbedding> {
 
         let transform = SentenceEmbeddingTransform::new(self.transform_str())?;
 
-        let results =
-            inference::sentence_embedding::sentence_embedding(self.session.lock(), &transform, encodings)?;
+        let results = inference::sentence_embedding::sentence_embedding(
+            self.session.lock(),
+            &transform,
+            encodings,
+        )?;
 
         Ok(SentenceEmbeddingResponse {
             results,
