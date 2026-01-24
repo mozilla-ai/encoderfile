@@ -54,7 +54,7 @@ required-features = ["cli", "dev-utils"]
 
 [package]
 name = "encoderfile"
-version = "0.4.0-beta.12"
+version = "0.4.0-rc.1"
 edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
