@@ -1,6 +1,5 @@
 use crate::{
-    common::{FromCliInput, model_type::ModelTypeSpec},
-    runtime::AppState,
+    common::FromCliInput,
     services::Inference,
     transport::{
         grpc::GrpcRouter,
@@ -44,7 +43,7 @@ pub trait CliRoute: Inference {
     }
 }
 
-impl<T: ModelTypeSpec> CliRoute for AppState<T> where AppState<T>: Inference {}
+impl<T: Inference> CliRoute for T {}
 
 #[derive(Parser)]
 pub struct Cli {
