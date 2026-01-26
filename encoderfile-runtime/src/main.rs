@@ -2,19 +2,17 @@ use parking_lot::Mutex;
 use std::{
     fs::File,
     io::{BufReader, Read, Seek},
-    sync::Arc,
 };
 
 use anyhow::Result;
 use clap::Parser;
 use encoderfile::{
-    AppState,
     common::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
     format::codec::EncoderfileCodec,
-    runtime::EncoderfileLoader,
+    runtime::{EncoderfileLoader, EncoderfileState},
     transport::cli::Cli,
 };
 
@@ -33,17 +31,19 @@ async fn main() -> Result<()> {
 
 macro_rules! run_cli {
     ($model_type:ident, $cli:expr, $config:expr, $session:expr, $tokenizer:expr, $model_config:expr) => {{
-        let state = AppState::<$model_type>::new($config, $session, $tokenizer, $model_config);
+        let state =
+            EncoderfileState::<$model_type>::new($config, $session, $tokenizer, $model_config)
+                .into();
         $cli.command.execute(state).await
     }};
 }
 
 async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -> Result<()> {
     let cli = Cli::parse();
-    let session = Arc::new(Mutex::new(loader.session()?));
-    let model_config = Arc::new(loader.model_config()?);
-    let tokenizer = Arc::new(loader.tokenizer()?);
-    let config = Arc::new(loader.encoderfile_config()?);
+    let session = Mutex::new(loader.session()?);
+    let model_config = loader.model_config()?;
+    let tokenizer = loader.tokenizer()?;
+    let config = loader.encoderfile_config()?;
 
     match loader.model_type() {
         ModelType::Embedding => run_cli!(Embedding, cli, config, session, tokenizer, model_config),

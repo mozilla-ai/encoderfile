@@ -67,26 +67,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup project
-        uses: ./.github/actions/project-setup
-
-      - name: Install cargo-goose
-        run: cargo install cargo-goose
-
+      
       - name: Get current version
         id: current_version
-        run: |
-          VERSION=$(cargo metadata --no-deps --format-version=1 \
-            | jq -r '.packages[]
-              | select(.name == "encoderfile")
-              | .version')
-
-          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Bump version
+        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        with:
+          force-single-version: true
+      
+      - name: Compute cargo-goose args
+        id: goose_args
         run: |
           ACTION="${{ github.event.inputs.action }}"
           LEVEL="${{ github.event.inputs.level }}"
@@ -94,33 +83,38 @@ jobs:
 
           case "$ACTION" in
             bump-version)
-              cargo goose bump version "$LEVEL"
+              ARGS="bump version $LEVEL"
               ;;
             start-prerelease)
-              cargo goose bump version "$LEVEL" "$STAGE"
+              ARGS="bump version $LEVEL $STAGE"
               ;;
             bump-prerelease)
-              cargo goose bump prerelease
+              ARGS="bump prerelease"
               ;;
             transition-prerelease)
-              cargo goose bump prerelease "$STAGE"
+              ARGS="bump prerelease $STAGE"
               ;;
             finalize)
-              cargo goose bump release
+              ARGS="bump release"
+              ;;
+            *)
+              echo "Invalid action"
+              exit 1
               ;;
           esac
 
+          echo "args=$ARGS" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version
+        uses: mozilla-ai/cargo-goose/actions/cargo-goose@v1
+        with:
+          args: ${{ steps.goose_args.outputs.args }}
+
       - name: Get new version
         id: new_version
-        run: |
-          VERSION=$(cargo metadata --no-deps --format-version=1 \
-            | jq -r '.packages[]
-              | select(.name == "encoderfile")
-              | .version')
-
-          [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        with:
+          force-single-version: true
 
       - name: Abort if version did not change
         run: |
@@ -133,20 +127,20 @@ jobs:
       - name: Update Cargo.lock
         run: cargo generate-lockfile
 
-      - name: Generate PR labels
+      - name: Generate labels
         id: labels
         run: |
           ACTION="${{ github.event.inputs.action }}"
           LEVEL="${{ github.event.inputs.level }}"
-          STAGE="${{ github.event.inputs.stage }}"
+          IS_PRE="${{ steps.new_version.outputs.is_prerelease }}"
+          PRE="${{ steps.new_version.outputs.pre }}"
 
-          LABELS="auto-generated\nversion-bump\n$ACTION"
+          LABELS="version-bump\nauto-generated\n$ACTION"
 
-          [ -n "$LEVEL" ] && LABELS="$LABELS\n$LEVEL"
-          [ -n "$STAGE" ] && LABELS="$LABELS\n$STAGE\nprerelease"
-
-          if [ "$ACTION" = "finalize" ]; then
-            LABELS="$LABELS\nrelease"
+          if [ "$IS_PRE" = "true" ]; then
+            LABELS="$LABELS\nprerelease\n$PRE"
+          else
+            [ -n "$LEVEL" ] && LABELS="$LABELS\n$LEVEL"
           fi
 
           echo "labels<<EOF" >> "$GITHUB_OUTPUT"

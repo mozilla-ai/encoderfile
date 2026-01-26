@@ -11,7 +11,7 @@ pub trait GrpcRouter: ModelTypeSpec
 where
     Self: Sized,
 {
-    fn router(state: AppState<Self>) -> axum::Router;
+    fn grpc_router(state: AppState<Self>) -> axum::Router;
 }
 
 pub struct GrpcService<T: ModelTypeSpec> {
@@ -35,7 +35,7 @@ macro_rules! generate_grpc_server {
         $server_type:ident
     ) => {
         impl GrpcRouter for model_type::$model_type {
-            fn router(state: AppState<Self>) -> axum::Router {
+            fn grpc_router(state: AppState<Self>) -> axum::Router {
                 tonic::service::Routes::builder()
                     .routes()
                     .add_service($generated_mod::$server_mod::$server_type::new(

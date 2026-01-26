@@ -3,13 +3,15 @@ name: release
 on:
   pull_request:
     types: [closed]
-    branches:
-      - main
+    branches: [main]
+
   workflow_dispatch:
     inputs:
-      version_override:
-        description: "Manually specify the release version (e.g. 1.2.3)"
-        required: false
+      dry_run:
+        description: Dry run
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -17,228 +19,166 @@ permissions:
   id-token: write
 
 jobs:
+  compute-dry-run:
+    runs-on: ubuntu-latest
+    # only run if workflow dispatch or pull request merged *with* tag 'version-bump'
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        contains(github.event.pull_request.labels.*.name, 'version-bump')
+      )
+    outputs:
+      is_dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
+
+    steps:
+      - name: Compute effective dry-run
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] \
+             && [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "Running in DRY-RUN mode"
+          else
+            echo "Running in LIVE mode"
+          fi
+
   create-tag:
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.merged == true &&
-       (contains(github.event.pull_request.labels.*.name, 'beta') ||
-        contains(github.event.pull_request.labels.*.name, 'rc') ||
-        contains(github.event.pull_request.labels.*.name, 'release') ||
-        contains(github.event.pull_request.labels.*.name, 'patch') ||
-        contains(github.event.pull_request.labels.*.name, 'minor') ||
-        contains(github.event.pull_request.labels.*.name, 'major')))
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
+    needs: ["compute-dry-run"]
 
     outputs:
-      version: ${{ steps.versioning.outputs.VERSION }}
-      prerelease: ${{ steps.versioning.outputs.PRERELEASE }}
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Set up Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Determine version
-        id: versioning
-        run: |
-          # 1) If manual workflow_dispatch override given, use that
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && \
-            [[ -n "${{ github.event.inputs.version_override }}" ]]; then
-            VERSION="${{ github.event.inputs.version_override }}"
-            PRE="false"
-            echo "Using manual override: $VERSION"
-
-          else
-            # 2) Extract version from Cargo metadata
-            VERSION=$(
-              cargo metadata --no-deps --format-version=1 \
-                | jq -r '.packages[]
-                  | select(.name == "encoderfile")
-                  | .version'
-            )
-
-            [ -n "$VERSION" ] || { echo "encoderfile not found"; exit 1; }
-
-            # 3) Determine prerelease type from PR labels
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'beta') }}" == "true" ]] || \
-              [[ "${{ contains(github.event.pull_request.labels.*.name, 'rc') }}" == "true" ]]; then
-              PRE="true"
-            else
-              PRE="false"
-            fi
-          fi
-
-          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "PRERELEASE=${PRE}" >> "$GITHUB_OUTPUT"
-
-      - name: Create tag if missing
-        run: |
-          VERSION="${{ steps.versioning.outputs.VERSION }}"
-
-          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-            echo "Tag v${VERSION} already exists."
-          else
-            git tag -a "v${VERSION}" -m "Version ${VERSION}"
-            git push origin "v${VERSION}"
-          fi
-
-  publish-encoderfile:
-    needs: create-tag
-    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Project setup
-        uses: ./.github/actions/project-setup
-
-      - name: Cargo publish (dry-run)
-        run: cargo publish -p encoderfile --dry-run
-
-      - name: Cargo publish
-        run: cargo publish -p encoderfile
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-  upload-install-script:
-    needs: create-tag
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Upload artifact
-
-        uses: actions/upload-artifact@v4
+        with: { fetch-depth: 0 }
+      
+      - name: Get current version
+        id: version
+        uses: mozilla-ai/cargo-goose/actions/current-version@v1
         with:
-          name: install
-          path: install.sh
+          force-single-version: true
 
-  build-encoderfile-runtime:
-    needs: create-tag
-    runs-on: ${{ matrix.platform.runner }}
+      - name: Create git tag
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          git tag -a "v$VERSION" -m "Version $VERSION" || true
+          git push origin "v$VERSION" || true
+
+      - name: Dry-run tag
+        if: needs.compute-dry-run.outputs.is_dry_run == 'true'
+        run: echo "[DRY RUN] would create tag v${{ steps.version.outputs.version }}"
+
+  build-macos:
+    needs: [create-tag, compute-dry-run]
+    runs-on: macos-14
     strategy:
       matrix:
-        platform:
-          - runner: macos-14
-            target: x86_64-apple-darwin
-          - runner: macos-14
-            target: aarch64-apple-darwin
-          - runner: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/project-setup
 
-      - name: Project setup
-        uses: ./.github/actions/project-setup
-
-      - name: Install target
-        run: rustup target add ${{ matrix.platform.target }}
+      - run: rustup target add ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --bin encoderfile-runtime --release --target ${{ matrix.platform.target }}
-
-      - name: Create release tarball
         run: |
-          VERSION="${{ needs.create-tag.outputs.version }}"
-          TARGET="${{ matrix.platform.target }}"
+          cargo build --release --target ${{ matrix.target }}
           mkdir -p dist
+          cp target/${{ matrix.target }}/release/encoderfile dist/
+          cp target/${{ matrix.target }}/release/encoderfile-runtime dist/
 
-          cp target/${TARGET}/release/encoderfile-runtime dist/encoderfile-runtime
-          cp README.md dist/README.md
-          cp LICENSE dist/LICENSE
-          test -f THIRDPARTY.md && cp THIRDPARTY.md dist/THIRDPARTY.md
+      - name: Package
+        run: |
+          mkdir pkg
+          cp dist/* README.md LICENSE pkg/
+          test -f THIRDPARTY.md && cp THIRDPARTY.md pkg/
+          tar -czf encoderfile-${{ matrix.target }}.tar.gz -C pkg .
+          tar -czf encoderfile-runtime-${{ matrix.target }}.tar.gz -C pkg .
 
-          TAR="encoderfile-runtime-${TARGET}.tar.gz"
-          tar -czf "$TAR" -C dist .
-          echo "Created $TAR"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         with:
-          name: encoderfile-runtime-${{ matrix.platform.target }}
-          path: encoderfile-runtime-${{ matrix.platform.target }}.tar.gz
+          name: macos-${{ matrix.target }}
+          path: "*.tar.gz"
 
-  build-encoderfile:
-    needs: create-tag
-    runs-on: ${{ matrix.platform.runner }}
+  build-linux:
+    needs: [create-tag, compute-dry-run]
+    runs-on: ${{ matrix.runner }}
+
     strategy:
+      fail-fast: false
       matrix:
-        platform:
-          - runner: macos-14
-            target: x86_64-apple-darwin
-          - runner: macos-14
-            target: aarch64-apple-darwin
-          - runner: ubuntu-24.04
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Project setup
-        uses: ./.github/actions/project-setup
-
-      - name: Install target
-        run: rustup target add ${{ matrix.platform.target }}
-
-      - name: Build
-        run: cargo build --bin encoderfile --release --target ${{ matrix.platform.target }}
-
-      - name: Create release tarball
+      - name: Build (bookworm, ${{ matrix.arch }})
         run: |
-          VERSION="${{ needs.create-tag.outputs.version }}"
-          TARGET="${{ matrix.platform.target }}"
+          docker build \
+            -f Dockerfile \
+            --target build \
+            --load \
+            -t encoderfile-build:${{ matrix.arch }} \
+            .
+
+          CID=$(docker create encoderfile-build:${{ matrix.arch }})
           mkdir -p dist
+          docker cp "$CID:/app/target/release/encoderfile" dist/
+          docker cp "$CID:/app/target/release/encoderfile-runtime" dist/
+          docker rm "$CID"
 
-          cp target/${TARGET}/release/encoderfile dist/encoderfile
-          cp README.md dist/README.md
-          cp LICENSE dist/LICENSE
-          test -f THIRDPARTY.md && cp THIRDPARTY.md dist/THIRDPARTY.md
+      - name: Package
+        run: |
+          mkdir pkg
+          cp dist/* README.md LICENSE pkg/
+          test -f THIRDPARTY.md && cp THIRDPARTY.md pkg/
 
-          TAR="encoderfile-${TARGET}.tar.gz"
-          tar -czf "$TAR" -C dist .
-          echo "Created $TAR"
+          tar -czf encoderfile-${{ matrix.target }}.tar.gz -C pkg .
+          tar -czf encoderfile-runtime-${{ matrix.target }}.tar.gz -C pkg .
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         with:
-          name: encoderfile-${{ matrix.platform.target }}
-          path: encoderfile-${{ matrix.platform.target }}.tar.gz
+          name: linux-${{ matrix.arch }}
+          path: "*.tar.gz"
 
-  create-release:
-    needs: [create-tag, build-encoderfile, publish-encoderfile, upload-install-script, build-encoderfile-runtime]
+  release:
+    needs: [create-tag, build-macos, build-linux, compute-dry-run]
     runs-on: ubuntu-latest
+
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: dist
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         with:
           tag_name: v${{ needs.create-tag.outputs.version }}
           name: v${{ needs.create-tag.outputs.version }}
           prerelease: ${{ needs.create-tag.outputs.prerelease }}
-          files: |
-            dist/**/*.tar.gz
-            dist/install/install.sh
+          files: dist/**/*.tar.gz
           generate_release_notes: true
 
   docker-build:
-    needs: [create-release, create-tag]
+    needs: [release, create-tag, compute-dry-run]
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -254,8 +194,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -269,40 +209,57 @@ jobs:
             .
 
       - name: Push image
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/encoderfile:${{ matrix.arch }}-${{ needs.create-tag.outputs.version }}
+          docker push \
+            ghcr.io/${{ github.repository_owner }}/encoderfile:${{ matrix.arch }}-${{ needs.create-tag.outputs.version }}
 
   docker-manifest:
-    needs: [docker-build, create-tag]
+    needs: [docker-build, create-tag, compute-dry-run]
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Create multi-arch manifest
+      - name: Bundle dockerfiles
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         run: |
           VERSION=${{ needs.create-tag.outputs.version }}
           PRE=${{ needs.create-tag.outputs.prerelease }}
 
           if [[ "$PRE" == "true" ]]; then
-            echo "Prerelease detected — skipping latest tag"
             docker buildx imagetools create \
               -t ghcr.io/${{ github.repository_owner }}/encoderfile:${VERSION} \
               ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${VERSION} \
               ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${VERSION}
           else
-            echo "Stable release — tagging latest"
             docker buildx imagetools create \
               -t ghcr.io/${{ github.repository_owner }}/encoderfile:${VERSION} \
               -t ghcr.io/${{ github.repository_owner }}/encoderfile:latest \
               ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${VERSION} \
               ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${VERSION}
           fi
+
+  publish-encoderfile:
+    needs: [release, compute-dry-run]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/project-setup
+
+      - name: Cargo publish (dry-run)
+        run: cargo publish -p encoderfile --dry-run
+
+      - name: Cargo publish
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
+        run: cargo publish -p encoderfile
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

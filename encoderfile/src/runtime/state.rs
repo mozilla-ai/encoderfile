@@ -1,52 +1,32 @@
 use std::{marker::PhantomData, sync::Arc};
 
 use ort::session::Session;
-use parking_lot::{Mutex, RawMutex, lock_api::MutexGuard};
+use parking_lot::Mutex;
 
 use crate::{
     common::{Config, ModelConfig, ModelType, model_type::ModelTypeSpec},
     runtime::TokenizerService,
 };
 
-pub trait InferenceState {
-    fn config(&self) -> &Arc<Config>;
-    fn session(&self) -> MutexGuard<'_, RawMutex, Session>;
-    fn tokenizer(&self) -> &Arc<TokenizerService>;
-    fn model_config(&self) -> &Arc<ModelConfig>;
-}
+pub type AppState<T> = Arc<EncoderfileState<T>>;
 
-impl<T: ModelTypeSpec> InferenceState for AppState<T> {
-    fn config(&self) -> &Arc<Config> {
-        &self.config
-    }
-    fn session(&self) -> MutexGuard<'_, RawMutex, Session> {
-        self.session.lock()
-    }
-    fn tokenizer(&self) -> &Arc<TokenizerService> {
-        &self.tokenizer
-    }
-    fn model_config(&self) -> &Arc<ModelConfig> {
-        &self.model_config
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AppState<T: ModelTypeSpec> {
-    pub config: Arc<Config>,
-    pub session: Arc<Mutex<Session>>,
-    pub tokenizer: Arc<TokenizerService>,
-    pub model_config: Arc<ModelConfig>,
+#[derive(Debug)]
+pub struct EncoderfileState<T: ModelTypeSpec> {
+    pub config: Config,
+    pub session: Mutex<Session>,
+    pub tokenizer: TokenizerService,
+    pub model_config: ModelConfig,
     _marker: PhantomData<T>,
 }
 
-impl<T: ModelTypeSpec> AppState<T> {
+impl<T: ModelTypeSpec> EncoderfileState<T> {
     pub fn new(
-        config: Arc<Config>,
-        session: Arc<Mutex<Session>>,
-        tokenizer: Arc<TokenizerService>,
-        model_config: Arc<ModelConfig>,
-    ) -> AppState<T> {
-        AppState {
+        config: Config,
+        session: Mutex<Session>,
+        tokenizer: TokenizerService,
+        model_config: ModelConfig,
+    ) -> EncoderfileState<T> {
+        EncoderfileState {
             config,
             session,
             tokenizer,

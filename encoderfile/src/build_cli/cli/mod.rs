@@ -6,6 +6,9 @@ use clap_derive::{Args, Parser, Subcommand};
 mod build;
 mod runtime;
 
+#[cfg(feature = "dev-utils")]
+pub use build::test_build_args;
+
 #[derive(Debug, Parser)]
 pub struct Cli {
     #[command(subcommand)]
@@ -15,7 +18,7 @@ pub struct Cli {
     pub global_args: GlobalArguments,
 }
 
-#[derive(Debug, Clone, Args)]
+#[derive(Debug, Default, Clone, Args)]
 pub struct GlobalArguments {
     #[arg(
         long = "cache-dir",

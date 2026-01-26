@@ -3,30 +3,30 @@ use crate::{
         Config, ModelConfig, TokenizerConfig,
         model_type::{self, ModelTypeSpec},
     },
-    runtime::AppState,
+    runtime::{AppState, EncoderfileState},
 };
 use ort::session::Session;
 use parking_lot::Mutex;
 use std::str::FromStr;
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::{fs::File, io::BufReader};
 
 const EMBEDDING_DIR: &str = "../models/embedding";
 const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
 pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
-    let config = Arc::new(Config {
+    let config = Config {
         name: "my-model".to_string(),
         version: "0.0.1".to_string(),
         model_type: T::enum_val(),
         transform: None,
-    });
+    };
 
-    let model_config = Arc::new(get_model_config(dir));
-    let tokenizer = Arc::new(get_tokenizer(dir));
-    let session = Arc::new(get_model(dir));
+    let model_config = get_model_config(dir);
+    let tokenizer = get_tokenizer(dir);
+    let session = get_model(dir);
 
-    AppState::new(config, session, tokenizer, model_config)
+    EncoderfileState::new(config, session, tokenizer, model_config).into()
 }
 
 pub fn embedding_state() -> AppState<model_type::Embedding> {
