@@ -2,6 +2,7 @@ use parking_lot::Mutex;
 use std::{
     fs::File,
     io::{BufReader, Read, Seek},
+    sync::Arc,
 };
 
 use anyhow::Result;
@@ -31,9 +32,12 @@ async fn main() -> Result<()> {
 
 macro_rules! run_cli {
     ($model_type:ident, $cli:expr, $config:expr, $session:expr, $tokenizer:expr, $model_config:expr) => {{
-        let state =
-            EncoderfileState::<$model_type>::new($config, $session, $tokenizer, $model_config)
-                .into();
+        let state = Arc::new(EncoderfileState::<$model_type>::new(
+            $config,
+            $session,
+            $tokenizer,
+            $model_config,
+        ));
         $cli.command.execute(state).await
     }};
 }
