@@ -63,7 +63,7 @@ macro_rules! predict_endpoint {
                         .route("/health", axum::routing::get(base::health))
                         .route(
                             "/model",
-                            axum::routing::get(base::get_model_metadata::<ModelType>),
+                            axum::routing::get(base::get_model_metadata::<AppState<ModelType>>),
                         )
                         .route("/predict", axum::routing::post(predict))
                         .route("/openapi.json", axum::routing::get(openapi))
