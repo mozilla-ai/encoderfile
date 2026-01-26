@@ -1,4 +1,4 @@
-use crate::common::model_type::{self, ModelTypeSpec};
+use crate::common::model_type;
 use crate::{
     generated::{embedding, sentence_embedding, sequence_classification, token_classification},
     runtime::AppState,
@@ -14,12 +14,12 @@ where
     fn grpc_router(self) -> axum::Router;
 }
 
-pub struct GrpcService<T: ModelTypeSpec> {
-    state: crate::runtime::AppState<T>,
+pub struct GrpcService<S: Inference + Metadata> {
+    state: S,
 }
 
-impl<T: ModelTypeSpec> GrpcService<T> {
-    pub fn new(state: crate::runtime::AppState<T>) -> Self {
+impl<S: Inference + Metadata> GrpcService<S> {
+    pub fn new(state: S) -> Self {
         Self { state }
     }
 }
@@ -47,7 +47,7 @@ macro_rules! generate_grpc_server {
 
         #[tonic::async_trait]
         impl $crate::generated::$generated_mod::$server_mod::$trait_path
-            for GrpcService<model_type::$model_type>
+            for GrpcService<AppState<model_type::$model_type>>
         {
             async fn predict(
                 &self,
