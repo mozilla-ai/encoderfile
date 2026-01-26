@@ -2,7 +2,7 @@ use crate::common::model_type::{self, ModelTypeSpec};
 use crate::{
     generated::{embedding, sentence_embedding, sequence_classification, token_classification},
     runtime::AppState,
-    services::Inference,
+    services::{Inference, Metadata},
 };
 
 mod error;
@@ -71,9 +71,7 @@ macro_rules! generate_grpc_server {
                 tonic::Response<$crate::generated::metadata::GetModelMetadataResponse>,
                 tonic::Status,
             > {
-                Ok(tonic::Response::new(
-                    $crate::services::get_model_metadata(&self.state).into(),
-                ))
+                Ok(tonic::Response::new(self.state.metadata().into()))
             }
         }
     };

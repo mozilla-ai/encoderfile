@@ -1,4 +1,8 @@
-use crate::{common::model_type::ModelTypeSpec, runtime::AppState, services::Inference};
+use crate::{
+    common::model_type::ModelTypeSpec,
+    runtime::AppState,
+    services::{Inference, Metadata},
+};
 use axum::{Json, extract::State, response::IntoResponse};
 
 pub const HEALTH_ENDPOINT: &str = "/health";
@@ -27,7 +31,7 @@ pub async fn health() -> impl IntoResponse {
 pub async fn get_model_metadata<T: ModelTypeSpec>(
     State(state): State<AppState<T>>,
 ) -> impl IntoResponse {
-    Json(crate::services::get_model_metadata(&state))
+    Json(state.metadata())
 }
 
 pub async fn predict<T: ModelTypeSpec>(

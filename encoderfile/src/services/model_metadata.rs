@@ -3,10 +3,16 @@ use crate::{
     runtime::AppState,
 };
 
-pub fn get_model_metadata<T: ModelTypeSpec>(state: &AppState<T>) -> GetModelMetadataResponse {
-    GetModelMetadataResponse {
-        model_id: state.config.name.clone(),
-        model_type: T::enum_val(),
-        id2label: state.model_config.id2label.clone(),
+pub trait Metadata {
+    fn metadata(&self) -> GetModelMetadataResponse;
+}
+
+impl<T: ModelTypeSpec> Metadata for AppState<T> {
+    fn metadata(&self) -> GetModelMetadataResponse {
+        GetModelMetadataResponse {
+            model_id: self.config.name.clone(),
+            model_type: T::enum_val(),
+            id2label: self.model_config.id2label.clone(),
+        }
     }
 }
