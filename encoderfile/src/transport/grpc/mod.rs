@@ -1,5 +1,5 @@
-use crate::common::model_type;
 use crate::{
+    common::model_type,
     generated::{embedding, sentence_embedding, sequence_classification, token_classification},
     runtime::AppState,
     services::{Inference, Metadata},
