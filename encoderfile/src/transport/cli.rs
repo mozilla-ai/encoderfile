@@ -97,12 +97,9 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute<T: ModelTypeSpec + GrpcRouter + McpRouter + HttpRouter>(
-        self,
-        state: AppState<T>,
-    ) -> Result<()>
+    pub async fn execute<T: ModelTypeSpec>(self, state: AppState<T>) -> Result<()>
     where
-        AppState<T>: Inference,
+        AppState<T>: Inference + GrpcRouter + HttpRouter + McpRouter,
     {
         match self {
             Commands::Serve {

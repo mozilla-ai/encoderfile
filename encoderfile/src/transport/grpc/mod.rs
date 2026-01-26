@@ -7,11 +7,11 @@ use crate::{
 
 mod error;
 
-pub trait GrpcRouter: ModelTypeSpec
+pub trait GrpcRouter
 where
     Self: Sized,
 {
-    fn grpc_router(state: AppState<Self>) -> axum::Router;
+    fn grpc_router(self) -> axum::Router;
 }
 
 pub struct GrpcService<T: ModelTypeSpec> {
@@ -34,12 +34,12 @@ macro_rules! generate_grpc_server {
         $trait_path:ident,
         $server_type:ident
     ) => {
-        impl GrpcRouter for model_type::$model_type {
-            fn grpc_router(state: AppState<Self>) -> axum::Router {
+        impl GrpcRouter for AppState<model_type::$model_type> {
+            fn grpc_router(self) -> axum::Router {
                 tonic::service::Routes::builder()
                     .routes()
                     .add_service($generated_mod::$server_mod::$server_type::new(
-                        GrpcService::new(state),
+                        GrpcService::new(self),
                     ))
                     .into_axum_router()
             }

@@ -2,7 +2,7 @@ use crate::{
     AppState,
     common::model_type::ModelTypeSpec,
     services::Inference,
-    transport::{grpc::GrpcRouter, http::HttpRouter},
+    transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
 use anyhow::Result;
 use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
@@ -10,13 +10,16 @@ use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::Path};
 use tower_http::trace::DefaultOnResponse;
 
-pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
+pub async fn run_grpc<T: ModelTypeSpec>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
     state: AppState<T>,
-) -> Result<()> {
+) -> Result<()>
+where
+    AppState<T>: Inference + GrpcRouter,
+{
     serve_with_optional_tls(
         hostname,
         port,
@@ -25,7 +28,8 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
         "gRPC",
         state,
         |state| {
-            T::grpc_router(state)
+            state
+                .grpc_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_grpc()
                         .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
@@ -36,7 +40,7 @@ pub async fn run_grpc<T: ModelTypeSpec + GrpcRouter>(
     .await
 }
 
-pub async fn run_http<T: ModelTypeSpec + HttpRouter>(
+pub async fn run_http<T: ModelTypeSpec>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
@@ -44,7 +48,7 @@ pub async fn run_http<T: ModelTypeSpec + HttpRouter>(
     state: AppState<T>,
 ) -> Result<()>
 where
-    AppState<T>: Inference,
+    AppState<T>: Inference + HttpRouter,
 {
     serve_with_optional_tls(
         hostname,
@@ -54,7 +58,9 @@ where
         "HTTP",
         state,
         |state| {
-            T::http_router(state)
+            state
+                .clone()
+                .http_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_http()
                         .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
@@ -65,13 +71,16 @@ where
     .await
 }
 
-pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
+pub async fn run_mcp<T: ModelTypeSpec>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
     state: AppState<T>,
-) -> Result<()> {
+) -> Result<()>
+where
+    AppState<T>: Inference + McpRouter,
+{
     serve_with_optional_tls(
         hostname,
         port,
@@ -80,7 +89,8 @@ pub async fn run_mcp<T: ModelTypeSpec + crate::transport::mcp::McpRouter>(
         "MCP",
         state,
         |state| {
-            T::mcp_router(state)
+            state
+                .mcp_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_http()
                         // TODO check if otel is enabled
