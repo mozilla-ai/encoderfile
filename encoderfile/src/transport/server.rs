@@ -1,6 +1,4 @@
 use crate::{
-    AppState,
-    common::model_type::ModelTypeSpec,
     services::Inference,
     transport::{grpc::GrpcRouter, http::HttpRouter, mcp::McpRouter},
 };
@@ -10,16 +8,13 @@ use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::Path};
 use tower_http::trace::DefaultOnResponse;
 
-pub async fn run_grpc<T: ModelTypeSpec>(
+pub async fn run_grpc<S: Inference + GrpcRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
-    state: AppState<T>,
-) -> Result<()>
-where
-    AppState<T>: Inference + GrpcRouter,
-{
+    state: S,
+) -> Result<()> {
     serve_with_optional_tls(
         hostname,
         port,
@@ -29,6 +24,7 @@ where
         state,
         |state| {
             state
+                .clone()
                 .grpc_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_grpc()
@@ -40,16 +36,13 @@ where
     .await
 }
 
-pub async fn run_http<T: ModelTypeSpec>(
+pub async fn run_http<S: Inference + HttpRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
-    state: AppState<T>,
-) -> Result<()>
-where
-    AppState<T>: Inference + HttpRouter,
-{
+    state: S,
+) -> Result<()> {
     serve_with_optional_tls(
         hostname,
         port,
@@ -71,16 +64,13 @@ where
     .await
 }
 
-pub async fn run_mcp<T: ModelTypeSpec>(
+pub async fn run_mcp<S: Inference + McpRouter>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
-    state: AppState<T>,
-) -> Result<()>
-where
-    AppState<T>: Inference + McpRouter,
-{
+    state: S,
+) -> Result<()> {
     serve_with_optional_tls(
         hostname,
         port,
@@ -90,6 +80,7 @@ where
         state,
         |state| {
             state
+                .clone()
                 .mcp_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_http()
@@ -103,20 +94,20 @@ where
     .await
 }
 
-async fn serve_with_optional_tls<T: ModelTypeSpec>(
+async fn serve_with_optional_tls<S: Inference>(
     hostname: String,
     port: String,
     maybe_cert_file: Option<String>,
     maybe_key_file: Option<String>,
     server_type_str: &str,
-    state: AppState<T>,
-    into_service_fn: impl Fn(AppState<T>) -> IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
+    state: S,
+    into_service_fn: impl Fn(&S) -> IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
 ) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 
-    let router = into_service_fn(state);
+    let router = into_service_fn(&state);
 
-    let model_type = T::enum_val();
+    let model_type = state.model_type();
 
     match (maybe_cert_file, maybe_key_file) {
         (Some(cert), Some(key)) => {

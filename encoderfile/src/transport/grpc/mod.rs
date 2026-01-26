@@ -9,7 +9,7 @@ mod error;
 
 pub trait GrpcRouter
 where
-    Self: Sized,
+    Self: Sized + Clone + Send + Sync + 'static,
 {
     fn grpc_router(self) -> axum::Router;
 }

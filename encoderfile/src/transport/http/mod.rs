@@ -1,7 +1,10 @@
 mod base;
 mod error;
 
-pub trait HttpRouter {
+pub trait HttpRouter
+where
+    Self: Sized + Clone + Send + Sync + 'static,
+{
     fn http_router(self) -> axum::Router;
 }
 
