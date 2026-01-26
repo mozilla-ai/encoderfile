@@ -17,7 +17,7 @@ use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{fmt::Display, io::Write};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-trait CliRoute: Inference {
+pub trait CliRoute: Inference {
     fn cli_route(
         &self,
         inputs: Vec<String>,
@@ -97,9 +97,9 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute<T: ModelTypeSpec>(self, state: AppState<T>) -> Result<()>
+    pub async fn execute<S>(self, state: S) -> Result<()>
     where
-        AppState<T>: Inference + GrpcRouter + HttpRouter + McpRouter,
+        S: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
     {
         match self {
             Commands::Serve {
@@ -114,7 +114,7 @@ impl Commands {
                 cert_file,
                 key_file,
             } => {
-                let banner = crate::get_banner(state.config.name.as_str());
+                let banner = crate::get_banner(state.model_id().as_str());
 
                 if disable_grpc && disable_http {
                     return Err(crate::error::ApiError::ConfigError(
@@ -168,7 +168,7 @@ impl Commands {
                 cert_file,
                 key_file,
             } => {
-                let banner = crate::get_banner(state.config.name.as_str());
+                let banner = crate::get_banner(state.model_id().as_str());
                 let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
                 println!("{}", banner);
                 let _ = tokio::join!(mcp_process);
