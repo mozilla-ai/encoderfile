@@ -652,7 +652,7 @@ Encoderfile supports Model Context Protocol, allowing integration with MCP-compa
 ### Connection Details
 
 - **Endpoint:** `/mcp`
-- **Transport:** HTTP-based MCP protocol
+- **Transport:** HTTP-based MCP protocol (Streamable HTTP only)
 - **Port:** Same as HTTP server (default: 8080)
 
 ### MCP Tools

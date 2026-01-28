@@ -78,7 +78,7 @@ Download the encoderfile CLI tool to build your own model binaries:
 curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 ```
 
-> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for instructions on building from source.
+> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for instructions on building from source.
 
 Move the binary to a location in your PATH:
 ```bash
@@ -92,7 +92,7 @@ mv encoderfile ~/.local/bin/
 
 ### Option 2: Build CLI Tool from Source
 
-See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions on building the CLI tool from source.
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for detailed instructions on building the CLI tool from source.
 
 Quick build:
 ```bash
@@ -310,16 +310,16 @@ Run as a Model Context Protocol server:
 
 ## 📚 Documentation 
 
-- **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/latest/getting-started/)** - Step-by-step tutorial
-- **[Building Guide](https://mozilla-ai.github.io/encoderfile/latest/reference/building/)** - Build encoderfiles from ONNX models
-- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/latest/reference/cli/)** - Complete command-line documentation
-- **[API Reference](https://mozilla-ai.github.io/encoderfile/latest/reference/api-reference/)** - REST, gRPC, and MCP API docs
+- **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/)** - Step-by-step tutorial
+- **[Building Guide](https://mozilla-ai.github.io/encoderfile/reference/building/)** - Build encoderfiles from ONNX models
+- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/reference/cli/)** - Complete command-line documentation
+- **[API Reference](https://mozilla-ai.github.io/encoderfile/reference/api-reference/)** - REST, gRPC, and MCP API docs
 
 ## 🛠️ Building Custom Encoderfiles
 
 Once you have the `encoderfile` CLI tool installed, you can build binaries from any compatible HuggingFace model.
 
-See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions including:
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for detailed instructions including:
 
 - How to export models to ONNX format
 - Configuration file options
