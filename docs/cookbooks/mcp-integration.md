@@ -7,13 +7,22 @@ In the following example we will use Mozilla's own [`any-agent`](https://github.
 
 ## Build the custom encoderfile and start the server
 
+We will use the existing test config to build an encoderfile using one of the test models by Mozilla.ai. It will detect Personally Identifiable Information (PII) and tag it accordingly, using tags like `B-SURNAME` for, well, surnames, and `O` for non-PII tokens. As we will see, even if the output consists of logits and tags, the underlying LLM is usually robust enough to focus only on the tags and act appropriately.
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 encoderfile build -f test_config.yml
+```
+
+After building it, we only need to set it up in MCP mode so it will listen to requests. By default it will bind to all interfaces, using port 9100. 
+
+```sh
 my-model-2.encoderfile mcp
 ```
 
 ## Install Dependencies
+
+For this test, we will need the `any-agent` and `any-llm` Python packages:
 
 ```sh
 pip install any-agent[all]
@@ -21,6 +30,8 @@ pip install any-llm-sdk[mistral]
 ```
 
 ## Write the agent
+
+Now we will write an agent with the appropriate prompt. We instruct the agent to use the provided tool, since the current description is fairly generic, and not use metadata that it might consider useful but is not documented anywhere in the tool itself. We will also instruct it to replace only surnames to showcase that the tags can be extracted appropriately:
 
 ```python
 import os
@@ -65,10 +76,13 @@ async def main():
     agent_trace = await agent.run_async(prompt)
     print(agent_trace.final_output)
     await agent.cleanup_async()
-    
 
 
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
 ```
+
+After some struggling with the call conventions, the LLM finally obtains the information from the encoderfile and acts accordingly:
+
+> `My name is Javier [REDACTED]`
