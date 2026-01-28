@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <img src="https://github.com/user-attachments/assets/3916a870-378a-4bad-b819-04fd3c92040a"" width="50%" alt="Project logo"/>
+    <img src="https://github.com/user-attachments/assets/3916a870-378a-4bad-b819-04fd3c92040a" width="50%" alt="Project logo"/>
   </picture>
 </p>
 
@@ -50,7 +50,13 @@ Encoderfiles can run as:
 - CLI for batch processing
 - MCP server (Model Context Protocol)
 
-![Build Diagram](docs/assets/diagram.png)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/encoderfile-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/encoderfile-light.svg">
+    <img alt="Architecture Diagram" src="docs/assets/encoderfile-light.svg" width="80%">
+  </picture>
+</p>
 
 ### Supported Architectures
 
@@ -105,6 +111,7 @@ cargo build --bin encoderfile --release
 ### Step 1: Prepare Your Model
 
 First, you need an ONNX-exported model. Export any HuggingFace model:
+> Requires Python 3.13+ for ONNX export
 
 ```bash
 # Install optimum for ONNX export

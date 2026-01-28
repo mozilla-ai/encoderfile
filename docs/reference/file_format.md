@@ -16,7 +16,7 @@ This approach has a few significant advantages:
 - Clear separation between runtime, metadata, and artifacts
 - Explicit path for forward compatibility
 
-Protobuf specification for encoderfile manifest can be found [here](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/proto/manifest.proto). Source code for the footer can be found [here](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/src/format/footer.rs).
+For implementation details, see the [Protobuf specification for encoderfile manifest](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/proto/manifest.proto) and the [footer](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/src/format/footer.rs).
 
 ## Base Binaries
 
