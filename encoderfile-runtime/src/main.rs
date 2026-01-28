@@ -12,8 +12,7 @@ use encoderfile::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
-    format::codec::EncoderfileCodec,
-    runtime::{EncoderfileLoader, EncoderfileState},
+    runtime::{EncoderfileLoader, EncoderfileState, load_assets},
     transport::cli::Cli,
 };
 
@@ -78,9 +77,3 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
     }
 }
 
-fn load_assets<'a, R: Read + Seek>(file: &'a mut R) -> Result<EncoderfileLoader<'a, R>> {
-    let encoderfile = EncoderfileCodec::read(file)?;
-    let loader = EncoderfileLoader::new(encoderfile, file);
-
-    Ok(loader)
-}
