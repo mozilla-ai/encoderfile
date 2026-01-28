@@ -10,6 +10,9 @@ mod inspect;
 #[cfg(feature = "dev-utils")]
 pub use build::test_build_args;
 
+#[cfg(feature = "dev-utils")]
+pub use inspect::inspect_encoderfile;
+
 #[derive(Debug, Parser)]
 pub struct Cli {
     #[command(subcommand)]
@@ -66,7 +69,10 @@ impl Commands {
             }
             Self::Runtime(r) => r.execute(global),
             Self::NewTransform { model_type } => super::transforms::new_transform(model_type),
-            Self::Inspect { path } => inspect::inspect_encoderfile(path),
+            Self::Inspect { path } => {
+                println!("{}", inspect::inspect_encoderfile(path)?);
+                Ok(())
+            }
         }
     }
 }
