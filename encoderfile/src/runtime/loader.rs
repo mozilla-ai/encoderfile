@@ -6,7 +6,7 @@ use ort::session::Session;
 
 use crate::{
     common::{Config, ModelConfig, ModelType},
-    format::{assets::AssetKind, container::Encoderfile, codec::EncoderfileCodec},
+    format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
     generated::manifest::TransformType,
     runtime::TokenizerService,
 };

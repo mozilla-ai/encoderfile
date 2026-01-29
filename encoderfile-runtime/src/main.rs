@@ -76,4 +76,3 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
         ),
     }
 }
-

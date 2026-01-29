@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use clap_derive::{Args, Parser, Subcommand};
 
 mod build;
-mod runtime;
 mod inspect;
+mod runtime;
 
 #[cfg(feature = "dev-utils")]
 pub use build::test_build_args;
@@ -53,10 +53,10 @@ pub enum Commands {
         model_type: String,
     },
     #[command(about = "Inspect the metadata of an encoderfile.")]
-    Inspect{
+    Inspect {
         #[arg(required = true, help = "Path to encoderfile.")]
         path: String,
-    }
+    },
 }
 
 impl Commands {
@@ -70,7 +70,7 @@ impl Commands {
             Self::Runtime(r) => r.execute(global),
             Self::NewTransform { model_type } => super::transforms::new_transform(model_type),
             Self::Inspect { path } => {
-                println!("{}", inspect::inspect_encoderfile(path)?);
+                println!("{}", inspect::inspect_encoderfile(&path)?);
                 Ok(())
             }
         }

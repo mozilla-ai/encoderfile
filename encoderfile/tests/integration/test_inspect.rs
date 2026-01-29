@@ -1,13 +1,10 @@
 use anyhow::{Context, Result, bail};
 
-use encoderfile::build_cli::cli::{
-    GlobalArguments,
-    inspect_encoderfile,
-};
+use encoderfile::build_cli::cli::{GlobalArguments, inspect_encoderfile};
 use std::{
     fs,
     path::Path,
-    process::{Command},
+    process::{Command, Output},
 };
 use tempfile::tempdir;
 
@@ -70,15 +67,22 @@ fn test_inspect_encoderfile() -> Result<()> {
 
     // compile base binary and copy to temp dir
     let _ = Command::new("cargo")
-        .args(["build", "-p", "encoderfile-runtime"])
+        .args(["build"])
         .status()
         .expect("Failed to build encoderfile-runtime");
 
     let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")
         .expect("Failed to canonicalize base binary path");
 
+    let ef_binary_path = fs::canonicalize("../target/debug/encoderfile")
+        .expect("Failed to canonicalize base binary path");
+
     // write encoderfile config
-    let config = config(&model_name, tmp_model_path.as_path(), encoderfile_path.as_path());
+    let config = config(
+        &model_name,
+        tmp_model_path.as_path(),
+        encoderfile_path.as_path(),
+    );
 
     fs::write(ef_config_path.as_path(), config.as_bytes())
         .expect("Failed to write encoderfile config");
@@ -93,25 +97,28 @@ fn test_inspect_encoderfile() -> Result<()> {
         .run(&global_args)
         .context("Failed to build encoderfile")?;
 
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(encoderfile_path.as_path())
-            .expect("Failed to get path for built encoderfile")
-            .permissions();
+    let ef_path_str = String::from(
+        encoderfile_path
+            .to_str()
+            .expect("Encoderfile path name failed to convert to string"),
+    );
 
-        perms.set_mode(0o755);
-        fs::set_permissions(encoderfile_path.as_path(), perms).expect("Failed to set permissions");
-    }
+    let _inspect_output = inspect_encoderfile(&ef_path_str)?;
 
-    let inspect_output = inspect_encoderfile(
-        String::from(
-            encoderfile_path.as_os_str().to_str().ok_or_else(
-                || anyhow::anyhow!("Encoderfile path name failed to convert to string"))?
-        )
+    let output = run_inspect_encoderfile(
+        ef_binary_path
+            .to_str()
+            .expect("Failed to create encoderfile binary path"),
+        &ef_path_str,
     )?;
 
-    let inspect_output_json = serde_json::from_str::<serde_json::Value>(&inspect_output)
+    let stdout = String::from_utf8(output.stdout)?;
+    let stderr = String::from_utf8(output.stderr)?;
+
+    println!("STDOUT: {}", stdout);
+    println!("STDERR: {}", stderr);
+
+    let inspect_output_json = serde_json::from_str::<serde_json::Value>(&stdout)
         .context("Failed to parse inspect output as JSON")?;
     inspect_output_json
         .get("encoderfile_config")
@@ -150,4 +157,11 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<
     }
 
     Ok(())
+}
+
+fn run_inspect_encoderfile(path: &str, ef_path: &str) -> Result<Output> {
+    let mut cmd = Command::new(path);
+    cmd.arg("inspect").arg(ef_path);
+    println!("{:?}", cmd);
+    cmd.output().context("Failed inspect command")
 }

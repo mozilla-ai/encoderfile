@@ -76,7 +76,11 @@ fn test_build_encoderfile() -> Result<()> {
         .expect("Failed to canonicalize base binary path");
 
     // write encoderfile config
-    let config = config(&String::from("test-model"), tmp_model_path.as_path(), encoderfile_path.as_path());
+    let config = config(
+        &String::from("test-model"),
+        tmp_model_path.as_path(),
+        encoderfile_path.as_path(),
+    );
 
     fs::write(ef_config_path.as_path(), config.as_bytes())
         .expect("Failed to write encoderfile config");
