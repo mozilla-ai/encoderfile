@@ -12,9 +12,7 @@ Encoderfiles are comprised of 4 parts (in order):
 This approach has a few significant advantages:
 
 - No language toolchain requirement for building encoderfiles
-- Flexibility on lazy loading of artifacts (and cheap inspection of encoderfile images)
-- Clear separation between runtime, metadata, and artifacts
-- Explicit path for forward compatibility
+- Encoderfiles are forward-compatible by design: A versioned footer plus a self-describing protobuf manifest allow new artifact types and metadata to be added without changing the binary layout or breaking older runtimes.
 
 For implementation details, see the [Protobuf specification for encoderfile manifest](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/proto/manifest.proto) and the [footer](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/src/format/footer.rs).
 
