@@ -7,7 +7,7 @@ Encoderfiles are comprised of 4 parts (in order):
 - **Rust binary:** Machine code that is actually executed at runtime
 - **Encoderfile manifest:** A protobuf containing encoderfile metadata and lengths, offsets, and hashes of model artifacts
 - **Model Artifacts:** Appended raw binary blobs containing model weights, tokenizer information, transforms, etc.
-- **Footer:** A fixed-sized (32 byte) footer that contains a magic, the location of the manifest, flags, and format version.
+- **Footer:** A fixed-sized (32 byte) footer that contains a magic (`b"ENCFILE\0"`), the location of the manifest, flags, and format version.
 
 This approach has a few significant advantages:
 
