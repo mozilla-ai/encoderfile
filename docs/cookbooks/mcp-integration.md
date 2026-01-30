@@ -25,7 +25,7 @@ my-model-2.encoderfile mcp
 For this test, we will need the `any-agent` and `any-llm` Python packages:
 
 ```sh
-pip install any-agent[all]
+pip install any-agent
 pip install any-llm-sdk[mistral]
 ```
 
@@ -34,53 +34,7 @@ pip install any-llm-sdk[mistral]
 Now we will write an agent with the appropriate prompt. We instruct the agent to use the provided tool, since the current description is fairly generic, and not use metadata that it might consider useful but is not documented anywhere in the tool itself. We will also instruct it to replace only surnames to showcase that the tags can be extracted appropriately:
 
 ```python
-import os
-import shutil
-from getpass import getpass
-
-if "MISTRAL_API_KEY" not in os.environ:
-    print("MISTRAL_API_KEY not found in environment!")
-    api_key = getpass("Please enter your MISTRAL_API_KEY: ")
-    os.environ["MISTRAL_API_KEY"] = api_key
-    print("MISTRAL_API_KEY set for this session!")
-else:
-    print("MISTRAL_API_KEY found in environment.")
-
-import sys
-
-from any_agent import AgentConfig, AnyAgent
-from any_agent.config import MCPStreamableHttp
-
-
-async def main():
-    print("Start creating agent")
-    eftool = MCPStreamableHttp(url="http://localhost:9100/mcp")
-    try:
-        agent = await AnyAgent.create_async(
-            "tinyagent",  # See all options in https://mozilla-ai.github.io/any-agent/
-            AgentConfig(
-                model_id="mistral:mistral-large-latest",
-                tools=[eftool]
-            ),
-        )
-    except Exception as e:
-        print(f"❌ Failed to create agent: {e}")
-    print("Done creating agent")
-
-    prompt = """
-    Use the eftool tool to remove the personal information from this line: "My name is Javier Torres".
-    Do not use any metadata. The "inputs" param must be a sequence with one string.
-    Replace each surname, but not given names, with [REDACTED].
-    """
-
-    agent_trace = await agent.run_async(prompt)
-    print(agent_trace.final_output)
-    await agent.cleanup_async()
-
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+--8<-- "examples/agent_mcp_integration/agent_test.py"
 ```
 
 After some struggling with the call conventions, the LLM finally obtains the information from the encoderfile and acts accordingly:
