@@ -10,7 +10,6 @@ mod runtime;
 #[cfg(feature = "dev-utils")]
 pub use build::test_build_args;
 
-#[cfg(feature = "dev-utils")]
 pub use inspect::inspect_encoderfile;
 
 #[derive(Debug, Parser)]
