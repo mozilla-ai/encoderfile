@@ -1,0 +1,420 @@
+"""
+Creates dummy PyTorch models with fixed logit distribution for CI/testing.
+
+The models output logits where:
+- First class has the highest value
+- Second class has a slightly lower value
+- Remaining classes have -4.0 values
+"""
+
+from pathlib import Path
+import torch
+import torch.nn as nn
+from transformers import (
+    AutoModel,
+    AutoModelForTokenClassification,
+    AutoConfig,
+    PretrainedConfig,
+    ElectraTokenizerFast
+)
+from transformers.modeling_outputs import (
+    SequenceClassifierOutput,
+    TokenClassifierOutput,
+)
+from transformers.modeling_utils import (
+    PreTrainedModel,
+)
+from optimum.exporters.tasks import TasksManager
+from optimum.exporters.onnx import export
+from optimum.exporters.onnx.model_configs import register_tasks_manager_onnx
+from optimum.exporters.onnx.model_configs import BertOnnxConfig
+from optimum.exporters.onnx.model_configs import COMMON_TEXT_TASKS
+
+class DummyConfig(PretrainedConfig):
+    """Dummy configuration similar to BERT configuration."""
+    model_type = "mozilla-ai/test-dummy-encoder"
+
+    def __init__(
+        self,
+        vocab_size=30522,
+        hidden_size=768,
+        num_hidden_layers=12,
+        num_attention_heads=12,
+        intermediate_size=3072,
+        hidden_act="gelu",
+        hidden_dropout_prob=0.1,
+        attention_probs_dropout_prob=0.1,
+        max_position_embeddings=512,
+        type_vocab_size=2,
+        initializer_range=0.02,
+        layer_norm_eps=1e-12,
+        pad_token_id=0,
+        position_embedding_type="absolute",
+        use_cache=True,
+        classifier_dropout=None,
+        **kwargs,
+    ):
+        super().__init__(pad_token_id=pad_token_id, **kwargs)
+
+        self.vocab_size = vocab_size
+        self.hidden_size = hidden_size
+        self.num_hidden_layers = num_hidden_layers
+        self.num_attention_heads = num_attention_heads
+        self.hidden_act = hidden_act
+        self.intermediate_size = intermediate_size
+        self.hidden_dropout_prob = hidden_dropout_prob
+        self.attention_probs_dropout_prob = attention_probs_dropout_prob
+        self.max_position_embeddings = max_position_embeddings
+        self.type_vocab_size = type_vocab_size
+        self.initializer_range = initializer_range
+        self.layer_norm_eps = layer_norm_eps
+        self.position_embedding_type = position_embedding_type
+        self.use_cache = use_cache
+        self.classifier_dropout = classifier_dropout
+
+
+
+class DummySequenceClassifier(PreTrainedModel):
+    """Dummy sequence classifier that outputs fixed logits per sequence."""
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.num_labels = config.num_labels
+        
+        # Create logit template with fixed values
+        # First class: 2.0, Second class: 1.0, Rest: -4.0
+        logits_template = torch.full((1, config.num_labels), -4.0)
+        logits_template[0, 0] = 2.0
+        if config.num_labels > 1:
+            logits_template[0, 1] = 1.0
+        
+        # Register as buffer so it moves with the model to GPU/CPU
+        self.register_buffer("logits_template", logits_template)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs
+    ):
+        """Forward pass that returns fixed logits for each sequence."""
+        
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        
+        # Get batch size from input_ids
+        batch_size = input_ids.shape[0] if input_ids is not None else 1
+        
+        # Expand template logits to match batch size
+        # Each sequence gets the same fixed logit values from the template
+        logits = self.logits_template.expand(batch_size, -1).clone()
+        
+        loss = None
+        if labels is not None:
+            loss_fct = nn.CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+        
+        if not return_dict:
+            return (loss, logits) if loss is not None else (logits,)
+        
+        return SequenceClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+
+
+class DummyTokenClassifier(PreTrainedModel):
+    """Dummy token classifier that outputs fixed logits for each token."""
+    config_class = DummyConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.num_labels = config.num_labels
+        
+        # Create logit template with fixed values
+        # First class: 2.0, Second class: 1.0, Rest: -4.0
+        logits_template = torch.full((1, 1, config.num_labels), -4.0)
+        logits_template[0, 0, 0] = 2.0
+        if config.num_labels > 1:
+            logits_template[0, 0, 1] = 1.0
+        
+        # Register as buffer so it moves with the model to GPU/CPU
+        self.register_buffer("logits_template", logits_template)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs
+    ):
+        """Forward pass that returns fixed logits for each token."""
+
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        
+        # Get batch size and sequence length from input_ids
+        # Force use of attention mask so optimum does not drop it later
+        batch_size, seq_length = (torch.mul(input_ids, attention_mask)).shape
+        
+        # Expand logits template for batch and sequence length
+        logits = self.logits_template.expand(batch_size, seq_length, -1).clone()
+        
+        loss = None
+        if labels is not None:
+            loss_fct = nn.CrossEntropyLoss()
+            loss = loss_fct(
+                logits.view(-1, self.num_labels),
+                labels.view(-1)
+            )
+        
+        if not return_dict:
+            return (loss, logits) if loss is not None else (logits,)
+        
+        return TokenClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+
+
+def _create_and_save_model(
+    model_class,
+    tokenizer_name: str,
+    output_dir: str,
+    num_labels: int,
+):
+    """
+    Common helper to create and save a dummy model.
+    
+    Args:
+        model_class: The model class to instantiate
+        tokenizer_name: HuggingFace model ID for tokenizer
+        output_dir: Directory to save the model
+        num_labels: Number of classification labels
+    """
+    
+    # Load tokenizer
+    # tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+    tokenizer = ElectraTokenizerFast.from_pretrained(tokenizer_name)
+    
+    # Load base config and modify for our needs
+    config = DummyConfig.from_pretrained(
+        "mozilla-ai/test-dummy-encoder",
+        num_labels=num_labels,
+        model_type="mozilla-ai/test-dummy-encoder"
+    )
+
+    print(f"Config: {config}")
+    
+    # Create and save model
+    tokenizer.save_pretrained(output_dir)
+    model = model_class(config)
+    model.save_pretrained(output_dir)
+    
+    print(f"✓ Dummy {model_class.__name__} saved to {output_dir}")
+    
+    return model, tokenizer
+
+
+def create_and_save_sequence_classifier(
+    tokenizer_name: str,
+    output_dir: str,
+    num_labels: int,
+):
+    """
+    Create and save a dummy sequence classification model.
+    
+    Args:
+        tokenizer_name: HuggingFace model ID for tokenizer
+        output_dir: Directory to save the model
+        num_labels: Number of classification labels
+    """
+    return _create_and_save_model(
+        DummySequenceClassifier,
+        tokenizer_name=tokenizer_name,
+        output_dir=output_dir,
+        num_labels=num_labels,
+    )
+
+
+def create_and_save_dummy_token_classifier(
+    tokenizer_name: str,
+    output_dir: str,
+    num_labels: int,
+):
+    """
+    Create and save a dummy token classification model.
+    
+    Args:
+        tokenizer_name: HuggingFace model ID for tokenizer
+        output_dir: Directory to save the model
+        num_labels: Number of classification labels
+    """
+    return _create_and_save_model(
+        DummyTokenClassifier,
+        tokenizer_name=tokenizer_name,
+        output_dir=output_dir,
+        num_labels=num_labels,
+    )
+
+
+def test_dummy_sequence_classifier():
+    """Test the dummy sequence classification model with sample inputs."""
+    
+    print("\n" + "="*50)
+    print("Testing Dummy Sequence Classifier")
+    print("="*50)
+    
+    # Create and save model
+    model, tokenizer = create_and_save_sequence_classifier(
+        tokenizer_name="google/electra-small-discriminator",
+        output_dir="./models/dummy_electra_sequence_classifier",
+        num_labels=7,
+    )
+
+    # Test with sample input
+    text = "Hello, my dog is cute"
+    inputs = tokenizer(text, return_tensors="pt")
+    
+    print(f"\nInput text: '{text}'")
+    print(f"Input IDs shape: {inputs['input_ids'].shape}")
+    
+    # Forward pass
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits
+    
+    print(f"\nOutput logits shape: {logits.shape}")
+    print(f"Logits values: {logits}")
+    
+    predicted_class = logits.argmax(dim=-1).item()
+    print(f"Predicted class: {predicted_class}")
+    
+    # Test with batch
+    texts = ["Hello, my dog is cute", "I love this model"]
+    inputs_batch = tokenizer(texts, return_tensors="pt", padding=True)
+    
+    print(f"\nBatch input shape: {inputs_batch['input_ids'].shape}")
+    
+    with torch.no_grad():
+        outputs_batch = model(**inputs_batch)
+        logits_batch = outputs_batch.logits
+    
+    print(f"Batch output logits:\n{logits_batch}")
+    
+    # Test loss computation
+    labels = torch.tensor([0, 1])
+    with torch.no_grad():
+        outputs_with_loss = model(**inputs_batch, labels=labels)
+        loss = outputs_with_loss.loss
+    
+    print(f"\nLoss: {loss.item():.4f}")
+    
+    print("\n✓ Sequence classifier tests passed!")
+
+
+def test_dummy_token_classifier():
+    """Test the dummy token classification model with sample inputs."""
+    
+    print("\n" + "="*50)
+    print("Testing Dummy Token Classifier")
+    print("="*50)
+    
+    # Create and save model
+    model, tokenizer = create_and_save_dummy_token_classifier(
+        tokenizer_name="google/electra-small-discriminator",
+        output_dir="./models/dummy_electra_token_classifier",
+        num_labels=7,
+    )
+    
+    AutoConfig.register("mozilla-ai/test-dummy-encoder", DummyConfig)
+    AutoModel.register(DummyConfig, DummyTokenClassifier)
+    AutoModelForTokenClassification.register(DummyConfig, DummyTokenClassifier)
+
+    @register_tasks_manager_onnx("mozilla-ai/test-dummy-encoder", *COMMON_TEXT_TASKS)
+    class DummyOnnxConfig(BertOnnxConfig):
+        pass
+
+
+    base_model = AutoModel.from_pretrained("mozilla-ai/test-dummy-encoder")
+    print(base_model)
+    onnx_path = Path("summy_model.onnx")
+    onnx_config_constructor = TasksManager.get_exporter_config_constructor(
+        "onnx",
+        base_model,
+        library_name="transformers",
+        task="token-classification",
+    )
+    print(onnx_config_constructor)
+    onnx_config = onnx_config_constructor(base_model.config)
+    print(onnx_config)
+    onnx_inputs, onnx_outputs = export(base_model, onnx_config, onnx_path)
+
+
+    # Test with sample input
+    text = "Hello, my dog is cute"
+    inputs = tokenizer(text, return_tensors="pt")
+    
+    print(f"\nInput text: '{text}'")
+    print(f"Input IDs shape: {inputs['input_ids'].shape}")
+    
+    # Forward pass
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits
+    
+    print(f"\nOutput logits shape: {logits.shape}")
+    print(f"Logits first token: {logits[0, 0, :]}")
+    
+    predicted_classes = logits.argmax(dim=-1)
+    print(f"Predicted classes per token: {predicted_classes}")
+    
+    # Test with batch
+    texts = ["Hello, my dog is cute", "I love this model"]
+    inputs_batch = tokenizer(texts, return_tensors="pt", padding=True)
+    
+    print(f"\nBatch input shape: {inputs_batch['input_ids'].shape}")
+    
+    with torch.no_grad():
+        outputs_batch = model(**inputs_batch)
+        logits_batch = outputs_batch.logits
+    
+    print(f"Batch output logits shape: {logits_batch.shape}")
+    print(f"First sample, first token logits: {logits_batch[0, 0, :]}")
+    
+    # Test loss computation
+    # Create dummy labels matching sequence length
+    seq_len = inputs_batch['input_ids'].shape[1]
+    labels = torch.zeros((2, seq_len), dtype=torch.long)
+    labels[0, :3] = 1
+    labels[1, :2] = 2
+    
+    with torch.no_grad():
+        outputs_with_loss = model(**inputs_batch, labels=labels)
+        loss = outputs_with_loss.loss
+    
+    print(f"\nLoss: {loss.item():.4f}")
+    
+    print("\n✓ Token classifier tests passed!")
+
+
+if __name__ == "__main__":
+    test_dummy_sequence_classifier()
+    test_dummy_token_classifier()
