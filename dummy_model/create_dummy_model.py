@@ -8,12 +8,16 @@ The models output logits where:
 """
 
 from pathlib import Path
+import click
 import torch
 import torch.nn as nn
 from transformers import (
     AutoModel,
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
     AutoModelForTokenClassification,
     AutoConfig,
+    ElectraConfig,
     PretrainedConfig,
     ElectraTokenizerFast
 )
@@ -30,52 +34,51 @@ from optimum.exporters.onnx.model_configs import register_tasks_manager_onnx
 from optimum.exporters.onnx.model_configs import BertOnnxConfig
 from optimum.exporters.onnx.model_configs import COMMON_TEXT_TASKS
 
-class DummyConfig(PretrainedConfig):
+
+DUMMY_SEQUENCE_ENCODER = "mozilla-ai/test-dummy-sequence-encoder"
+DUMMY_TOKEN_ENCODER = "mozilla-ai/test-dummy-token-encoder"
+
+SEQUENCE_CLASSIFIER_OUTPUT_DIR = "./models/dummy_electra_sequence_classifier"
+TOKEN_CLASSIFIER_OUTPUT_DIR = "./models/dummy_electra_token_classifier"
+
+
+class DummyConfig(ElectraConfig):
     """Dummy configuration similar to BERT configuration."""
-    model_type = "mozilla-ai/test-dummy-encoder"
 
     def __init__(
         self,
-        vocab_size=30522,
-        hidden_size=768,
-        num_hidden_layers=12,
-        num_attention_heads=12,
-        intermediate_size=3072,
-        hidden_act="gelu",
-        hidden_dropout_prob=0.1,
-        attention_probs_dropout_prob=0.1,
-        max_position_embeddings=512,
-        type_vocab_size=2,
-        initializer_range=0.02,
-        layer_norm_eps=1e-12,
-        pad_token_id=0,
-        position_embedding_type="absolute",
-        use_cache=True,
-        classifier_dropout=None,
+        num_labels=5,
         **kwargs,
     ):
-        super().__init__(pad_token_id=pad_token_id, **kwargs)
+        super().__init__(**kwargs)
+        self.num_labels = num_labels
 
-        self.vocab_size = vocab_size
-        self.hidden_size = hidden_size
-        self.num_hidden_layers = num_hidden_layers
-        self.num_attention_heads = num_attention_heads
-        self.hidden_act = hidden_act
-        self.intermediate_size = intermediate_size
-        self.hidden_dropout_prob = hidden_dropout_prob
-        self.attention_probs_dropout_prob = attention_probs_dropout_prob
-        self.max_position_embeddings = max_position_embeddings
-        self.type_vocab_size = type_vocab_size
-        self.initializer_range = initializer_range
-        self.layer_norm_eps = layer_norm_eps
-        self.position_embedding_type = position_embedding_type
-        self.use_cache = use_cache
-        self.classifier_dropout = classifier_dropout
 
+class DummyTokenConfig(DummyConfig):
+    """Dummy configuration similar to BERT configuration."""
+    model_type = DUMMY_TOKEN_ENCODER
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+
+class DummySequenceConfig(DummyConfig):
+    """Dummy configuration similar to BERT configuration."""
+    model_type = DUMMY_SEQUENCE_ENCODER
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
 
 
 class DummySequenceClassifier(PreTrainedModel):
     """Dummy sequence classifier that outputs fixed logits per sequence."""
+    config_class = DummySequenceConfig
 
     def __init__(self, config):
         super().__init__(config)
@@ -88,8 +91,8 @@ class DummySequenceClassifier(PreTrainedModel):
         if config.num_labels > 1:
             logits_template[0, 1] = 1.0
         
-        # Register as buffer so it moves with the model to GPU/CPU
-        self.register_buffer("logits_template", logits_template)
+        self.logits_template = logits_template
+        self.register_buffer("dummy", torch.tensor(0))  # Dummy buffer to avoid empty model warning
 
     def forward(
         self,
@@ -110,7 +113,8 @@ class DummySequenceClassifier(PreTrainedModel):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
         
         # Get batch size from input_ids
-        batch_size = input_ids.shape[0] if input_ids is not None else 1
+        # Force use of attention mask so optimum does not drop it later
+        batch_size, _ = (torch.mul(input_ids, attention_mask)).shape
         
         # Expand template logits to match batch size
         # Each sequence gets the same fixed logit values from the template
@@ -134,7 +138,7 @@ class DummySequenceClassifier(PreTrainedModel):
 
 class DummyTokenClassifier(PreTrainedModel):
     """Dummy token classifier that outputs fixed logits for each token."""
-    config_class = DummyConfig
+    config_class = DummyTokenConfig
 
     def __init__(self, config):
         super().__init__(config)
@@ -148,7 +152,8 @@ class DummyTokenClassifier(PreTrainedModel):
             logits_template[0, 0, 1] = 1.0
         
         # Register as buffer so it moves with the model to GPU/CPU
-        self.register_buffer("logits_template", logits_template)
+        self.logits_template = logits_template
+        self.register_buffer("dummy", torch.tensor(0))  # Dummy buffer to avoid empty model warning
 
     def forward(
         self,
@@ -196,39 +201,61 @@ class DummyTokenClassifier(PreTrainedModel):
 
 def _create_and_save_model(
     model_class,
+    config_class,
     tokenizer_name: str,
     output_dir: str,
     num_labels: int,
+    model_name: str,
+    auto_model_class,
+    task: str,
 ):
     """
-    Common helper to create and save a dummy model.
+    Common helper to create, save, register, and export a dummy model to ONNX.
     
     Args:
         model_class: The model class to instantiate
         tokenizer_name: HuggingFace model ID for tokenizer
         output_dir: Directory to save the model
         num_labels: Number of classification labels
+        model_name: Model identifier (e.g., DUMMY_SEQUENCE_ENCODER)
+        auto_model_class: The AutoModel class for the task (e.g., AutoModelForSequenceClassification)
+        task: The ONNX task name (e.g., "text-classification" or "token-classification")
     """
     
     # Load tokenizer
-    # tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    tokenizer = ElectraTokenizerFast.from_pretrained(tokenizer_name)
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     
-    # Load base config and modify for our needs
-    config = DummyConfig.from_pretrained(
-        "mozilla-ai/test-dummy-encoder",
-        num_labels=num_labels,
-        model_type="mozilla-ai/test-dummy-encoder"
-    )
+    config = config_class(num_labels=num_labels)
 
     print(f"Config: {config}")
     
     # Create and save model
+    config.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
     model = model_class(config)
     model.save_pretrained(output_dir)
     
     print(f"✓ Dummy {model_class.__name__} saved to {output_dir}")
+    
+    # Register model with transformers
+    AutoConfig.register(model_name, config_class)
+    auto_model_class.register(config_class, model_class)
+
+    # Register ONNX configuration
+    @register_tasks_manager_onnx(model_name, *COMMON_TEXT_TASKS)
+    class DummyOnnxConfig(BertOnnxConfig):
+        pass
+
+    onnx_path = Path(output_dir) / Path("model.onnx")
+    onnx_config_constructor = TasksManager.get_exporter_config_constructor(
+        "onnx",
+        model,
+        library_name="transformers",
+        task=task,
+    )
+    onnx_config = onnx_config_constructor(model.config)
+    _onnx_inputs, _onnx_outputs = export(model, onnx_config, onnx_path)
+    print(f"✓ ONNX model exported to {onnx_path}")
     
     return model, tokenizer
 
@@ -247,10 +274,14 @@ def create_and_save_sequence_classifier(
         num_labels: Number of classification labels
     """
     return _create_and_save_model(
-        DummySequenceClassifier,
+        model_class=DummySequenceClassifier,
+        config_class=DummySequenceConfig,
         tokenizer_name=tokenizer_name,
         output_dir=output_dir,
         num_labels=num_labels,
+        model_name=DUMMY_SEQUENCE_ENCODER,
+        auto_model_class=AutoModelForSequenceClassification,
+        task="text-classification",
     )
 
 
@@ -268,27 +299,46 @@ def create_and_save_dummy_token_classifier(
         num_labels: Number of classification labels
     """
     return _create_and_save_model(
-        DummyTokenClassifier,
+        model_class=DummyTokenClassifier,
+        config_class=DummyTokenConfig,
         tokenizer_name=tokenizer_name,
         output_dir=output_dir,
         num_labels=num_labels,
+        model_name=DUMMY_TOKEN_ENCODER,
+        auto_model_class=AutoModelForTokenClassification,
+        task="token-classification",
     )
 
 
-def test_dummy_sequence_classifier():
+def load_dummy_sequence_classifier(model_dir: str, num_labels: int):
+    """Load a dummy sequence classification model from directory."""
+    AutoConfig.register(DUMMY_SEQUENCE_ENCODER, DummySequenceConfig)
+    AutoModelForSequenceClassification.register(DummySequenceConfig, DummySequenceClassifier)
+    config = AutoConfig.from_pretrained(model_dir, num_labels=num_labels)
+    model = AutoModelForSequenceClassification.from_pretrained(model_dir, config=config)
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    return model, tokenizer
+
+
+def load_dummy_token_classifier(model_dir: str, num_labels: int):
+    """Load a dummy token classification model from directory."""
+    AutoConfig.register(DUMMY_TOKEN_ENCODER, DummyTokenConfig)
+    AutoModelForTokenClassification.register(DummyTokenConfig, DummyTokenClassifier)
+    config = AutoConfig.from_pretrained(model_dir, num_labels=num_labels)
+    model = AutoModelForTokenClassification.from_pretrained(model_dir, config=config)
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    return model, tokenizer
+
+
+def test_dummy_sequence_classifier(output_dir: str):
     """Test the dummy sequence classification model with sample inputs."""
     
     print("\n" + "="*50)
     print("Testing Dummy Sequence Classifier")
     print("="*50)
     
-    # Create and save model
-    model, tokenizer = create_and_save_sequence_classifier(
-        tokenizer_name="google/electra-small-discriminator",
-        output_dir="./models/dummy_electra_sequence_classifier",
-        num_labels=7,
-    )
-
+    # Create and save model (includes ONNX export)
+    model, tokenizer = load_dummy_sequence_classifier(output_dir, num_labels=5)
     # Test with sample input
     text = "Hello, my dog is cute"
     inputs = tokenizer(text, return_tensors="pt")
@@ -330,43 +380,15 @@ def test_dummy_sequence_classifier():
     print("\n✓ Sequence classifier tests passed!")
 
 
-def test_dummy_token_classifier():
+def test_dummy_token_classifier(output_dir: str):
     """Test the dummy token classification model with sample inputs."""
     
     print("\n" + "="*50)
     print("Testing Dummy Token Classifier")
     print("="*50)
     
-    # Create and save model
-    model, tokenizer = create_and_save_dummy_token_classifier(
-        tokenizer_name="google/electra-small-discriminator",
-        output_dir="./models/dummy_electra_token_classifier",
-        num_labels=7,
-    )
-    
-    AutoConfig.register("mozilla-ai/test-dummy-encoder", DummyConfig)
-    AutoModel.register(DummyConfig, DummyTokenClassifier)
-    AutoModelForTokenClassification.register(DummyConfig, DummyTokenClassifier)
-
-    @register_tasks_manager_onnx("mozilla-ai/test-dummy-encoder", *COMMON_TEXT_TASKS)
-    class DummyOnnxConfig(BertOnnxConfig):
-        pass
-
-
-    base_model = AutoModel.from_pretrained("mozilla-ai/test-dummy-encoder")
-    print(base_model)
-    onnx_path = Path("summy_model.onnx")
-    onnx_config_constructor = TasksManager.get_exporter_config_constructor(
-        "onnx",
-        base_model,
-        library_name="transformers",
-        task="token-classification",
-    )
-    print(onnx_config_constructor)
-    onnx_config = onnx_config_constructor(base_model.config)
-    print(onnx_config)
-    onnx_inputs, onnx_outputs = export(base_model, onnx_config, onnx_path)
-
+    # Create and save model (includes ONNX export)
+    model, tokenizer = load_dummy_token_classifier(output_dir)
 
     # Test with sample input
     text = "Hello, my dog is cute"
@@ -415,6 +437,54 @@ def test_dummy_token_classifier():
     print("\n✓ Token classifier tests passed!")
 
 
+# CLI Options
+VALID_MODEL_TYPES = ["token", "sequence"]
+
+# Reusable option decorator for model class
+model_type_option = click.option(
+    "--model_type",
+    "-m",
+    type=click.Choice(VALID_MODEL_TYPES, case_sensitive=False),
+    default="sequence",
+    help="Type of model to generate/test: token or sequence",
+)
+
+
+@click.group()
+def app():
+    """Create and test dummy PyTorch models for CI/testing."""
+    pass
+
+
+@app.command()
+@model_type_option
+def generate(model_type: str):
+    """Generate a dummy model and save it to disk."""
+    if model_type == "sequence":
+        create_and_save_sequence_classifier(
+            tokenizer_name="google/electra-small-discriminator",
+            output_dir=SEQUENCE_CLASSIFIER_OUTPUT_DIR,
+            num_labels=7,
+        )
+    elif model_type == "token":
+        create_and_save_dummy_token_classifier(
+            tokenizer_name="google/electra-small-discriminator",
+            output_dir=TOKEN_CLASSIFIER_OUTPUT_DIR,
+            num_labels=7,
+        )
+
+
+@app.command()
+@model_type_option
+def test(model_type: str):
+    """Test a dummy model from disk."""
+    if model_type == "sequence":
+        output_dir = SEQUENCE_CLASSIFIER_OUTPUT_DIR
+        test_dummy_sequence_classifier(output_dir)
+    elif model_type == "token":
+        output_dir = TOKEN_CLASSIFIER_OUTPUT_DIR
+        test_dummy_token_classifier(output_dir)
+
+
 if __name__ == "__main__":
-    test_dummy_sequence_classifier()
-    test_dummy_token_classifier()
+    app()
