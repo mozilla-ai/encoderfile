@@ -62,7 +62,7 @@ Encoderfiles can run as:
 
 Encoderfile supports the following Hugging Face model classes (and their ONNX-exported equivalents):
 
-| Task                                | Supported classes                    | Examples models                                                          |
+| Task                                | Supported classes                    | Example models                                                          |
 | ----------------------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
 | **Embeddings / Feature Extraction** | `AutoModel`, `AutoModelForMaskedLM`  | `bert-base-uncased`, `distilbert-base-uncased`          |
 | **Sequence Classification**         | `AutoModelForSequenceClassification` | `distilbert-base-uncased-finetuned-sst-2-english`, `roberta-large-mnli` |
@@ -72,7 +72,7 @@ Encoderfile supports the following Hugging Face model classes (and their ONNX-ex
 - ⚙️ Models must have ONNX-exported weights (`path/to/your/model/model.onnx`).
 - 🧠 The ONNX graph input must include `input_ids` and optionally `attention_mask`.
 - 🚫 Models relying on generation heads (AutoModelForSeq2SeqLM, AutoModelForCausalLM, etc.) are not supported.
-- `XLNet`, `Transfomer XL`, and derivative architectures are not yet supported.
+- `XLNet`, `Transformer XL`, and derivative architectures are not yet supported.
 
 ## 📦 Installation
 
@@ -84,7 +84,7 @@ Download the encoderfile CLI tool to build your own model binaries:
 curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install.sh | sh
 ```
 
-> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for instructions on building from source.
+> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for instructions on building from source.
 
 Move the binary to a location in your PATH:
 ```bash
@@ -98,7 +98,7 @@ mv encoderfile ~/.local/bin/
 
 ### Option 2: Build CLI Tool from Source
 
-See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions on building the CLI tool from source.
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for detailed instructions on building the CLI tool from source.
 
 Quick build:
 ```bash
@@ -219,126 +219,34 @@ curl -X POST http://localhost:8080/predict \
 
 ## 🎯 Usage Modes
 
-### 1. REST API Server
+| Mode | Command | Default |
+|------|---------|---------|
+| REST API | `./my-model.encoderfile serve` | `http://localhost:8080` |
+| gRPC | `./my-model.encoderfile serve` | `localhost:50051` |
+| CLI | `./my-model.encoderfile infer "text"` | stdout |
+| MCP Server | `./my-model.encoderfile mcp` | — |
 
-Start an HTTP server (default port 8080):
+Both HTTP and gRPC servers start by default. Use `--disable-grpc` or `--disable-http` to run only one.
 
-```bash
-./my-model.encoderfile serve
-```
-
-**Custom configuration:**
-```bash
-./my-model.encoderfile serve \
-  --http-port 3000 \
-  --http-hostname 0.0.0.0
-```
-
-**Disable gRPC (HTTP only):**
-```bash
-./my-model.encoderfile serve --disable-grpc
-```
-
-### 2. gRPC Server
-
-Start with default gRPC server (port 50051):
-
-```bash
-./my-model.encoderfile serve
-```
-
-**gRPC only (no HTTP):**
-```bash
-./my-model.encoderfile serve --disable-http
-```
-
-**Custom gRPC configuration:**
-```bash
-./my-model.encoderfile serve \
-  --grpc-port 50052 \
-  --grpc-hostname localhost
-```
-
-### 3. CLI Inference
-
-Run one-off inference without starting a server:
-
-```bash
-# Single input
-./my-model.encoderfile infer "This is a test sentence"
-
-# Multiple inputs
-./my-model.encoderfile infer "First text" "Second text" "Third text"
-
-# Save output to file
-./my-model.encoderfile infer "Test input" -o results.json
-```
-
-### 4. MCP Server
-
-Run as a Model Context Protocol server:
-
-```bash
-./my-model.encoderfile mcp --hostname 0.0.0.0 --port 9100
-```
-
-## 🔧 Server Configuration
-
-### Port Configuration
-
-```bash
-# Custom HTTP port
-./my-model.encoderfile serve --http-port 3000
-
-# Custom gRPC port
-./my-model.encoderfile serve --grpc-port 50052
-
-# Both
-./my-model.encoderfile serve --http-port 3000 --grpc-port 50052
-```
-
-### Hostname Configuration
-
-```bash
-./my-model.encoderfile serve \
-  --http-hostname 127.0.0.1 \
-  --grpc-hostname localhost
-```
-
-### Service Selection
-
-```bash
-# HTTP only
-./my-model.encoderfile serve --disable-grpc
-
-# gRPC only
-./my-model.encoderfile serve --disable-http
-```
+See the **[CLI Reference](https://mozilla-ai.github.io/encoderfile/latest/reference/cli/)** for all server options, port configuration, and output formats.
 
 ## 📚 Documentation 
 
-- **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/latest/getting-started/)** - Step-by-step tutorial
-- **[Building Guide](https://mozilla-ai.github.io/encoderfile/latest/reference/building/)** - Build encoderfiles from ONNX models
-- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/latest/reference/cli/)** - Complete command-line documentation
-- **[API Reference](https://mozilla-ai.github.io/encoderfile/latest/reference/api-reference/)** - REST, gRPC, and MCP API docs
+- **[Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/)** - Step-by-step tutorial
+- **[Building Guide](https://mozilla-ai.github.io/encoderfile/reference/building/)** - Build encoderfiles from ONNX models
+- **[CLI Reference](https://mozilla-ai.github.io/encoderfile/reference/cli/)** - Complete command-line documentation
+- **[API Reference](https://mozilla-ai.github.io/encoderfile/reference/api-reference/)** - REST, gRPC, and MCP API docs
 
 ## 🛠️ Building Custom Encoderfiles
 
 Once you have the `encoderfile` CLI tool installed, you can build binaries from any compatible HuggingFace model.
 
-See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions including:
-
-- How to export models to ONNX format
-- Configuration file options
-- Advanced features (Lua transforms, custom paths, etc.)
-- Troubleshooting tips
-
-**Quick workflow:**
-
 1. Export your model to ONNX: `optimum-cli export onnx ...`
 2. Create a config file: `config.yml`
 3. Build the binary: `encoderfile build -f config.yml`
 4. Deploy anywhere: `./build/my-model.encoderfile serve`
+
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for detailed instructions.
 
 ## 🤝 Contributing
 

@@ -15,13 +15,13 @@ docker pull ghcr.io/mozilla-ai/encoderfile:latest
 
 ## Mounting Assets
 
-The Docker container needs access to two elements to build an Encoderfile:
+The Docker container needs access to the following elements to build an Encoderfile:
 
-1. **Config file** - Your `config.yml` passed via `-f` flag
-2. **Model assets** - ONNX file, tokenizer,  `config.json` referenced by `config.yml`.
+1. **Config file** - Your `encoderfile.yml` passed via `-f` flag
+2. **Model assets** - ONNX file, tokenizer,  `config.json` referenced by `encoderfile.yml`.
 3. **Output directory** - Where the `.encoderfile` binary will be written
 
-All paths in your config must exist inside the container. Mount your project directory to `/opt/encoderfile` (the default working directory) so encoderfile can find everything and write the output back to your host machine.Retry
+All paths in your config must exist inside the container. Mount your project directory to `/opt/encoderfile` (the default working directory) so encoderfile can find everything and write the output back to your host machine.
 
 ## Minimal Example
 
@@ -74,7 +74,7 @@ docker run \
 What happens:
 
 - Your current directory is mounted into the container at `/opt/encoderfile`.
-- Inside the container, Encoderfile sees `config.yml` and any model paths exactly as they appear in your project.
+- Inside the container, Encoderfile sees `encoderfile.yml` and any model paths exactly as they appear in your project.
 - The resulting `.encoderfile` binary is written back into your project directory
 
 ## Troubleshooting

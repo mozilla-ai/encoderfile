@@ -22,6 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install
 ### Python with Optimum
 
 For exporting models to ONNX:
+> Requires Python 3.13+
 
 ```bash
 pip install optimum[exporters]

@@ -333,7 +333,7 @@ encoderfile infer <INPUTS>... [OPTIONS]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `-f, --format` | Enum | `json` | Output format (currently only JSON supported) |
+| `-f, --format` | Enum | `json` | Output format (currently only JSON is supported) |
 | `-o, --out-dir` | String | None | Output file path; if not provided, prints to stdout |
 
 #### Model Types

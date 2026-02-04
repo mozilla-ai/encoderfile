@@ -28,7 +28,7 @@ While **Llamafile** focuses on generative models, **Encoderfile** is purpose-bui
 * **Protocol Agnostic:** Runs as a REST API, gRPC microservice, CLI tool, or MCP Server out of the box.
 * **Compliance-Friendly:** Deterministic and offline-safe, making it ideal for strict security boundaries.
 
-> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for instructions on building from source.
+> **Note for Windows users:** Pre-built binaries are not available for Windows. Please see our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for instructions on building from source.
 
 ## Use Cases
 
@@ -47,8 +47,6 @@ Encoderfile supports encoder-only transformers for:
 - **Sequence Classification** - Sentiment analysis, topic classification
 - **Token Classification** - Named Entity Recognition, PII detection
 - **Sentence Embeddings** - Semantic search, clustering
-
-See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/latest/reference/building/) for detailed instructions on building the CLI tool from source.
 
 Generation models (GPT, T5) are not supported. See [CLI Reference](reference/cli.md) for complete model type details.
 

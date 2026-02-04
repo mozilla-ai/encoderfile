@@ -349,7 +349,7 @@ encoderfile:
   name: my-model
   path: ./models/my-model
   model_type: embedding
-  transform: "return normalize(output)"
+  transform: "return lp_normalize(output)"
 ```
 
 ### Custom Cache Directory
@@ -475,7 +475,7 @@ You can distribute the binary by:
 
 ## Next Steps
 
-- [CLI Reference](https://mozilla-ai.github.io/encoderfile/cli/) - Complete command-line documentation
-- [API Reference](https://mozilla-ai.github.io/encoderfile/api-reference/) - REST, gRPC, and MCP APIs
+- [CLI Reference](https://mozilla-ai.github.io/encoderfile/reference/cli/) - Complete command-line documentation
+- [API Reference](https://mozilla-ai.github.io/encoderfile/reference/api-reference/) - REST, gRPC, and MCP APIs
 - [Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/) - Step-by-step tutorial
 - [Contributing](../CONTRIBUTING.md) - Help improve encoderfile
