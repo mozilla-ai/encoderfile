@@ -334,7 +334,7 @@ mod tests {
 
     #[test]
     fn test_validate_tokenizer_no_config() {
-        let path = ModelPath::Directory("../models/token_classification".into());
+        let path = ModelPath::Directory("../models/dummy_token_classifier".into());
 
         let explicit_path = ModelPath::Paths {
             model_config_path: path.model_config_path().unwrap(),

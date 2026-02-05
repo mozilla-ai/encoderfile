@@ -40,7 +40,7 @@ encoderfile:
     )
 }
 
-const MODEL_ASSETS_PATH: &str = "../models/token_classification";
+const MODEL_ASSETS_PATH: &str = "../models/dummy_token_classifier";
 
 #[test]
 fn test_build_encoderfile() -> Result<()> {
@@ -50,7 +50,7 @@ fn test_build_encoderfile() -> Result<()> {
         .canonicalize()
         .expect("Failed to canonicalize temp path");
 
-    let tmp_model_path = path.join("models").join("token_classification");
+    let tmp_model_path = path.join("models").join("dummy_token_classifier");
 
     let ef_config_path = path.join("encoderfile.yml");
     let encoderfile_path = path.join(BINARY_NAME);

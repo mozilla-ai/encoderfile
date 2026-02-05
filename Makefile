@@ -1,9 +1,13 @@
 .PHONY: setup
 setup:
+	@echo "logging to hf..."
+	@curl -LsSf https://hf.co/cli/install.sh | bash
+	@echo ${#HF_TOKEN}
+	@hf auth login --token $(HF_TOKEN)
 	@echo "creating .venv..."
 	@uv sync --locked
 	@echo "downloading test models..."
-	@uv run --group setup scripts/download_test_models.py
+	@uv run --group setup --group models scripts/download_test_models.py
 
 .PHONY: format
 format:
