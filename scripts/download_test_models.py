@@ -1,7 +1,6 @@
 """Download models for testing."""
 
 import os
-import sys
 from transformers import AutoTokenizer, AutoConfig
 from optimum.onnxruntime import (
     ORTModel,

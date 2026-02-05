@@ -56,7 +56,12 @@ macro_rules! test_mcp_server_impl {
                 let dummy_state = $state_func();
                 let (start_sender, start_receiver) = oneshot::channel();
                 let (shutdown_sender, shutdown_receiver) = oneshot::channel();
-                let _mcp_server = tokio::spawn(super::run_mcp(addr, dummy_state, shutdown_receiver, start_sender));
+                let _mcp_server = tokio::spawn(super::run_mcp(
+                    addr,
+                    dummy_state,
+                    shutdown_receiver,
+                    start_sender,
+                ));
                 // Client usage copied over from https://github.com/modelcontextprotocol/rust-sdk/blob/main/examples/clients/src/streamable_http.rs
                 let client_transport = StreamableHttpClientTransport::from_uri(format!(
                     "http://{}:{}/mcp",
@@ -118,7 +123,9 @@ macro_rules! test_mcp_server_impl {
                 .expect("failed to parse tool result");
                 assert_eq!(embeddings_response.results.len(), 2);
                 client.cancel().await.expect("Error cancelling the agent");
-                shutdown_sender.send(()).expect("Error sending shutdown signal");
+                shutdown_sender
+                    .send(())
+                    .expect("Error sending shutdown signal");
             }
         }
     };

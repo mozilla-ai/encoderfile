@@ -53,6 +53,7 @@ class DummyConfig(ElectraConfig):
 
 class DummyTokenConfig(DummyConfig):
     """Dummy configuration similar to BERT configuration."""
+
     model_type = DUMMY_TOKEN_ENCODER
 
     def __init__(
@@ -64,6 +65,7 @@ class DummyTokenConfig(DummyConfig):
 
 class DummySequenceConfig(DummyConfig):
     """Dummy configuration similar to BERT configuration."""
+
     model_type = DUMMY_SEQUENCE_ENCODER
 
     def __init__(
@@ -75,21 +77,24 @@ class DummySequenceConfig(DummyConfig):
 
 class DummySequenceClassifier(PreTrainedModel):
     """Dummy sequence classifier that outputs fixed logits per sequence."""
+
     config_class = DummySequenceConfig
 
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        
+
         # Create logit template with fixed values
         # First class: 2.0, Second class: 1.0, Rest: -4.0
         logits_template = torch.full((1, config.num_labels), -4.0)
         logits_template[0, 0] = 2.0
         if config.num_labels > 1:
             logits_template[0, 1] = 1.0
-        
+
         self.logits_template = logits_template
-        self.register_buffer("dummy", torch.tensor(0))  # Dummy buffer to avoid empty model warning
+        self.register_buffer(
+            "dummy", torch.tensor(0)
+        )  # Dummy buffer to avoid empty model warning
 
     def forward(
         self,
@@ -103,28 +108,30 @@ class DummySequenceClassifier(PreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
-        **kwargs
+        **kwargs,
     ):
         """Forward pass that returns fixed logits for each sequence."""
-        
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
-        
+
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
+
         # Get batch size from input_ids
         # Force use of attention mask so optimum does not drop it later
         batch_size, _ = (torch.mul(input_ids, attention_mask)).shape
-        
+
         # Expand template logits to match batch size
         # Each sequence gets the same fixed logit values from the template
         logits = self.logits_template.expand(batch_size, -1).clone()
-        
+
         loss = None
         if labels is not None:
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-        
+
         if not return_dict:
             return (loss, logits) if loss is not None else (logits,)
-        
+
         return SequenceClassifierOutput(
             loss=loss,
             logits=logits,
@@ -135,22 +142,25 @@ class DummySequenceClassifier(PreTrainedModel):
 
 class DummyTokenClassifier(PreTrainedModel):
     """Dummy token classifier that outputs fixed logits for each token."""
+
     config_class = DummyTokenConfig
 
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        
+
         # Create logit template with fixed values
         # First class: 2.0, Second class: 1.0, Rest: -4.0
         logits_template = torch.full((1, 1, config.num_labels), -4.0)
         logits_template[0, 0, 0] = 2.0
         if config.num_labels > 1:
             logits_template[0, 0, 1] = 1.0
-        
+
         # Register as buffer so it moves with the model to GPU/CPU
         self.logits_template = logits_template
-        self.register_buffer("dummy", torch.tensor(0))  # Dummy buffer to avoid empty model warning
+        self.register_buffer(
+            "dummy", torch.tensor(0)
+        )  # Dummy buffer to avoid empty model warning
 
     def forward(
         self,
@@ -164,30 +174,29 @@ class DummyTokenClassifier(PreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
-        **kwargs
+        **kwargs,
     ):
         """Forward pass that returns fixed logits for each token."""
 
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
-        
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
+
         # Get batch size and sequence length from input_ids
         # Force use of attention mask so optimum does not drop it later
         batch_size, seq_length = (torch.mul(input_ids, attention_mask)).shape
-        
+
         # Expand logits template for batch and sequence length
         logits = self.logits_template.expand(batch_size, seq_length, -1).clone()
-        
+
         loss = None
         if labels is not None:
             loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(
-                logits.view(-1, self.num_labels),
-                labels.view(-1)
-            )
-        
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+
         if not return_dict:
             return (loss, logits) if loss is not None else (logits,)
-        
+
         return TokenClassifierOutput(
             loss=loss,
             logits=logits,
@@ -208,7 +217,7 @@ def _create_and_save_model(
 ):
     """
     Common helper to create, save, register, and export a dummy model to ONNX.
-    
+
     Args:
         model_class: The model class to instantiate
         tokenizer_name: HuggingFace model ID for tokenizer
@@ -218,22 +227,22 @@ def _create_and_save_model(
         auto_model_class: The AutoModel class for the task (e.g., AutoModelForSequenceClassification)
         task: The ONNX task name (e.g., "text-classification" or "token-classification")
     """
-    
+
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    
+
     config = config_class(num_labels=num_labels)
 
     print(f"Config: {config}")
-    
+
     # Create and save model
     config.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
     model = model_class(config)
     model.save_pretrained(output_dir)
-    
+
     print(f"✓ Dummy {model_class.__name__} saved to {output_dir}")
-    
+
     # Register model with transformers
     AutoConfig.register(model_name, config_class)
     auto_model_class.register(config_class, model_class)
@@ -253,7 +262,7 @@ def _create_and_save_model(
     onnx_config = onnx_config_constructor(model.config)
     _onnx_inputs, _onnx_outputs = export(model, onnx_config, onnx_path)
     print(f"✓ ONNX model exported to {onnx_path}")
-    
+
     return model, tokenizer
 
 
@@ -264,7 +273,7 @@ def create_and_save_sequence_classifier(
 ):
     """
     Create and save a dummy sequence classification model.
-    
+
     Args:
         tokenizer_name: HuggingFace model ID for tokenizer
         output_dir: Directory to save the model
@@ -289,7 +298,7 @@ def create_and_save_dummy_token_classifier(
 ):
     """
     Create and save a dummy token classification model.
-    
+
     Args:
         tokenizer_name: HuggingFace model ID for tokenizer
         output_dir: Directory to save the model
@@ -310,7 +319,9 @@ def create_and_save_dummy_token_classifier(
 def load_dummy_sequence_classifier(model_dir: str, num_labels: int):
     """Load a dummy sequence classification model from directory."""
     AutoConfig.register(DUMMY_SEQUENCE_ENCODER, DummySequenceConfig)
-    AutoModelForSequenceClassification.register(DummySequenceConfig, DummySequenceClassifier)
+    AutoModelForSequenceClassification.register(
+        DummySequenceConfig, DummySequenceClassifier
+    )
     config = AutoConfig.from_pretrained(model_dir, num_labels=num_labels)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, config=config)
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
@@ -329,108 +340,108 @@ def load_dummy_token_classifier(model_dir: str, num_labels: int):
 
 def test_dummy_sequence_classifier(output_dir: str):
     """Test the dummy sequence classification model with sample inputs."""
-    
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
     print("Testing Dummy Sequence Classifier")
-    print("="*50)
-    
+    print("=" * 50)
+
     # Create and save model (includes ONNX export)
     model, tokenizer = load_dummy_sequence_classifier(output_dir, num_labels=5)
     # Test with sample input
     text = "Hello, my dog is cute"
     inputs = tokenizer(text, return_tensors="pt")
-    
+
     print(f"\nInput text: '{text}'")
     print(f"Input IDs shape: {inputs['input_ids'].shape}")
-    
+
     # Forward pass
     with torch.no_grad():
         outputs = model(**inputs)
         logits = outputs.logits
-    
+
     print(f"\nOutput logits shape: {logits.shape}")
     print(f"Logits values: {logits}")
-    
+
     predicted_class = logits.argmax(dim=-1).item()
     print(f"Predicted class: {predicted_class}")
-    
+
     # Test with batch
     texts = ["Hello, my dog is cute", "I love this model"]
     inputs_batch = tokenizer(texts, return_tensors="pt", padding=True)
-    
+
     print(f"\nBatch input shape: {inputs_batch['input_ids'].shape}")
-    
+
     with torch.no_grad():
         outputs_batch = model(**inputs_batch)
         logits_batch = outputs_batch.logits
-    
+
     print(f"Batch output logits:\n{logits_batch}")
-    
+
     # Test loss computation
     labels = torch.tensor([0, 1])
     with torch.no_grad():
         outputs_with_loss = model(**inputs_batch, labels=labels)
         loss = outputs_with_loss.loss
-    
+
     print(f"\nLoss: {loss.item():.4f}")
-    
+
     print("\n✓ Sequence classifier tests passed!")
 
 
 def test_dummy_token_classifier(output_dir: str):
     """Test the dummy token classification model with sample inputs."""
-    
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
     print("Testing Dummy Token Classifier")
-    print("="*50)
-    
+    print("=" * 50)
+
     # Create and save model (includes ONNX export)
     model, tokenizer = load_dummy_token_classifier(output_dir)
 
     # Test with sample input
     text = "Hello, my dog is cute"
     inputs = tokenizer(text, return_tensors="pt")
-    
+
     print(f"\nInput text: '{text}'")
     print(f"Input IDs shape: {inputs['input_ids'].shape}")
-    
+
     # Forward pass
     with torch.no_grad():
         outputs = model(**inputs)
         logits = outputs.logits
-    
+
     print(f"\nOutput logits shape: {logits.shape}")
     print(f"Logits first token: {logits[0, 0, :]}")
-    
+
     predicted_classes = logits.argmax(dim=-1)
     print(f"Predicted classes per token: {predicted_classes}")
-    
+
     # Test with batch
     texts = ["Hello, my dog is cute", "I love this model"]
     inputs_batch = tokenizer(texts, return_tensors="pt", padding=True)
-    
+
     print(f"\nBatch input shape: {inputs_batch['input_ids'].shape}")
-    
+
     with torch.no_grad():
         outputs_batch = model(**inputs_batch)
         logits_batch = outputs_batch.logits
-    
+
     print(f"Batch output logits shape: {logits_batch.shape}")
     print(f"First sample, first token logits: {logits_batch[0, 0, :]}")
-    
+
     # Test loss computation
     # Create dummy labels matching sequence length
-    seq_len = inputs_batch['input_ids'].shape[1]
+    seq_len = inputs_batch["input_ids"].shape[1]
     labels = torch.zeros((2, seq_len), dtype=torch.long)
     labels[0, :3] = 1
     labels[1, :2] = 2
-    
+
     with torch.no_grad():
         outputs_with_loss = model(**inputs_batch, labels=labels)
         loss = outputs_with_loss.loss
-    
+
     print(f"\nLoss: {loss.item():.4f}")
-    
+
     print("\n✓ Token classifier tests passed!")
 
 
