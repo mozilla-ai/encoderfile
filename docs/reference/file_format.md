@@ -39,7 +39,7 @@ Platform identifiers use Rust target triples. If you do not specify a platform i
 If your target platform is not supported by our pre-built binaries, it is easy to custom build a base binary from source code and point the encoderfile build CLI to it. To build the base binary using Cargo:
 
 ```bash
-cargo build -p encoderfile-runtime
+cargo build -p encoderfile-runtime --release
 ```
 
 Then, assuming your base binary is at `target/release/encoderfile-runtime`:
