@@ -449,10 +449,6 @@ The CLI will return appropriate error messages for:
 ### Basic Inference Workflow
 
 ```bash
-# Set up configuration (example)
-export MODEL_PATH=/path/to/model
-export MODEL_TYPE=embedding
-
 # Run inference
 encoderfile infer "Hello world"
 
