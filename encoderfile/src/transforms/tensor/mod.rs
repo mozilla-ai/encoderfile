@@ -1,7 +1,7 @@
 use super::utils::table_to_vec;
 use mlua::prelude::*;
-use ops::arithm::{add, sub, mul, div};
 use ndarray::ArrayD;
+use ops::arithm::{add, div, mul, sub};
 
 mod ops;
 
@@ -14,6 +14,7 @@ impl Tensor {
     }
 }
 
+#[cfg(test)]
 fn load_env() -> Lua {
     Lua::new()
 }
@@ -214,4 +215,3 @@ fn test_to_string() {
 
     assert_eq!(vec_str, vec_str_gold);
 }
-

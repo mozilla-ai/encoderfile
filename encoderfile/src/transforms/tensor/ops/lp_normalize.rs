@@ -1,5 +1,5 @@
-use mlua::prelude::*;
 use super::Tensor;
+use mlua::prelude::*;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -44,7 +44,7 @@ fn test_lp_norm_empty() {
 
 #[test]
 fn test_lp_norm_zero() {
-    use ndarray::{ArrayD, Array3};
+    use ndarray::{Array3, ArrayD};
     let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
 
     assert!(Tensor(arr).lp_normalize(0.0, 1).is_err())
@@ -52,7 +52,7 @@ fn test_lp_norm_zero() {
 
 #[test]
 fn test_lp_norm_nonexistent_dim() {
-    use ndarray::{ArrayD, Array3};
+    use ndarray::{Array3, ArrayD};
     let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
 
     assert!(Tensor(arr.clone()).lp_normalize(1.0, 0).is_err()); // lua starts with 1

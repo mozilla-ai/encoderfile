@@ -1,6 +1,6 @@
+use super::Tensor;
 use mlua::prelude::*;
 use ndarray_stats::QuantileExt;
-use super::Tensor;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -43,7 +43,6 @@ impl Tensor {
     pub fn ndim(&self) -> Result<usize, LuaError> {
         Ok(self.0.ndim())
     }
-
 }
 
 #[tracing::instrument(skip_all)]
@@ -85,15 +84,13 @@ fn test_max() {
 
 #[test]
 fn test_max_empty() {
-    
     let tensor = Tensor(ndarray::array![[[]]].into_dyn());
     assert!(tensor.max().is_err())
 }
 
 #[test]
 fn test_len() {
-    use crate::transforms::tensor::load_env
-;
+    use crate::transforms::tensor::load_env;
     use ndarray::Array2;
 
     let lua = load_env();
@@ -112,8 +109,7 @@ fn test_len() {
 
 #[test]
 fn test_ndim() {
-    use crate::transforms::tensor::load_env
-;
+    use crate::transforms::tensor::load_env;
     use ndarray::Array2;
 
     let lua = load_env();
@@ -131,8 +127,7 @@ fn test_ndim() {
 
 #[test]
 fn test_ndim_0() {
-    use crate::transforms::tensor::load_env
-;
+    use crate::transforms::tensor::load_env;
     use ndarray::Array0;
 
     let lua = load_env();
@@ -189,8 +184,8 @@ fn test_sum_empty() {
 
 #[test]
 fn test_sum_with_lua_binding() {
-    use ndarray::Array2;
     use crate::transforms::tensor::load_env;
+    use ndarray::Array2;
 
     let lua = load_env();
     let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());

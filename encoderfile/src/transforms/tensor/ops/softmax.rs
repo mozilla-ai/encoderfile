@@ -1,5 +1,5 @@
-use mlua::prelude::*;
 use super::Tensor;
+use mlua::prelude::*;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -65,7 +65,7 @@ fn test_softmax_large_negative_values() {
 
 #[test]
 fn test_softmax_peaked_distribution() {
-        let arr = ndarray::array![[0.0, 0.0, 100.0]].into_dyn();
+    let arr = ndarray::array![[0.0, 0.0, 100.0]].into_dyn();
 
     let Tensor(sm) = Tensor(arr).softmax(1).unwrap();
 
@@ -83,4 +83,3 @@ fn test_softmax_fail() {
     assert!(ts.softmax(0).is_err());
     assert!(ts.softmax(3).is_err());
 }
-

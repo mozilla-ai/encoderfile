@@ -1,6 +1,6 @@
+use super::Tensor;
 use mlua::prelude::*;
 use ndarray::ArrayD;
-use super::Tensor;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -144,4 +144,3 @@ fn test_clamp_nan() {
         assert!(a.is_nan() && b.is_nan());
     }
 }
-

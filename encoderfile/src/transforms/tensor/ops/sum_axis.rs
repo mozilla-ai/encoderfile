@@ -1,5 +1,5 @@
-use mlua::prelude::*;
 use super::Tensor;
+use mlua::prelude::*;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -54,9 +54,8 @@ fn test_sum_axis_invalid() {
 
 #[test]
 fn test_sum_axis_with_lua_binding() {
+    use crate::transforms::tensor::load_env;
     use ndarray::Array2;
-    use crate::transforms::tensor::load_env
-;
     let lua = load_env();
     let tensor = Tensor(
         Array2::<f32>::from_shape_vec((2, 3), vec![1., 2., 3., 4., 5., 6.])

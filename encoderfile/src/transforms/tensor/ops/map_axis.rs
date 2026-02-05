@@ -1,5 +1,5 @@
-use mlua::prelude::*;
 use super::Tensor;
+use mlua::prelude::*;
 
 impl Tensor {
     #[tracing::instrument]
@@ -29,9 +29,8 @@ impl Tensor {
 
 #[test]
 fn test_map_axis_zero_transform() {
+    use crate::transforms::tensor::load_env;
     use ndarray::Array3;
-    use crate::transforms::tensor::load_env
-;
     let lua = load_env();
     let tensor = Tensor(Array3::<f32>::from_elem((3, 6, 9), 1.0).into_dyn());
 
@@ -47,9 +46,8 @@ fn test_map_axis_zero_transform() {
 
 #[test]
 fn test_map_axis_double_values() {
+    use crate::transforms::tensor::load_env;
     use ndarray::Array3;
-    use crate::transforms::tensor::load_env
-;
     let lua = load_env();
     let tensor =
         Tensor(Array3::<f32>::from_shape_fn((2, 2, 2), |(i, j, k)| (i + j + k) as f32).into_dyn());
@@ -63,4 +61,3 @@ fn test_map_axis_double_values() {
 
     assert_eq!(result.0, tensor.0 * 2.0);
 }
-

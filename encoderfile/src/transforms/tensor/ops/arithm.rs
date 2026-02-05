@@ -1,6 +1,6 @@
-use mlua::prelude::*;
 use super::Tensor;
 use super::properties::is_broadcastable;
+use mlua::prelude::*;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -105,14 +105,17 @@ pub fn div(Tensor(this): &Tensor, other: LuaValue) -> Result<Tensor, LuaError> {
     Ok(Tensor(new))
 }
 
+#[cfg(test)]
 fn tensor(data: Vec<f32>, shape: &[usize]) -> Tensor {
     Tensor(ndarray::ArrayD::from_shape_vec(shape, data).unwrap())
 }
 
+#[cfg(test)]
 fn lua_number(n: f64) -> LuaValue {
     LuaValue::Number(n)
 }
 
+#[cfg(test)]
 fn lua_tensor(t: Tensor, lua: &Lua) -> LuaValue {
     mlua::Value::UserData(lua.create_userdata(t).unwrap())
 }
@@ -120,7 +123,7 @@ fn lua_tensor(t: Tensor, lua: &Lua) -> LuaValue {
 macro_rules! generate_ops_test {
     ($mod_name:ident, $op:tt, $rust_fn:ident, $lua_op:expr) => {
         mod $mod_name {
-            
+
             #[test]
             fn test_binding() {
                 use crate::transforms::tensor::load_env;
@@ -382,4 +385,3 @@ fn test_exp_empty() {
     let Tensor(exp) = tensor.exp().unwrap();
     assert!(exp.is_empty());
 }
-

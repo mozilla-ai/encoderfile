@@ -1,6 +1,6 @@
+use super::Tensor;
 use mlua::prelude::*;
 use ndarray::Axis;
-use super::Tensor;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -58,4 +58,3 @@ fn test_truncate_axis_out_of_bounds() {
 
     assert_eq!(result, expected);
 }
-

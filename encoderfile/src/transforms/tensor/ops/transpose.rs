@@ -1,5 +1,5 @@
-use mlua::prelude::*;
 use super::Tensor;
+use mlua::prelude::*;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]

@@ -1,6 +1,6 @@
+use super::Tensor;
 use mlua::prelude::*;
 use ndarray::Axis;
-use super::Tensor;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -50,7 +50,7 @@ impl Tensor {
 
 #[test]
 fn mean_pool_single_vector_no_mask() {
-        // shape: (batch=1, seq=1, dim=3)
+    // shape: (batch=1, seq=1, dim=3)
     let x = Tensor(ndarray::array![[[1.0, 2.0, 3.0]]].into_dyn());
     let mask = Tensor(ndarray::array![[1.0]].into_dyn());
 
@@ -60,7 +60,7 @@ fn mean_pool_single_vector_no_mask() {
 
 #[test]
 fn mean_pool_two_tokens_equal_weight() {
-        // shape: (1, 2, 3)
+    // shape: (1, 2, 3)
     let x = Tensor(ndarray::array![[[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]]].into_dyn());
 
     let mask = Tensor(ndarray::array![[1.0, 1.0]].into_dyn());
@@ -73,7 +73,7 @@ fn mean_pool_two_tokens_equal_weight() {
 
 #[test]
 fn mean_pool_ignores_masked_tokens() {
-        // shape: (1, 3, 2)
+    // shape: (1, 3, 2)
     // Only the first and last token should count.
     let x = Tensor(
         ndarray::array![[
@@ -94,7 +94,7 @@ fn mean_pool_ignores_masked_tokens() {
 
 #[test]
 fn mean_pool_batch_mode() {
-        // shape: (2, 2, 2)
+    // shape: (2, 2, 2)
     let x = Tensor(
         ndarray::array![
             [[1.0, 1.0], [3.0, 3.0]], // batch 0
@@ -114,7 +114,7 @@ fn mean_pool_batch_mode() {
 
 #[test]
 fn mean_pool_mask_broadcasting() {
-        let x = Tensor(
+    let x = Tensor(
         ndarray::array![[
             [[1.0, 1.0], [2.0, 2.0], [3.0, 3.0]],
             [[4.0, 4.0], [5.0, 5.0], [6.0, 6.0]]
@@ -138,6 +138,7 @@ fn mean_pool_mask_broadcasting() {
     assert_allclose(&pooled.0, &expected);
 }
 
+#[cfg(test)]
 pub fn assert_allclose(a: &ndarray::ArrayD<f32>, b: &ndarray::ArrayD<f32>) {
     let tol = 1e-6;
     assert_eq!(

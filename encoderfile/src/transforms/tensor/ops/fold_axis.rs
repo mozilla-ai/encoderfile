@@ -1,6 +1,6 @@
+use super::Tensor;
 use mlua::prelude::*;
 use ndarray::Array1;
-use super::Tensor;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -29,8 +29,7 @@ impl Tensor {
 
 #[test]
 fn fold_axis_sum_rows() -> LuaResult<()> {
-    use crate::transforms::tensor::load_env
-;
+    use crate::transforms::tensor::load_env;
     let lua = load_env();
     let arr = ndarray::array![[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]].into_dyn();
     let t = Tensor(arr);
@@ -52,8 +51,7 @@ fn fold_axis_sum_rows() -> LuaResult<()> {
 
 #[test]
 fn fold_axis_product() -> LuaResult<()> {
-    use crate::transforms::tensor::load_env
-;
+    use crate::transforms::tensor::load_env;
     let lua = load_env();
     let arr = ndarray::array![[1.0, 2.0], [3.0, 4.0]].into_dyn();
     let t = Tensor(arr);
@@ -72,4 +70,3 @@ fn fold_axis_product() -> LuaResult<()> {
     assert_eq!(v.as_slice().unwrap(), &[2.0, 12.0]);
     Ok(())
 }
-

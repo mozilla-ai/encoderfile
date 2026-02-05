@@ -1,6 +1,6 @@
+use super::Tensor;
 use mlua::prelude::*;
 use ndarray::Axis;
-use super::Tensor;
 
 impl Tensor {
     pub fn axis1(&self, axis: isize) -> Result<Axis, LuaError> {
