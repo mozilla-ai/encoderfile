@@ -6,12 +6,15 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 use tower_http::trace::DefaultOnResponse;
 
-async fn run_mcp<T: ModelTypeSpec + McpRouter>(
+async fn run_mcp<T: ModelTypeSpec>(
     addr: String,
     state: AppState<T>,
     receiver: oneshot::Receiver<()>,
-) -> Result<()> {
-    let router = T::mcp_router(state).layer(
+) -> Result<()>
+where
+    AppState<T>: McpRouter,
+{
+    let router = state.mcp_router().layer(
         tower_http::trace::TraceLayer::new_for_http()
             // TODO check if otel is enabled
             // .make_span_with(crate::middleware::format_span)

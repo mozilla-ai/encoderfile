@@ -48,6 +48,8 @@ Encoderfile supports encoder-only transformers for:
 - **Token Classification** - Named Entity Recognition, PII detection
 - **Sentence Embeddings** - Semantic search, clustering
 
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for detailed instructions on building the CLI tool from source.
+
 Generation models (GPT, T5) are not supported. See [CLI Reference](reference/cli.md) for complete model type details.
 
 ## Quick Start

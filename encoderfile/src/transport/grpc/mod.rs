@@ -1,25 +1,25 @@
-use crate::common::model_type::{self, ModelTypeSpec};
 use crate::{
+    common::model_type,
     generated::{embedding, sentence_embedding, sequence_classification, token_classification},
     runtime::AppState,
-    services::Inference,
+    services::{Inference, Metadata},
 };
 
 mod error;
 
-pub trait GrpcRouter: ModelTypeSpec
+pub trait GrpcRouter
 where
-    Self: Sized,
+    Self: Sized + Clone + Send + Sync + 'static,
 {
-    fn router(state: AppState<Self>) -> axum::Router;
+    fn grpc_router(self) -> axum::Router;
 }
 
-pub struct GrpcService<T: ModelTypeSpec> {
-    state: crate::runtime::AppState<T>,
+pub struct GrpcService<S: Inference + Metadata> {
+    state: S,
 }
 
-impl<T: ModelTypeSpec> GrpcService<T> {
-    pub fn new(state: crate::runtime::AppState<T>) -> Self {
+impl<S: Inference + Metadata> GrpcService<S> {
+    pub fn new(state: S) -> Self {
         Self { state }
     }
 }
@@ -34,12 +34,12 @@ macro_rules! generate_grpc_server {
         $trait_path:ident,
         $server_type:ident
     ) => {
-        impl GrpcRouter for model_type::$model_type {
-            fn router(state: AppState<Self>) -> axum::Router {
+        impl GrpcRouter for AppState<model_type::$model_type> {
+            fn grpc_router(self) -> axum::Router {
                 tonic::service::Routes::builder()
                     .routes()
                     .add_service($generated_mod::$server_mod::$server_type::new(
-                        GrpcService::new(state),
+                        GrpcService::new(self),
                     ))
                     .into_axum_router()
             }
@@ -47,7 +47,7 @@ macro_rules! generate_grpc_server {
 
         #[tonic::async_trait]
         impl $crate::generated::$generated_mod::$server_mod::$trait_path
-            for GrpcService<model_type::$model_type>
+            for GrpcService<AppState<model_type::$model_type>>
         {
             async fn predict(
                 &self,
@@ -71,9 +71,7 @@ macro_rules! generate_grpc_server {
                 tonic::Response<$crate::generated::metadata::GetModelMetadataResponse>,
                 tonic::Status,
             > {
-                Ok(tonic::Response::new(
-                    $crate::services::get_model_metadata(&self.state).into(),
-                ))
+                Ok(tonic::Response::new(self.state.metadata().into()))
             }
         }
     };

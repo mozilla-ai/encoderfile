@@ -21,6 +21,13 @@ permissions:
 jobs:
   compute-dry-run:
     runs-on: ubuntu-latest
+    # only run if workflow dispatch or pull request merged *with* tag 'version-bump'
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        contains(github.event.pull_request.labels.*.name, 'version-bump')
+      )
     outputs:
       is_dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
 

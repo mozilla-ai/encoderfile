@@ -241,6 +241,15 @@ See the **[CLI Reference](https://mozilla-ai.github.io/encoderfile/latest/refere
 
 Once you have the `encoderfile` CLI tool installed, you can build binaries from any compatible HuggingFace model.
 
+See our guide on [building from source](https://mozilla-ai.github.io/encoderfile/reference/building/) for detailed instructions including:
+
+- How to export models to ONNX format
+- Configuration file options
+- Advanced features (Lua transforms, custom paths, etc.)
+- Troubleshooting tips
+
+**Quick workflow:**
+
 1. Export your model to ONNX: `optimum-cli export onnx ...`
 2. Create a config file: `config.yml`
 3. Build the binary: `encoderfile build -f config.yml`

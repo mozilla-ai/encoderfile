@@ -6,7 +6,7 @@ use ort::session::Session;
 
 use crate::{
     common::{Config, ModelConfig, ModelType},
-    format::{assets::AssetKind, container::Encoderfile},
+    format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
     generated::manifest::TransformType,
     runtime::TokenizerService,
 };
@@ -112,4 +112,11 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
             Err(e) => bail!("Error loading model config: {e:?}"),
         }
     }
+}
+
+pub fn load_assets<'a, R: Read + Seek>(file: &'a mut R) -> Result<EncoderfileLoader<'a, R>> {
+    let encoderfile = EncoderfileCodec::read(file)?;
+    let loader = EncoderfileLoader::new(encoderfile, file);
+
+    Ok(loader)
 }

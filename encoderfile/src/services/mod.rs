@@ -6,4 +6,4 @@ mod sequence_classification;
 mod token_classification;
 
 pub use inference::Inference;
-pub use model_metadata::*;
+pub use model_metadata::Metadata;

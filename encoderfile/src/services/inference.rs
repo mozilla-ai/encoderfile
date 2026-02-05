@@ -1,6 +1,6 @@
-use crate::{common::FromCliInput, error::ApiError};
+use crate::{common::FromCliInput, error::ApiError, services::Metadata};
 
-pub trait Inference {
+pub trait Inference: Metadata {
     type Input: FromCliInput + serde::de::DeserializeOwned + Sync + Send + utoipa::ToSchema;
     type Output: serde::Serialize + Sync + Send + utoipa::ToSchema;
 

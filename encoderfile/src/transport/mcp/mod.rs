@@ -1,5 +1,3 @@
-use crate::common::model_type::ModelTypeSpec;
-use crate::runtime::AppState;
 use rmcp::ServerHandler;
 use rmcp::transport::streamable_http_server::{
     StreamableHttpService, session::local::LocalSessionManager,
@@ -7,17 +5,20 @@ use rmcp::transport::streamable_http_server::{
 
 mod error;
 
-pub trait McpRouter: ModelTypeSpec {
+pub trait McpRouter
+where
+    Self: Sized + Clone + Send + Sync + 'static,
+{
     type Tool: ServerHandler;
-    const NEW_TOOL: fn(AppState<Self>) -> Self::Tool;
+    const NEW_TOOL: fn(Self) -> Self::Tool;
 
     // TODO figure out the lifetimes of a state so a ref can be safely passed
-    fn mcp_router(state: AppState<Self>) -> axum::Router
+    fn mcp_router(self) -> axum::Router
     where
         <Self as McpRouter>::Tool: rmcp::ServerHandler,
     {
         let service = StreamableHttpService::new(
-            move || Ok(Self::NEW_TOOL(state.clone())),
+            move || Ok(Self::NEW_TOOL(self.clone())),
             LocalSessionManager::default().into(),
             Default::default(),
         );
@@ -60,9 +61,9 @@ macro_rules! generate_mcp {
                 tool_router: ToolRouter<$tool_name>,
             }
 
-            impl super::McpRouter for $crate::common::model_type::$model_type {
+            impl super::McpRouter for AppState<$crate::common::model_type::$model_type> {
                 type Tool = $tool_name;
-                const NEW_TOOL: fn(AppState<Self>) -> Self::Tool = Self::Tool::new;
+                const NEW_TOOL: fn(Self) -> Self::Tool = Self::Tool::new;
             }
 
             #[tool_router]
