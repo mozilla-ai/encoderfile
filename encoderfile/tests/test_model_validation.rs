@@ -22,7 +22,7 @@ pub fn test_embedding() {
 
 #[test]
 pub fn test_sequence_classification() {
-    let path = PathBuf::from("../models/sequence_classification/model.onnx");
+    let path = PathBuf::from("../models/dummy_sequence_classifier/model.onnx");
 
     assert!(ModelType::Embedding.validate_model(&path).is_err());
     assert!(
@@ -40,7 +40,7 @@ pub fn test_sequence_classification() {
 
 #[test]
 pub fn test_token_classification() {
-    let path = PathBuf::from("../models/token_classification/model.onnx");
+    let path = PathBuf::from("../models/dummy_token_classifier/model.onnx");
 
     assert!(ModelType::Embedding.validate_model(&path).is_err());
     assert!(

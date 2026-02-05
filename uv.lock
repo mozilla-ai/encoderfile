@@ -155,7 +155,11 @@ docs = [
     { name = "mkdocs-material" },
 ]
 models = [
+    { name = "click" },
+    { name = "onnxruntime" },
+    { name = "optimum", extra = ["onnxruntime"] },
     { name = "torch" },
+    { name = "transformers" },
 ]
 setup = [
     { name = "onnxruntime" },
@@ -179,7 +183,13 @@ docs = [
     { name = "mkdocs-include-markdown-plugin", specifier = ">=7.2.0" },
     { name = "mkdocs-material", specifier = ">=9.7.0" },
 ]
-models = [{ name = "torch", specifier = ">=2.9.0" }]
+models = [
+    { name = "click" },
+    { name = "onnxruntime", specifier = ">=1.23.1" },
+    { name = "optimum", extras = ["onnxruntime"], specifier = ">=2.0.0" },
+    { name = "torch", specifier = ">=2.9.0" },
+    { name = "transformers", specifier = ">=4.55.0" },
+]
 setup = [
     { name = "onnxruntime", specifier = ">=1.23.1" },
     { name = "optimum", extras = ["onnxruntime"], specifier = ">=2.0.0" },

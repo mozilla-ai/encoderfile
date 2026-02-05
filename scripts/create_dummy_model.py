@@ -12,14 +12,11 @@ import click
 import torch
 import torch.nn as nn
 from transformers import (
-    AutoModel,
     AutoTokenizer,
     AutoModelForSequenceClassification,
     AutoModelForTokenClassification,
     AutoConfig,
     ElectraConfig,
-    PretrainedConfig,
-    ElectraTokenizerFast
 )
 from transformers.modeling_outputs import (
     SequenceClassifierOutput,
