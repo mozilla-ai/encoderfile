@@ -16,12 +16,11 @@ required-features = ["dev-utils"]
 [[bin]]
 name = "encoderfile"
 path = "bin/encoderfile.rs"
-required-features = ["cli"]
 
 [[bin]]
 name = "generate-encoderfile-config-schema"
 path = "bin/utils/generate_encoderfile_config_schema.rs"
-required-features = ["internal", "cli"]
+required-features = ["internal"]
 
 [[test]]
 name = "transforms"
@@ -50,12 +49,12 @@ required-features = ["dev-utils"]
 [[test]]
 name = "test_build_encoderfile"
 path = "tests/integration/test_build.rs"
-required-features = ["cli", "dev-utils"]
+required-features = ["dev-utils"]
 
 [[test]]
 name = "test_inspect_encoderfile"
 path = "tests/integration/test_inspect.rs"
-required-features = ["cli", "dev-utils"]
+required-features = ["dev-utils"]
 
 [package]
 name = "encoderfile"
