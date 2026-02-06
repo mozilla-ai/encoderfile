@@ -244,3 +244,9 @@ package = "codspeed-divan-compat"
 [dev-dependencies.rmcp]
 version = "0.8.0"
 features = ["client", "transport-streamable-http-client-reqwest"]
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+disabled-strategies = ["quick-install", "compile"]
