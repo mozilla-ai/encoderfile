@@ -11,8 +11,7 @@ use encoderfile::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
-    format::codec::EncoderfileCodec,
-    runtime::{EncoderfileLoader, EncoderfileState},
+    runtime::{EncoderfileLoader, EncoderfileState, load_assets},
     transport::cli::Cli,
 };
 
@@ -31,9 +30,12 @@ async fn main() -> Result<()> {
 
 macro_rules! run_cli {
     ($model_type:ident, $cli:expr, $config:expr, $session:expr, $tokenizer:expr, $model_config:expr) => {{
-        let state =
-            EncoderfileState::<$model_type>::new($config, $session, $tokenizer, $model_config)
-                .into();
+        let state = Arc::new(EncoderfileState::<$model_type>::new(
+            $config,
+            $session,
+            $tokenizer,
+            $model_config,
+        ));
         $cli.command.execute(state).await
     }};
 }
@@ -72,11 +74,4 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
             model_config
         ),
     }
-}
-
-fn load_assets<'a, R: Read + Seek>(file: &'a mut R) -> Result<EncoderfileLoader<'a, R>> {
-    let encoderfile = EncoderfileCodec::read(file)?;
-    let loader = EncoderfileLoader::new(encoderfile, file);
-
-    Ok(loader)
 }

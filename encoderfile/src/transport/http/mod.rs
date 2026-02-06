@@ -1,10 +1,11 @@
-use crate::{common::model_type::ModelTypeSpec, runtime::AppState};
-
 mod base;
 mod error;
 
-pub trait HttpRouter: ModelTypeSpec {
-    fn http_router(state: AppState<Self>) -> axum::Router;
+pub trait HttpRouter
+where
+    Self: Sized + Clone + Send + Sync + 'static,
+{
+    fn http_router(self) -> axum::Router;
 }
 
 macro_rules! predict_endpoint {
@@ -56,17 +57,17 @@ macro_rules! predict_endpoint {
                 super::base::predict(State(state), Json(req)).await
             }
 
-            impl super::HttpRouter for ModelType {
-                fn http_router(state: AppState<ModelType>) -> axum::Router {
+            impl super::HttpRouter for AppState<ModelType> {
+                fn http_router(self) -> axum::Router {
                     axum::Router::new()
                         .route("/health", axum::routing::get(base::health))
                         .route(
                             "/model",
-                            axum::routing::get(base::get_model_metadata::<ModelType>),
+                            axum::routing::get(base::get_model_metadata::<AppState<ModelType>>),
                         )
                         .route("/predict", axum::routing::post(predict))
                         .route("/openapi.json", axum::routing::get(openapi))
-                        .with_state(state)
+                        .with_state(self)
                 }
             }
         }

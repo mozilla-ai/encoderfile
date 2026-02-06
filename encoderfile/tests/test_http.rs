@@ -7,7 +7,7 @@ macro_rules! test_router_mod {
 
             fn router() -> axum::Router {
                 let state = $state_func();
-                model_type::$model_type::http_router(state)
+                state.http_router()
             }
 
             #[tokio::test]

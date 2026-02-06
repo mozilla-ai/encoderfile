@@ -6,9 +6,12 @@ This guide explains how to build custom encoderfile binaries from HuggingFace tr
 
 Before building encoderfiles, ensure you have:
 
-- [Rust](https://rust-lang.org/tools/install/) - For building the CLI tool and binaries
 - [Python 3.13+](https://www.python.org/downloads/) - For exporting models to ONNX
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
+
+If you are compiling the encoderfile CLI from source, make sure you also have:
+
+- [Rust](https://rust-lang.org/tools/install/) - For building the CLI tool and binaries
 - [protoc](https://protobuf.dev/installation/) - Protocol Buffer compiler
 
 ### Installing Prerequisites
@@ -214,12 +217,14 @@ encoderfile build -f config.yml
 
 The build process will:
 
-1. Load and validate the configuration
-2. Check for required model files
-3. Validate the ONNX model structure
-4. Generate a Rust project with embedded assets
-5. Compile the project into a self-contained binary
+1. Detect your system platform and download the base runtime binary
+2. Load and validate the configuration
+3. Check for required model files
+4. Validate the ONNX model structure
+5. Format assets and append to the base binary
 6. Output the binary to the specified path (or `./<name>.encoderfile` if not specified)
+
+For more information on encoderfile file formats and build process, check out our page on [Encoderfile File Format](./file_format.md).
 
 **Build output:**
 ```
@@ -298,6 +303,33 @@ encoderfile:
 
 ## Advanced Features
 
+### Cross-compilation
+
+Specify a target architecture for your encoderfile by using the `--platform` argument:
+
+```bash
+encoderfile build -f encoderfile.yml --platform <insert_target_here>
+```
+
+Encoderfile releases pre-built base binaries for the following architectures:
+
+- `x86_64-unknown-linux-gnu`
+- `aarch64-unknown-linux-gnu`
+- `x86_64-apple-darwin`
+- `aarch64-apple-darwin`
+
+If you want to build the base binary locally, you can also point to a path. For example:
+
+```bash
+# build encoderfile base binary from source (will be at ./target/release/encoderfile-runtime)
+cargo build -p encoderfile-runtime --release
+
+# create encoderfile
+encoderfile build \
+  -f encoderfile.yml \
+  --base-binary-path ./target/release/encoderfile-runtime
+```
+
 ### Lua Transforms
 
 Add custom post-processing with Lua scripts:
@@ -317,7 +349,7 @@ encoderfile:
   name: my-model
   path: ./models/my-model
   model_type: embedding
-  transform: "return normalize(output)"
+  transform: "return lp_normalize(output)"
 ```
 
 ### Custom Cache Directory
@@ -443,7 +475,7 @@ You can distribute the binary by:
 
 ## Next Steps
 
-- [CLI Reference](https://mozilla-ai.github.io/encoderfile/cli/) - Complete command-line documentation
-- [API Reference](https://mozilla-ai.github.io/encoderfile/api-reference/) - REST, gRPC, and MCP APIs
+- [CLI Reference](https://mozilla-ai.github.io/encoderfile/reference/cli/) - Complete command-line documentation
+- [API Reference](https://mozilla-ai.github.io/encoderfile/reference/api-reference/) - REST, gRPC, and MCP APIs
 - [Getting Started Guide](https://mozilla-ai.github.io/encoderfile/getting-started/) - Step-by-step tutorial
 - [Contributing](../CONTRIBUTING.md) - Help improve encoderfile
