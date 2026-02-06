@@ -64,6 +64,7 @@ edition = "2024"
 license = "Apache-2.0"
 readme = "../README.md"
 description = "Distribute and run transformer encoders with a single file."
+repository = "https://github.com/mozilla-ai/encoderfile"
 
 [dependencies]
 ndarray-stats = "0.6.0"
