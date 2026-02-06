@@ -1,4 +1,4 @@
-# Encoderfile CLI Documentation
+# encoderfile CLI Documentation
 
 ## Overview
 
@@ -33,10 +33,15 @@ encoderfile build -f <config.yml> [OPTIONS]
 
 | Option | Short | Type | Required | Description |
 |--------|-------|------|----------|-------------|
-| `--config` | `-f` | Path | Yes | Path to YAML configuration file |
+| - | `-f` | Path | Yes | Path to YAML configuration file |
 | `--output-dir` | - | Path | No | Override output directory from config |
 | `--cache-dir` | - | Path | No | Override cache directory from config |
 | `--no-build` | - | Flag | No | Generate project files without building |
+| `--base-binary-path` | - | Path | No | Specify custom local base binary |
+| `--platform` | - | Option | No | Target platform for compiled binary (e.g., `aarch64-apple-darwin`, `x86_64-unknown-linux-gnu`). Equivalent of Cargo's `--target`. Default is the architecture of whatever machine you are using. |
+| `--version` | - | Option | No | Override default encoderfile version |
+| `--no-download` | - | Flag | No | Disable downloading of base binary |
+
 
 #### Configuration File Format
 
@@ -160,12 +165,8 @@ The `build` command performs the following steps:
    - `tokenizer.json` - Tokenizer configuration (or path specified in config)
    - `config.json` - Model configuration (or path specified in config)
 3. **Validates ONNX model** - Checks the ONNX model structure and compatibility
-4. **Generates project** - Creates a new Rust project in the cache directory with:
-   - `main.rs` - Generated from Tera templates
-   - `Cargo.toml` - Generated with proper dependencies
-5. **Embeds assets** - Uses the `factory!` macro to embed model files at compile time
-6. **Compiles binary** - Runs `cargo build --release` on the generated project
-7. **Outputs binary** - Copies the binary to the specified output path
+4. **Embeds assets** - Appends embedded artifacts to a pre-built base binary
+5. **Outputs binary** - Copies the binary to the specified output path
 
 #### Output
 
@@ -191,9 +192,12 @@ This binary is completely self-contained and includes:
 
 Before building, ensure you have:
 
+- Valid ONNX model files
+
+If you are compiling the encoderfile CLI from source, make sure you also have:
+
 - [Rust](https://rustup.rs/) toolchain
 - [protoc](https://protobuf.dev/) Protocol Buffer compiler
-- Valid ONNX model files
 
 #### Troubleshooting
 
@@ -213,12 +217,6 @@ Ensure the directory contains: config.json, tokenizer.json, and model.onnx
 ```
 Solution: The path specified in the config file doesn't exist.
 Check the path value in your YAML config.
-```
-
-**Error: "cargo build failed"**
-```
-Solution: Check that Rust and required system dependencies are installed.
-Run: rustc --version && cargo --version
 ```
 
 **Error: "Cannot locate cache directory"**
@@ -335,7 +333,7 @@ encoderfile infer <INPUTS>... [OPTIONS]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `-f, --format` | Enum | `json` | Output format (currently only JSON supported) |
+| `-f, --format` | Enum | `json` | Output format (currently only JSON is supported) |
 | `-o, --out-dir` | String | None | Output file path; if not provided, prints to stdout |
 
 #### Model Types
@@ -451,10 +449,6 @@ The CLI will return appropriate error messages for:
 ### Basic Inference Workflow
 
 ```bash
-# Set up configuration (example)
-export MODEL_PATH=/path/to/model
-export MODEL_TYPE=embedding
-
 # Run inference
 encoderfile infer "Hello world"
 
