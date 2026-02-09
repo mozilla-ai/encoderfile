@@ -109,7 +109,7 @@ features = ["v4"]
 
 [dependencies.reqwest]
 version = "0.13.1"
-features = ["blocking"]
+features = ["blocking", "json"]
 
 [dependencies.tokenizers]
 workspace = true
