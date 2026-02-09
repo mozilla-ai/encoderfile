@@ -24,6 +24,8 @@ nav:
     - Building with Docker: building_encoderfiles/docker.md
   - Cookbooks:
       - Token Classification (NER): cookbooks/token-classification-ner.md
+      - MCP Integration: cookbooks/mcp-integration.md
+      - Matryoshka Embeddings: cookbooks/matryoshka-embeddings.md
   - Code of Conduct: CODE_OF_CONDUCT.md
   - Contributing: CONTRIBUTING.md
   - Transforms:
