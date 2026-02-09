@@ -4,7 +4,7 @@ This quick-start guide will help you build and run your first encoderfile in und
 
 ## Prerequisites
 
-### Encoderfile CLI Tool
+### encoderfile CLI Tool
 
 You need the `encoderfile` CLI tool installed:
 
@@ -14,7 +14,7 @@ curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install
 ```
 
 - **Build from source** - Required for Windows, or for latest development features
-    - See [our guide on building Encoderfile CLI from source](reference/building.md)
+    - See [our guide on building encoderfile CLI from source](reference/building.md)
 
 - **Docker** - Best for CI/CD or isolated builds without installing dependencies
     - Check out our guide on [Building Encoderfiles with Docker](building_encoderfiles/docker.md)
@@ -22,6 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/mozilla-ai/encoderfile/main/install
 ### Python with Optimum
 
 For exporting models to ONNX:
+> Requires Python 3.13+
 
 ```bash
 pip install optimum[exporters]

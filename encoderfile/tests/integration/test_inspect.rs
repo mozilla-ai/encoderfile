@@ -1,20 +1,12 @@
 use anyhow::{Context, Result, bail};
 
-use encoderfile::build_cli::cli::GlobalArguments;
+use encoderfile::build_cli::cli::{GlobalArguments, inspect_encoderfile};
 use std::{
     fs,
     path::Path,
-    process::{Child, Command},
-    thread::sleep,
-    time::{Duration, Instant},
+    process::{Command, Output},
 };
 use tempfile::tempdir;
-
-use encoderfile::common;
-
-tonic::include_proto!("encoderfile.metadata");
-
-use encoderfile::generated::token_classification;
 
 const BINARY_NAME: &str = "test.encoderfile";
 
@@ -48,8 +40,8 @@ encoderfile:
 
 const MODEL_ASSETS_PATH: &str = "../models/token_classification";
 
-#[tokio::test]
-async fn test_build_encoderfile() -> Result<()> {
+#[test]
+fn test_inspect_encoderfile() -> Result<()> {
     let dir = tempdir()?;
     let path = dir
         .path()
@@ -60,11 +52,7 @@ async fn test_build_encoderfile() -> Result<()> {
 
     let ef_config_path = path.join("encoderfile.yml");
     let encoderfile_path = path.join(BINARY_NAME);
-
-    let http_port = "8080";
-    let grpc_port = "9090";
-    let sample_text =
-        "Hugging Face is a technology company based in New York and Paris.".to_string();
+    let model_name = String::from("some-custom-name");
 
     // copy model assets to temp dir
     copy_dir_all(MODEL_ASSETS_PATH, tmp_model_path.as_path())
@@ -79,16 +67,19 @@ async fn test_build_encoderfile() -> Result<()> {
 
     // compile base binary and copy to temp dir
     let _ = Command::new("cargo")
-        .args(["build", "-p", "encoderfile-runtime"])
+        .args(["build"])
         .status()
         .expect("Failed to build encoderfile-runtime");
 
     let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")
         .expect("Failed to canonicalize base binary path");
 
+    let ef_binary_path = fs::canonicalize("../target/debug/encoderfile")
+        .expect("Failed to canonicalize base binary path");
+
     // write encoderfile config
     let config = config(
-        &String::from("test-model"),
+        &model_name,
         tmp_model_path.as_path(),
         encoderfile_path.as_path(),
     );
@@ -106,92 +97,37 @@ async fn test_build_encoderfile() -> Result<()> {
         .run(&global_args)
         .context("Failed to build encoderfile")?;
 
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(encoderfile_path.as_path())
-            .expect("Failed to get path for built encoderfile")
-            .permissions();
-
-        perms.set_mode(0o755);
-        fs::set_permissions(encoderfile_path.as_path(), perms).expect("Failed to set permissions");
-    }
-
-    // serve encoderfile
-    let mut child = spawn_encoderfile(
+    let ef_path_str = String::from(
         encoderfile_path
             .to_str()
+            .expect("Encoderfile path name failed to convert to string"),
+    );
+
+    let _inspect_output = inspect_encoderfile(&ef_path_str)?;
+
+    let output = run_inspect_encoderfile(
+        ef_binary_path
+            .to_str()
             .expect("Failed to create encoderfile binary path"),
-        http_port,
-        grpc_port,
+        &ef_path_str,
     )?;
 
-    wait_for_http(
-        format!("http://localhost:{http_port}/health").as_str(),
-        Duration::from_secs(10),
-    )
-    .await?;
-    send_http_inference(&sample_text, http_port.to_string()).await?;
-    send_grpc_inference(&sample_text, grpc_port.to_string()).await?;
+    let stdout = String::from_utf8(output.stdout)?;
+    let stderr = String::from_utf8(output.stderr)?;
 
-    child.kill()?;
-    child.wait().ok();
+    println!("STDOUT: {}", stdout);
+    println!("STDERR: {}", stderr);
+
+    let inspect_output_json = serde_json::from_str::<serde_json::Value>(&stdout)
+        .context("Failed to parse inspect output as JSON")?;
+    inspect_output_json
+        .get("encoderfile_config")
+        .and_then(|efc| efc.get("name"))
+        .and_then(|name| name.as_str())
+        .filter(|name_str| *name_str == model_name.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Model name in inspect output does not match expected"))?;
 
     Ok(())
-}
-
-async fn wait_for_http(url: &str, timeout: Duration) -> Result<()> {
-    let client = reqwest::Client::new();
-    let start = Instant::now();
-
-    loop {
-        if start.elapsed() > timeout {
-            anyhow::bail!("server did not become ready in time");
-        }
-
-        if let Ok(resp) = client.get(url).send().await
-            && resp.status().is_success()
-        {
-            return Ok(());
-        }
-
-        sleep(Duration::from_millis(200));
-    }
-}
-
-async fn send_http_inference(sample_text: &str, http_port: String) -> Result<()> {
-    let client = reqwest::Client::new();
-    let req = common::TokenClassificationRequest {
-        inputs: vec![sample_text.to_owned()],
-        metadata: None,
-    };
-    client
-        .post(format!("http://localhost:{http_port}/predict"))
-        .json(&req)
-        .send()
-        .await?;
-    Ok(())
-}
-
-async fn send_grpc_inference(sample_text: &str, grpc_port: String) -> Result<()> {
-    let mut client = token_classification::token_classification_inference_client::TokenClassificationInferenceClient::connect(format!("http://[::]:{grpc_port}/predict")).await?;
-    let req = token_classification::TokenClassificationRequest {
-        inputs: vec![sample_text.to_owned()],
-        metadata: std::collections::HashMap::new(),
-    };
-    client.predict(req).await?;
-    Ok(())
-}
-
-fn spawn_encoderfile(path: &str, http_port: &str, grpc_port: &str) -> Result<Child> {
-    Command::new(path)
-        .arg("serve")
-        .arg("--grpc-port")
-        .arg(grpc_port)
-        .arg("--http-port")
-        .arg(http_port)
-        .spawn()
-        .context("failed to spawn encoderfile process")
 }
 
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<()> {
@@ -221,4 +157,11 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<
     }
 
     Ok(())
+}
+
+fn run_inspect_encoderfile(path: &str, ef_path: &str) -> Result<Output> {
+    let mut cmd = Command::new(path);
+    cmd.arg("inspect").arg(ef_path);
+    println!("{:?}", cmd);
+    cmd.output().context("Failed inspect command")
 }

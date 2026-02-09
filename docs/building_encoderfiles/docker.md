@@ -11,17 +11,17 @@ docker pull ghcr.io/mozilla-ai/encoderfile:latest
 ```
 
 !!! note "Note on Architecture"
-    Images are published for both `x86_64` and `arm64`. If you're on a more exotic architecture, you'll need to build the Encoderfile CLI from source — see our guide on [Building from Source](../reference/building.md) for more details.
+    Images are published for both `x86_64` and `arm64`. If you're on a more exotic architecture, you'll need to build the encoderfile CLI from source — see our guide on [Building from Source](../reference/building.md) for more details.
 
 ## Mounting Assets
 
-The Docker container needs access to two elements to build an Encoderfile:
+The Docker container needs access to the following elements to build an Encoderfile:
 
-1. **Config file** - Your `config.yml` passed via `-f` flag
-2. **Model assets** - ONNX file, tokenizer,  `config.json` referenced by `config.yml`.
+1. **Config file** - Your `encoderfile.yml` passed via `-f` flag
+2. **Model assets** - ONNX file, tokenizer,  `config.json` referenced by `encoderfile.yml`.
 3. **Output directory** - Where the `.encoderfile` binary will be written
 
-All paths in your config must exist inside the container. Mount your project directory to `/opt/encoderfile` (the default working directory) so encoderfile can find everything and write the output back to your host machine.Retry
+All paths in your config must exist inside the container. Mount your project directory to `/opt/encoderfile` (the default working directory) so encoderfile can find everything and write the output back to your host machine.
 
 ## Minimal Example
 
@@ -74,7 +74,7 @@ docker run \
 What happens:
 
 - Your current directory is mounted into the container at `/opt/encoderfile`.
-- Inside the container, Encoderfile sees `config.yml` and any model paths exactly as they appear in your project.
+- Inside the container, Encoderfile sees `encoderfile.yml` and any model paths exactly as they appear in your project.
 - The resulting `.encoderfile` binary is written back into your project directory
 
 ## Troubleshooting
@@ -84,8 +84,7 @@ Your path in config.yml doesn’t match where the file appears inside the contai
 Most of the time this is a missing -v "$(pwd):/opt/encoderfile" or a mismatched working directory.
 
 ### “cargo not found”
-You’re not using the correct image.
-Use ghcr.io/mozilla-ai/encoderfile:latest — it includes the full Rust toolchain needed for builds.
+You’re not using the correct image. Make sure you are using `ghcr.io/mozilla-ai/encoderfile:latest`
 
 ### Paths behave differently on Windows
 Use absolute paths or WSL. Docker-for-Windows path translation varies by shell.

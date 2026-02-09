@@ -58,7 +58,7 @@ jobs:
       
       - name: Get current version
         id: version
-        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        uses: mozilla-ai/cargo-goosectl/actions/current-version@v1
         with:
           force-single-version: true
 
