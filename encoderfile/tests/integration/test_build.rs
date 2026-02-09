@@ -10,6 +10,12 @@ use std::{
 };
 use tempfile::tempdir;
 
+use encoderfile::common;
+
+tonic::include_proto!("encoderfile.metadata");
+
+use encoderfile::generated::token_classification;
+
 const BINARY_NAME: &str = "test.encoderfile";
 
 fn config(model_name: &String, model_path: &Path, output_path: &Path) -> String {
@@ -42,8 +48,8 @@ encoderfile:
 
 const MODEL_ASSETS_PATH: &str = "../models/token_classification";
 
-#[test]
-fn test_build_encoderfile() -> Result<()> {
+#[tokio::test]
+async fn test_build_encoderfile() -> Result<()> {
     let dir = tempdir()?;
     let path = dir
         .path()
@@ -54,6 +60,11 @@ fn test_build_encoderfile() -> Result<()> {
 
     let ef_config_path = path.join("encoderfile.yml");
     let encoderfile_path = path.join(BINARY_NAME);
+
+    let http_port = "8080";
+    let grpc_port = "9090";
+    let sample_text =
+        "Hugging Face is a technology company based in New York and Paris.".to_string();
 
     // copy model assets to temp dir
     copy_dir_all(MODEL_ASSETS_PATH, tmp_model_path.as_path())
@@ -111,9 +122,17 @@ fn test_build_encoderfile() -> Result<()> {
         encoderfile_path
             .to_str()
             .expect("Failed to create encoderfile binary path"),
+        http_port,
+        grpc_port,
     )?;
 
-    wait_for_http("http://localhost:8080/health", Duration::from_secs(10))?;
+    wait_for_http(
+        format!("http://localhost:{http_port}/health").as_str(),
+        Duration::from_secs(10),
+    )
+    .await?;
+    send_http_inference(&sample_text, http_port.to_string()).await?;
+    send_grpc_inference(&sample_text, grpc_port.to_string()).await?;
 
     child.kill()?;
     child.wait().ok();
@@ -121,8 +140,8 @@ fn test_build_encoderfile() -> Result<()> {
     Ok(())
 }
 
-fn wait_for_http(url: &str, timeout: Duration) -> Result<()> {
-    let client = reqwest::blocking::Client::new();
+async fn wait_for_http(url: &str, timeout: Duration) -> Result<()> {
+    let client = reqwest::Client::new();
     let start = Instant::now();
 
     loop {
@@ -130,7 +149,7 @@ fn wait_for_http(url: &str, timeout: Duration) -> Result<()> {
             anyhow::bail!("server did not become ready in time");
         }
 
-        if let Ok(resp) = client.get(url).send()
+        if let Ok(resp) = client.get(url).send().await
             && resp.status().is_success()
         {
             return Ok(());
@@ -140,12 +159,37 @@ fn wait_for_http(url: &str, timeout: Duration) -> Result<()> {
     }
 }
 
-fn spawn_encoderfile(path: &str) -> Result<Child> {
+async fn send_http_inference(sample_text: &str, http_port: String) -> Result<()> {
+    let client = reqwest::Client::new();
+    let req = common::TokenClassificationRequest {
+        inputs: vec![sample_text.to_owned()],
+        metadata: None,
+    };
+    client
+        .post(format!("http://localhost:{http_port}/predict"))
+        .json(&req)
+        .send()
+        .await?;
+    Ok(())
+}
+
+async fn send_grpc_inference(sample_text: &str, grpc_port: String) -> Result<()> {
+    let mut client = token_classification::token_classification_inference_client::TokenClassificationInferenceClient::connect(format!("http://[::]:{grpc_port}/predict")).await?;
+    let req = token_classification::TokenClassificationRequest {
+        inputs: vec![sample_text.to_owned()],
+        metadata: std::collections::HashMap::new(),
+    };
+    client.predict(req).await?;
+    Ok(())
+}
+
+fn spawn_encoderfile(path: &str, http_port: &str, grpc_port: &str) -> Result<Child> {
     Command::new(path)
         .arg("serve")
-        .arg("--disable-grpc")
+        .arg("--grpc-port")
+        .arg(grpc_port)
         .arg("--http-port")
-        .arg("8080")
+        .arg(http_port)
         .spawn()
         .context("failed to spawn encoderfile process")
 }
