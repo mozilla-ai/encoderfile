@@ -11,7 +11,7 @@ pub struct Config {
     pub lua_libs: Option<LuaLibs>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct LuaLibs {
     pub coroutine: bool,
     pub table: bool,
@@ -31,22 +31,6 @@ pub struct LuaLibs {
     // pub ffi: bool,
     pub debug: bool,
 }
-
-impl Default for LuaLibs {
-    fn default() -> Self {
-        LuaLibs {
-            coroutine: false,
-            table: false,
-            io: false,
-            os: false,
-            string: false,
-            utf8: false,
-            math: false,
-            package: false,
-            debug: false,
-        }
-    }
-}   
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenizerConfig {

@@ -19,7 +19,8 @@ impl Inference for AppState<model_type::TokenClassification> {
 
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
-        let transform = TokenClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
+        let transform =
+            TokenClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
 
         let results = inference::token_classification::token_classification(
             session,

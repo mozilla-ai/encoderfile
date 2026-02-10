@@ -1,8 +1,12 @@
 use std::marker::PhantomData;
 
 use crate::{
-    common::{LuaLibs, model_type::{self, ModelTypeSpec}},
-    error::ApiError, transforms::DEFAULT_LIBS,
+    common::{
+        LuaLibs,
+        model_type::{self, ModelTypeSpec},
+    },
+    error::ApiError,
+    transforms::DEFAULT_LIBS,
 };
 
 use super::tensor::Tensor;
@@ -65,11 +69,11 @@ impl From<&LuaLibs> for Vec<mlua::StdLib> {
     }
 }
 
-pub fn convert_libs(value: Option<&LuaLibs>) -> Vec<mlua::StdLib>  {
+pub fn convert_libs(value: Option<&LuaLibs>) -> Vec<mlua::StdLib> {
     match value {
         Some(libs) => Vec::from(libs),
         None => DEFAULT_LIBS.to_vec(),
-    }   
+    }
 }
 
 macro_rules! transform {
@@ -349,10 +353,11 @@ mod tests {
         Debug,
     }
 
-    impl TestLibItem{
-        pub fn test_data(self: Self) -> (String, mlua::StdLib) {
+    impl TestLibItem {
+        pub fn test_data(self) -> (String, mlua::StdLib) {
             match self {
-                TestLibItem::Coroutine => (r#"
+                TestLibItem::Coroutine => (
+                    r#"
                     function MyCoroutine()
                         return Tensor({1, 2, 3})
                     end
@@ -361,15 +366,23 @@ mod tests {
                         local _, tensor = coroutine.resume(mycor)
                         return tensor
                     end
-                "#.to_string(), mlua::StdLib::COROUTINE),
-                TestLibItem::Io => (r#"
+                "#
+                    .to_string(),
+                    mlua::StdLib::COROUTINE,
+                ),
+                TestLibItem::Io => (
+                    r#"
                     function MyTest()
                         local res = Tensor({1, 2, 3})
                         io.stderr:write("This is a test of the IO library\n")
                         return res
                     end
-                "#.to_string(), mlua::StdLib::IO),
-                TestLibItem::Utf8 => (r#"
+                "#
+                    .to_string(),
+                    mlua::StdLib::IO,
+                ),
+                TestLibItem::Utf8 => (
+                    r#"
                     function MyTest()
                         local fp_values = {}
                         for point in utf8.codes("hello") do
@@ -377,25 +390,40 @@ mod tests {
                         end
                         return Tensor(fp_values)
                     end
-                "#.to_string(), mlua::StdLib::UTF8),
-                TestLibItem::Os => (r#"
+                "#
+                    .to_string(),
+                    mlua::StdLib::UTF8,
+                ),
+                TestLibItem::Os => (
+                    r#"
                     function MyTest()
                         local t = os.time()
                         return Tensor({1, 2, 3})
                     end
-                "#.to_string(), mlua::StdLib::OS),
-                TestLibItem::Package => (r#"
+                "#
+                    .to_string(),
+                    mlua::StdLib::OS,
+                ),
+                TestLibItem::Package => (
+                    r#"
                     function MyTest()
                         p = package.path
                         return Tensor({1, 2, 3})
                     end
-                "#.to_string(), mlua::StdLib::PACKAGE),
-                TestLibItem::Debug => (r#"
+                "#
+                    .to_string(),
+                    mlua::StdLib::PACKAGE,
+                ),
+                TestLibItem::Debug => (
+                    r#"
                     function MyTest()
                         local info = debug.getinfo(1, "n")
                         return Tensor({info.currentline})
                     end
-                "#.to_string(), mlua::StdLib::DEBUG),
+                "#
+                    .to_string(),
+                    mlua::StdLib::DEBUG,
+                ),
             }
         }
     }
@@ -404,7 +432,7 @@ mod tests {
     fn test_convert_default_lua_libs() {
         let libs = LuaLibs::default();
         let stdlibs: Vec<mlua::StdLib> = Vec::from(&libs);
-        assert!(stdlibs.len() == 0);
+        assert!(stdlibs.is_empty());
     }
 
     #[test]
@@ -418,7 +446,17 @@ mod tests {
 
     #[test]
     fn test_convert_some_lua_libs() {
-        let maybe_libs = Some(&LuaLibs { coroutine: true, table: false, io: true, os: false, string: true, utf8: false, math: true, package: false, debug: true });
+        let maybe_libs = Some(&LuaLibs {
+            coroutine: true,
+            table: false,
+            io: true,
+            os: false,
+            string: true,
+            utf8: false,
+            math: true,
+            package: false,
+            debug: true,
+        });
         let stdlibs: Vec<mlua::StdLib> = convert_libs(maybe_libs);
         assert!(stdlibs.contains(&mlua::StdLib::COROUTINE));
         assert!(stdlibs.contains(&mlua::StdLib::IO));
@@ -435,30 +473,36 @@ mod tests {
         let mut lualibs = DEFAULT_LIBS.to_vec();
         lualibs.push(lib);
         let lua = new_lua(lualibs).expect("Failed to create new Lua");
-        lua.load(chunk)
-        .exec()
-        .unwrap();
+        lua.load(chunk).exec().unwrap();
 
         let function = lua
             .globals()
             .get::<LuaFunction>("MyTest")
             .expect("Failed to get MyTest");
         let res = function.call::<Tensor>(());
-        assert!(res.is_ok(), "Failed to execute function using library {:?}: {:?}", lib, res.err());
+        assert!(
+            res.is_ok(),
+            "Failed to execute function using library {:?}: {:?}",
+            lib,
+            res.err()
+        );
     }
 
     fn test_lualib_any_fails((chunk, lib): (String, mlua::StdLib)) {
         let lua = new_test_lua();
-        lua.load(chunk)
-        .exec()
-        .unwrap();
+        lua.load(chunk).exec().unwrap();
 
         let function = lua
             .globals()
             .get::<LuaFunction>("MyTest")
             .expect("Failed to get MyTest");
         let res = function.call::<Tensor>(());
-        assert!(res.is_err(), "Function should have failed when using library {:?}, but got result: {:?}", lib, res.ok());
+        assert!(
+            res.is_err(),
+            "Function should have failed when using library {:?}, but got result: {:?}",
+            lib,
+            res.ok()
+        );
     }
 
     #[test]

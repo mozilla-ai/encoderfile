@@ -89,9 +89,10 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
-            "function Postprocess(arr) return arr end".to_string(),
-        ))
+        TokenClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return arr end".to_string()),
+        )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config)
         .expect("Failed to validate");
@@ -102,9 +103,10 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
-            "function Postprocess(arr) return 1 end".to_string(),
-        ))
+        let result = TokenClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return 1 end".to_string()),
+        )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config);
 
@@ -116,9 +118,10 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
-            "function Postprocess(arr) return arr:sum_axis(1) end".to_string(),
-        ))
+        let result = TokenClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
+        )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config);
 

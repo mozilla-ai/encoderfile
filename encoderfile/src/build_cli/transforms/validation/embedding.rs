@@ -89,10 +89,13 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), Some("function Postprocess(arr) return arr end".to_string()))
-            .expect("Failed to create transform")
-            .validate(&encoderfile_config, &model_config)
-            .expect("Failed to validate");
+        EmbeddingTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return arr end".to_string()),
+        )
+        .expect("Failed to create transform")
+        .validate(&encoderfile_config, &model_config)
+        .expect("Failed to validate");
     }
 
     #[test]
@@ -100,10 +103,12 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result =
-            EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), Some("function Postprocess(arr) return 1 end".to_string()))
-                .expect("Failed to create transform")
-                .validate(&encoderfile_config, &model_config);
+        let result = EmbeddingTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return 1 end".to_string()),
+        )
+        .expect("Failed to create transform")
+        .validate(&encoderfile_config, &model_config);
 
         assert!(result.is_err());
     }
@@ -113,7 +118,8 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = EmbeddingTransform::new(DEFAULT_LIBS.to_vec(),
+        let result = EmbeddingTransform::new(
+            DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
         )
         .expect("Failed to create transform")

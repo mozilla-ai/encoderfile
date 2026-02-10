@@ -116,9 +116,11 @@ impl BuildArgs {
 
         // validate transform
         let lua_libs = config.encoderfile.lua_libs()?;
-        if let Some(asset) =
-            crate::build_cli::transforms::validate_transform(&config.encoderfile, &model_config, lua_libs.as_ref())?
-        {
+        if let Some(asset) = crate::build_cli::transforms::validate_transform(
+            &config.encoderfile,
+            &model_config,
+            lua_libs.as_ref(),
+        )? {
             planned_assets.push(asset);
             terminal::success("Transform validated");
         }

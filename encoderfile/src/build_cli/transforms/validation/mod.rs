@@ -106,7 +106,7 @@ pub fn validate_transform<'a>(
 
 #[cfg(test)]
 mod tests {
-    use crate::transforms::{EmbeddingTransform, DEFAULT_LIBS};
+    use crate::transforms::{DEFAULT_LIBS, EmbeddingTransform};
 
     use crate::build_cli::config::{ModelPath, Transform};
 

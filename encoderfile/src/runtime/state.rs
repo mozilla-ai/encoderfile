@@ -4,9 +4,9 @@ use ort::session::Session;
 use parking_lot::Mutex;
 
 use crate::{
-    common::{Config, ModelConfig, ModelType, LuaLibs, model_type::ModelTypeSpec},
+    common::{Config, LuaLibs, ModelConfig, ModelType, model_type::ModelTypeSpec},
     runtime::TokenizerService,
-    transforms::DEFAULT_LIBS
+    transforms::DEFAULT_LIBS,
 };
 
 pub type AppState<T> = Arc<EncoderfileState<T>>;
@@ -48,7 +48,7 @@ impl<T: ModelTypeSpec> EncoderfileState<T> {
 
     pub fn lua_options(&self) -> &Option<LuaLibs> {
         &self.config.lua_libs
-    }   
+    }
 
     pub fn model_type() -> ModelType {
         T::enum_val()
