@@ -4,7 +4,7 @@ In this cookbook, we build an Encoderfile that serves Matryoshka sentence embedd
 
 Along the way, we show how to apply the model’s recommended Matryoshka post-processing and select a fixed embedding dimensionality at build time, making it easier to balance retrieval quality, latency, and memory footprint in production.
 
-Check out the full code in [Github](https://github.com/mozilla-ai/encoderfile/tree/main/examples/matryoshka_embeddings).
+Check out the full code in [GitHub](https://github.com/mozilla-ai/encoderfile/tree/main/examples/matryoshka_embeddings).
 
 ### What are Matryoshka Embeddings?
 
@@ -14,116 +14,118 @@ This Encoderfile is useful when you want to standardize on a fixed embedding siz
 
 This is a good fit for production search and retrieval systems, offline indexing pipelines, and environments with strict operational or compliance requirements, where embedding shape must be fixed and predictable, and runtime configuration is intentionally limited.
 
-## How Matryoshka Embeddings Are Applied in This Encoderfile
+??? info "How Matryoshka Embeddings Are Applied in This Encoderfile"
 
-The `nomic-ai/nomic-embed-text-v1.5` model produces token-level hidden states at its full native dimensionality. On their own, these outputs are not directly usable as sentence embeddings. This Encoderfile applies the post-processing steps recommended by the model authors and compiles them directly into the binary.
+    The `nomic-ai/nomic-embed-text-v1.5` model produces token-level hidden states at its full native dimensionality. On their own, these outputs are not directly usable as sentence embeddings. This Encoderfile applies the post-processing steps recommended by the model authors and compiles them directly into the binary.
 
-All post-processing is implemented as a Lua transform and runs inside the Encoderfile at inference time. There is no runtime configuration: the embedding shape and normalization behavior are fixed at build time.
+    All post-processing is implemented as a Lua transform and runs inside the Encoderfile at inference time. There is no runtime configuration: the embedding shape and normalization behavior are fixed at build time.
 
+    ```lua
+    --8<-- "examples/matryoshka_embeddings/transform.lua"
+    ```
 
-```lua
---8<-- "examples/matryoshka_embeddings/transform.lua"
-```
+    The transform performs the following steps:
 
-The transform performs the following steps:
+    1. **Mean pooling**
+       Token-level embeddings are averaged across the sequence using the attention mask, producing a single vector per input text.
 
-1. **Mean pooling**
-   Token-level embeddings are averaged across the sequence using the attention mask, producing a single vector per input text.
+    2. **Layer normalization**
+       The pooled embeddings are normalized to stabilize scale and match the model's reference implementation.
 
-2. **Layer normalization**
-   The pooled embeddings are normalized to stabilize scale and match the model’s reference implementation.
+    3. **Matryoshka truncation**
+       The embedding vector is truncated to a fixed dimensionality (`MatryoshkaDim`). Because the model was trained with a Matryoshka objective, the prefix of the vector remains semantically meaningful even at lower dimensions.
 
-3. **Matryoshka truncation**
-   The embedding vector is truncated to a fixed dimensionality (`MatryoshkaDim`). Because the model was trained with a Matryoshka objective, the prefix of the vector remains semantically meaningful even at lower dimensions.
+    4. **L2 normalization**
+       The final embeddings are L2-normalized, making them suitable for cosine similarity and nearest-neighbor search.
 
-4. **L2 normalization**
-   The final embeddings are L2-normalized, making them suitable for cosine similarity and nearest-neighbor search.
+    By compiling these steps into the Encoderfile, every inference produces embeddings with a fixed, predictable shape and identical semantics across environments. This avoids runtime configuration drift and makes the resulting binary easier to deploy in production systems where embedding dimensionality, memory usage, and indexing behavior must be tightly controlled.
 
-By compiling these steps into the Encoderfile, every inference produces embeddings with a fixed, predictable shape and identical semantics across environments. This avoids runtime configuration drift and makes the resulting binary easier to deploy in production systems where embedding dimensionality, memory usage, and indexing behavior must be tightly controlled.
-
-The result is a single, reproducible artifact that serves Matryoshka embeddings at a chosen dimensionality—without requiring downstream systems to understand or reimplement the post-processing logic.
+    The result is a single, reproducible artifact that serves Matryoshka embeddings at a chosen dimensionality—without requiring downstream systems to understand or reimplement the post-processing logic.
 
 ## Building the Encoderfile
 
-## Option 1: Build using Docker
+=== "Build using Docker"
 
-This is the easiest and most reproducible path. All dependencies are pinned and handled for you.
+    This is the easiest and most reproducible path. All dependencies are pinned and handled for you.
 
-### Step 1: Build the Encoderfile
+    **Step 1: Build the Encoderfile**
 
-Run:
+    Run:
 
-```bash
-docker build -t nomic-embed-text-v1_5:latest .
-```
+    ```bash
+    docker build -t nomic-embed-text-v1_5:latest .
+    ```
 
-This step:
+    This step:
 
-- downloads the model artifacts
-- applies the Matryoshka post-processing configuration
-- builds the final Encoderfile binary
+    - downloads the model artifacts
+    - applies the Matryoshka post-processing configuration
+    - builds the final Encoderfile binary
 
-### Step 2: Run the Encoderfile
+    **Step 2: Run the Encoderfile**
 
-Run:
+    Run:
 
-```bash
-docker run \
-    -it \
-    -p 8080:8080 \
-    -p 50051:50051 \
-    nomic-embed-text-v1_5:latest serve
-```
+    ```bash
+    docker run \
+        -it \
+        -p 8080:8080 \
+        -p 50051:50051 \
+        nomic-embed-text-v1_5:latest serve
+    ```
 
-The container runs the Encoderfile directly and starts an embedding server. This exposes both an HTTP (port `8080`) and gRPC endpoint (port `50051`). To see more options, run:
+    The container runs the Encoderfile directly and starts an embedding server. This exposes both an HTTP (port `8080`) and a gRPC endpoint (port `50051`). To see more options, run:
 
-```bash
-docker run -it nomic-embed-text-v1_5:latest serve --help
-```
+    ```bash
+    docker run -it nomic-embed-text-v1_5:latest serve --help
+    ```
 
-## Option 2: Build from Scratch
+=== "Build from Scratch"
 
-Use this path if you want full control over the build environment or to inspect each step.
+    Use this path if you want full control over the build environment or to inspect each step.
 
-### Step 1: Install Prerequisites
+    **Step 1: Install Prerequisites**
 
-Ensure the encoderfile CLI is installed and available in your `PATH`. For instructions on how to install the encoderfile CLI, check out our [Getting Started](https://mozilla-ai.github.io/encoderfile/getting-started/#encoderfile-cli-tool) guide.
+    Ensure the encoderfile CLI is installed and available in your `PATH`. For instructions on how to install the encoderfile CLI, check out our [Getting Started](https://mozilla-ai.github.io/encoderfile/getting-started/#encoderfile-cli-tool) guide.
 
-To install Huggingface CLI (for downloading model artifacts):
+    To install Huggingface CLI (for downloading model artifacts):
 
-```bash
-curl -LsSf https://hf.co/cli/install.sh | bash
-```
+    ```bash
+    curl -LsSf https://hf.co/cli/install.sh | bash
+    ```
 
-### Step 2: Download Model
+    **Step 2: Download Model**
 
-Run the following:
-```
-sh download_model.sh
-```
+    Run the following:
+    
+    ```bash
+    sh download_model.sh
+    ```
 
-This script downloads the `nomic-ai/nomic-embed-text-v1.5` model files expected by the Encoderfile build configuration.
+    This script downloads the `nomic-ai/nomic-embed-text-v1.5` model files(`config.json`, `tokenizer.json`, `tokenizer_config.json`, and `onnx/model.onnx`) expected by the Encoderfile build configuration.
 
-### Step 3: Build the Encoderfile
+    **Step 3: Build the Encoderfile**
 
-Run the following:
+    Run the following:
 
-```bash
-encoderfile build -f encoderfile.yml
-```
+    ```bash
+    encoderfile build -f encoderfile.yml
+    ```
 
-This produces a single executable binary, named `nomic-embed-text-v1_5.encoderfile`. All configuration—model weights, embedding dimensionality, and post-processing logic—is compiled into this file.
+    This produces a single executable binary, named `nomic-embed-text-v1_5.encoderfile`. All configuration—model weights, embedding dimensionality, and post-processing logic—is compiled into this file.
 
-### Step 4: Run the Encoderfile
+    **Step 4: Run the Encoderfile**
 
-To serve the model as a server:
+    To serve the model as a server:
 
-```bash
-# Optional: if you get a permission error
-chmod +x ./nomic-embed-text-v1_5.encoderfile
+    ```bash
+    ./nomic-embed-text-v1_5.encoderfile serve
+    ```
 
-./nomic-embed-text-v1_5.encoderfile serve
-```
+    !!! tip "If you get a permission error"
+        ```bash
+        chmod +x ./nomic-embed-text-v1_5.encoderfile
+        ```
 
 ## Running Inference
 
