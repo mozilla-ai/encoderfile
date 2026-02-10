@@ -60,6 +60,7 @@ impl TransformValidatorExt for SentenceEmbeddingTransform {
 mod tests {
     use crate::build_cli::config::{EncoderfileConfig, ModelPath};
     use crate::common::ModelType;
+    use crate::transforms::DEFAULT_LIBS;
 
     use super::*;
 
@@ -73,6 +74,7 @@ mod tests {
             output_path: None,
             transform: None,
             validate_transform: true,
+            lua_libs: None,
             tokenizer: None,
             base_binary_path: None,
             target: None,
@@ -90,7 +92,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        SentenceEmbeddingTransform::new(Some(
+        SentenceEmbeddingTransform::new(DEFAULT_LIBS.to_vec(), Some(
             "function Postprocess(arr, mask) return arr:mean_pool(mask) end".to_string(),
         ))
         .expect("Failed to create transform")
@@ -103,7 +105,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = SentenceEmbeddingTransform::new(Some(
+        let result = SentenceEmbeddingTransform::new(DEFAULT_LIBS.to_vec(), Some(
             "function Postprocess(arr, mask) return 1 end".to_string(),
         ))
         .expect("Failed to create transform")
@@ -117,7 +119,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = SentenceEmbeddingTransform::new(Some(
+        let result = SentenceEmbeddingTransform::new(DEFAULT_LIBS.to_vec(), Some(
             "function Postprocess(arr, mask) return arr end".to_string(),
         ))
         .expect("Failed to create transform")

@@ -47,10 +47,11 @@ impl Postprocessor for Transform<model_type::SequenceClassification> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::transforms::DEFAULT_LIBS;
 
     #[test]
     fn test_sequence_cls_no_transform() {
-        let engine = Transform::<model_type::SequenceClassification>::new(Some("".to_string()))
+        let engine = Transform::<model_type::SequenceClassification>::new(DEFAULT_LIBS.to_vec(), Some("".to_string()))
             .expect("Failed to create Transform");
 
         let arr = ndarray::Array2::<f32>::from_elem((16, 2), 2.0);
@@ -62,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_seq_cls_transform() {
-        let engine = Transform::<model_type::SequenceClassification>::new(Some(
+        let engine = Transform::<model_type::SequenceClassification>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(arr)
             return arr
@@ -81,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_seq_cls_transform_bad_fn() {
-        let engine = Transform::<model_type::SequenceClassification>::new(Some(
+        let engine = Transform::<model_type::SequenceClassification>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(arr)
             return 1
@@ -100,7 +101,7 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = Transform::<model_type::SequenceClassification>::new(Some(
+        let engine = Transform::<model_type::SequenceClassification>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(x)
             return x:sum_axis(1)

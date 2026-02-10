@@ -57,6 +57,7 @@ impl TransformValidatorExt for TokenClassificationTransform {
 mod tests {
     use crate::build_cli::config::{EncoderfileConfig, ModelPath};
     use crate::common::ModelType;
+    use crate::transforms::DEFAULT_LIBS;
 
     use super::*;
 
@@ -69,6 +70,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: None,
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -87,7 +89,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        TokenClassificationTransform::new(Some(
+        TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
             "function Postprocess(arr) return arr end".to_string(),
         ))
         .expect("Failed to create transform")
@@ -100,7 +102,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = TokenClassificationTransform::new(Some(
+        let result = TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
             "function Postprocess(arr) return 1 end".to_string(),
         ))
         .expect("Failed to create transform")
@@ -114,7 +116,7 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = TokenClassificationTransform::new(Some(
+        let result = TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
             "function Postprocess(arr) return arr:sum_axis(1) end".to_string(),
         ))
         .expect("Failed to create transform")

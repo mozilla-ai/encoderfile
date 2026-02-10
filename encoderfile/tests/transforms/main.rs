@@ -1,13 +1,13 @@
 use encoderfile::transforms::{
     EmbeddingTransform, Postprocessor, SequenceClassificationTransform,
-    TokenClassificationTransform,
+    TokenClassificationTransform, DEFAULT_LIBS,
 };
 use ndarray::{Array2, Array3, Axis};
 use ort::tensor::ArrayExtensions;
 
 #[test]
 fn test_l2_normalization() {
-    let engine = EmbeddingTransform::new(Some(
+    let engine = EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), Some(
         include_str!("../../../transforms/embedding/l2_normalize_embeddings.lua").to_string(),
     ))
     .expect("Failed to create engine");
@@ -29,7 +29,7 @@ fn test_l2_normalization() {
 
 #[test]
 fn test_softmax_sequence_cls() {
-    let engine = SequenceClassificationTransform::new(Some(
+    let engine = SequenceClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
         include_str!("../../../transforms/sequence_classification/softmax_logits.lua").to_string(),
     ))
     .expect("Failed to create engine");
@@ -48,7 +48,7 @@ fn test_softmax_sequence_cls() {
 
 #[test]
 fn test_softmax_token_cls() {
-    let engine = TokenClassificationTransform::new(Some(
+    let engine = TokenClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(
         include_str!("../../../transforms/token_classification/softmax_logits.lua").to_string(),
     ))
     .expect("Failed to create engine");

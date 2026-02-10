@@ -17,7 +17,7 @@ impl Inference for AppState<model_type::SequenceClassification> {
 
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
-        let transform = SequenceClassificationTransform::new(self.transform_str())?;
+        let transform = SequenceClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
 
         let results = inference::sequence_classification::sequence_classification(
             self.session.lock(),

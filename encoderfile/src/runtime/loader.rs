@@ -93,6 +93,7 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
             version: self.encoderfile.version().to_string(),
             model_type: self.encoderfile.model_type(),
             transform: self.transform()?,
+            lua_libs: None,
         };
 
         Ok(config)

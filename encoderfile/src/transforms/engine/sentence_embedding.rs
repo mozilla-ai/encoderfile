@@ -64,10 +64,11 @@ impl Postprocessor for Transform<model_type::SentenceEmbedding> {
 mod tests {
     use super::*;
     use ndarray::Axis;
+    use crate::transforms::DEFAULT_LIBS;
 
     #[test]
     fn test_no_pooling() {
-        let engine = Transform::<model_type::SentenceEmbedding>::new(Some("".to_string()))
+        let engine = Transform::<model_type::SentenceEmbedding>::new(DEFAULT_LIBS.to_vec(), Some("".to_string()))
             .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 128), 2.0);
@@ -85,7 +86,7 @@ mod tests {
 
     #[test]
     fn test_successful_pool() {
-        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(arr, mask)
             -- sum along second axis (lol)
@@ -108,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_bad_dim_pool() {
-        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(arr, mask)
             return arr
@@ -128,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_sentence_embedding_transform_bad_fn() {
-        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(arr, mask)
             return 1
@@ -148,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = Transform::<model_type::SentenceEmbedding>::new(Some(
+        let engine = Transform::<model_type::SentenceEmbedding>::new(DEFAULT_LIBS.to_vec(), Some(
             r##"
         function Postprocess(arr, mask)
             return arr

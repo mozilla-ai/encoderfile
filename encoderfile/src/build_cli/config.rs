@@ -1,4 +1,4 @@
-use crate::common::{Config as EmbeddedConfig, ModelConfig, ModelType};
+use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, ModelType};
 use anyhow::{Context, Result, bail};
 use schemars::JsonSchema;
 use std::{
@@ -41,6 +41,7 @@ pub struct EncoderfileConfig {
     pub cache_dir: Option<PathBuf>,
     pub base_binary_path: Option<PathBuf>,
     pub transform: Option<Transform>,
+    pub lua_libs: Option<Vec<String>>,
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
@@ -61,6 +62,7 @@ impl EncoderfileConfig {
             version: self.version.clone(),
             model_type: self.model_type.clone(),
             transform: self.transform()?,
+            lua_libs: None,
         };
 
         Ok(config)
@@ -102,6 +104,32 @@ impl EncoderfileConfig {
         };
 
         Ok(transform)
+    }
+
+    pub fn lua_libs(&self) -> Result<Option<LuaLibs>> {
+        match &self.lua_libs {
+            None => Ok(None),
+            Some(libs) => {
+                let mut resolved = LuaLibs::default();
+
+                for lib in libs {
+                    match lib.as_str() {
+                        "coroutine" => resolved.coroutine = true,
+                        "table" => resolved.table = true,
+                        "io" => resolved.io = true,
+                        "os" => resolved.os = true,
+                        "string" => resolved.string = true,
+                        "utf8" => resolved.utf8 = true,
+                        "math" => resolved.math = true,
+                        "package" => resolved.package = true,
+                        "debug" => resolved.debug = true,
+                        other => bail!("Unknown Lua stdlib: {}", other),
+                    };
+                }
+
+                Ok(Some(resolved))
+            }
+        }
     }
 
     pub fn get_generated_dir(&self) -> PathBuf {
@@ -356,6 +384,7 @@ mod tests {
             cache_dir: Some(base.clone()),
             validate_transform: false,
             transform: None,
+            lua_libs: None,
             tokenizer: None,
             base_binary_path: None,
             target: None,

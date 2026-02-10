@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use crate::{
-    common::model_type::{self, ModelTypeSpec},
-    error::ApiError,
+    common::{LuaLibs, model_type::{self, ModelTypeSpec}},
+    error::ApiError, transforms::DEFAULT_LIBS,
 };
 
 use super::tensor::Tensor;
@@ -12,6 +12,65 @@ mod embedding;
 mod sentence_embedding;
 mod sequence_classification;
 mod token_classification;
+
+impl From<&LuaLibs> for Vec<mlua::StdLib> {
+    fn from(value: &LuaLibs) -> Self {
+        let mut libs = Vec::new();
+        if value.coroutine {
+            libs.push(mlua::StdLib::COROUTINE);
+        }
+        if value.table {
+            libs.push(mlua::StdLib::TABLE);
+        }
+        if value.io {
+            libs.push(mlua::StdLib::IO);
+        }
+        if value.os {
+            libs.push(mlua::StdLib::OS);
+        }
+        if value.string {
+            libs.push(mlua::StdLib::STRING);
+        }
+        if value.utf8 {
+            libs.push(mlua::StdLib::UTF8);
+        }
+        if value.math {
+            libs.push(mlua::StdLib::MATH);
+        }
+        if value.package {
+            libs.push(mlua::StdLib::PACKAGE);
+        }
+        // luau settings (https://luau.org/), not included right now
+        /*
+        if value.buffer {
+            libs.push(mlua::StdLib::BUFFER);
+        }
+        if value.vector {
+            libs.push(mlua::StdLib::VECTOR);
+        }
+        */
+        // luajit settings (https://luajit.org/), not included right now
+        /*
+        if value.jit {
+            libs.push(mlua::StdLib::JIT);
+        }
+        if value.ffi {
+            libs.push(mlua::StdLib::FFI);
+        }
+        */
+        if value.debug {
+            libs.push(mlua::StdLib::DEBUG);
+        }
+        libs
+    }
+}
+
+pub fn convert_libs(value: Option<&LuaLibs>) -> Vec<mlua::StdLib>  {
+    match value {
+        Some(libs) => Vec::from(libs),
+        None => DEFAULT_LIBS.to_vec(),
+    }   
+}
 
 macro_rules! transform {
     ($type_name:ident, $mt:ident) => {
@@ -49,8 +108,8 @@ impl<T: ModelTypeSpec> Transform<T> {
     }
 
     #[tracing::instrument(name = "new_transform", skip_all)]
-    pub fn new(transform: Option<String>) -> Result<Self, ApiError> {
-        let lua = new_lua()?;
+    pub fn new(libs: Vec<mlua::StdLib>, transform: Option<String>) -> Result<Self, ApiError> {
+        let lua = new_lua(libs)?;
 
         lua.load(transform.unwrap_or("".to_string()))
             .exec()
@@ -75,9 +134,9 @@ impl<T: ModelTypeSpec> TransformSpec for Transform<T> {
     }
 }
 
-fn new_lua() -> Result<Lua, ApiError> {
+fn new_lua(libs: Vec<mlua::StdLib>) -> Result<Lua, ApiError> {
     let lua = Lua::new_with(
-        mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH,
+        libs.iter().fold(mlua::StdLib::NONE, |acc, lib| acc | *lib),
         mlua::LuaOptions::default(),
     )
     .map_err(|e| {
@@ -109,9 +168,10 @@ fn new_lua() -> Result<Lua, ApiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::transforms::DEFAULT_LIBS;
 
     fn new_test_lua() -> Lua {
-        new_lua().expect("Failed to create new lua")
+        new_lua(DEFAULT_LIBS.to_vec()).expect("Failed to create new Lua")
     }
 
     #[test]
@@ -152,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_cannot_access_environment_or_execute_commands() {
-        let lua = new_lua().expect("Failed to create new Lua");
+        let lua = new_lua(DEFAULT_LIBS.to_vec()).expect("Failed to create new Lua");
 
         // `os.execute` shouldn't exist or be callable
         let res = lua

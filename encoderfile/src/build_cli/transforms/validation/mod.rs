@@ -1,7 +1,7 @@
 use crate::{
-    common::{ModelConfig, ModelType},
+    common::{LuaLibs, ModelConfig, ModelType},
     format::assets::{AssetKind, AssetSource, PlannedAsset},
-    transforms::TransformSpec,
+    transforms::{TransformSpec, convert_libs},
 };
 use anyhow::{Context, Result};
 
@@ -40,8 +40,8 @@ pub trait TransformValidatorExt: TransformSpec {
 }
 
 macro_rules! validate_transform {
-    ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
-        crate::transforms::$transform_type::new(Some($transform_str.clone()))
+    ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr, $libs:expr) => {
+        crate::transforms::$transform_type::new(convert_libs($libs), Some($transform_str.clone()))
             .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
             .validate($encoderfile_config, $model_config)
     };
@@ -50,6 +50,7 @@ macro_rules! validate_transform {
 pub fn validate_transform<'a>(
     encoderfile_config: &'a EncoderfileConfig,
     model_config: &'a ModelConfig,
+    libs: Option<&LuaLibs>,
 ) -> Result<Option<PlannedAsset<'a>>> {
     // try to fetch transform string
     // will fail if a path to a transform does not exist
@@ -65,25 +66,29 @@ pub fn validate_transform<'a>(
             EmbeddingTransform,
             transform_str,
             encoderfile_config,
-            model_config
+            model_config,
+            libs
         ),
         ModelType::SequenceClassification => validate_transform!(
             SequenceClassificationTransform,
             transform_str,
             encoderfile_config,
-            model_config
+            model_config,
+            libs
         ),
         ModelType::TokenClassification => validate_transform!(
             TokenClassificationTransform,
             transform_str,
             encoderfile_config,
-            model_config
+            model_config,
+            libs
         ),
         ModelType::SentenceEmbedding => validate_transform!(
             SentenceEmbeddingTransform,
             transform_str,
             encoderfile_config,
-            model_config
+            model_config,
+            libs
         ),
     }?;
 
@@ -101,7 +106,7 @@ pub fn validate_transform<'a>(
 
 #[cfg(test)]
 mod tests {
-    use crate::transforms::EmbeddingTransform;
+    use crate::transforms::{EmbeddingTransform, DEFAULT_LIBS};
 
     use crate::build_cli::config::{ModelPath, Transform};
 
@@ -116,6 +121,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: None,
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -131,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_empty_transform() {
-        let result = EmbeddingTransform::new(None)
+        let result = EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), None)
             .expect("Failed to make embedding transform")
             .validate(&test_encoderfile_config(), &test_model_config());
 
@@ -143,7 +149,7 @@ mod tests {
         let mut config = test_encoderfile_config();
         config.validate_transform = false;
 
-        EmbeddingTransform::new(None)
+        EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), None)
             .expect("Failed to make embedding transform")
             .validate(&config, &test_model_config())
             .expect("Should be ok")
@@ -161,6 +167,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: Some(Transform::Inline(transform_str.to_string())),
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -176,7 +183,7 @@ mod tests {
         let model_config =
             serde_json::from_str(model_config_str).expect("Failed to create model config");
 
-        validate_transform(&encoderfile_config, &model_config).expect("Failed to validate");
+        validate_transform(&encoderfile_config, &model_config, None).expect("Failed to validate");
     }
 
     #[test]
@@ -189,6 +196,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: None,
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -204,6 +212,6 @@ mod tests {
         let model_config =
             serde_json::from_str(model_config_str).expect("Failed to create model config");
 
-        validate_transform(&encoderfile_config, &model_config).expect("Failed to validate");
+        validate_transform(&encoderfile_config, &model_config, None).expect("Failed to validate");
     }
 }
