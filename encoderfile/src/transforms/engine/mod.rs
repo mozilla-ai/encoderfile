@@ -339,4 +339,185 @@ mod tests {
         // shape should be preserved
         assert_eq!(out.0.shape(), &[3]);
     }
+
+    enum TestLibItem {
+        Coroutine,
+        Io,
+        Utf8,
+        Os,
+        Package,
+        Debug,
+    }
+
+    impl TestLibItem{
+        pub fn test_data(self: Self) -> (String, mlua::StdLib) {
+            match self {
+                TestLibItem::Coroutine => (r#"
+                    function MyCoroutine()
+                        return Tensor({1, 2, 3})
+                    end
+                    function MyTest()
+                        local mycor = coroutine.create(MyCoroutine)
+                        local _, tensor = coroutine.resume(mycor)
+                        return tensor
+                    end
+                "#.to_string(), mlua::StdLib::COROUTINE),
+                TestLibItem::Io => (r#"
+                    function MyTest()
+                        local res = Tensor({1, 2, 3})
+                        io.stderr:write("This is a test of the IO library\n")
+                        return res
+                    end
+                "#.to_string(), mlua::StdLib::IO),
+                TestLibItem::Utf8 => (r#"
+                    function MyTest()
+                        local fp_values = {}
+                        for point in utf8.codes("hello") do
+                            table.insert(fp_values, point)
+                        end
+                        return Tensor(fp_values)
+                    end
+                "#.to_string(), mlua::StdLib::UTF8),
+                TestLibItem::Os => (r#"
+                    function MyTest()
+                        local t = os.time()
+                        return Tensor({1, 2, 3})
+                    end
+                "#.to_string(), mlua::StdLib::OS),
+                TestLibItem::Package => (r#"
+                    function MyTest()
+                        p = package.path
+                        return Tensor({1, 2, 3})
+                    end
+                "#.to_string(), mlua::StdLib::PACKAGE),
+                TestLibItem::Debug => (r#"
+                    function MyTest()
+                        local info = debug.getinfo(1, "n")
+                        return Tensor({info.currentline})
+                    end
+                "#.to_string(), mlua::StdLib::DEBUG),
+            }
+        }
+    }
+
+    #[test]
+    fn test_convert_default_lua_libs() {
+        let libs = LuaLibs::default();
+        let stdlibs: Vec<mlua::StdLib> = Vec::from(&libs);
+        assert!(stdlibs.len() == 0);
+    }
+
+    #[test]
+    fn test_convert_no_lua_libs() {
+        let maybe_libs = None;
+        let stdlibs: Vec<mlua::StdLib> = convert_libs(maybe_libs);
+        assert!(stdlibs.contains(&mlua::StdLib::TABLE));
+        assert!(stdlibs.contains(&mlua::StdLib::STRING));
+        assert!(stdlibs.contains(&mlua::StdLib::MATH));
+    }
+
+    #[test]
+    fn test_convert_some_lua_libs() {
+        let maybe_libs = Some(&LuaLibs { coroutine: true, table: false, io: true, os: false, string: true, utf8: false, math: true, package: false, debug: true });
+        let stdlibs: Vec<mlua::StdLib> = convert_libs(maybe_libs);
+        assert!(stdlibs.contains(&mlua::StdLib::COROUTINE));
+        assert!(stdlibs.contains(&mlua::StdLib::IO));
+        assert!(stdlibs.contains(&mlua::StdLib::STRING));
+        assert!(stdlibs.contains(&mlua::StdLib::MATH));
+        assert!(stdlibs.contains(&mlua::StdLib::DEBUG));
+        assert!(!stdlibs.contains(&mlua::StdLib::TABLE));
+        assert!(!stdlibs.contains(&mlua::StdLib::OS));
+        assert!(!stdlibs.contains(&mlua::StdLib::UTF8));
+        assert!(!stdlibs.contains(&mlua::StdLib::PACKAGE));
+    }
+
+    fn test_lualib_any_ok((chunk, lib): (String, mlua::StdLib)) {
+        let mut lualibs = DEFAULT_LIBS.to_vec();
+        lualibs.push(lib);
+        let lua = new_lua(lualibs).expect("Failed to create new Lua");
+        lua.load(chunk)
+        .exec()
+        .unwrap();
+
+        let function = lua
+            .globals()
+            .get::<LuaFunction>("MyTest")
+            .expect("Failed to get MyTest");
+        let res = function.call::<Tensor>(());
+        assert!(res.is_ok(), "Failed to execute function using library {:?}: {:?}", lib, res.err());
+    }
+
+    fn test_lualib_any_fails((chunk, lib): (String, mlua::StdLib)) {
+        let lua = new_test_lua();
+        lua.load(chunk)
+        .exec()
+        .unwrap();
+
+        let function = lua
+            .globals()
+            .get::<LuaFunction>("MyTest")
+            .expect("Failed to get MyTest");
+        let res = function.call::<Tensor>(());
+        assert!(res.is_err(), "Function should have failed when using library {:?}, but got result: {:?}", lib, res.ok());
+    }
+
+    #[test]
+    fn test_lualib_coroutine_ok() {
+        test_lualib_any_ok(TestLibItem::Coroutine.test_data());
+    }
+
+    #[test]
+    fn test_lualib_coroutine_fails() {
+        test_lualib_any_fails(TestLibItem::Coroutine.test_data());
+    }
+
+    #[test]
+    fn test_lualib_io_ok() {
+        test_lualib_any_ok(TestLibItem::Io.test_data());
+    }
+
+    #[test]
+    fn test_lualib_io_fails() {
+        test_lualib_any_fails(TestLibItem::Io.test_data());
+    }
+
+    #[test]
+    fn test_lualib_utf8_ok() {
+        test_lualib_any_ok(TestLibItem::Utf8.test_data());
+    }
+
+    #[test]
+    fn test_lualib_utf8_fails() {
+        test_lualib_any_fails(TestLibItem::Utf8.test_data());
+    }
+
+    #[test]
+    fn test_lualib_os_ok() {
+        test_lualib_any_ok(TestLibItem::Os.test_data());
+    }
+
+    #[test]
+    fn test_lualib_os_fails() {
+        test_lualib_any_fails(TestLibItem::Os.test_data());
+    }
+
+    #[test]
+    fn test_lualib_package_ok() {
+        test_lualib_any_ok(TestLibItem::Package.test_data());
+    }
+
+    #[test]
+    fn test_lualib_package_fails() {
+        test_lualib_any_fails(TestLibItem::Package.test_data());
+    }
+
+    #[test]
+    fn test_lualib_debug_ok() {
+        test_lualib_any_ok(TestLibItem::Debug.test_data());
+    }
+
+    #[test]
+    fn test_lualib_debug_fails() {
+        test_lualib_any_fails(TestLibItem::Debug.test_data());
+    }
 }
