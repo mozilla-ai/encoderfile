@@ -29,6 +29,16 @@ impl Tensor {
         self.0.len()
     }
 
+    // The lint does not understand that this is
+    // a Lua method, so same rules will not apply.
+    // But it doesn't hurt to have one anyway.
+    // Maybe....
+    // #[allow(clippy::len_without_is_empty)]
+    #[tracing::instrument(skip_all)]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     #[tracing::instrument(skip_all)]
     pub fn std(&self, ddof: f32) -> Result<f32, LuaError> {
         Ok(self.0.std(ddof))
