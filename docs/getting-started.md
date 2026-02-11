@@ -25,8 +25,15 @@ For exporting models to ONNX:
 > Requires Python 3.13+
 
 ```bash
-pip install optimum[exporters]
+pip install optimum[onnxruntime] onnxruntime
 ```
+
+There are some resources that you can check about the ONNX runtime, what HF models it supports, and how to export a model in HF to this format:
+
+* https://onnxruntime.ai/huggingface
+* https://huggingface.co/docs/optimum-onnx/onnx/usage_guides/export_a_model
+* https://huggingface.co/docs/transformers/serialization#onnx
+
 
 ## Your First Encoderfile
 
