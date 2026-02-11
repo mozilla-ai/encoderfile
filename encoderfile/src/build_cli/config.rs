@@ -107,29 +107,8 @@ impl EncoderfileConfig {
     }
 
     pub fn lua_libs(&self) -> Result<Option<LuaLibs>> {
-        match &self.lua_libs {
-            None => Ok(None),
-            Some(libs) => {
-                let mut resolved = LuaLibs::default();
-
-                for lib in libs {
-                    match lib.as_str() {
-                        "coroutine" => resolved.coroutine = true,
-                        "table" => resolved.table = true,
-                        "io" => resolved.io = true,
-                        "os" => resolved.os = true,
-                        "string" => resolved.string = true,
-                        "utf8" => resolved.utf8 = true,
-                        "math" => resolved.math = true,
-                        "package" => resolved.package = true,
-                        "debug" => resolved.debug = true,
-                        other => bail!("Unknown Lua stdlib: {}", other),
-                    };
-                }
-
-                Ok(Some(resolved))
-            }
-        }
+        let configlibs = &self.lua_libs.clone().map(LuaLibs::try_from).transpose()?;
+        Ok(*configlibs)
     }
 
     pub fn get_generated_dir(&self) -> PathBuf {

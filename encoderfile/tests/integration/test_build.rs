@@ -31,10 +31,10 @@ encoderfile:
     - table
     - io
     - os
+    - package
     - string
     - utf8
     - math
-    - package
   transform: |
     --- Applies a softmax across token classification logits.
     --- Each token classification is normalized independently.
@@ -186,11 +186,16 @@ async fn send_http_inference(sample_text: &str, http_port: String) -> Result<()>
         inputs: vec![sample_text.to_owned()],
         metadata: None,
     };
-    client
+    let res = client
         .post(format!("http://localhost:{http_port}/predict"))
         .json(&req)
         .send()
         .await?;
+    assert!(
+        res.status().is_success(),
+        "HTTP inference request failed with status: {}",
+        res.status()
+    );
     Ok(())
 }
 

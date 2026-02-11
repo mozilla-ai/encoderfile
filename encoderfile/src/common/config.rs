@@ -1,4 +1,5 @@
 use super::model_type::ModelType;
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use tokenizers::PaddingParams;
 
@@ -11,7 +12,7 @@ pub struct Config {
     pub lua_libs: Option<LuaLibs>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Copy, Clone)]
 pub struct LuaLibs {
     pub coroutine: bool,
     pub table: bool,
@@ -30,6 +31,30 @@ pub struct LuaLibs {
     // pub jit: bool,
     // pub ffi: bool,
     pub debug: bool,
+}
+
+impl TryFrom<Vec<String>> for LuaLibs {
+    type Error = anyhow::Error;
+    fn try_from(value: Vec<String>) -> Result<LuaLibs> {
+        let mut resolved = LuaLibs::default();
+
+        for lib in value {
+            match lib.as_str() {
+                "coroutine" => resolved.coroutine = true,
+                "table" => resolved.table = true,
+                "io" => resolved.io = true,
+                "os" => resolved.os = true,
+                "string" => resolved.string = true,
+                "utf8" => resolved.utf8 = true,
+                "math" => resolved.math = true,
+                "package" => resolved.package = true,
+                "debug" => resolved.debug = true,
+                other => bail!("Unknown Lua stdlib: {}", other),
+            };
+        }
+
+        Ok(resolved)
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

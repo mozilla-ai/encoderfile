@@ -4,7 +4,7 @@ use ort::session::Session;
 use parking_lot::Mutex;
 
 use crate::{
-    common::{Config, LuaLibs, ModelConfig, ModelType, model_type::ModelTypeSpec},
+    common::{Config, ModelConfig, ModelType, model_type::ModelTypeSpec},
     runtime::TokenizerService,
     transforms::DEFAULT_LIBS,
 };
@@ -46,8 +46,8 @@ impl<T: ModelTypeSpec> EncoderfileState<T> {
         self.config.transform.clone()
     }
 
-    pub fn lua_options(&self) -> &Option<LuaLibs> {
-        &self.config.lua_libs
+    pub fn lua_libs(&self) -> &Vec<mlua::StdLib> {
+        &self.lua_libs
     }
 
     pub fn model_type() -> ModelType {

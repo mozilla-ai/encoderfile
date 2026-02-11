@@ -1,6 +1,7 @@
 use crate::{
-    common::{LuaLibs, ModelConfig, ModelType},
+    common::{ModelConfig, ModelType},
     format::assets::{AssetKind, AssetSource, PlannedAsset},
+    generated::manifest::LuaLibs as ManifestLuaLibs,
     transforms::{TransformSpec, convert_libs},
 };
 use anyhow::{Context, Result};
@@ -40,17 +41,19 @@ pub trait TransformValidatorExt: TransformSpec {
 }
 
 macro_rules! validate_transform {
-    ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr, $libs:expr) => {
-        crate::transforms::$transform_type::new(convert_libs($libs), Some($transform_str.clone()))
-            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
-            .validate($encoderfile_config, $model_config)
+    ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
+        crate::transforms::$transform_type::new(
+            convert_libs($encoderfile_config.lua_libs()?.as_ref()),
+            Some($transform_str.clone()),
+        )
+        .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
+        .validate($encoderfile_config, $model_config)
     };
 }
 
 pub fn validate_transform<'a>(
     encoderfile_config: &'a EncoderfileConfig,
     model_config: &'a ModelConfig,
-    libs: Option<&LuaLibs>,
 ) -> Result<Option<PlannedAsset<'a>>> {
     // try to fetch transform string
     // will fail if a path to a transform does not exist
@@ -66,35 +69,36 @@ pub fn validate_transform<'a>(
             EmbeddingTransform,
             transform_str,
             encoderfile_config,
-            model_config,
-            libs
+            model_config
         ),
         ModelType::SequenceClassification => validate_transform!(
             SequenceClassificationTransform,
             transform_str,
             encoderfile_config,
-            model_config,
-            libs
+            model_config
         ),
         ModelType::TokenClassification => validate_transform!(
             TokenClassificationTransform,
             transform_str,
             encoderfile_config,
-            model_config,
-            libs
+            model_config
         ),
         ModelType::SentenceEmbedding => validate_transform!(
             SentenceEmbeddingTransform,
             transform_str,
             encoderfile_config,
-            model_config,
-            libs
+            model_config
         ),
     }?;
 
+    let lua_libs: Option<ManifestLuaLibs> = encoderfile_config
+        .lua_libs
+        .clone()
+        .map(|libs| ManifestLuaLibs { libs });
     let proto = crate::generated::manifest::Transform {
         transform_type: crate::generated::manifest::TransformType::Lua.into(),
         transform: transform_str,
+        lua_libs,
     };
 
     PlannedAsset::from_asset_source(
@@ -183,7 +187,7 @@ mod tests {
         let model_config =
             serde_json::from_str(model_config_str).expect("Failed to create model config");
 
-        validate_transform(&encoderfile_config, &model_config, None).expect("Failed to validate");
+        validate_transform(&encoderfile_config, &model_config).expect("Failed to validate");
     }
 
     #[test]
@@ -212,6 +216,6 @@ mod tests {
         let model_config =
             serde_json::from_str(model_config_str).expect("Failed to create model config");
 
-        validate_transform(&encoderfile_config, &model_config, None).expect("Failed to validate");
+        validate_transform(&encoderfile_config, &model_config).expect("Failed to validate");
     }
 }
