@@ -20,6 +20,15 @@ encoderfile:
   path: {:?}
   model_type: token_classification
   output_path: {:?}
+  lua_libs:
+    - coroutine
+    - table
+    - io
+    - os
+    - string
+    - utf8
+    - math
+    - package
   transform: |
     --- Applies a softmax across token classification logits.
     --- Each token classification is normalized independently.
@@ -32,7 +41,19 @@ encoderfile:
     ---   Tensor: The input tensor with softmax-normalized embeddings.
     ---@param arr Tensor
     ---@return Tensor
+    p = package.path
+    function MyCoroutine()
+        return Tensor({{1, 2, 3}})
+    end
     function Postprocess(arr)
+        local mycor = coroutine.create(MyCoroutine)
+        local _, tensor = coroutine.resume(mycor)
+        io.stderr:write("This is a test of the IO library\n")
+        local fp_values = {{}}
+        for point in utf8.codes("hello") do
+            table.insert(fp_values, point)
+        end
+        local t = os.time()
         return arr:softmax(3)
     end
         "##,
