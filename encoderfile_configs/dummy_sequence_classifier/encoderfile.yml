@@ -1,6 +1,6 @@
 encoderfile:
   name: dummy-text-model
-  path: models/dummy_text_classification
+  path: models/dummy_sequence_classifier
   model_type: sequence_classification
   output_path: ./dummy-text-model.encoderfile
   transform: |
@@ -8,13 +8,13 @@ encoderfile:
     --- Each token classification is normalized independently.
     --- 
     --- Args:
-    ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
-    ---                 The softmax is applied along the third axis (n_labels).
+    ---   arr (Tensor): A tensor of shape [batch_size, n_labels].
+    ---                 The softmax is applied along the second axis (n_labels).
     ---
     --- Returns:
     ---   Tensor: The input tensor with softmax-normalized embeddings.
     ---@param arr Tensor
     ---@return Tensor
     function Postprocess(arr)
-        return arr:softmax(3)
+        return arr:softmax(2)
     end
