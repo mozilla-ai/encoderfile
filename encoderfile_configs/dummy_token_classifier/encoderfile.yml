@@ -1,6 +1,6 @@
 encoderfile:
   name: dummy-token-model
-  path: models/dummy_electra_token_classifier
+  path: models/dummy_token_classifier
   model_type: token_classification
   output_path: ./dummy-token-model.encoderfile
   transform: |

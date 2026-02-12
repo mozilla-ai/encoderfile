@@ -1,6 +1,6 @@
 encoderfile:
   name: dummy-text-model
-  path: dummy_text_classification
+  path: models/dummy_text_classification
   model_type: sequence_classification
   output_path: ./dummy-text-model.encoderfile
   transform: |
