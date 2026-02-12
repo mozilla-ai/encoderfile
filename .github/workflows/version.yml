@@ -70,11 +70,11 @@ jobs:
       
       - name: Get current version
         id: current_version
-        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        uses: mozilla-ai/cargo-goosectl/actions/current-version@v1
         with:
           force-single-version: true
       
-      - name: Compute cargo-goose args
+      - name: Compute cargo-goosectl args
         id: goose_args
         run: |
           ACTION="${{ github.event.inputs.action }}"
@@ -106,13 +106,13 @@ jobs:
           echo "args=$ARGS" >> "$GITHUB_OUTPUT"
 
       - name: Bump version
-        uses: mozilla-ai/cargo-goose/actions/cargo-goose@v1
+        uses: mozilla-ai/cargo-goosectl/actions/cargo-goosectl@v1
         with:
           args: ${{ steps.goose_args.outputs.args }}
 
       - name: Get new version
         id: new_version
-        uses: mozilla-ai/cargo-goose/actions/current-version@v1
+        uses: mozilla-ai/cargo-goosectl/actions/current-version@v1
         with:
           force-single-version: true
 

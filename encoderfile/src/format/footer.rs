@@ -5,7 +5,7 @@ use std::io::{Read, Seek, SeekFrom, Write};
 pub const FLAG_METADATA_PROTOBUF: u32 = 1 << 0;
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize)]
 pub struct EncoderfileFooter {
     pub magic: [u8; 8],
     pub format_version: u32,

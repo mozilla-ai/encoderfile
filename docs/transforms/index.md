@@ -2,7 +2,7 @@
 
 Transforms allow you to post-process model outputs after ONNX inference and before returning results. They run inside the model binary, operating directly on tensors for high performance.
 
-Transforms run on Lua 5.4 in a sandboxed environment. As of right now, the transforms feature does not support LuaJIT.
+Transforms run on Lua 5.4 in a sandboxed environment. The transforms feature does not support LuaJIT currently.
 
 ## Why Use Transforms?
 
@@ -40,7 +40,7 @@ If you don't see an op that you need, please don't hesitate to [create an issue]
 
 ## Creating a New Transform
 
-To create a new transform, use the Encoderfile CLI:
+To create a new transform, use the encoderfile CLI:
 
 ```
 encoderfile new-transform --model-type [embedding|sequence_classification|etc.] > /path/to/your/transform/file.lua
@@ -204,5 +204,6 @@ transform: |
     function Postprocess(arr)
         ...
     return arr
+end
 ```
 

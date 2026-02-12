@@ -1,0 +1,11 @@
+encoderfile:
+  name: nomic-embed-text-v1.5
+  path:
+    model_config_path: model/config.json
+    model_weights_path: model/onnx/model.onnx
+    tokenizer_path: model/tokenizer.json
+    tokenizer_config_path: model/tokenizer_config.json
+  model_type: sentence_embedding
+  output_path: ./nomic-embed-text-v1_5.encoderfile
+  transform:
+    path: ./transform.lua
