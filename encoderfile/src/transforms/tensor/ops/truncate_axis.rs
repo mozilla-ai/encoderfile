@@ -31,30 +31,35 @@ impl Tensor {
     }
 }
 
-#[test]
-fn test_truncate_axis_correctness() {
-    use ndarray::Array3;
-    let tensor = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    // truncate along 2rd axis (3rd in lua land) to 2
-    let result = tensor
-        .truncate_axis(3, 2)
-        .expect("Failed to truncate tensor");
-    let expected = Tensor(Array3::from_elem([3, 3, 2], 1.0).into_dyn());
+    #[test]
+    fn test_truncate_axis_correctness() {
+        use ndarray::Array3;
+        let tensor = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
 
-    assert_eq!(result, expected);
-}
+        // truncate along 2rd axis (3rd in lua land) to 2
+        let result = tensor
+            .truncate_axis(3, 2)
+            .expect("Failed to truncate tensor");
+        let expected = Tensor(Array3::from_elem([3, 3, 2], 1.0).into_dyn());
 
-#[test]
-fn test_truncate_axis_out_of_bounds() {
-    use ndarray::Array3;
-    let tensor = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+        assert_eq!(result, expected);
+    }
 
-    // should return the same thing
-    let result = tensor
-        .truncate_axis(3, 500)
-        .expect("Failed to truncate tensor");
-    let expected = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+    #[test]
+    fn test_truncate_axis_out_of_bounds() {
+        use ndarray::Array3;
+        let tensor = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
 
-    assert_eq!(result, expected);
+        // should return the same thing
+        let result = tensor
+            .truncate_axis(3, 500)
+            .expect("Failed to truncate tensor");
+        let expected = Tensor(Array3::from_elem([3, 3, 3], 1.0).into_dyn());
+
+        assert_eq!(result, expected);
+    }
 }

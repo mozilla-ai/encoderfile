@@ -27,37 +27,43 @@ impl Tensor {
     }
 }
 
-#[test]
-fn test_map_axis_zero_transform() {
-    use crate::transforms::tensor::load_env;
-    use ndarray::Array3;
-    let lua = load_env();
-    let tensor = Tensor(Array3::<f32>::from_elem((3, 6, 9), 1.0).into_dyn());
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let func = lua
-        .load("return function(x) return x end")
-        .eval::<LuaFunction>()
-        .unwrap();
+    #[test]
+    fn test_map_axis_zero_transform() {
+        use crate::transforms::tensor::load_env;
+        use ndarray::Array3;
+        let lua = load_env();
+        let tensor = Tensor(Array3::<f32>::from_elem((3, 6, 9), 1.0).into_dyn());
 
-    let result = tensor.map_axis(3, func).expect("Failed to map axis");
+        let func = lua
+            .load("return function(x) return x end")
+            .eval::<LuaFunction>()
+            .unwrap();
 
-    assert_eq!(tensor, result);
-}
+        let result = tensor.map_axis(3, func).expect("Failed to map axis");
 
-#[test]
-fn test_map_axis_double_values() {
-    use crate::transforms::tensor::load_env;
-    use ndarray::Array3;
-    let lua = load_env();
-    let tensor =
-        Tensor(Array3::<f32>::from_shape_fn((2, 2, 2), |(i, j, k)| (i + j + k) as f32).into_dyn());
+        assert_eq!(tensor, result);
+    }
 
-    let func = lua
-        .load("return function(x) return x * 2 end")
-        .eval::<LuaFunction>()
-        .unwrap();
+    #[test]
+    fn test_map_axis_double_values() {
+        use crate::transforms::tensor::load_env;
+        use ndarray::Array3;
+        let lua = load_env();
+        let tensor = Tensor(
+            Array3::<f32>::from_shape_fn((2, 2, 2), |(i, j, k)| (i + j + k) as f32).into_dyn(),
+        );
 
-    let result = tensor.map_axis(3, func).expect("Failed to map axis");
+        let func = lua
+            .load("return function(x) return x * 2 end")
+            .eval::<LuaFunction>()
+            .unwrap();
 
-    assert_eq!(result.0, tensor.0 * 2.0);
+        let result = tensor.map_axis(3, func).expect("Failed to map axis");
+
+        assert_eq!(result.0, tensor.0 * 2.0);
+    }
 }

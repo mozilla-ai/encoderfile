@@ -70,141 +70,146 @@ pub fn is_broadcastable(a: &[usize], b: &[usize]) -> bool {
     true
 }
 
-#[test]
-fn test_min() {
-    use ndarray::Array2;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
-    assert_eq!(tensor.min().unwrap(), 1.0);
-}
+    #[test]
+    fn test_min() {
+        use ndarray::Array2;
 
-#[test]
-fn test_min_empty() {
-    let tensor = Tensor(ndarray::array![[[]]].into_dyn());
-    assert!(tensor.min().is_err())
-}
+        let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+        assert_eq!(tensor.min().unwrap(), 1.0);
+    }
 
-#[test]
-fn test_max() {
-    use ndarray::Array2;
+    #[test]
+    fn test_min_empty() {
+        let tensor = Tensor(ndarray::array![[[]]].into_dyn());
+        assert!(tensor.min().is_err())
+    }
 
-    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
-    assert_eq!(tensor.max().unwrap(), 1.0);
-}
+    #[test]
+    fn test_max() {
+        use ndarray::Array2;
 
-#[test]
-fn test_max_empty() {
-    let tensor = Tensor(ndarray::array![[[]]].into_dyn());
-    assert!(tensor.max().is_err())
-}
+        let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+        assert_eq!(tensor.max().unwrap(), 1.0);
+    }
 
-#[test]
-fn test_len() {
-    use crate::transforms::tensor::load_env;
-    use ndarray::Array2;
+    #[test]
+    fn test_max_empty() {
+        let tensor = Tensor(ndarray::array![[[]]].into_dyn());
+        assert!(tensor.max().is_err())
+    }
 
-    let lua = load_env();
-    let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
-    let tensor_len = tensor.len();
+    #[test]
+    fn test_len() {
+        use crate::transforms::tensor::load_env;
+        use ndarray::Array2;
 
-    let len = lua
-        .load("return function(x) return #x end")
-        .eval::<LuaFunction>()
-        .expect("Bad function")
-        .call::<usize>(tensor)
-        .expect("Function failed");
+        let lua = load_env();
+        let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
+        let tensor_len = tensor.len();
 
-    assert_eq!(tensor_len, len);
-}
+        let len = lua
+            .load("return function(x) return #x end")
+            .eval::<LuaFunction>()
+            .expect("Bad function")
+            .call::<usize>(tensor)
+            .expect("Function failed");
 
-#[test]
-fn test_ndim() {
-    use crate::transforms::tensor::load_env;
-    use ndarray::Array2;
+        assert_eq!(tensor_len, len);
+    }
 
-    let lua = load_env();
-    let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
+    #[test]
+    fn test_ndim() {
+        use crate::transforms::tensor::load_env;
+        use ndarray::Array2;
 
-    let ndim = lua
-        .load("return function(x) return x:ndim() end")
-        .eval::<LuaFunction>()
-        .unwrap()
-        .call::<usize>(tensor)
-        .unwrap();
+        let lua = load_env();
+        let tensor = Tensor(Array2::zeros((3, 3)).into_dyn());
 
-    assert_eq!(ndim, 2);
-}
+        let ndim = lua
+            .load("return function(x) return x:ndim() end")
+            .eval::<LuaFunction>()
+            .unwrap()
+            .call::<usize>(tensor)
+            .unwrap();
 
-#[test]
-fn test_ndim_0() {
-    use crate::transforms::tensor::load_env;
-    use ndarray::Array0;
+        assert_eq!(ndim, 2);
+    }
 
-    let lua = load_env();
-    let tensor = Tensor(Array0::<f32>::zeros(()).into_dyn());
+    #[test]
+    fn test_ndim_0() {
+        use crate::transforms::tensor::load_env;
+        use ndarray::Array0;
 
-    let ndim = lua
-        .load("return function(x) return x:ndim() end")
-        .eval::<LuaFunction>()
-        .unwrap()
-        .call::<usize>(tensor)
-        .unwrap();
+        let lua = load_env();
+        let tensor = Tensor(Array0::<f32>::zeros(()).into_dyn());
 
-    assert_eq!(ndim, 0);
-}
+        let ndim = lua
+            .load("return function(x) return x:ndim() end")
+            .eval::<LuaFunction>()
+            .unwrap()
+            .call::<usize>(tensor)
+            .unwrap();
 
-#[test]
-fn test_mean() {
-    use ndarray::Array2;
+        assert_eq!(ndim, 0);
+    }
 
-    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+    #[test]
+    fn test_mean() {
+        use ndarray::Array2;
 
-    assert_eq!(
-        tensor.mean().expect("Failed to calculate mean"),
-        tensor.0.mean()
-    );
-}
+        let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
 
-#[test]
-fn test_std() {
-    use ndarray::Array2;
+        assert_eq!(
+            tensor.mean().expect("Failed to calculate mean"),
+            tensor.0.mean()
+        );
+    }
 
-    let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
+    #[test]
+    fn test_std() {
+        use ndarray::Array2;
 
-    assert_eq!(
-        tensor.std(1.0).expect("Failed to calculate mean"),
-        tensor.0.std(1.0)
-    );
-}
+        let tensor = Tensor(Array2::ones((3, 3)).into_dyn());
 
-#[test]
-fn test_sum() {
-    use ndarray::Array2;
+        assert_eq!(
+            tensor.std(1.0).expect("Failed to calculate mean"),
+            tensor.0.std(1.0)
+        );
+    }
 
-    let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());
-    let expected = 2.0 * 9.0; // 3x3 of 2.0
-    assert_eq!(tensor.sum().unwrap(), expected);
-}
+    #[test]
+    fn test_sum() {
+        use ndarray::Array2;
 
-#[test]
-fn test_sum_empty() {
-    let tensor = Tensor(ndarray::ArrayD::<f32>::zeros(vec![0]));
-    assert_eq!(tensor.sum().unwrap(), 0.0);
-}
+        let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());
+        let expected = 2.0 * 9.0; // 3x3 of 2.0
+        assert_eq!(tensor.sum().unwrap(), expected);
+    }
 
-#[test]
-fn test_sum_with_lua_binding() {
-    use crate::transforms::tensor::load_env;
-    use ndarray::Array2;
+    #[test]
+    fn test_sum_empty() {
+        let tensor = Tensor(ndarray::ArrayD::<f32>::zeros(vec![0]));
+        assert_eq!(tensor.sum().unwrap(), 0.0);
+    }
 
-    let lua = load_env();
-    let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());
+    #[test]
+    fn test_sum_with_lua_binding() {
+        use crate::transforms::tensor::load_env;
+        use ndarray::Array2;
 
-    let func = lua
-        .load("return function(x) return x:sum() end")
-        .eval::<LuaFunction>()
-        .unwrap();
+        let lua = load_env();
+        let tensor = Tensor(Array2::<f32>::from_elem((3, 3), 2.0).into_dyn());
 
-    let result: f32 = func.call(tensor.clone()).unwrap();
-    assert_eq!(result, tensor.sum().unwrap());
+        let func = lua
+            .load("return function(x) return x:sum() end")
+            .eval::<LuaFunction>()
+            .unwrap();
+
+        let result: f32 = func.call(tensor.clone()).unwrap();
+        assert_eq!(result, tensor.sum().unwrap());
+    }
 }

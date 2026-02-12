@@ -33,28 +33,33 @@ impl Tensor {
     }
 }
 
-#[test]
-fn test_lp_norm_empty() {
-    use ndarray::ArrayD;
-    let arr: ArrayD<f32> = ndarray::array![[[]]].into_dyn();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert!(arr.is_empty());
-    assert!(Tensor(arr).lp_normalize(1.0, 1).is_err())
-}
+    #[test]
+    fn test_lp_norm_empty() {
+        use ndarray::ArrayD;
+        let arr: ArrayD<f32> = ndarray::array![[[]]].into_dyn();
 
-#[test]
-fn test_lp_norm_zero() {
-    use ndarray::{Array3, ArrayD};
-    let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
+        assert!(arr.is_empty());
+        assert!(Tensor(arr).lp_normalize(1.0, 1).is_err())
+    }
 
-    assert!(Tensor(arr).lp_normalize(0.0, 1).is_err())
-}
+    #[test]
+    fn test_lp_norm_zero() {
+        use ndarray::{Array3, ArrayD};
+        let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
 
-#[test]
-fn test_lp_norm_nonexistent_dim() {
-    use ndarray::{Array3, ArrayD};
-    let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
+        assert!(Tensor(arr).lp_normalize(0.0, 1).is_err())
+    }
 
-    assert!(Tensor(arr.clone()).lp_normalize(1.0, 0).is_err()); // lua starts with 1
-    assert!(Tensor(arr.clone()).lp_normalize(1.0, 4).is_err());
+    #[test]
+    fn test_lp_norm_nonexistent_dim() {
+        use ndarray::{Array3, ArrayD};
+        let arr: ArrayD<f32> = Array3::ones((3, 3, 3)).into_dyn();
+
+        assert!(Tensor(arr.clone()).lp_normalize(1.0, 0).is_err()); // lua starts with 1
+        assert!(Tensor(arr.clone()).lp_normalize(1.0, 4).is_err());
+    }
 }
