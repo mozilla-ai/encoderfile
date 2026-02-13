@@ -52,12 +52,26 @@ pub struct BuildArgs {
         default_value = "false"
     )]
     no_download: bool,
+    #[arg(
+        long = "directory", // working-dir???
+        help = "Set the working directory for the build process. Optional.",
+        default_value = None
+    )]
+    working_dir: Option<PathBuf>,
 }
 
 impl BuildArgs {
     pub fn run(self, global: &GlobalArguments) -> Result<()> {
         terminal::info("Loading config...");
         let mut config = crate::build_cli::config::BuildConfig::load(&self.config)?;
+
+        // change working dir if specified
+        if let Some(working_dir) = &self.working_dir {
+            std::env::set_current_dir(working_dir).context(format!(
+                "Failed to change working directory to {:?}",
+                working_dir.as_path()
+            ))?;
+        }
 
         // --- handle user flags ---------------------------------------------------
         if let Some(o) = &self.output_path {
@@ -186,5 +200,6 @@ pub fn test_build_args(
         platform: None,
         version: None,
         no_download: true,
+        working_dir: None,
     }
 }
