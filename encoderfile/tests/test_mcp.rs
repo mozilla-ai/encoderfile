@@ -9,7 +9,8 @@ use tower_http::trace::DefaultOnResponse;
 async fn run_mcp<T: ModelTypeSpec>(
     addr: String,
     state: AppState<T>,
-    receiver: oneshot::Receiver<()>,
+    shutdown_receiver: oneshot::Receiver<()>,
+    start_sender: oneshot::Sender<()>,
 ) -> Result<()>
 where
     AppState<T>: McpRouter,
@@ -22,9 +23,10 @@ where
     );
     tracing::info!("Running {:?} MCP server on {}", T::enum_val(), &addr);
     let listener = TcpListener::bind(addr).await?;
+    start_sender.send(()).expect("Error sending start signal");
     axum::serve(listener, router)
         .with_graceful_shutdown(async {
-            receiver.await.ok();
+            shutdown_receiver.await.ok();
             tracing::info!("Received shutdown signal, shutting down");
         })
         .await
@@ -52,13 +54,20 @@ macro_rules! test_mcp_server_impl {
             pub async fn $mod_name() {
                 let addr = format!("{}:{}", LOCALHOST, PORT);
                 let dummy_state = $state_func();
-                let (sender, receiver) = oneshot::channel();
-                let _mcp_server = tokio::spawn(super::run_mcp(addr, dummy_state, receiver));
+                let (start_sender, start_receiver) = oneshot::channel();
+                let (shutdown_sender, shutdown_receiver) = oneshot::channel();
+                let _mcp_server = tokio::spawn(super::run_mcp(
+                    addr,
+                    dummy_state,
+                    shutdown_receiver,
+                    start_sender,
+                ));
                 // Client usage copied over from https://github.com/modelcontextprotocol/rust-sdk/blob/main/examples/clients/src/streamable_http.rs
                 let client_transport = StreamableHttpClientTransport::from_uri(format!(
                     "http://{}:{}/mcp",
                     LOCALHOST, PORT
                 ));
+                start_receiver.await.ok();
                 let client_info = ClientInfo {
                     protocol_version: Default::default(),
                     capabilities: ClientCapabilities::default(),
@@ -114,7 +123,9 @@ macro_rules! test_mcp_server_impl {
                 .expect("failed to parse tool result");
                 assert_eq!(embeddings_response.results.len(), 2);
                 client.cancel().await.expect("Error cancelling the agent");
-                sender.send(()).expect("Error sending end of test signal");
+                shutdown_sender
+                    .send(())
+                    .expect("Error sending shutdown signal");
             }
         }
     };

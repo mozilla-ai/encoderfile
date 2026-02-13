@@ -115,7 +115,7 @@ First, you need an ONNX-exported model. Export any HuggingFace model:
 
 ```bash
 # Install optimum for ONNX export
-pip install optimum[exporters]
+pip install optimum[onnx]
 
 # Export a sentiment analysis model
 optimum-cli export onnx \

@@ -62,7 +62,9 @@ jobs:
       
       - name: Install test dependencies
         run: make setup
-      
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
       - name: Install llvm-tools-preview
         run: rustup component add llvm-tools-preview
 
@@ -116,6 +118,8 @@ jobs:
       
       - name: Install test dependencies
         run: make setup
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
       
       - run: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu clippy
 

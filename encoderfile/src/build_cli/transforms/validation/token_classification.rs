@@ -64,7 +64,7 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/token_classification")),
+            path: ModelPath::Directory(std::path::PathBuf::from("models/dummy_token_classifier")),
             model_type: ModelType::TokenClassification,
             cache_dir: None,
             output_path: None,
@@ -77,7 +77,7 @@ mod tests {
     }
 
     fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../../models/token_classification/config.json");
+        let config_json = include_str!("../../../../../models/dummy_token_classifier/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }
