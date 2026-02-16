@@ -22,8 +22,13 @@ pub struct BuildConfig {
     pub encoderfile: EncoderfileConfig,
 }
 
+pub const CONFIG_FILE_NOT_FOUND_MSG: &str = "Encoderfile config not found";
+
 impl BuildConfig {
     pub fn load(path: &PathBuf) -> Result<Self> {
+        if !path.try_exists().expect(CONFIG_FILE_NOT_FOUND_MSG) {
+            bail!(CONFIG_FILE_NOT_FOUND_MSG);
+        }
         let config = Figment::new().merge(Yaml::file(path)).extract()?;
 
         Ok(config)

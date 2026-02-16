@@ -52,6 +52,11 @@ path = "tests/integration/test_build.rs"
 required-features = ["dev-utils"]
 
 [[test]]
+name = "test_config_does_not_exist"
+path = "tests/integration/test_config_does_not_exist.rs"
+required-features = ["dev-utils"]
+
+[[test]]
 name = "test_inspect_encoderfile"
 path = "tests/integration/test_inspect.rs"
 required-features = ["dev-utils"]
