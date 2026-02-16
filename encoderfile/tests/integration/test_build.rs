@@ -90,14 +90,26 @@ async fn test_build_encoderfile() -> Result<()> {
     let config = config(
         &String::from("test-model"),
         tmp_model_path.as_path(),
-        encoderfile_path.as_path(),
+        // use relative directory here to test the working_dir option
+        Path::new(".").join(BINARY_NAME).as_path(), // encoderfile_path.as_path(),
     );
 
     fs::write(ef_config_path.as_path(), config.as_bytes())
         .expect("Failed to write encoderfile config");
 
-    let build_args =
-        encoderfile::build_cli::cli::test_build_args(ef_config_path.as_path(), base_binary_path);
+    // make dummy dir and cd into it to test the working_dir option
+    let dummy_dir = path.join("dummy");
+    fs::create_dir(&dummy_dir).expect("Failed to create dummy directory");
+    std::env::set_current_dir(&dummy_dir)
+        .expect("Failed to change current directory to dummy directory");
+
+    // without to working_dir option, the previous dir change would result
+    // in the encoderfile being generated at the wrong path because of the rel output
+    let build_args = encoderfile::build_cli::cli::test_build_args_working_dir(
+        ef_config_path.as_path(),
+        base_binary_path,
+        &path,
+    );
 
     // build encoderfile
     let global_args = GlobalArguments::default();

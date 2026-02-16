@@ -203,3 +203,20 @@ pub fn test_build_args(
         working_dir: None,
     }
 }
+
+#[cfg(feature = "dev-utils")]
+pub fn test_build_args_working_dir(
+    config: impl Into<PathBuf>,
+    base_binary_path: impl Into<PathBuf>,
+    working_dir: impl Into<PathBuf>,
+) -> BuildArgs {
+    BuildArgs {
+        config: config.into(),
+        output_path: None,
+        base_binary_path: Some(base_binary_path.into()),
+        platform: None,
+        version: None,
+        no_download: true,
+        working_dir: Some(working_dir.into()),
+    }
+}
