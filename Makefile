@@ -2,8 +2,8 @@
 setup:
 	@echo "logging to hf..."
 	@curl -LsSf https://hf.co/cli/install.sh | bash
-	@echo ${#HF_TOKEN}
-	@hf auth login --token $(HF_TOKEN)
+	@echo $${#HF_TOKEN}
+	@hf auth login $${HF_TOKEN:+--token $${HF_TOKEN}}
 	@echo "creating .venv..."
 	@uv sync --locked
 	@echo "downloading test models..."
