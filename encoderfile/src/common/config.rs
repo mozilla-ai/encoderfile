@@ -1,6 +1,6 @@
 use super::model_type::ModelType;
 use serde::{Deserialize, Serialize};
-use tokenizers::PaddingParams;
+use tokenizers::{PaddingParams, TruncationParams};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -13,4 +13,5 @@ pub struct Config {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenizerConfig {
     pub padding: PaddingParams,
+    pub truncation: TruncationParams,
 }

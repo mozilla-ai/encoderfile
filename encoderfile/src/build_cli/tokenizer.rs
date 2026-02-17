@@ -31,7 +31,7 @@ use crate::{
 };
 use anyhow::Result;
 use std::str::FromStr;
-use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer};
+use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer, TruncationParams};
 
 use super::config::{EncoderfileConfig, TokenizerPadStrategy};
 
@@ -105,7 +105,24 @@ fn from_tokenizer(tokenizer: &Tokenizer) -> Result<TokenizerConfig> {
         }
     };
 
-    Ok(TokenizerConfig { padding })
+    let truncation = match tokenizer.get_truncation() {
+        Some(p) => p.clone(),
+        None => {
+            let truncation_params = TruncationParams::default();
+
+            eprintln!(
+                "WARNING: No padding params found in `tokenizer.json`. Using defaults: {:?}",
+                &truncation_params,
+            );
+
+            truncation_params
+        }
+    };
+
+    Ok(TokenizerConfig {
+        padding,
+        truncation,
+    })
 }
 
 fn tokenizer_config_from_json_value(
