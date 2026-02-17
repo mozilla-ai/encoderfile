@@ -33,7 +33,9 @@ use anyhow::Result;
 use std::str::FromStr;
 use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer, TruncationParams};
 
-use super::config::{EncoderfileConfig, TokenizerPadStrategy};
+use super::config::{
+    EncoderfileConfig, TokenizerPadStrategy, TokenizerTruncationSide, TokenizerTruncationStrategy,
+};
 
 pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
     let tokenizer =
@@ -73,18 +75,35 @@ impl EncoderfileConfig {
             }
         };
 
-        // TODO: insert any overrides from encoderfile.yml here
         let tokenizer_build_config = match &self.tokenizer {
             Some(t) => t,
             None => return Ok(config),
         };
 
+        // padding
         if let Some(s) = &tokenizer_build_config.pad_strategy {
             config.padding.strategy = match s {
                 TokenizerPadStrategy::BatchLongest => PaddingStrategy::BatchLongest,
                 TokenizerPadStrategy::Fixed { fixed } => PaddingStrategy::Fixed(*fixed),
             }
         };
+
+        // truncation
+        if let Some(s) = &tokenizer_build_config.truncation_side {
+            config.truncation.direction = s.clone().into();
+        }
+
+        if let Some(s) = &tokenizer_build_config.truncation_strategy {
+            config.truncation.strategy = s.clone().into();
+        }
+
+        if let Some(max_len) = &tokenizer_build_config.max_length {
+            config.truncation.max_length = *max_len;
+        }
+
+        if let Some(stride) = &tokenizer_build_config.stride {
+            config.truncation.stride = *stride;
+        }
 
         Ok(config)
     }
@@ -193,6 +212,61 @@ fn tokenizer_config_from_json_value(
             Ok(())
         },
         |config| config.padding.pad_type_id,
+    )?;
+
+    builder.field(
+        "truncation_strategy",
+        |config, v| {
+            config.truncation.strategy = v
+                .as_str()
+                .map(|i| serde_json::from_str::<TokenizerTruncationStrategy>(i))
+                .ok_or(anyhow::anyhow!("truncation_strategy must be a string"))?
+                .map_err(|e| anyhow::anyhow!("Invalid truncation_strategy: {:?}", e))?
+                .into();
+
+            Ok(())
+        },
+        |config| config.truncation.direction,
+    )?;
+
+    builder.field(
+        "truncation_side",
+        |config, v| {
+            config.truncation.direction = v
+                .as_str()
+                .map(|i| serde_json::from_str::<TokenizerTruncationSide>(i))
+                .ok_or(anyhow::anyhow!("truncation_side must be a string"))?
+                .map_err(|e| anyhow::anyhow!("Invalid truncation_strategy: {:?}", e))?
+                .into();
+            Ok(())
+        },
+        |config| config.truncation.direction,
+    )?;
+
+    builder.field(
+        "model_max_length",
+        |config, v| {
+            config.truncation.max_length = v
+                .as_u64()
+                .map(|i| i as usize)
+                .ok_or(anyhow::anyhow!("model_max_length must be an int"))?
+                .into();
+            Ok(())
+        },
+        |config| config.truncation.direction,
+    )?;
+
+    builder.field(
+        "stride",
+        |config, v| {
+            config.truncation.stride = v
+                .as_u64()
+                .map(|i| i as usize)
+                .ok_or(anyhow::anyhow!("stride must be an int"))?
+                .into();
+            Ok(())
+        },
+        |config| config.truncation.direction,
     )?;
 
     // now we fetch pad_token_id manually because it doesn't get serialized into tokenizer_config.json!
@@ -320,6 +394,10 @@ mod tests {
             transform: None,
             tokenizer: Some(TokenizerBuildConfig {
                 pad_strategy: Some(TokenizerPadStrategy::Fixed { fixed: 512 }),
+                truncation_side: None,
+                truncation_strategy: None,
+                max_length: None,
+                stride: None,
             }),
             validate_transform: false,
             base_binary_path: None,
