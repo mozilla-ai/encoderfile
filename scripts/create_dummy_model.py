@@ -21,7 +21,6 @@ from transformers import (
     ElectraConfig,
 )
 from transformers.modeling_outputs import (
-    SequenceClassifierOutput,
     TokenClassifierOutput,
     BaseModelOutput,
 )
@@ -38,7 +37,7 @@ from optimum.exporters.onnx.model_configs import COMMON_TEXT_TASKS
 DUMMY_SEQUENCE_CLASSIFIER = "mozilla-ai/test-dummy-sequence-classifier"
 DUMMY_TOKEN_CLASSIFIER = "mozilla-ai/test-dummy-token-classifier"
 DUMMY_SEQUENCE_EMBEDDINGS = "mozilla-ai/test-dummy-sequence-embeddings"
-DUMMY_TOKEN_EMBEDDINGS= "mozilla-ai/test-dummy-token-embeddings"
+DUMMY_TOKEN_EMBEDDINGS = "mozilla-ai/test-dummy-token-embeddings"
 
 SEQUENCE_CLASSIFIER_OUTPUT_DIR = "./models/dummy_electra_sequence_classifier"
 TOKEN_CLASSIFIER_OUTPUT_DIR = "./models/dummy_electra_token_classifier"
@@ -134,7 +133,6 @@ class DummySequenceCommon(PreTrainedModel):
         labels=None,
         return_dict=None,
     ):
-
         """Forward pass that returns fixed logits for each sequence."""
 
         return_dict = (
@@ -529,9 +527,7 @@ def load_dummy_sequence_classifier(model_dir: str, num_labels: int):
 def load_dummy_sequence_embeddings(model_dir: str):
     """Load a dummy sequence classification model from directory."""
     AutoConfig.register(DUMMY_SEQUENCE_EMBEDDINGS, DummySequenceEmbedConfig)
-    AutoModel.register(
-        DummySequenceEmbedConfig, DummySequenceEmbeddings
-    )
+    AutoModel.register(DummySequenceEmbedConfig, DummySequenceEmbeddings)
     config = AutoConfig.from_pretrained(model_dir)
     model = AutoModel.from_pretrained(model_dir, config=config)
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
@@ -541,7 +537,9 @@ def load_dummy_sequence_embeddings(model_dir: str):
 def load_dummy_token_classifier(model_dir: str, num_labels: int):
     """Load a dummy token classification model from directory."""
     AutoConfig.register(DUMMY_TOKEN_CLASSIFIER, DummyTokenClassConfig)
-    AutoModelForTokenClassification.register(DummyTokenClassConfig, DummyTokenClassifier)
+    AutoModelForTokenClassification.register(
+        DummyTokenClassConfig, DummyTokenClassifier
+    )
     config = AutoConfig.from_pretrained(model_dir, num_labels=num_labels)
     model = AutoModelForTokenClassification.from_pretrained(model_dir, config=config)
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
@@ -753,7 +751,12 @@ def test_dummy_token_embeddings(output_dir: str):
 
 
 # CLI Options
-VALID_MODEL_TYPES = ["sequence_classifier", "token_classifier", "sequence_embeddings", "token_embeddings"]
+VALID_MODEL_TYPES = [
+    "sequence_classifier",
+    "token_classifier",
+    "sequence_embeddings",
+    "token_embeddings",
+]
 
 # Reusable option decorator for model class
 model_type_option = click.option(
