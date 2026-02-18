@@ -11,7 +11,9 @@ from pathlib import Path
 import click
 import torch
 import torch.nn as nn
+from typing import Optional
 from transformers import (
+    AutoModel,
     AutoTokenizer,
     AutoModelForSequenceClassification,
     AutoModelForTokenClassification,
@@ -21,6 +23,7 @@ from transformers import (
 from transformers.modeling_outputs import (
     SequenceClassifierOutput,
     TokenClassifierOutput,
+    BaseModelOutput,
 )
 from transformers.modeling_utils import (
     PreTrainedModel,
@@ -32,15 +35,55 @@ from optimum.exporters.onnx.model_configs import BertOnnxConfig
 from optimum.exporters.onnx.model_configs import COMMON_TEXT_TASKS
 
 
-DUMMY_SEQUENCE_ENCODER = "mozilla-ai/test-dummy-sequence-encoder"
-DUMMY_TOKEN_ENCODER = "mozilla-ai/test-dummy-token-encoder"
+DUMMY_SEQUENCE_CLASSIFIER = "mozilla-ai/test-dummy-sequence-classifier"
+DUMMY_TOKEN_CLASSIFIER = "mozilla-ai/test-dummy-token-classifier"
+DUMMY_SEQUENCE_EMBEDDINGS = "mozilla-ai/test-dummy-sequence-embeddings"
+DUMMY_TOKEN_EMBEDDINGS= "mozilla-ai/test-dummy-token-embeddings"
 
 SEQUENCE_CLASSIFIER_OUTPUT_DIR = "./models/dummy_electra_sequence_classifier"
 TOKEN_CLASSIFIER_OUTPUT_DIR = "./models/dummy_electra_token_classifier"
+SEQUENCE_EMBEDDINGS_OUTPUT_DIR = "./models/dummy_electra_sequence_embeddings"
+TOKEN_EMBEDDINGS_OUTPUT_DIR = "./models/dummy_electra_token_embeddings"
 
 
 class DummyConfig(ElectraConfig):
     """Dummy configuration similar to BERT configuration."""
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+
+class DummyTokenEmbedConfig(DummyConfig):
+    """Dummy configuration similar to BERT configuration."""
+
+    model_type = DUMMY_TOKEN_EMBEDDINGS
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+
+class DummySequenceEmbedConfig(DummyConfig):
+    """Dummy configuration similar to BERT configuration."""
+
+    model_type = DUMMY_SEQUENCE_EMBEDDINGS
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+
+class DummyTokenClassConfig(DummyConfig):
+    """Dummy configuration similar to BERT configuration."""
+
+    model_type = DUMMY_TOKEN_CLASSIFIER
 
     def __init__(
         self,
@@ -51,34 +94,22 @@ class DummyConfig(ElectraConfig):
         self.num_labels = num_labels
 
 
-class DummyTokenConfig(DummyConfig):
+class DummySequenceClassConfig(DummyConfig):
     """Dummy configuration similar to BERT configuration."""
 
-    model_type = DUMMY_TOKEN_ENCODER
+    model_type = DUMMY_SEQUENCE_CLASSIFIER
 
     def __init__(
         self,
+        num_labels=5,
         **kwargs,
     ):
         super().__init__(**kwargs)
+        self.num_labels = num_labels
 
 
-class DummySequenceConfig(DummyConfig):
-    """Dummy configuration similar to BERT configuration."""
-
-    model_type = DUMMY_SEQUENCE_ENCODER
-
-    def __init__(
-        self,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-
-
-class DummySequenceClassifier(PreTrainedModel):
-    """Dummy sequence classifier that outputs fixed logits per sequence."""
-
-    config_class = DummySequenceConfig
+class DummySequenceCommon(PreTrainedModel):
+    """Dummy sequence embeddings that outputs fixed logits per sequence."""
 
     def __init__(self, config):
         super().__init__(config)
@@ -96,20 +127,14 @@ class DummySequenceClassifier(PreTrainedModel):
             "dummy", torch.tensor(0)
         )  # Dummy buffer to avoid empty model warning
 
-    def forward(
+    def get_loss_logits(
         self,
         input_ids=None,
         attention_mask=None,
-        token_type_ids=None,
-        position_ids=None,
-        head_mask=None,
-        inputs_embeds=None,
         labels=None,
-        output_attentions=None,
-        output_hidden_states=None,
         return_dict=None,
-        **kwargs,
     ):
+
         """Forward pass that returns fixed logits for each sequence."""
 
         return_dict = (
@@ -132,7 +157,73 @@ class DummySequenceClassifier(PreTrainedModel):
         if not return_dict:
             return (loss, logits) if loss is not None else (logits,)
 
-        return SequenceClassifierOutput(
+        return loss, logits
+
+
+class DummySequenceEmbeddings(DummySequenceCommon):
+    """Dummy sequence embeddings that outputs fixed logits per sequence."""
+
+    config_class = DummySequenceEmbedConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs,
+    ):
+        _, logits = self.get_loss_logits(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            labels=labels,
+            return_dict=return_dict,
+        )
+        return BaseModelOutput(
+            last_hidden_state=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+
+
+class DummySequenceClassifier(DummySequenceCommon):
+    """Dummy sequence classifier that outputs fixed logits per sequence."""
+
+    config_class = DummySequenceClassConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs,
+    ):
+        loss, logits = self.get_loss_logits(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            labels=labels,
+            return_dict=return_dict,
+        )
+        return TokenClassifierOutput(
             loss=loss,
             logits=logits,
             hidden_states=None,
@@ -140,10 +231,8 @@ class DummySequenceClassifier(PreTrainedModel):
         )
 
 
-class DummyTokenClassifier(PreTrainedModel):
-    """Dummy token classifier that outputs fixed logits for each token."""
-
-    config_class = DummyTokenConfig
+class DummyTokenCommon(PreTrainedModel):
+    """Dummy token embeddings that outputs fixed logits for each token."""
 
     def __init__(self, config):
         super().__init__(config)
@@ -162,19 +251,12 @@ class DummyTokenClassifier(PreTrainedModel):
             "dummy", torch.tensor(0)
         )  # Dummy buffer to avoid empty model warning
 
-    def forward(
+    def get_loss_logits(
         self,
         input_ids=None,
         attention_mask=None,
-        token_type_ids=None,
-        position_ids=None,
-        head_mask=None,
-        inputs_embeds=None,
         labels=None,
-        output_attentions=None,
-        output_hidden_states=None,
         return_dict=None,
-        **kwargs,
     ):
         """Forward pass that returns fixed logits for each token."""
 
@@ -197,6 +279,72 @@ class DummyTokenClassifier(PreTrainedModel):
         if not return_dict:
             return (loss, logits) if loss is not None else (logits,)
 
+        return loss, logits
+
+
+class DummyTokenEmbeddings(DummyTokenCommon):
+    """Dummy token embeddings that outputs fixed logits for each token."""
+
+    config_class = DummyTokenEmbedConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs,
+    ):
+        _, logits = self.get_loss_logits(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            labels=labels,
+            return_dict=return_dict,
+        )
+        return BaseModelOutput(
+            last_hidden_state=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+
+
+class DummyTokenClassifier(DummyTokenCommon):
+    """Dummy token classifier that outputs fixed logits per token."""
+
+    config_class = DummyTokenClassConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs,
+    ):
+        loss, logits = self.get_loss_logits(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            labels=labels,
+            return_dict=return_dict,
+        )
         return TokenClassifierOutput(
             loss=loss,
             logits=logits,
@@ -210,7 +358,7 @@ def _create_and_save_model(
     config_class,
     tokenizer_name: str,
     output_dir: str,
-    num_labels: int,
+    num_labels: Optional[int],
     model_name: str,
     auto_model_class,
     task: str,
@@ -266,7 +414,7 @@ def _create_and_save_model(
     return model, tokenizer
 
 
-def create_and_save_sequence_classifier(
+def create_and_save_dummy_sequence_classifier(
     tokenizer_name: str,
     output_dir: str,
     num_labels: int,
@@ -281,13 +429,38 @@ def create_and_save_sequence_classifier(
     """
     return _create_and_save_model(
         model_class=DummySequenceClassifier,
-        config_class=DummySequenceConfig,
+        config_class=DummySequenceClassConfig,
         tokenizer_name=tokenizer_name,
         output_dir=output_dir,
         num_labels=num_labels,
-        model_name=DUMMY_SEQUENCE_ENCODER,
+        model_name=DUMMY_SEQUENCE_CLASSIFIER,
         auto_model_class=AutoModelForSequenceClassification,
         task="text-classification",
+    )
+
+
+def create_and_save_dummy_sequence_embeddings(
+    tokenizer_name: str,
+    output_dir: str,
+    num_labels: int,
+):
+    """
+    Create and save a dummy sequence embeddings model.
+
+    Args:
+        tokenizer_name: HuggingFace model ID for tokenizer
+        output_dir: Directory to save the model
+        num_labels: Number of classification labels
+    """
+    return _create_and_save_model(
+        model_class=DummySequenceEmbeddings,
+        config_class=DummySequenceEmbedConfig,
+        tokenizer_name=tokenizer_name,
+        output_dir=output_dir,
+        num_labels=None,
+        model_name=DUMMY_SEQUENCE_EMBEDDINGS,
+        auto_model_class=AutoModel,
+        task="feature-extraction",
     )
 
 
@@ -306,21 +479,46 @@ def create_and_save_dummy_token_classifier(
     """
     return _create_and_save_model(
         model_class=DummyTokenClassifier,
-        config_class=DummyTokenConfig,
+        config_class=DummyTokenClassConfig,
         tokenizer_name=tokenizer_name,
         output_dir=output_dir,
         num_labels=num_labels,
-        model_name=DUMMY_TOKEN_ENCODER,
+        model_name=DUMMY_TOKEN_CLASSIFIER,
         auto_model_class=AutoModelForTokenClassification,
         task="token-classification",
     )
 
 
+def create_and_save_dummy_token_embeddings(
+    tokenizer_name: str,
+    output_dir: str,
+    num_labels: int,
+):
+    """
+    Create and save a dummy token embeddings model.
+
+    Args:
+        tokenizer_name: HuggingFace model ID for tokenizer
+        output_dir: Directory to save the model
+        num_labels: Number of classification labels
+    """
+    return _create_and_save_model(
+        model_class=DummyTokenEmbeddings,
+        config_class=DummyTokenEmbedConfig,
+        tokenizer_name=tokenizer_name,
+        output_dir=output_dir,
+        num_labels=None,
+        model_name=DUMMY_TOKEN_EMBEDDINGS,
+        auto_model_class=AutoModel,
+        task="feature-extraction",
+    )
+
+
 def load_dummy_sequence_classifier(model_dir: str, num_labels: int):
     """Load a dummy sequence classification model from directory."""
-    AutoConfig.register(DUMMY_SEQUENCE_ENCODER, DummySequenceConfig)
+    AutoConfig.register(DUMMY_SEQUENCE_CLASSIFIER, DummySequenceClassConfig)
     AutoModelForSequenceClassification.register(
-        DummySequenceConfig, DummySequenceClassifier
+        DummySequenceClassConfig, DummySequenceClassifier
     )
     config = AutoConfig.from_pretrained(model_dir, num_labels=num_labels)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, config=config)
@@ -328,12 +526,34 @@ def load_dummy_sequence_classifier(model_dir: str, num_labels: int):
     return model, tokenizer
 
 
+def load_dummy_sequence_embeddings(model_dir: str):
+    """Load a dummy sequence classification model from directory."""
+    AutoConfig.register(DUMMY_SEQUENCE_EMBEDDINGS, DummySequenceEmbedConfig)
+    AutoModel.register(
+        DummySequenceEmbedConfig, DummySequenceEmbeddings
+    )
+    config = AutoConfig.from_pretrained(model_dir)
+    model = AutoModel.from_pretrained(model_dir, config=config)
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    return model, tokenizer
+
+
 def load_dummy_token_classifier(model_dir: str, num_labels: int):
     """Load a dummy token classification model from directory."""
-    AutoConfig.register(DUMMY_TOKEN_ENCODER, DummyTokenConfig)
-    AutoModelForTokenClassification.register(DummyTokenConfig, DummyTokenClassifier)
+    AutoConfig.register(DUMMY_TOKEN_CLASSIFIER, DummyTokenClassConfig)
+    AutoModelForTokenClassification.register(DummyTokenClassConfig, DummyTokenClassifier)
     config = AutoConfig.from_pretrained(model_dir, num_labels=num_labels)
     model = AutoModelForTokenClassification.from_pretrained(model_dir, config=config)
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    return model, tokenizer
+
+
+def load_dummy_token_embeddings(model_dir: str):
+    """Load a dummy token embeddings model from directory."""
+    AutoConfig.register(DUMMY_TOKEN_EMBEDDINGS, DummyTokenEmbedConfig)
+    AutoModel.register(DummyTokenEmbedConfig, DummyTokenEmbeddings)
+    config = AutoConfig.from_pretrained(model_dir)
+    model = AutoModel.from_pretrained(model_dir, config=config)
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     return model, tokenizer
 
@@ -388,6 +608,45 @@ def test_dummy_sequence_classifier(output_dir: str):
     print("\n✓ Sequence classifier tests passed!")
 
 
+def test_dummy_sequence_embeddings(output_dir: str):
+    """Test the dummy sequence embeddings model with sample inputs."""
+
+    print("\n" + "=" * 50)
+    print("Testing Dummy Sequence Embeddings")
+    print("=" * 50)
+
+    # Create and save model (includes ONNX export)
+    model, tokenizer = load_dummy_sequence_embeddings(output_dir)
+    # Test with sample input
+    text = "Hello, my dog is cute"
+    inputs = tokenizer(text, return_tensors="pt")
+
+    print(f"\nInput text: '{text}'")
+    print(f"Input IDs shape: {inputs['input_ids'].shape}")
+
+    # Forward pass
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.last_hidden_state
+
+    print(f"\nOutput logits shape: {logits.shape}")
+    print(f"Logits values: {logits}")
+
+    # Test with batch
+    texts = ["Hello, my dog is cute", "I love this model"]
+    inputs_batch = tokenizer(texts, return_tensors="pt", padding=True)
+
+    print(f"\nBatch input shape: {inputs_batch['input_ids'].shape}")
+
+    with torch.no_grad():
+        outputs_batch = model(**inputs_batch)
+        logits_batch = outputs_batch.last_hidden_state
+
+    print(f"Batch output logits:\n{logits_batch}")
+
+    print("\n✓ Sequence embeddings tests passed!")
+
+
 def test_dummy_token_classifier(output_dir: str):
     """Test the dummy token classification model with sample inputs."""
 
@@ -396,7 +655,7 @@ def test_dummy_token_classifier(output_dir: str):
     print("=" * 50)
 
     # Create and save model (includes ONNX export)
-    model, tokenizer = load_dummy_token_classifier(output_dir)
+    model, tokenizer = load_dummy_token_classifier(output_dir, num_labels=5)
 
     # Test with sample input
     text = "Hello, my dog is cute"
@@ -445,15 +704,63 @@ def test_dummy_token_classifier(output_dir: str):
     print("\n✓ Token classifier tests passed!")
 
 
+def test_dummy_token_embeddings(output_dir: str):
+    """Test the dummy token embeddings model with sample inputs."""
+
+    print("\n" + "=" * 50)
+    print("Testing Dummy Token Embeddings")
+    print("=" * 50)
+
+    # Create and save model (includes ONNX export)
+    model, tokenizer = load_dummy_token_embeddings(output_dir)
+
+    # Test with sample input
+    text = "Hello, my dog is cute"
+    inputs = tokenizer(text, return_tensors="pt")
+
+    print(f"\nInput text: '{text}'")
+    print(f"Input IDs shape: {inputs['input_ids'].shape}")
+
+    # Forward pass
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.last_hidden_state
+
+    print(f"\nOutput logits shape: {logits.shape}")
+    print(f"Logits first token: {logits[0, 0, :]}")
+
+    # Test with batch
+    texts = ["Hello, my dog is cute", "I love this model"]
+    inputs_batch = tokenizer(texts, return_tensors="pt", padding=True)
+
+    print(f"\nBatch input shape: {inputs_batch['input_ids'].shape}")
+
+    with torch.no_grad():
+        outputs_batch = model(**inputs_batch)
+        logits_batch = outputs_batch.last_hidden_state
+
+    print(f"Batch output logits shape: {logits_batch.shape}")
+    print(f"First sample, first token logits: {logits_batch[0, 0, :]}")
+
+    # Test loss computation
+    # Create dummy labels matching sequence length
+    seq_len = inputs_batch["input_ids"].shape[1]
+    labels = torch.zeros((2, seq_len), dtype=torch.long)
+    labels[0, :3] = 1
+    labels[1, :2] = 2
+
+    print("\n✓ Token embeddings tests passed!")
+
+
 # CLI Options
-VALID_MODEL_TYPES = ["token", "sequence"]
+VALID_MODEL_TYPES = ["sequence_classifier", "token_classifier", "sequence_embeddings", "token_embeddings"]
 
 # Reusable option decorator for model class
 model_type_option = click.option(
     "--model_type",
     "-m",
     type=click.Choice(VALID_MODEL_TYPES, case_sensitive=False),
-    default="sequence",
+    default="sequence_classifier",
     help="Type of model to generate/test: token or sequence",
 )
 
@@ -468,16 +775,28 @@ def app():
 @model_type_option
 def generate(model_type: str):
     """Generate a dummy model and save it to disk."""
-    if model_type == "sequence":
-        create_and_save_sequence_classifier(
+    if model_type == "sequence_classifier":
+        create_and_save_dummy_sequence_classifier(
             tokenizer_name="google/electra-small-discriminator",
             output_dir=SEQUENCE_CLASSIFIER_OUTPUT_DIR,
             num_labels=7,
         )
-    elif model_type == "token":
+    elif model_type == "token_classifier":
         create_and_save_dummy_token_classifier(
             tokenizer_name="google/electra-small-discriminator",
             output_dir=TOKEN_CLASSIFIER_OUTPUT_DIR,
+            num_labels=7,
+        )
+    elif model_type == "sequence_embeddings":
+        create_and_save_dummy_sequence_embeddings(
+            tokenizer_name="google/electra-small-discriminator",
+            output_dir=SEQUENCE_EMBEDDINGS_OUTPUT_DIR,
+            num_labels=7,
+        )
+    elif model_type == "token_embeddings":
+        create_and_save_dummy_token_embeddings(
+            tokenizer_name="google/electra-small-discriminator",
+            output_dir=TOKEN_EMBEDDINGS_OUTPUT_DIR,
             num_labels=7,
         )
 
@@ -486,12 +805,18 @@ def generate(model_type: str):
 @model_type_option
 def test(model_type: str):
     """Test a dummy model from disk."""
-    if model_type == "sequence":
+    if model_type == "sequence_classifier":
         output_dir = SEQUENCE_CLASSIFIER_OUTPUT_DIR
         test_dummy_sequence_classifier(output_dir)
-    elif model_type == "token":
+    elif model_type == "token_classifier":
         output_dir = TOKEN_CLASSIFIER_OUTPUT_DIR
         test_dummy_token_classifier(output_dir)
+    elif model_type == "sequence_embeddings":
+        output_dir = SEQUENCE_EMBEDDINGS_OUTPUT_DIR
+        test_dummy_sequence_embeddings(output_dir)
+    elif model_type == "token_embeddings":
+        output_dir = TOKEN_EMBEDDINGS_OUTPUT_DIR
+        test_dummy_token_embeddings(output_dir)
 
 
 if __name__ == "__main__":
