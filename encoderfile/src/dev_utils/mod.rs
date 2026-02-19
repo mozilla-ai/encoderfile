@@ -20,6 +20,7 @@ pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
         version: "0.0.1".to_string(),
         model_type: T::enum_val(),
         transform: None,
+        lua_libs: None,
     };
 
     let model_config = get_model_config(dir);

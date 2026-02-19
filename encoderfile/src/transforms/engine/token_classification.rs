@@ -47,11 +47,15 @@ impl Postprocessor for Transform<model_type::TokenClassification> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::transforms::DEFAULT_LIBS;
 
     #[test]
     fn test_token_cls_no_transform() {
-        let engine = Transform::<model_type::TokenClassification>::new(Some("".to_string()))
-            .expect("Failed to create Transform");
+        let engine = Transform::<model_type::TokenClassification>::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("".to_string()),
+        )
+        .expect("Failed to create Transform");
 
         let arr = ndarray::Array3::<f32>::from_elem((32, 16, 2), 2.0);
 
@@ -62,14 +66,17 @@ mod tests {
 
     #[test]
     fn test_token_cls_identity_transform() {
-        let engine = Transform::<model_type::TokenClassification>::new(Some(
-            r##"
+        let engine = Transform::<model_type::TokenClassification>::new(
+            DEFAULT_LIBS.to_vec(),
+            Some(
+                r##"
         function Postprocess(arr)
             return arr
         end
         "##
-            .to_string(),
-        ))
+                .to_string(),
+            ),
+        )
         .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 2), 2.0);
@@ -81,14 +88,17 @@ mod tests {
 
     #[test]
     fn test_token_cls_transform_bad_fn() {
-        let engine = Transform::<model_type::TokenClassification>::new(Some(
-            r##"
+        let engine = Transform::<model_type::TokenClassification>::new(
+            DEFAULT_LIBS.to_vec(),
+            Some(
+                r##"
         function Postprocess(arr)
             return 1
         end
         "##
-            .to_string(),
-        ))
+                .to_string(),
+            ),
+        )
         .expect("Failed to create engine");
 
         let arr = ndarray::Array3::<f32>::from_elem((16, 32, 2), 2.0);
@@ -100,14 +110,17 @@ mod tests {
 
     #[test]
     fn test_bad_dimensionality_transform_postprocessing() {
-        let engine = Transform::<model_type::TokenClassification>::new(Some(
-            r##"
+        let engine = Transform::<model_type::TokenClassification>::new(
+            DEFAULT_LIBS.to_vec(),
+            Some(
+                r##"
         function Postprocess(x)
             return x:sum_axis(1)
         end
         "##
-            .to_string(),
-        ))
+                .to_string(),
+            ),
+        )
         .unwrap();
 
         let arr = ndarray::Array3::<f32>::from_elem((3, 3, 3), 2.0);

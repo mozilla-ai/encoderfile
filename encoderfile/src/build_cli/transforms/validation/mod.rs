@@ -1,7 +1,8 @@
 use crate::{
     common::{ModelConfig, ModelType},
     format::assets::{AssetKind, AssetSource, PlannedAsset},
-    transforms::TransformSpec,
+    generated::manifest::LuaLibs as ManifestLuaLibs,
+    transforms::{TransformSpec, convert_libs},
 };
 use anyhow::{Context, Result};
 
@@ -41,9 +42,12 @@ pub trait TransformValidatorExt: TransformSpec {
 
 macro_rules! validate_transform {
     ($transform_type:ident, $transform_str:expr, $encoderfile_config:expr, $model_config:expr) => {
-        crate::transforms::$transform_type::new(Some($transform_str.clone()))
-            .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
-            .validate($encoderfile_config, $model_config)
+        crate::transforms::$transform_type::new(
+            convert_libs($encoderfile_config.lua_libs()?.as_ref()),
+            Some($transform_str.clone()),
+        )
+        .with_context(|| utils::validation_err_ctx("Failed to create transform"))?
+        .validate($encoderfile_config, $model_config)
     };
 }
 
@@ -87,9 +91,14 @@ pub fn validate_transform<'a>(
         ),
     }?;
 
+    let lua_libs: Option<ManifestLuaLibs> = encoderfile_config
+        .lua_libs
+        .clone()
+        .map(|libs| ManifestLuaLibs { libs });
     let proto = crate::generated::manifest::Transform {
         transform_type: crate::generated::manifest::TransformType::Lua.into(),
         transform: transform_str,
+        lua_libs,
     };
 
     PlannedAsset::from_asset_source(
@@ -101,7 +110,7 @@ pub fn validate_transform<'a>(
 
 #[cfg(test)]
 mod tests {
-    use crate::transforms::EmbeddingTransform;
+    use crate::transforms::{DEFAULT_LIBS, EmbeddingTransform};
 
     use crate::build_cli::config::{ModelPath, Transform};
 
@@ -116,6 +125,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: None,
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -131,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_empty_transform() {
-        let result = EmbeddingTransform::new(None)
+        let result = EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), None)
             .expect("Failed to make embedding transform")
             .validate(&test_encoderfile_config(), &test_model_config());
 
@@ -143,7 +153,7 @@ mod tests {
         let mut config = test_encoderfile_config();
         config.validate_transform = false;
 
-        EmbeddingTransform::new(None)
+        EmbeddingTransform::new(DEFAULT_LIBS.to_vec(), None)
             .expect("Failed to make embedding transform")
             .validate(&config, &test_model_config())
             .expect("Should be ok")
@@ -161,6 +171,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: Some(Transform::Inline(transform_str.to_string())),
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -189,6 +200,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: None,
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,

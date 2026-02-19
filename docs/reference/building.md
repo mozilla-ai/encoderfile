@@ -352,6 +352,35 @@ encoderfile:
   transform: "return lp_normalize(output)"
 ```
 
+By default, libraries `table`, `string` and `math` are enabled if property `lua_libs` is not present. This property allows you to specify a different set of libraries as strings, to choose from:
+
+* `coroutine`
+* `table`
+* `io`
+* `os`
+* `string`
+* `utf8`
+* `math`
+* `package`
+
+Note that, if this property is present, no libraries are loaded by default, so all used libraries must be present.
+
+**Inline transform:**
+```yaml
+encoderfile:
+  name: my-model
+  path: ./models/my-model
+  model_type: embedding
+  lua_libs:
+    - table
+    - string
+    - math
+    - os
+  transform: | 
+    t = os.time()
+    return lp_normalize(output)
+```
+
 ### Custom Cache Directory
 
 Specify a custom cache location:

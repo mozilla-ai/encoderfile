@@ -60,6 +60,10 @@ message EncoderfileManifest {
 	optional Artifact tokenizer = 130;
 }
 
+message LuaLibs {
+	repeated string libs = 1;
+}
+
 // Transform describes embedded preprocessing/postprocessing steps applied to inputs
 // prior to inference.
 //
@@ -72,6 +76,8 @@ message Transform {
 	// Transform source code.
 	// Interpretation is defined by the TransformType.
 	string transform = 2;
+
+	optional LuaLibs lua_libs = 3;
 }
 
 // Artifact describes a contiguous byte range within the embedded payload.

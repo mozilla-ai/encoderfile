@@ -3,7 +3,7 @@ use encoderfile::inference::{
     embedding::embedding, sequence_classification::sequence_classification,
     token_classification::token_classification,
 };
-use encoderfile::transforms::Transform;
+use encoderfile::transforms::{DEFAULT_LIBS, Transform};
 
 #[test]
 fn test_embedding_model() {
@@ -19,7 +19,8 @@ fn test_embedding_model() {
 
     let session_lock = state.session.lock();
 
-    let transform = Transform::new(None).expect("Failed to create_transform");
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
 
     let results =
         embedding(session_lock, &transform, encodings.clone()).expect("Failed to compute results");
@@ -42,7 +43,8 @@ fn test_embedding_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    let transform = Transform::new(None).expect("Failed to create_transform");
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
 
     embedding(session_lock, &transform, encodings.clone()).expect("Failed to compute results");
 }
@@ -61,7 +63,8 @@ fn test_sequence_classification_model() {
 
     let session_lock = state.session.lock();
 
-    let transform = Transform::new(None).expect("Failed to create_transform");
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
 
     let results = sequence_classification(
         session_lock,
@@ -89,7 +92,8 @@ fn test_sequence_classification_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    let transform = Transform::new(None).expect("Failed to create_transform");
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
 
     sequence_classification(
         session_lock,
@@ -114,7 +118,8 @@ fn test_token_classification_model() {
 
     let session_lock = state.session.lock();
 
-    let transform = Transform::new(None).expect("Failed to create_transform");
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
 
     let results = token_classification(
         session_lock,
@@ -142,7 +147,8 @@ fn test_token_classification_inference_with_bad_model() {
 
     let session_lock = state.session.lock();
 
-    let transform = Transform::new(None).expect("Failed to create_transform");
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
 
     token_classification(
         session_lock,

@@ -56,6 +56,7 @@ impl TransformValidatorExt for SequenceClassificationTransform {
 mod tests {
     use crate::build_cli::config::{EncoderfileConfig, ModelPath};
     use crate::common::ModelType;
+    use crate::transforms::DEFAULT_LIBS;
 
     use super::*;
 
@@ -70,6 +71,7 @@ mod tests {
             cache_dir: None,
             output_path: None,
             transform: None,
+            lua_libs: None,
             validate_transform: true,
             tokenizer: None,
             base_binary_path: None,
@@ -89,9 +91,10 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        SequenceClassificationTransform::new(Some(
-            "function Postprocess(arr) return arr end".to_string(),
-        ))
+        SequenceClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return arr end".to_string()),
+        )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config)
         .expect("Failed to validate");
@@ -102,9 +105,10 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = SequenceClassificationTransform::new(Some(
-            "function Postprocess(arr) return 1 end".to_string(),
-        ))
+        let result = SequenceClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return 1 end".to_string()),
+        )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config);
 
@@ -116,9 +120,10 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = SequenceClassificationTransform::new(Some(
-            "function Postprocess(arr) return arr:sum_axis(1) end".to_string(),
-        ))
+        let result = SequenceClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
+        )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config);
 

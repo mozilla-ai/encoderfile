@@ -262,6 +262,7 @@ mod tests {
             output_path: None,
             cache_dir: None,
             transform: None,
+            lua_libs: None,
             tokenizer: None,
             validate_transform: false,
             base_binary_path: None,
@@ -301,6 +302,7 @@ mod tests {
             output_path: None,
             cache_dir: None,
             transform: None,
+            lua_libs: None,
             tokenizer: Some(TokenizerBuildConfig {
                 pad_strategy: Some(TokenizerPadStrategy::Fixed { fixed: 512 }),
             }),
@@ -351,6 +353,7 @@ mod tests {
             output_path: None,
             cache_dir: None,
             transform: None,
+            lua_libs: None,
             tokenizer: None,
             validate_transform: false,
             base_binary_path: None,

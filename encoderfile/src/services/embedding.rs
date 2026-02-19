@@ -17,7 +17,7 @@ impl Inference for AppState<model_type::Embedding> {
 
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
-        let transform = EmbeddingTransform::new(self.transform_str())?;
+        let transform = EmbeddingTransform::new(self.lua_libs.clone(), self.transform_str())?;
 
         let results = inference::embedding::embedding(self.session.lock(), &transform, encodings)?;
 

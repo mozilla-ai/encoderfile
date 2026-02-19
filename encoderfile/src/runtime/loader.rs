@@ -5,9 +5,9 @@ use std::io::{Read, Seek};
 use ort::session::Session;
 
 use crate::{
-    common::{Config, ModelConfig, ModelType},
+    common::{Config, LuaLibs, ModelConfig, ModelType},
     format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
-    generated::manifest::TransformType,
+    generated::manifest::{self, TransformType},
     runtime::TokenizerService,
 };
 
@@ -60,8 +60,8 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
         }
     }
 
-    pub fn transform(&mut self) -> Result<Option<String>> {
-        let transform_str = match self
+    pub fn transform(&mut self) -> Result<Option<manifest::Transform>> {
+        let transform_proto = match self
             .encoderfile
             .open_optional(self.reader, AssetKind::Transform)
         {
@@ -79,22 +79,28 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
                     }
                 };
 
-                Some(transform_proto.transform)
+                Some(transform_proto)
             }
             None => None,
         };
 
-        Ok(transform_str)
+        Ok(transform_proto)
     }
 
     pub fn encoderfile_config(&mut self) -> Result<Config> {
+        let transform = self.transform()?;
+        let protolibs = transform
+            .as_ref()
+            .and_then(|t| t.lua_libs.clone())
+            .map(|l| l.libs);
+        let configlibs = protolibs.map(LuaLibs::try_from).transpose()?;
         let config = Config {
             name: self.encoderfile.name().to_string(),
             version: self.encoderfile.version().to_string(),
             model_type: self.encoderfile.model_type(),
-            transform: self.transform()?,
+            transform: transform.map(|t| t.transform),
+            lua_libs: configlibs,
         };
-
         Ok(config)
     }
 

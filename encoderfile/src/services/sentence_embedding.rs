@@ -17,7 +17,8 @@ impl Inference for AppState<model_type::SentenceEmbedding> {
 
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
-        let transform = SentenceEmbeddingTransform::new(self.transform_str())?;
+        let transform =
+            SentenceEmbeddingTransform::new(self.lua_libs.clone(), self.transform_str())?;
 
         let results = inference::sentence_embedding::sentence_embedding(
             self.session.lock(),
