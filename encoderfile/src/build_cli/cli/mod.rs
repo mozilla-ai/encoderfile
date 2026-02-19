@@ -8,7 +8,7 @@ mod inspect;
 mod runtime;
 
 #[cfg(feature = "dev-utils")]
-pub use build::test_build_args;
+pub use build::{test_build_args, test_build_args_working_dir};
 
 pub use inspect::inspect_encoderfile;
 
