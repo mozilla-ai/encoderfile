@@ -30,7 +30,7 @@ use crate::{
     runtime::TokenizerService,
 };
 use anyhow::Result;
-use std::str::FromStr;
+use std::{str::FromStr, usize};
 use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer, TruncationParams};
 
 use super::config::{
@@ -217,27 +217,22 @@ fn tokenizer_config_from_json_value(
     builder.field(
         "truncation_strategy",
         |config, v| {
-            config.truncation.strategy = v
-                .as_str()
-                .map(|i| serde_json::from_str::<TokenizerTruncationStrategy>(i))
-                .ok_or(anyhow::anyhow!("truncation_strategy must be a string"))?
-                .map_err(|e| anyhow::anyhow!("Invalid truncation_strategy: {:?}", e))?
-                .into();
+            let strategy: TokenizerTruncationStrategy = serde_json::from_value(v.clone())?;
+
+            config.truncation.strategy = strategy.into();
 
             Ok(())
         },
-        |config| config.truncation.direction,
+        |config| config.truncation.strategy,
     )?;
 
     builder.field(
         "truncation_side",
         |config, v| {
-            config.truncation.direction = v
-                .as_str()
-                .map(|i| serde_json::from_str::<TokenizerTruncationSide>(i))
-                .ok_or(anyhow::anyhow!("truncation_side must be a string"))?
-                .map_err(|e| anyhow::anyhow!("Invalid truncation_strategy: {:?}", e))?
-                .into();
+            let side: TokenizerTruncationSide = serde_json::from_value(v.clone())?;
+
+            config.truncation.direction = side.into();
+
             Ok(())
         },
         |config| config.truncation.direction,
@@ -247,13 +242,15 @@ fn tokenizer_config_from_json_value(
         "model_max_length",
         |config, v| {
             config.truncation.max_length = v
-                .as_u64()
-                .map(|i| i as usize)
+                .as_number()
                 .ok_or(anyhow::anyhow!("model_max_length must be an int"))?
-                .into();
+                .as_u128()
+                .ok_or(anyhow::anyhow!("Failed to cast number to u128"))?
+                as usize;
+
             Ok(())
         },
-        |config| config.truncation.direction,
+        |config| config.truncation.max_length,
     )?;
 
     builder.field(
@@ -266,7 +263,7 @@ fn tokenizer_config_from_json_value(
                 .into();
             Ok(())
         },
-        |config| config.truncation.direction,
+        |config| config.truncation.stride,
     )?;
 
     // now we fetch pad_token_id manually because it doesn't get serialized into tokenizer_config.json!
