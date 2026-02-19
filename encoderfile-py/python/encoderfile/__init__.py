@@ -1,6 +1,6 @@
-from .encoderfile_py import *
+from .encoderfile import *
 
 
-__doc__ = encoderfile_py.__doc__
-if hasattr(encoderfile_py, "__all__"):
-    __all__ = encoderfile_py.__all__
+__doc__ = encoderfile.__doc__
+if hasattr(encoderfile, "__all__"):
+    __all__ = encoderfile.__all__
