@@ -30,7 +30,7 @@ use crate::{
     runtime::TokenizerService,
 };
 use anyhow::Result;
-use std::{str::FromStr, usize};
+use std::str::FromStr;
 use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer, TruncationParams};
 
 use super::config::{
@@ -259,8 +259,8 @@ fn tokenizer_config_from_json_value(
             config.truncation.stride = v
                 .as_u64()
                 .map(|i| i as usize)
-                .ok_or(anyhow::anyhow!("stride must be an int"))?
-                .into();
+                .ok_or(anyhow::anyhow!("stride must be an int"))?;
+
             Ok(())
         },
         |config| config.truncation.stride,
