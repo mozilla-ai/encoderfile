@@ -872,8 +872,9 @@ dependencies = [
 
 [[package]]
 name = "encoderfile-py"
-version = "0.1.0"
+version = "0.4.3"
 dependencies = [
+ "encoderfile",
  "pyo3",
 ]
 
