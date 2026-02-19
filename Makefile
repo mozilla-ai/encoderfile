@@ -9,6 +9,10 @@ setup:
 	@echo "downloading test models..."
 	@uv run --group setup --group models scripts/download_test_models.py
 
+.PHONY: build-py
+build-py:
+	maturin develop -m encoderfile-py/Cargo.toml
+
 .PHONY: format
 format:
 	@echo "Formatting python..."
