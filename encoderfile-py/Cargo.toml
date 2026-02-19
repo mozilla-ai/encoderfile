@@ -1,5 +1,7 @@
 [package]
 name = "encoderfile-py"
+description = "Python bindings for encoderfile"
+repository = "https://github.com/mozilla-ai/encoderfile"
 version = "0.4.3"
 edition = "2024"
 
