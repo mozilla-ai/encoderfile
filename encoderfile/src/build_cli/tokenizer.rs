@@ -238,8 +238,8 @@ fn tokenizer_config_from_json_value(
         |config| config.truncation.direction,
     )?;
 
-    builder.field(
-        "model_max_length",
+    builder.any_field(
+        &["model_max_length", "max_length"],
         |config, v| {
             config.truncation.max_length = v
                 .as_number()
@@ -298,6 +298,26 @@ impl<'a> TokenizerConfigBuilder<'a> {
         ))?;
 
         Ok(())
+    }
+
+    fn any_field<P, D, V>(
+        &mut self,
+        fields: &[&str],
+        process_value_fn: P,
+        default_value_fn: D,
+    ) -> Result<()>
+    where
+        P: FnOnce(&mut TokenizerConfig, &serde_json::Value) -> Result<()>,
+        D: FnOnce(&TokenizerConfig) -> V,
+        V: std::fmt::Debug,
+    {
+        for field in fields {
+            if self.val.get(*field).is_some() {
+                return self.field(field, process_value_fn, default_value_fn);
+            }
+        }
+
+        anyhow::bail!("One of these fields is required: {:?}", fields);
     }
 
     fn field<P, D, V>(
