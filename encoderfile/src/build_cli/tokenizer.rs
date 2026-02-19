@@ -257,10 +257,6 @@ fn tokenizer_config_from_json_value(
         "stride",
         |config, v| {
             config.truncation.stride = serde_json::from_value(v.clone())?;
-            // config.truncation.stride = v
-            //     .as_u64()
-            //     .map(|i| i as usize)
-            //     .ok_or(anyhow::anyhow!("stride must be an int"))?;
 
             Ok(())
         },
