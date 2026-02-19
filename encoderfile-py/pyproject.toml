@@ -21,6 +21,7 @@ tests = [
 
 [project.urls]
 Repository = "https://github.com/mozilla-ai/encoderfile"
+Homepage = "https://mozilla-ai.github.io/encoderfile"
 
 [tool.maturin]
 python-source = "python"
