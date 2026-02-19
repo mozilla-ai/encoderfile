@@ -34,6 +34,7 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY encoderfile ./encoderfile
 COPY encoderfile-runtime ./encoderfile-runtime
+COPY encoderfile-py ./encoderfile-py
 
 # Build release binary.
 RUN cargo build --release

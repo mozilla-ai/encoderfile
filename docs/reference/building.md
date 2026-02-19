@@ -14,6 +14,8 @@ If you are compiling the encoderfile CLI from source, make sure you also have:
 - [Rust](https://rust-lang.org/tools/install/) - For building the CLI tool and binaries
 - [protoc](https://protobuf.dev/installation/) - Protocol Buffer compiler
 
+To compile encoderfile's Python bindings, you must also have [Maturin](https://www.maturin.rs/) installed. Instructions to install Maturin can be found [here](https://www.maturin.rs/installation.html).
+
 ### Installing Prerequisites
 
 **macOS:**

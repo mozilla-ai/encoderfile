@@ -1,0 +1,27 @@
+[build-system]
+requires = ["maturin>=1.10,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "encoderfile"
+description = "Python bindings for encoderfile."
+
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+tests = [
+    "pytest",
+]
+
+[project.urls]
+Repository = "https://github.com/mozilla-ai/encoderfile"
+Homepage = "https://mozilla-ai.github.io/encoderfile"
+
+[tool.maturin]
+python-source = "python"

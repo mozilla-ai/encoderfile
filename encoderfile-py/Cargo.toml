@@ -1,0 +1,18 @@
+[package]
+name = "encoderfile-py"
+description = "Python bindings for encoderfile"
+repository = "https://github.com/mozilla-ai/encoderfile"
+version = "0.4.3"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "encoderfile"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.27.0"
+
+[dependencies.encoderfile]
+path = "../encoderfile"
+version = "0.4.3"
