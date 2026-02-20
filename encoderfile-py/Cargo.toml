@@ -2,7 +2,7 @@
 name = "encoderfile-py"
 description = "Python bindings for encoderfile"
 repository = "https://github.com/mozilla-ai/encoderfile"
-version = "0.5.0-alpha.1"
+version = "0.5.0-alpha.2"
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -15,4 +15,4 @@ pyo3 = "0.27.0"
 
 [dependencies.encoderfile]
 path = "../encoderfile"
-version = "0.5.0-alpha.1"
+version = "0.5.0-alpha.2"
