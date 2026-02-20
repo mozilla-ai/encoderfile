@@ -81,7 +81,7 @@ mod tests {
 
     fn test_model_config() -> ModelConfig {
         let config_json =
-            include_str!("../../../../../models/dummy_sequence_classifier/config.json");
+            include_str!("../../../../../models/dummy_electra_sequence_classifier/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }

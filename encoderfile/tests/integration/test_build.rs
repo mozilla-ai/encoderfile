@@ -67,7 +67,7 @@ encoderfile:
     )
 }
 
-const MODEL_ASSETS_PATH: &str = "../models/dummy_token_classifier";
+const MODEL_ASSETS_PATH: &str = "../models/dummy_electra_token_classifier";
 
 #[tokio::test]
 async fn test_build_encoderfile() -> Result<()> {
@@ -77,7 +77,7 @@ async fn test_build_encoderfile() -> Result<()> {
         .canonicalize()
         .expect("Failed to canonicalize temp path");
 
-    let tmp_model_path = path.join("models").join("dummy_token_classifier");
+    let tmp_model_path = path.join("models").join("dummy_electra_token_classifier");
 
     let ef_config_path = path.join("encoderfile.yml");
     let encoderfile_path = path.join(BINARY_NAME);

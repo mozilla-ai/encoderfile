@@ -257,7 +257,7 @@ mod tests {
         let config = EncoderfileConfig {
             name: "my-model".into(),
             version: "0.0.1".into(),
-            path: ModelPath::Directory("../models/embedding".into()),
+            path: ModelPath::Directory("../models/dummy_electra_token_embeddings".into()),
             model_type: ModelType::Embedding,
             output_path: None,
             cache_dir: None,
@@ -297,7 +297,7 @@ mod tests {
         let config = EncoderfileConfig {
             name: "my-model".into(),
             version: "0.0.1".into(),
-            path: ModelPath::Directory("../models/embedding".into()),
+            path: ModelPath::Directory("../models/dummy_electra_token_embeddings".into()),
             model_type: ModelType::Embedding,
             output_path: None,
             cache_dir: None,
@@ -336,7 +336,7 @@ mod tests {
 
     #[test]
     fn test_validate_tokenizer_no_config() {
-        let path = ModelPath::Directory("../models/dummy_token_classifier".into());
+        let path = ModelPath::Directory("../models/dummy_electra_token_classifier".into());
 
         let explicit_path = ModelPath::Paths {
             model_config_path: path.model_config_path().unwrap(),

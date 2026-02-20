@@ -18,11 +18,21 @@ impl ModelTypeExt for crate::common::ModelType {
             Self::Embedding => validate_embedding_model(model),
             Self::SequenceClassification => validate_sequence_classification_model(model),
             Self::TokenClassification => validate_token_classification_model(model),
-            Self::SentenceEmbedding => validate_embedding_model(model),
+            Self::SentenceEmbedding => validate_sentence_embedding_model(model),
         }?;
 
         PlannedAsset::from_asset_source(AssetSource::File(path), AssetKind::ModelWeights)
     }
+}
+
+fn validate_sentence_embedding_model(model: Session) -> Result<()> {
+    let shape = get_outp_dim(model.outputs.as_slice(), "last_hidden_state")?;
+
+    if shape.len() != 2 {
+        bail!("Model must return tensor of shape [batch_size, n_labels]")
+    }
+
+    Ok(())
 }
 
 fn validate_embedding_model(model: Session) -> Result<()> {

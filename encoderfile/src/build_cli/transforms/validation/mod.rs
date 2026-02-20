@@ -120,7 +120,9 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/embedding")),
+            path: ModelPath::Directory(std::path::PathBuf::from(
+                "models/dummy_electra_token_embeddings",
+            )),
             model_type: ModelType::Embedding,
             cache_dir: None,
             output_path: None,
@@ -134,7 +136,8 @@ mod tests {
     }
 
     fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../../models/embedding/config.json");
+        let config_json =
+            include_str!("../../../../../models/dummy_electra_token_embeddings/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }
@@ -166,7 +169,9 @@ mod tests {
         let encoderfile_config = EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/embedding")),
+            path: ModelPath::Directory(std::path::PathBuf::from(
+                "models/dummy_electra_token_embeddings",
+            )),
             model_type: ModelType::Embedding,
             cache_dir: None,
             output_path: None,
@@ -180,7 +185,7 @@ mod tests {
 
         let model_config_str = include_str!(concat!(
             "../../../../../models/",
-            "embedding",
+            "dummy_electra_token_embeddings",
             "/config.json"
         ));
 
@@ -209,7 +214,7 @@ mod tests {
 
         let model_config_str = include_str!(concat!(
             "../../../../../models/",
-            "embedding",
+            "dummy_electra_token_embeddings",
             "/config.json"
         ));
 

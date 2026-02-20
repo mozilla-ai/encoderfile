@@ -8,10 +8,14 @@ from optimum.onnxruntime import (
     ORTModelForTokenClassification,
 )
 from create_dummy_model import (
-    DummySequenceConfig,
-    DummyTokenConfig,
-    DUMMY_SEQUENCE_ENCODER,
-    DUMMY_TOKEN_ENCODER,
+    DummySequenceClassConfig,
+    DummyTokenClassConfig,
+    DummySequenceEmbedConfig,
+    DummyTokenEmbedConfig,
+    DUMMY_SEQUENCE_CLASSIFIER,
+    DUMMY_TOKEN_CLASSIFIER,
+    DUMMY_SEQUENCE_EMBEDDINGS,
+    DUMMY_TOKEN_EMBEDDINGS,
 )
 
 MODELS_DIR = "models/"
@@ -50,8 +54,10 @@ if __name__ == "__main__":
         ORTModelForTokenClassification,
     )
 
-    AutoConfig.register(DUMMY_SEQUENCE_ENCODER, DummySequenceConfig)
-    AutoConfig.register(DUMMY_TOKEN_ENCODER, DummyTokenConfig)
+    AutoConfig.register(DUMMY_SEQUENCE_CLASSIFIER, DummySequenceClassConfig)
+    AutoConfig.register(DUMMY_TOKEN_CLASSIFIER, DummyTokenClassConfig)
+    AutoConfig.register(DUMMY_SEQUENCE_EMBEDDINGS, DummySequenceEmbedConfig)
+    AutoConfig.register(DUMMY_TOKEN_EMBEDDINGS, DummyTokenEmbedConfig)
     # save dummy models
     download_export_models(
         "mozilla-ai/test-dummy-sequence-encoder",

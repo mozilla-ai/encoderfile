@@ -46,6 +46,8 @@ macro_rules! test_grpc_service {
                     .unwrap()
                     .into_inner();
 
+                println!("Model metadata: {:?}", response);
+
                 if $has_labels {
                     assert!(!response.id2label.is_empty(), "id2label is an empty dict")
                 } else {

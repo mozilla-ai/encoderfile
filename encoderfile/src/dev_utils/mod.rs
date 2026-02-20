@@ -10,9 +10,9 @@ use parking_lot::Mutex;
 use std::str::FromStr;
 use std::{fs::File, io::BufReader};
 
-const EMBEDDING_DIR: &str = "../models/embedding";
-const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
-const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
+const EMBEDDING_DIR: &str = "../models/dummy_electra_token_embeddings";
+const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/dummy_electra_sequence_classifier";
+const TOKEN_CLASSIFICATION_DIR: &str = "../models/dummy_electra_token_classifier";
 
 pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
     let config = Config {
