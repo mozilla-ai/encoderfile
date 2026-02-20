@@ -1,7 +1,7 @@
 use super::model_type::ModelType;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
-use tokenizers::PaddingParams;
+use tokenizers::{PaddingParams, TruncationParams};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -60,4 +60,5 @@ impl TryFrom<Vec<String>> for LuaLibs {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenizerConfig {
     pub padding: PaddingParams,
+    pub truncation: TruncationParams,
 }

@@ -127,6 +127,46 @@ impl EncoderfileConfig {
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct TokenizerBuildConfig {
     pub pad_strategy: Option<TokenizerPadStrategy>,
+    pub truncation_side: Option<TokenizerTruncationSide>,
+    pub truncation_strategy: Option<TokenizerTruncationStrategy>,
+    pub max_length: Option<usize>,
+    pub stride: Option<usize>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenizerTruncationSide {
+    Left,
+    Right,
+}
+
+impl From<TokenizerTruncationSide> for tokenizers::TruncationDirection {
+    fn from(value: TokenizerTruncationSide) -> Self {
+        match value {
+            TokenizerTruncationSide::Left => tokenizers::TruncationDirection::Left,
+            TokenizerTruncationSide::Right => tokenizers::TruncationDirection::Right,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenizerTruncationStrategy {
+    LongestFirst,
+    OnlyFirst,
+    OnlySecond,
+}
+
+impl From<TokenizerTruncationStrategy> for tokenizers::TruncationStrategy {
+    fn from(value: TokenizerTruncationStrategy) -> Self {
+        match value {
+            TokenizerTruncationStrategy::LongestFirst => {
+                tokenizers::TruncationStrategy::LongestFirst
+            }
+            TokenizerTruncationStrategy::OnlyFirst => tokenizers::TruncationStrategy::OnlyFirst,
+            TokenizerTruncationStrategy::OnlySecond => tokenizers::TruncationStrategy::OnlySecond,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

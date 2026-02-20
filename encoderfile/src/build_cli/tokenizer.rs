@@ -31,9 +31,11 @@ use crate::{
 };
 use anyhow::Result;
 use std::str::FromStr;
-use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer};
+use tokenizers::{PaddingParams, PaddingStrategy, Tokenizer, TruncationParams};
 
-use super::config::{EncoderfileConfig, TokenizerPadStrategy};
+use super::config::{
+    EncoderfileConfig, TokenizerPadStrategy, TokenizerTruncationSide, TokenizerTruncationStrategy,
+};
 
 pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
     let tokenizer =
@@ -73,18 +75,35 @@ impl EncoderfileConfig {
             }
         };
 
-        // TODO: insert any overrides from encoderfile.yml here
         let tokenizer_build_config = match &self.tokenizer {
             Some(t) => t,
             None => return Ok(config),
         };
 
+        // padding
         if let Some(s) = &tokenizer_build_config.pad_strategy {
             config.padding.strategy = match s {
                 TokenizerPadStrategy::BatchLongest => PaddingStrategy::BatchLongest,
                 TokenizerPadStrategy::Fixed { fixed } => PaddingStrategy::Fixed(*fixed),
             }
         };
+
+        // truncation
+        if let Some(s) = &tokenizer_build_config.truncation_side {
+            config.truncation.direction = s.clone().into();
+        }
+
+        if let Some(s) = &tokenizer_build_config.truncation_strategy {
+            config.truncation.strategy = s.clone().into();
+        }
+
+        if let Some(max_len) = &tokenizer_build_config.max_length {
+            config.truncation.max_length = *max_len;
+        }
+
+        if let Some(stride) = &tokenizer_build_config.stride {
+            config.truncation.stride = *stride;
+        }
 
         Ok(config)
     }
@@ -105,7 +124,24 @@ fn from_tokenizer(tokenizer: &Tokenizer) -> Result<TokenizerConfig> {
         }
     };
 
-    Ok(TokenizerConfig { padding })
+    let truncation = match tokenizer.get_truncation() {
+        Some(p) => p.clone(),
+        None => {
+            let truncation_params = TruncationParams::default();
+
+            eprintln!(
+                "WARNING: No padding params found in `tokenizer.json`. Using defaults: {:?}",
+                &truncation_params,
+            );
+
+            truncation_params
+        }
+    };
+
+    Ok(TokenizerConfig {
+        padding,
+        truncation,
+    })
 }
 
 fn tokenizer_config_from_json_value(
@@ -178,6 +214,55 @@ fn tokenizer_config_from_json_value(
         |config| config.padding.pad_type_id,
     )?;
 
+    builder.field(
+        "truncation_strategy",
+        |config, v| {
+            let strategy: TokenizerTruncationStrategy = serde_json::from_value(v.clone())?;
+
+            config.truncation.strategy = strategy.into();
+
+            Ok(())
+        },
+        |config| config.truncation.strategy,
+    )?;
+
+    builder.field(
+        "truncation_side",
+        |config, v| {
+            let side: TokenizerTruncationSide = serde_json::from_value(v.clone())?;
+
+            config.truncation.direction = side.into();
+
+            Ok(())
+        },
+        |config| config.truncation.direction,
+    )?;
+
+    builder.any_field(
+        &["model_max_length", "max_length"],
+        |config, v| {
+            config.truncation.max_length = v
+                .as_number()
+                .ok_or(anyhow::anyhow!("model_max_length must be an int"))?
+                .as_u128()
+                .ok_or(anyhow::anyhow!("Failed to cast number to u128"))?
+                as usize;
+
+            Ok(())
+        },
+        |config| config.truncation.max_length,
+    )?;
+
+    builder.field(
+        "stride",
+        |config, v| {
+            config.truncation.stride = serde_json::from_value(v.clone())?;
+
+            Ok(())
+        },
+        |config| config.truncation.stride,
+    )?;
+
     // now we fetch pad_token_id manually because it doesn't get serialized into tokenizer_config.json!
     builder.set_pad_token_id(tokenizer)?;
 
@@ -210,6 +295,26 @@ impl<'a> TokenizerConfigBuilder<'a> {
         ))?;
 
         Ok(())
+    }
+
+    fn any_field<P, D, V>(
+        &mut self,
+        fields: &[&str],
+        process_value_fn: P,
+        default_value_fn: D,
+    ) -> Result<()>
+    where
+        P: FnOnce(&mut TokenizerConfig, &serde_json::Value) -> Result<()>,
+        D: FnOnce(&TokenizerConfig) -> V,
+        V: std::fmt::Debug,
+    {
+        for field in fields {
+            if self.val.get(*field).is_some() {
+                return self.field(field, process_value_fn, default_value_fn);
+            }
+        }
+
+        anyhow::bail!("One of these fields is required: {:?}", fields);
     }
 
     fn field<P, D, V>(
@@ -305,6 +410,10 @@ mod tests {
             lua_libs: None,
             tokenizer: Some(TokenizerBuildConfig {
                 pad_strategy: Some(TokenizerPadStrategy::Fixed { fixed: 512 }),
+                truncation_side: None,
+                truncation_strategy: None,
+                max_length: None,
+                stride: None,
             }),
             validate_transform: false,
             base_binary_path: None,

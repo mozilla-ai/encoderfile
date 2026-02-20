@@ -17,7 +17,9 @@ impl TokenizerService {
 
     pub fn init(mut self) -> Result<Self> {
         self.tokenizer
-            .with_padding(Some(self.config.padding.clone()));
+            .with_padding(Some(self.config.padding.clone()))
+            .with_truncation(Some(self.config.truncation.clone()))
+            .map_err(|e| anyhow::anyhow!("Failed to apply truncation settings: {:?}", e))?;
 
         Ok(self)
     }
