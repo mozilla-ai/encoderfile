@@ -10,6 +10,6 @@ class EncoderfileBuilder:
         platform: Optional[str] = None,
         version: Optional[str] = None,
         no_download: bool = False,
-        direction: Optional[str] = None,
+        directory: Optional[str] = None,
     ) -> "EncoderfileBuilder": ...
     def build(self, cache_dir: Optional[str] = None): ...
