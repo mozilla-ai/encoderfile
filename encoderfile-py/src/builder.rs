@@ -13,7 +13,7 @@ pub struct EncoderfileBuilder(BuildArgs);
 #[pymethods]
 impl EncoderfileBuilder {
     #[classmethod]
-    #[pyo3(signature = (config, output_path, base_binary_path = None, platform = None, version = None, no_download = false, directory = None))]
+    #[pyo3(signature = (config, output_path = None, base_binary_path = None, platform = None, version = None, no_download = false, directory = None))]
     fn from_config(
         _cls: &Bound<'_, PyType>,
         config: PathBuf,
@@ -41,6 +41,7 @@ impl EncoderfileBuilder {
         }))
     }
 
+    #[pyo3(signature = (cache_dir = None))]
     fn build(&self, cache_dir: Option<PathBuf>) -> PyResult<()> {
         let global = GlobalArguments { cache_dir };
 
