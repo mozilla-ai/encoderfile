@@ -12,8 +12,17 @@ pub struct EncoderfileBuilder(BuildArgs);
 
 #[pymethods]
 impl EncoderfileBuilder {
+    #[allow(clippy::too_many_arguments)]
     #[classmethod]
-    #[pyo3(signature = (config, output_path = None, base_binary_path = None, platform = None, version = None, no_download = false, directory = None))]
+    #[pyo3(signature = (
+        config,
+        output_path = None,
+        base_binary_path = None,
+        platform = None,
+        version = None,
+        no_download = false,
+        directory = None))
+        ]
     fn from_config(
         _cls: &Bound<'_, PyType>,
         config: PathBuf,
