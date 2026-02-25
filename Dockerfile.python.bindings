@@ -1,0 +1,37 @@
+# Use the official Rust image based on Debian Bookworm
+FROM rust:bookworm
+
+# Install Python and pip
+RUN apt-get update && apt-get install -y \
+    python3-full \
+    python3-pip \
+    python3-venv \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the lockfile and project configuration
+COPY uv.lock pyproject.toml ./
+
+# Create virtual environment and install dependencies
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# install maturin into the environment
+RUN uv venv $VIRTUAL_ENV && \
+    uv sync --active --frozen --group rustlib
+
+# Copy the entire workspace (including encoderfile-py)
+# We need the workspace root because encoderfile-py depends on ../encoderfile
+COPY . .
+
+# create a directory for the output wheels
+RUN mkdir /output
+
+# Set the entrypoint to build the wheel and place it in the output directory
+ENTRYPOINT ["/app/scripts/build_wheels.sh"]
