@@ -1,4 +1,5 @@
 pub mod base_binary;
+pub mod builder;
 pub mod cache;
 pub mod cli;
 pub mod config;
