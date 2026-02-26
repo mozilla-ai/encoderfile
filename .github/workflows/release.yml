@@ -88,7 +88,7 @@ jobs:
 
       - run: rustup target add ${{ matrix.target }}
 
-      - name: Build
+      - name: Build (macos, ${{ matrix.target }})
         run: |
           cargo build --release --target ${{ matrix.target }}
           mkdir -p dist
@@ -103,11 +103,21 @@ jobs:
           tar -czf encoderfile-${{ matrix.target }}.tar.gz -C pkg .
           tar -czf encoderfile-runtime-${{ matrix.target }}.tar.gz -C pkg .
 
-      - uses: actions/upload-artifact@v4
-        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
+      - name: Build wheels
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv -p python3.13
+          mkdir wheels
+          cargo install --locked maturin
+          maturin build --release --target ${{ matrix.target }} -m encoderfile-py/Cargo.toml --out wheels -i .venv/bin/python3.13
+
+      - uses: actions/upload-artifact@v6
+        # if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         with:
           name: macos-${{ matrix.target }}
-          path: "*.tar.gz"
+          path: |
+            *.tar.gz
+            wheels/*.whl
 
   build-linux:
     needs: [create-tag, compute-dry-run]
@@ -153,11 +163,22 @@ jobs:
           tar -czf encoderfile-${{ matrix.target }}.tar.gz -C pkg .
           tar -czf encoderfile-runtime-${{ matrix.target }}.tar.gz -C pkg .
 
-      - uses: actions/upload-artifact@v4
+      - name: Build wheels
+        run: |
+          sudo apt update && sudo apt install -y protobuf-compiler
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv -p python3.13
+          mkdir wheels
+          cargo install --locked maturin
+          maturin build --release --target ${{ matrix.target }} -m encoderfile-py/Cargo.toml --out wheels -i .venv/bin/python3.13
+
+      - uses: actions/upload-artifact@v6
         if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         with:
           name: linux-${{ matrix.arch }}
-          path: "*.tar.gz"
+          path: |
+            *.tar.gz
+            wheels/*.whl
 
   release:
     needs: [create-tag, build-macos, build-linux, compute-dry-run]
