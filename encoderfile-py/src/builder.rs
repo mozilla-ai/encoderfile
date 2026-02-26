@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use encoderfile::build_cli::cli::{BuildArgs, GlobalArguments};
+use encoderfile::builder::cli::{BuildArgs, GlobalArguments};
 use pyo3::{
     exceptions::{PyRuntimeError, PyValueError},
     prelude::*,

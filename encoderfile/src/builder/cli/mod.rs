@@ -35,7 +35,7 @@ impl GlobalArguments {
     pub fn cache_dir(&self) -> PathBuf {
         self.cache_dir
             .clone()
-            .unwrap_or(crate::build_cli::cache::default_cache_dir())
+            .unwrap_or(crate::builder::cache::default_cache_dir())
     }
 }
 

@@ -347,7 +347,7 @@ impl<'a> TokenizerConfigBuilder<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::build_cli::config::{ModelPath, TokenizerBuildConfig};
+    use crate::builder::config::{ModelPath, TokenizerBuildConfig};
     use crate::common::ModelType;
 
     use super::*;

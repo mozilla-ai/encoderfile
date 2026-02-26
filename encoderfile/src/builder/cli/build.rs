@@ -1,4 +1,4 @@
-use crate::build_cli::{base_binary::TargetSpec, terminal};
+use crate::builder::{base_binary::TargetSpec, terminal};
 
 use super::GlobalArguments;
 use anyhow::{Context, Result};
@@ -48,7 +48,7 @@ pub struct BuildArgs {
 impl BuildArgs {
     pub fn run(&self, global: &GlobalArguments) -> Result<()> {
         terminal::info("Loading config...");
-        let mut config = crate::build_cli::config::BuildConfig::load(&self.config)?;
+        let mut config = crate::builder::config::BuildConfig::load(&self.config)?;
 
         // change working dir if specified
         if let Some(working_dir) = &self.working_dir {

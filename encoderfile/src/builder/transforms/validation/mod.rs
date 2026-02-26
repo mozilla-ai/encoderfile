@@ -6,7 +6,7 @@ use crate::{
 };
 use anyhow::{Context, Result};
 
-use crate::build_cli::config::EncoderfileConfig;
+use crate::builder::config::EncoderfileConfig;
 use prost::Message;
 
 mod embedding;
@@ -112,7 +112,7 @@ pub fn validate_transform<'a>(
 mod tests {
     use crate::transforms::{DEFAULT_LIBS, EmbeddingTransform};
 
-    use crate::build_cli::config::{ModelPath, Transform};
+    use crate::builder::config::{ModelPath, Transform};
 
     use super::*;
 

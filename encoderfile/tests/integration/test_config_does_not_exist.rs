@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use encoderfile::build_cli::cli::GlobalArguments;
-use encoderfile::build_cli::config::CONFIG_FILE_NOT_FOUND_MSG;
+use encoderfile::builder::cli::GlobalArguments;
+use encoderfile::builder::config::CONFIG_FILE_NOT_FOUND_MSG;
 use std::path::Path;
 use tempfile::tempdir;
 
@@ -13,10 +13,8 @@ async fn test_config_does_not_exist() -> Result<()> {
         .expect("Failed to canonicalize temp path")
         .join("encoderfile_does_not_exist.yml");
 
-    let build_args = encoderfile::build_cli::cli::test_build_args(
-        path.as_path(),
-        Path::new("dummy_binary_path"),
-    );
+    let build_args =
+        encoderfile::builder::cli::test_build_args(path.as_path(), Path::new("dummy_binary_path"));
 
     let global_args = GlobalArguments::default();
 

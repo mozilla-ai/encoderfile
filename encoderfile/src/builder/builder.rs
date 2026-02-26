@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    build_cli::{
+    builder::{
         base_binary::{BaseBinaryResolver, TargetSpec},
         config::BuildConfig,
         model::ModelTypeExt as _,
@@ -77,17 +77,16 @@ impl EncoderfileBuilder {
         terminal::success("Model weights validated");
 
         // validate transform
-        if let Some(asset) = crate::build_cli::transforms::validate_transform(
-            &self.config.encoderfile,
-            &model_config,
-        )? {
+        if let Some(asset) =
+            crate::builder::transforms::validate_transform(&self.config.encoderfile, &model_config)?
+        {
             planned_assets.push(asset);
             terminal::success("Transform validated");
         }
 
         // validate tokenizer
         let tokenizer_asset =
-            crate::build_cli::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
+            crate::builder::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
         planned_assets.push(tokenizer_asset);
         terminal::success("Tokenizer validated");
 
