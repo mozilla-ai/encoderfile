@@ -6,5 +6,5 @@ mod builder;
 #[pymodule]
 mod encoderfile {
     #[pymodule_export]
-    use super::builder::EncoderfileBuilder;
+    use super::builder::PyEncoderfileBuilder;
 }

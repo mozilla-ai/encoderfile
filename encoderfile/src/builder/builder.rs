@@ -2,6 +2,7 @@ use std::{
     borrow::Cow,
     fs::File,
     io::{BufWriter, Seek, Write},
+    path::PathBuf,
 };
 
 use crate::{
@@ -31,7 +32,11 @@ impl EncoderfileBuilder {
         Self { config }
     }
 
-    pub fn build(&self, version: Option<String>, no_download: bool) -> Result<()> {
+    pub fn from_file(file_path: &PathBuf) -> Result<EncoderfileBuilder> {
+        BuildConfig::load(file_path).map(|config| EncoderfileBuilder { config })
+    }
+
+    pub fn build(&self, version: &Option<String>, no_download: bool) -> Result<()> {
         let target = self
             .config
             .encoderfile

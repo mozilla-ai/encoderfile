@@ -72,7 +72,7 @@ impl BuildArgs {
         }
 
         super::super::builder::EncoderfileBuilder::new(config)
-            .build(self.version.clone(), self.no_download)
+            .build(&self.version, self.no_download)
     }
 }
 
