@@ -24,44 +24,44 @@ use clap_derive::Args;
 #[derive(Debug, Args)]
 pub struct BuildArgs {
     #[arg(short = 'f', help = "Path to config file. Required.")]
-    config: PathBuf,
+    pub config: PathBuf,
     #[arg(
         short = 'o',
         long = "output-path",
         help = "Output path, e.g., `./my_model.encoderfile`. Optional"
     )]
-    output_path: Option<PathBuf>,
+    pub output_path: Option<PathBuf>,
     #[arg(
         long = "base-binary-path",
         help = "Path to base binary to use. Optional."
     )]
-    base_binary_path: Option<PathBuf>,
+    pub base_binary_path: Option<PathBuf>,
     #[arg(
         long = "platform",
         help = "Target platform to build. Follows standard rust target triple format."
     )]
-    platform: Option<TargetSpec>,
+    pub platform: Option<TargetSpec>,
     #[arg(
         long,
         help = "Encoderfile version override (defaults to current version)."
     )]
-    version: Option<String>,
+    pub version: Option<String>,
     #[arg(
         long = "no-download",
         help = "Disable downloading",
         default_value = "false"
     )]
-    no_download: bool,
+    pub no_download: bool,
     #[arg(
         long = "directory", // working-dir???
         help = "Set the working directory for the build process. Optional.",
         default_value = None
     )]
-    working_dir: Option<PathBuf>,
+    pub working_dir: Option<PathBuf>,
 }
 
 impl BuildArgs {
-    pub fn run(self, global: &GlobalArguments) -> Result<()> {
+    pub fn run(&self, global: &GlobalArguments) -> Result<()> {
         terminal::info("Loading config...");
         let mut config = crate::build_cli::config::BuildConfig::load(&self.config)?;
 

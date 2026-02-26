@@ -10,6 +10,7 @@ mod runtime;
 #[cfg(feature = "dev-utils")]
 pub use build::{test_build_args, test_build_args_working_dir};
 
+pub use build::BuildArgs;
 pub use inspect::inspect_encoderfile;
 
 #[derive(Debug, Parser)]
@@ -27,7 +28,7 @@ pub struct GlobalArguments {
         long = "cache-dir",
         help = "Cache directory. This is used for build artifacts. Optional."
     )]
-    cache_dir: Option<PathBuf>,
+    pub cache_dir: Option<PathBuf>,
 }
 
 impl GlobalArguments {
