@@ -4,7 +4,7 @@ use encoderfile::{builder::model::ModelTypeExt as _, common::ModelType};
 
 #[test]
 pub fn test_embedding() {
-    let path = PathBuf::from("../models/dummy_electra_token_embeddings/model.onnx");
+    let path = PathBuf::from("../models/embedding/model.onnx");
 
     assert!(ModelType::Embedding.validate_model(&path).is_ok());
     assert!(
@@ -16,15 +16,15 @@ pub fn test_embedding() {
 
 #[test]
 pub fn test_token_classification() {
-    let path = PathBuf::from("../models/dummy_electra_token_classifier/model.onnx");
+    let path = PathBuf::from("../models/token_classification/model.onnx");
 
     assert!(ModelType::Embedding.validate_model(&path).is_err());
     assert!(ModelType::TokenClassification.validate_model(&path).is_ok());
 }
 
 #[test]
-pub fn test_sequence_embeddings() {
-    let path = PathBuf::from("../models/dummy_electra_sequence_embeddings/model.onnx");
+pub fn test_sentence_embedding() {
+    let path = PathBuf::from("../models/sentence_embedding/model.onnx");
 
     assert!(ModelType::SentenceEmbedding.validate_model(&path).is_ok());
     assert!(
@@ -36,7 +36,7 @@ pub fn test_sequence_embeddings() {
 
 #[test]
 pub fn test_sequence_classification() {
-    let path = PathBuf::from("../models/dummy_electra_sequence_classifier/model.onnx");
+    let path = PathBuf::from("../models/sequence_classification/model.onnx");
 
     assert!(ModelType::SentenceEmbedding.validate_model(&path).is_err());
     assert!(
