@@ -28,8 +28,8 @@ impl ModelTypeExt for crate::common::ModelType {
 fn validate_sentence_embedding_model(model: Session) -> Result<()> {
     let shape = get_outp_dim(model.outputs.as_slice(), "last_hidden_state")?;
 
-    if shape.len() != 2 {
-        bail!("Model must return tensor of shape [batch_size, n_labels]")
+    if shape.len() != 3 {
+        bail!("Model must return tensor of shape [batch_size, seq_len, hidden_dim]")
     }
 
     Ok(())

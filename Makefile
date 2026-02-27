@@ -7,7 +7,7 @@ setup:
 	@echo "creating .venv..."
 	@uv sync --locked
 	@echo "downloading test models..."
-	@uv run --group setup --group models scripts/download_test_models.py
+	@uv run --group models scripts/generate_dummy_models.py
 
 .PHONY: build-py
 build-py:

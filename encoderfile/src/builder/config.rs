@@ -402,7 +402,7 @@ mod tests {
         let cfg = EncoderfileConfig {
             name: "my-cool-model".into(),
             version: "1.0".into(),
-            path: ModelPath::Directory("../models/dummy_electra_token_embeddings".into()),
+            path: ModelPath::Directory("../models/embedding".into()),
             model_type: ModelType::Embedding,
             output_path: Some(base.clone()),
             cache_dir: Some(base.clone()),

@@ -68,9 +68,7 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from(
-                "models/dummy_electra_sequence_embeddings",
-            )),
+            path: ModelPath::Directory(std::path::PathBuf::from("models/sentence_embedding")),
             model_type: ModelType::SentenceEmbedding,
             cache_dir: None,
             output_path: None,
@@ -84,8 +82,7 @@ mod tests {
     }
 
     fn test_model_config() -> ModelConfig {
-        let config_json =
-            include_str!("../../../../../models/dummy_electra_sequence_embeddings/config.json");
+        let config_json = include_str!("../../../../../models/sentence_embedding/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }
