@@ -103,19 +103,15 @@ def assert_dir_size_under(path, max_mb):
     if not path.is_dir():
         raise ValueError(f"{path} is not a directory")
 
-    total_bytes = sum(
-        f.stat().st_size
-        for f in path.rglob("*")
-        if f.is_file()
-    )
+    total_bytes = sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
 
     max_bytes = max_mb * 1024 * 1024
 
     if total_bytes > max_bytes:
         raise RuntimeError(
-            f"Directory {path} is {total_bytes / (1024**2):.2f} MB "
-            f"(limit: {max_mb} MB)"
+            f"Directory {path} is {total_bytes / (1024**2):.2f} MB (limit: {max_mb} MB)"
         )
+
 
 # throw error if total dir size is over 32 MB
 assert_dir_size_under(Path("models"), 32)
