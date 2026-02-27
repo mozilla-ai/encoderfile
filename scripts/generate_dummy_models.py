@@ -20,7 +20,7 @@ import random
 import numpy as np
 import torch
 
-# i'm not playing games today -RB
+# i'm not playing games with randomness today -RB
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
