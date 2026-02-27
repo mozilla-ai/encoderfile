@@ -28,7 +28,9 @@ impl ModelTypeExt for crate::common::ModelType {
 fn validate_sentence_embedding_model(model: Session) -> Result<()> {
     let shape = get_outp_dim(model.outputs.as_slice(), "last_hidden_state")?;
 
-    if shape.len() != 2 {
+    // sentence embedding output shape must be identical to token embedding output shape.
+    // mean pooling is taken care of at postprocessing step.
+    if shape.len() != 3 {
         bail!("Model must return tensor of shape [batch_size, n_labels]")
     }
 
