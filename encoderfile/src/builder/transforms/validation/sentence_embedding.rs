@@ -1,50 +1,53 @@
 use super::{
     TransformValidatorExt,
-    utils::{BATCH_SIZE, SEQ_LEN, random_tensor, validation_err, validation_err_ctx},
+    utils::{
+        BATCH_SIZE, HIDDEN_DIM, SEQ_LEN, create_dummy_attention_mask, random_tensor,
+        validation_err, validation_err_ctx,
+    },
 };
 use crate::{
     common::ModelConfig,
-    transforms::{Postprocessor, TokenClassificationTransform},
+    transforms::{Postprocessor, SentenceEmbeddingTransform},
 };
 use anyhow::{Context, Result};
 
-impl TransformValidatorExt for TokenClassificationTransform {
-    fn dry_run(&self, model_config: &ModelConfig) -> Result<()> {
-        let num_labels = match model_config.num_labels() {
-            Some(n) => n,
-            None => validation_err(
-                "Model config does not have `num_labels`, `id2label`, or `label2id` field. Please make sure you're using a TokenClassification model.",
-            )?,
-        };
+impl TransformValidatorExt for SentenceEmbeddingTransform {
+    fn dry_run(&self, _model_config: &ModelConfig) -> Result<()> {
+        // create dummy hidden states with shape [batch_size, seq_len, hidden_dim]
+        let dummy_hidden_states = random_tensor(&[BATCH_SIZE, SEQ_LEN, HIDDEN_DIM], (-1.0, 1.0))?;
+        let dummy_attention_mask = create_dummy_attention_mask(BATCH_SIZE, SEQ_LEN, 3)?;
+        let shape = dummy_hidden_states.shape().to_owned();
 
-        let dummy_logits = random_tensor(&[BATCH_SIZE, SEQ_LEN, num_labels], (-1.0, 1.0))?;
-        let shape = dummy_logits.shape().to_owned();
-
-        let res = self.postprocess(dummy_logits)
+        let res = self.postprocess((dummy_hidden_states, dummy_attention_mask))
             .with_context(|| {
                 validation_err_ctx(
                     format!(
-                        "Failed to run postprocessing on dummy logits (randomly generated in range -1.0..1.0) of shape {:?}",
+                        "Failed to run postprocessing on dummy hidden states (randomly generated in range -1.0..1.0) of shape {:?}",
                         shape.as_slice(),
                     )
                 )
             })?;
 
-        // result must return tensor of rank 3
-        if res.ndim() != 3 {
+        // result must return tensor of rank 2
+        if res.ndim() != 2 {
             validation_err(format!(
                 "Transform must return tensor of rank 3. Got tensor of shape {:?}.",
                 res.shape()
             ))?
         }
 
-        // result must have same shape as original
-        if res.shape() != shape {
+        // result must have same batch_size
+        if res.shape()[0] != BATCH_SIZE {
             validation_err(format!(
-                "Transform must return Tensor of shape [batch_size, seq_len, num_labels]. Expected shape [{}, {}, {}], got shape {:?}",
+                "Transform must preserve batch size [{}, *]. Got shape {:?}",
                 BATCH_SIZE,
-                SEQ_LEN,
-                num_labels,
+                res.shape()
+            ))?
+        }
+
+        if res.shape()[1] < 1 {
+            validation_err(format!(
+                "Transform returned a tensor with last dimension 0. Shape: {:?}",
                 res.shape()
             ))?
         }
@@ -55,7 +58,7 @@ impl TransformValidatorExt for TokenClassificationTransform {
 
 #[cfg(test)]
 mod tests {
-    use crate::build_cli::config::{EncoderfileConfig, ModelPath};
+    use crate::builder::config::{EncoderfileConfig, ModelPath};
     use crate::common::ModelType;
     use crate::transforms::DEFAULT_LIBS;
 
@@ -65,13 +68,15 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/dummy_token_classifier")),
-            model_type: ModelType::TokenClassification,
+            path: ModelPath::Directory(std::path::PathBuf::from(
+                "models/dummy_electra_sequence_embeddings",
+            )),
+            model_type: ModelType::SentenceEmbedding,
             cache_dir: None,
             output_path: None,
             transform: None,
-            lua_libs: None,
             validate_transform: true,
+            lua_libs: None,
             tokenizer: None,
             base_binary_path: None,
             target: None,
@@ -80,19 +85,19 @@ mod tests {
 
     fn test_model_config() -> ModelConfig {
         let config_json =
-            include_str!("../../../../../models/dummy_electra_token_classifier/config.json");
+            include_str!("../../../../../models/dummy_electra_sequence_embeddings/config.json");
 
         serde_json::from_str(config_json).unwrap()
     }
 
     #[test]
-    fn test_identity_validation() {
+    fn test_successful_mean_pool() {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        TokenClassificationTransform::new(
+        SentenceEmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
-            Some("function Postprocess(arr) return arr end".to_string()),
+            Some("function Postprocess(arr, mask) return arr:mean_pool(mask) end".to_string()),
         )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config)
@@ -104,9 +109,9 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = TokenClassificationTransform::new(
+        let result = SentenceEmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
-            Some("function Postprocess(arr) return 1 end".to_string()),
+            Some("function Postprocess(arr, mask) return 1 end".to_string()),
         )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config);
@@ -119,9 +124,9 @@ mod tests {
         let encoderfile_config = test_encoderfile_config();
         let model_config = test_model_config();
 
-        let result = TokenClassificationTransform::new(
+        let result = SentenceEmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
-            Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
+            Some("function Postprocess(arr, mask) return arr end".to_string()),
         )
         .expect("Failed to create transform")
         .validate(&encoderfile_config, &model_config);

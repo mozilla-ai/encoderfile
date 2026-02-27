@@ -16,4 +16,4 @@ pub mod dev_utils;
 pub use assets::get_banner;
 pub use runtime::AppState;
 
-pub mod build_cli;
+pub mod builder;

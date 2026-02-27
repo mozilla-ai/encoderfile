@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap_derive::{Args, Subcommand};
 
-use crate::build_cli::{
+use crate::builder::{
     base_binary::{BaseBinaryResolver, TargetSpec, list_downloaded_runtimes},
     cli::GlobalArguments,
 };

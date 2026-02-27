@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, bail};
 
-use encoderfile::build_cli::cli::GlobalArguments;
+use encoderfile::builder::cli::GlobalArguments;
 use std::{
     fs,
     path::Path,
@@ -126,7 +126,7 @@ async fn test_build_encoderfile() -> Result<()> {
 
     // without to working_dir option, the previous dir change would result
     // in the encoderfile being generated at the wrong path because of the rel output
-    let build_args = encoderfile::build_cli::cli::test_build_args_working_dir(
+    let build_args = encoderfile::builder::cli::test_build_args_working_dir(
         ef_config_path.as_path(),
         base_binary_path,
         &path,

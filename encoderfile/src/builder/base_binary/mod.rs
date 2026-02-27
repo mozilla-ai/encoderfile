@@ -1,4 +1,4 @@
-use crate::build_cli::terminal;
+use crate::builder::terminal;
 use anyhow::{Context, Result, bail};
 use std::{
     fs,

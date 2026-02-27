@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, bail};
 
-use encoderfile::build_cli::cli::{GlobalArguments, inspect_encoderfile};
+use encoderfile::builder::cli::{GlobalArguments, inspect_encoderfile};
 use std::{
     fs,
     path::Path,
@@ -88,7 +88,7 @@ fn test_inspect_encoderfile() -> Result<()> {
         .expect("Failed to write encoderfile config");
 
     let build_args =
-        encoderfile::build_cli::cli::test_build_args(ef_config_path.as_path(), base_binary_path);
+        encoderfile::builder::cli::test_build_args(ef_config_path.as_path(), base_binary_path);
 
     // build encoderfile
     let global_args = GlobalArguments::default();
