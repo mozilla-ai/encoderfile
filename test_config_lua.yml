@@ -1,8 +1,11 @@
 encoderfile:
-  name: my-model-2
+  name: my-model-2-lua
   path: models/dummy_electra_token_classifier
   model_type: token_classification
-  output_path: ./test-model.encoderfile
+  output_path: ./test-model-lua.encoderfile
+  lua_libs:
+    - table
+    - math
   transform: |
     --- Applies a softmax across token classification logits.
     --- Each token classification is normalized independently.

@@ -3,7 +3,7 @@ use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use tokenizers::{PaddingParams, TruncationParams};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub name: String,
     pub version: String,

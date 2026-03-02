@@ -1,13 +1,16 @@
 use std::path::PathBuf;
+use std::collections::HashMap;
 
-use encoderfile::builder::builder::EncoderfileBuilder;
+use encoderfile::builder::{builder::EncoderfileBuilder, cli::inspect::InspectInfo};
+use encoderfile::common::Config;
+use encoderfile::common::ModelConfig;
 use encoderfile::builder::cli::inspect::inspect_encoderfile;
+use encoderfile::transforms::DEFAULT_LIBS;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError},
     prelude::*,
     types::PyType,
 };
-use pythonize::pythonize;
 
 #[pyclass(name = "EncoderfileBuilder")]
 pub struct PyEncoderfileBuilder(EncoderfileBuilder);
@@ -48,9 +51,95 @@ impl PyEncoderfileBuilder {
     }
 }
 
+#[pyclass(name = "InspectInfo",frozen)]
+pub struct PyInspectInfo(InspectInfo);
+
+#[pymethods]
+impl PyInspectInfo {
+    #[getter]
+    fn get_model_config(&self) -> PyResult<PyModelConfig> {
+        Ok(PyModelConfig(self.0.model_config.clone()))
+    }
+    #[getter]
+    fn get_encoderfile_config(&self) -> PyResult<PyEncoderfileConfig> {
+        Ok(PyEncoderfileConfig(self.0.encoderfile_config.clone()))
+    }
+}
+
+#[pyclass(name = "ModelConfig",frozen)]
+pub struct PyModelConfig(ModelConfig);
+
+#[pymethods]
+impl PyModelConfig {
+    #[getter]
+    fn get_model_type(&self) -> String {
+        self.0.model_type.clone()
+    }
+    
+    #[getter]
+    fn get_num_labels(&self) -> Option<usize> {
+        self.0.num_labels()
+    }
+    
+    #[getter]
+    fn get_id2label(&self) -> Option<HashMap<u32, String>> {
+        self.0.id2label.clone()
+    }
+    
+    #[getter]
+    fn get_label2id(&self) -> Option<HashMap<String, u32>> {
+        self.0.label2id.clone()
+    }
+}
+
+#[pyclass(name = "EncoderfileConfig",frozen)]
+pub struct PyEncoderfileConfig(Config);
+
+#[pymethods]
+impl PyEncoderfileConfig {
+    #[getter]
+    fn get_name(&self) -> String {
+        self.0.name.clone()
+    }
+    
+    #[getter]
+    fn get_version(&self) -> String {
+        self.0.version.clone()
+    }
+    
+    #[getter]
+    fn get_model_type(&self) -> String {
+        format!("{:?}", self.0.model_type)
+    }
+    
+    #[getter]
+    fn get_transform(&self) -> Option<String> {
+        self.0.transform.clone()
+    }
+    
+    #[getter]
+    fn get_lua_libs(&self) -> Option<Vec<String>> {
+            let libs = self.0.lua_libs?;
+            let lib_names = [
+                ("coroutine", libs.coroutine),
+                ("table", libs.table),
+                ("io", libs.io),
+                ("os", libs.os),
+                ("string", libs.string),
+                ("utf8", libs.utf8),
+                ("math", libs.math),
+                ("package", libs.package),
+                ("debug", libs.debug),
+            ]
+            .into_iter()
+            .filter_map(|(k, v)| v.then(|| k.to_string()))
+            .collect();
+            Some(lib_names)
+    }
+}
+
 #[pyfunction]
-pub fn inspect<'py>(py: Python<'py>, path: &str) -> PyResult<Bound<'py, PyAny>> {
+pub fn inspect<'py>(py: Python<'py>, path: &str) -> PyResult<PyInspectInfo> {
     let result = inspect_encoderfile(&path.to_string()).map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
-    pythonize(py, &result)
-        .map_err(|e| PyRuntimeError::new_err(format!("Failed to convert to Python dict: {:?}", e)))
+    Ok(PyInspectInfo(result))
 }

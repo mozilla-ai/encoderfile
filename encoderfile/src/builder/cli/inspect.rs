@@ -14,7 +14,7 @@ use crate::{
 
 // inspect struct with info
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct InspectInfo {
     pub model_config: ModelConfig,
     pub encoderfile_config: Config,
