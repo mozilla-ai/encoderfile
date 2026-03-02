@@ -1,10 +1,10 @@
-use std::path::PathBuf;
 use std::collections::HashMap;
+use std::path::PathBuf;
 
+use encoderfile::builder::cli::inspect::inspect_encoderfile;
 use encoderfile::builder::{builder::EncoderfileBuilder, cli::inspect::InspectInfo};
 use encoderfile::common::Config;
 use encoderfile::common::ModelConfig;
-use encoderfile::builder::cli::inspect::inspect_encoderfile;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError},
     prelude::*,
@@ -50,7 +50,7 @@ impl PyEncoderfileBuilder {
     }
 }
 
-#[pyclass(name = "InspectInfo",frozen)]
+#[pyclass(name = "InspectInfo", frozen)]
 pub struct PyInspectInfo(InspectInfo);
 
 #[pymethods]
@@ -65,7 +65,7 @@ impl PyInspectInfo {
     }
 }
 
-#[pyclass(name = "ModelConfig",frozen)]
+#[pyclass(name = "ModelConfig", frozen)]
 pub struct PyModelConfig(ModelConfig);
 
 #[pymethods]
@@ -74,24 +74,24 @@ impl PyModelConfig {
     fn get_model_type(&self) -> String {
         self.0.model_type.clone()
     }
-    
+
     #[getter]
     fn get_num_labels(&self) -> Option<usize> {
         self.0.num_labels()
     }
-    
+
     #[getter]
     fn get_id2label(&self) -> Option<HashMap<u32, String>> {
         self.0.id2label.clone()
     }
-    
+
     #[getter]
     fn get_label2id(&self) -> Option<HashMap<String, u32>> {
         self.0.label2id.clone()
     }
 }
 
-#[pyclass(name = "EncoderfileConfig",frozen)]
+#[pyclass(name = "EncoderfileConfig", frozen)]
 pub struct PyEncoderfileConfig(Config);
 
 #[pymethods]
@@ -100,45 +100,31 @@ impl PyEncoderfileConfig {
     fn get_name(&self) -> String {
         self.0.name.clone()
     }
-    
+
     #[getter]
     fn get_version(&self) -> String {
         self.0.version.clone()
     }
-    
+
     #[getter]
     fn get_model_type(&self) -> String {
         format!("{:?}", self.0.model_type)
     }
-    
+
     #[getter]
     fn get_transform(&self) -> Option<String> {
         self.0.transform.clone()
     }
-    
+
     #[getter]
     fn get_lua_libs(&self) -> Option<Vec<String>> {
-            let libs = self.0.lua_libs?;
-            let lib_names = [
-                ("coroutine", libs.coroutine),
-                ("table", libs.table),
-                ("io", libs.io),
-                ("os", libs.os),
-                ("string", libs.string),
-                ("utf8", libs.utf8),
-                ("math", libs.math),
-                ("package", libs.package),
-                ("debug", libs.debug),
-            ]
-            .into_iter()
-            .filter(|&(_k, v)| v).map(|(k, _)| k.to_string())
-            .collect();
-            Some(lib_names)
+        Some(self.0.lua_libs?.into())
     }
 }
 
 #[pyfunction]
 pub fn inspect(_py: Python<'_>, path: &str) -> PyResult<PyInspectInfo> {
-    let result = inspect_encoderfile(&path.to_string()).map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
+    let result = inspect_encoderfile(&path.to_string())
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
     Ok(PyInspectInfo(result))
 }
