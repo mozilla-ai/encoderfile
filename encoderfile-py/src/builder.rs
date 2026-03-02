@@ -5,7 +5,6 @@ use encoderfile::builder::{builder::EncoderfileBuilder, cli::inspect::InspectInf
 use encoderfile::common::Config;
 use encoderfile::common::ModelConfig;
 use encoderfile::builder::cli::inspect::inspect_encoderfile;
-use encoderfile::transforms::DEFAULT_LIBS;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError},
     prelude::*,
@@ -132,14 +131,14 @@ impl PyEncoderfileConfig {
                 ("debug", libs.debug),
             ]
             .into_iter()
-            .filter_map(|(k, v)| v.then(|| k.to_string()))
+            .filter(|&(_k, v)| v).map(|(k, _)| k.to_string())
             .collect();
             Some(lib_names)
     }
 }
 
 #[pyfunction]
-pub fn inspect<'py>(py: Python<'py>, path: &str) -> PyResult<PyInspectInfo> {
+pub fn inspect(_py: Python<'_>, path: &str) -> PyResult<PyInspectInfo> {
     let result = inspect_encoderfile(&path.to_string()).map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
     Ok(PyInspectInfo(result))
 }
