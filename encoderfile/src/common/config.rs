@@ -3,7 +3,7 @@ use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use tokenizers::{PaddingParams, TruncationParams};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub name: String,
     pub version: String,
@@ -54,6 +54,26 @@ impl TryFrom<Vec<String>> for LuaLibs {
         }
 
         Ok(resolved)
+    }
+}
+
+impl From<LuaLibs> for Vec<String> {
+    fn from(value: LuaLibs) -> Vec<String> {
+        [
+            ("coroutine", value.coroutine),
+            ("table", value.table),
+            ("io", value.io),
+            ("os", value.os),
+            ("string", value.string),
+            ("utf8", value.utf8),
+            ("math", value.math),
+            ("package", value.package),
+            ("debug", value.debug),
+        ]
+        .into_iter()
+        .filter(|&(_k, v)| v)
+        .map(|(k, _)| k.to_string())
+        .collect()
     }
 }
 
