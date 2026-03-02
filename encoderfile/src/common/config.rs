@@ -57,6 +57,26 @@ impl TryFrom<Vec<String>> for LuaLibs {
     }
 }
 
+impl From<LuaLibs> for Vec<String> {
+    fn from(value: LuaLibs) -> Vec<String> {
+        [
+            ("coroutine", value.coroutine),
+            ("table", value.table),
+            ("io", value.io),
+            ("os", value.os),
+            ("string", value.string),
+            ("utf8", value.utf8),
+            ("math", value.math),
+            ("package", value.package),
+            ("debug", value.debug),
+        ]
+        .into_iter()
+        .filter(|&(_k, v)| v)
+        .map(|(k, _)| k.to_string())
+        .collect()
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenizerConfig {
     pub padding: PaddingParams,

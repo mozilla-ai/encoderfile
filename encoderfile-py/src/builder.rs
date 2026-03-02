@@ -124,7 +124,7 @@ impl PyEncoderfileConfig {
 
 #[pyfunction]
 pub fn inspect(_py: Python<'_>, path: &str) -> PyResult<PyInspectInfo> {
-    let result = inspect_encoderfile(&path.to_string())
+    let result = inspect_encoderfile(path)
         .map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
     Ok(PyInspectInfo(result))
 }
