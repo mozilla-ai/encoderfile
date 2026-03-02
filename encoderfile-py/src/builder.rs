@@ -1,11 +1,13 @@
 use std::path::PathBuf;
 
 use encoderfile::builder::builder::EncoderfileBuilder;
+use encoderfile::builder::cli::inspect::inspect_encoderfile;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError},
     prelude::*,
     types::PyType,
 };
+use pythonize::pythonize;
 
 #[pyclass(name = "EncoderfileBuilder")]
 pub struct PyEncoderfileBuilder(EncoderfileBuilder);
@@ -44,4 +46,11 @@ impl PyEncoderfileBuilder {
 
         Ok(())
     }
+}
+
+#[pyfunction]
+pub fn inspect<'py>(py: Python<'py>, path: &str) -> PyResult<Bound<'py, PyAny>> {
+    let result = inspect_encoderfile(&path.to_string()).map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
+    pythonize(py, &result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to convert to Python dict: {:?}", e)))
 }

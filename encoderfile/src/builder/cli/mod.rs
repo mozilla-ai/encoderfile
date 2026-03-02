@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use clap_derive::{Args, Parser, Subcommand};
 
 mod build;
-mod inspect;
+pub mod inspect;
 mod runtime;
 
 #[cfg(feature = "dev-utils")]
@@ -70,7 +70,7 @@ impl Commands {
             Self::Runtime(r) => r.execute(global),
             Self::NewTransform { model_type } => super::transforms::new_transform(model_type),
             Self::Inspect { path } => {
-                println!("{}", inspect::inspect_encoderfile(&path)?);
+                println!("{}", inspect::inspect_encoderfile_pretty(&path)?);
                 Ok(())
             }
         }

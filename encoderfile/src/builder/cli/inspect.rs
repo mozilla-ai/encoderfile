@@ -20,7 +20,7 @@ pub struct InspectInfo {
     pub encoderfile_config: Config,
 }
 
-pub fn inspect_encoderfile(path_str: &String) -> Result<String> {
+pub fn inspect_encoderfile(path_str: &String) -> Result<InspectInfo> {
     let file = File::open(Path::new(&path_str))?;
     let mut file = BufReader::new(file);
     let mut loader = load_assets(&mut file)?;
@@ -28,8 +28,12 @@ pub fn inspect_encoderfile(path_str: &String) -> Result<String> {
     let config = loader.encoderfile_config()?;
     let model_config = loader.model_config()?;
 
-    Ok(to_string_pretty(&InspectInfo {
+    Ok(InspectInfo {
         model_config,
         encoderfile_config: config,
-    })?)
+    })
+}
+
+pub fn inspect_encoderfile_pretty(path_str: &String) -> Result<String> {
+    Ok(to_string_pretty(&inspect_encoderfile(path_str)?)?)
 }
