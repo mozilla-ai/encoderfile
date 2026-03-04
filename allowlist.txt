@@ -1,0 +1,2 @@
+# ignore missing __all__ in encoderfile
+encoderfile.encoderfile.__all__

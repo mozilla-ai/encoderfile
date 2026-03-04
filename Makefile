@@ -13,6 +13,11 @@ setup:
 build-py:
 	maturin develop -m encoderfile-py/Cargo.toml
 
+.PHONY: stubtest
+stubtest:
+	@echo "Running stubtest..."
+	@uv run --dev stubtest --allowlist=allowlist.txt encoderfile.encoderfile
+
 .PHONY: format
 format:
 	@echo "Formatting python..."

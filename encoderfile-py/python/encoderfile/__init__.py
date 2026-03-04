@@ -1,4 +1,5 @@
-from .encoderfile import *  # noqa
+# type: ignore
+from .encoderfile import *  # noqa # type: ignore
 
 
 __doc__ = encoderfile.__doc__  # noqa # type: ignore
