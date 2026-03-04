@@ -10,4 +10,13 @@ mod encoderfile {
 
     #[pymodule_export]
     use super::builder::inspect;
+
+    #[pymodule_export]
+    use super::builder::PyEncoderfileConfig;
+
+    #[pymodule_export]
+    use super::builder::PyModelConfig;
+
+    #[pymodule_export]
+    use super::builder::PyInspectInfo;
 }
