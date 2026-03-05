@@ -177,6 +177,7 @@ dependencies = [
 dev = [
     { name = "mypy" },
     { name = "pre-commit" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 docs = [
@@ -207,6 +208,7 @@ requires-dist = [
 dev = [
     { name = "mypy", specifier = ">=1.19" },
     { name = "pre-commit", specifier = ">=4.3.0" },
+    { name = "pytest" },
     { name = "ruff", specifier = ">=0.14.2" },
 ]
 docs = [
