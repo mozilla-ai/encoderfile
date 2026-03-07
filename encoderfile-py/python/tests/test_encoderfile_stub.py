@@ -16,6 +16,33 @@ def test_encoderfilebuilder_from_configpath_returns_builder():
     assert isinstance(builder, EncoderfileBuilder)
 
 
+def test_encoderfilebuilder_from_config_fails():
+    config = {
+      "name": "my-model-2",
+      "path": "models/token_classification",
+      "model_type": "whatever",
+      "output_path": "./test-model.encoderfile",
+      "transform": """
+        --- Applies a softmax across token classification logits.
+        --- Each token classification is normalized independently.
+        --- 
+        --- Args:
+        ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
+        ---                 The softmax is applied along the third axis (n_labels).
+        ---
+        --- Returns:
+        ---   Tensor: The input tensor with softmax-normalized embeddings.
+        ---@param arr Tensor
+        ---@return Tensor
+        function Postprocess(arr)
+            return arr:softmax(3)
+        end
+        """
+    }
+    with pytest.raises(RuntimeError)as exc_info:
+        builder = EncoderfileBuilder.from_config(**config)
+    assert "Invalid model type" in str(exc_info.value)
+
 def test_encoderfilebuilder_from_config_returns_builder():
     config = {
       "name": "my-model-2",
