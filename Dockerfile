@@ -48,6 +48,12 @@ FROM debian:bookworm-slim AS final
 # Default working directory.
 WORKDIR /opt/encoderfile
 
+#  ca-certificates for downloading base binaries
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install binary into a standard PATH location.
 COPY --from=build /app/target/release/encoderfile /usr/local/bin/encoderfile
 
