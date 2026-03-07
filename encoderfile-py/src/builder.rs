@@ -2,32 +2,103 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use encoderfile::builder::cli::inspect::inspect_encoderfile;
-use encoderfile::builder::{builder::EncoderfileBuilder, cli::inspect::InspectInfo};
-use encoderfile::common::Config;
-use encoderfile::common::ModelConfig;
+use encoderfile::builder::config::{ModelPath, BuildConfig, Transform};
+use encoderfile::builder::{
+    builder::EncoderfileBuilder,
+    cli::inspect::InspectInfo,
+    config::{
+        EncoderfileConfig,
+        default_validate_transform,
+        DEFAULT_VERSION,
+    }
+};
+use encoderfile::common::{Config, ModelConfig, ModelType};
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError},
     prelude::*,
     types::PyType,
 };
 
-#[pyclass(name = "EncoderfileBuilder")]
+#[pyclass(name = "Transform", frozen)]
+pub struct PyTransform(Transform);
+
+#[pymethods]
+impl PyTransform {
+    #[staticmethod]
+    fn path(path: String) -> Self {
+        PyTransform(Transform::Path{path: path.into()})
+    }
+    #[staticmethod]
+    fn inline(inline: String) -> Self {
+        PyTransform(Transform::Inline(inline))
+    }
+    fn is_inline(&self) -> bool {
+        matches!(self.0, Transform::Inline(_))
+    }
+    fn is_path(&self) -> bool {
+        matches!(self.0, Transform::Path{..})
+    }
+    fn __str__(&self) -> String {
+        match &self.0 {
+            Transform::Path { path } => format!("Path({})", path.display()),
+            Transform::Inline(inline) => format!("Inline({})", inline),
+        }
+    }
+}
+
+#[pyclass(name = "EncoderfileBuilder", frozen)]
 pub struct PyEncoderfileBuilder(EncoderfileBuilder);
 
 #[pymethods]
 impl PyEncoderfileBuilder {
     #[allow(clippy::too_many_arguments)]
     #[classmethod]
-    fn from_config(_cls: &Bound<'_, PyType>, config: PathBuf) -> PyResult<PyEncoderfileBuilder> {
+    fn from_configpath(_cls: &Bound<'_, PyType>, config: PathBuf) -> PyResult<PyEncoderfileBuilder> {
         EncoderfileBuilder::from_file(&config)
             .map_err(|e| PyIOError::new_err(format!("Failed to load config file: {:?}", e)))
             .map(Self)
     }
 
+    #[allow(clippy::too_many_arguments)]
+    #[classmethod]
+    #[pyo3(signature = (*, name, version = Some("0.1.0"), model_type, path, output_path = None, cache_dir = None, base_binary_path = None, transform = None, lua_libs = None, validate_transform = true, target = None))]
+    fn from_config(
+        _cls: &Bound<'_, PyType>, 
+        name: String,
+        version: Option<&str>,
+        model_type: String,
+        path: String,
+        output_path: Option<String>,
+        cache_dir: Option<String>,
+        base_binary_path: Option<String>,
+        transform: Option<String>,
+        lua_libs: Option<Vec<String>>,
+        // not yet supported
+        // tokenizer: Option<String>,
+        validate_transform: bool,
+        target: Option<String>,
+    ) -> PyResult<Self> {
+        let encoderfile = EncoderfileConfig {
+            name,
+            version: version.unwrap_or(DEFAULT_VERSION).to_string(),
+            model_type: model_type.try_into().map_err(|_| PyRuntimeError::new_err("Invalid model type"))?,
+            path: ModelPath::Directory(path.into()),
+            output_path: output_path.map(PathBuf::from),
+            cache_dir: cache_dir.map(PathBuf::from),
+            base_binary_path: base_binary_path.map(PathBuf::from),
+            transform: transform.map(Transform::Inline),
+            lua_libs: lua_libs.map(|libs| libs.into_iter().collect()),
+            tokenizer: None,
+            validate_transform,
+            target,
+        };
+        Ok(PyEncoderfileBuilder(EncoderfileBuilder{config: BuildConfig{encoderfile}}))
+    }
+
     #[pyo3(signature = (working_dir = None, version = None, no_download = false))]
     fn build(
         &self,
-        working_dir: Option<&str>,
+        working_dir: Option<String>,
         version: Option<String>,
         no_download: bool,
     ) -> PyResult<()> {

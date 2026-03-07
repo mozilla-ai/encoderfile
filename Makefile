@@ -11,7 +11,7 @@ setup:
 
 .PHONY: build-py
 build-py:
-	maturin develop -m encoderfile-py/Cargo.toml
+	uv run maturin develop -m encoderfile-py/Cargo.toml
 
 .PHONY: stubtest
 stubtest:

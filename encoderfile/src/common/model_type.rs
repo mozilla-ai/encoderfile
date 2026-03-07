@@ -9,6 +9,19 @@ macro_rules! model_type {
             )*
         }
 
+        impl TryFrom<String> for ModelType {
+            type Error = ();
+
+            fn try_from(value: String) -> Result<Self, Self::Error> {
+                match value.as_str() {
+                    $(
+                    stringify!($x) => Ok(ModelType::$x),
+                    )*
+                    _ => Err(()),
+                }
+            }
+        }
+
         $(
             #[derive(Debug, Clone)]
             pub struct $x;

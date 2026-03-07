@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct EncoderfileBuilder {
-    config: BuildConfig,
+    pub config: BuildConfig,
 }
 
 impl EncoderfileBuilder {

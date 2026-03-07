@@ -1,12 +1,34 @@
 from typing import Optional, final
+from .enums import ModelType
+
 
 @final
 class EncoderfileBuilder:
     @classmethod
-    def from_config(
+    def from_configpath(
         cls,
         config: str,
     ) -> "EncoderfileBuilder": ...
+
+    @classmethod
+    def from_config(
+        cls,
+        *,
+        name: str,
+        version: Optional[str] = "0.1.0",
+        model_type: ModelType,
+        path: str,
+        output_path: Optional[str] = None,
+        cache_dir: Optional[str] = None,
+        base_binary_path: Optional[str] = None,
+        transform: Optional[str] = None,
+        lua_libs: Optional[list[str]] = None,
+        # not yet supported
+        # tokenizer: Optional[str],
+        validate_transform: bool = True,
+        target: Optional[str] = None,
+    ) -> "EncoderfileBuilder": ...
+
     def build(
         self,
         working_dir: Optional[str] = None,
