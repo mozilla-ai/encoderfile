@@ -276,11 +276,13 @@ impl ModelPath {
     asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
 }
 
-fn default_version() -> String {
-    "0.1.0".to_string()
+pub const DEFAULT_VERSION: &'static str = "0.1.0";
+
+pub fn default_version() -> String {
+    DEFAULT_VERSION.to_string()
 }
 
-fn default_validate_transform() -> bool {
+pub fn default_validate_transform() -> bool {
     true
 }
 
