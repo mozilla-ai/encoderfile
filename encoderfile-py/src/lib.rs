@@ -19,4 +19,7 @@ mod encoderfile {
 
     #[pymodule_export]
     use super::builder::PyInspectInfo;
+
+    #[pymodule_export]
+    use super::builder::PyTokenizerBuildConfig;
 }

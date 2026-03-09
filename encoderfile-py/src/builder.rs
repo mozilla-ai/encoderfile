@@ -2,21 +2,19 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use encoderfile::builder::cli::inspect::inspect_encoderfile;
-use encoderfile::builder::config::{ModelPath, BuildConfig, Transform};
+use encoderfile::builder::config::{BuildConfig, ModelPath, TokenizerBuildConfig, Transform};
 use encoderfile::builder::{
     builder::EncoderfileBuilder,
     cli::inspect::InspectInfo,
     config::{
-        EncoderfileConfig,
-        default_validate_transform,
-        DEFAULT_VERSION,
-    }
+        DEFAULT_VERSION, EncoderfileConfig, TokenizerPadStrategy, TokenizerTruncationSide,
+        TokenizerTruncationStrategy,
+    },
 };
-use encoderfile::common::{Config, ModelConfig, ModelType};
+use encoderfile::common::{Config, ModelConfig};
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError},
     prelude::*,
-    types::PyType,
 };
 
 #[pyclass(name = "Transform", frozen)]
@@ -26,7 +24,7 @@ pub struct PyTransform(Transform);
 impl PyTransform {
     #[staticmethod]
     fn path(path: String) -> Self {
-        PyTransform(Transform::Path{path: path.into()})
+        PyTransform(Transform::Path { path: path.into() })
     }
     #[staticmethod]
     fn inline(inline: String) -> Self {
@@ -36,7 +34,7 @@ impl PyTransform {
         matches!(self.0, Transform::Inline(_))
     }
     fn is_path(&self) -> bool {
-        matches!(self.0, Transform::Path{..})
+        matches!(self.0, Transform::Path { .. })
     }
     fn __str__(&self) -> String {
         match &self.0 {
@@ -46,24 +44,92 @@ impl PyTransform {
     }
 }
 
+#[pyclass(name = "TokenizerBuildConfig", frozen)]
+pub struct PyTokenizerBuildConfig(TokenizerBuildConfig);
+
+#[pymethods]
+impl PyTokenizerBuildConfig {
+    #[allow(clippy::too_many_arguments)]
+    #[staticmethod]
+    #[pyo3(signature = (*, pad_strategy = None, truncation_side = None, truncation_strategy = None, max_length = None, stride = None))]
+    pub fn new(
+        pad_strategy: Option<String>,
+        truncation_side: Option<String>,
+        truncation_strategy: Option<String>,
+        max_length: Option<usize>,
+        stride: Option<usize>,
+    ) -> PyResult<Self> {
+        let pad_strategy = pad_strategy
+            .map(|s| {
+                s.parse::<TokenizerPadStrategy>()
+                    .map_err(|e| PyRuntimeError::new_err(format!("Failed to parse: {:?}", e)))
+            })
+            .transpose()?;
+        let truncation_side = truncation_side
+            .map(|s| {
+                s.parse::<TokenizerTruncationSide>()
+                    .map_err(|e| PyRuntimeError::new_err(format!("Failed to parse: {:?}", e)))
+            })
+            .transpose()?;
+        let truncation_strategy = truncation_strategy
+            .map(|s| {
+                s.parse::<TokenizerTruncationStrategy>()
+                    .map_err(|e| PyRuntimeError::new_err(format!("Failed to parse: {:?}", e)))
+            })
+            .transpose()?;
+
+        Ok(PyTokenizerBuildConfig(TokenizerBuildConfig {
+            pad_strategy,
+            truncation_side,
+            truncation_strategy,
+            max_length,
+            stride,
+        }))
+    }
+
+    #[getter]
+    pub fn get_pad_strategy(&self) -> Option<String> {
+        self.0.pad_strategy.as_ref().map(|s| s.into())
+    }
+
+    #[getter]
+    pub fn get_truncation_side(&self) -> Option<String> {
+        self.0.truncation_side.as_ref().map(|s| s.into())
+    }
+
+    #[getter]
+    pub fn get_truncation_strategy(&self) -> Option<String> {
+        self.0.truncation_strategy.as_ref().map(|s| s.into())
+    }
+
+    #[getter]
+    pub fn get_max_length(&self) -> Option<usize> {
+        self.0.max_length
+    }
+
+    #[getter]
+    pub fn get_stride(&self) -> Option<usize> {
+        self.0.stride
+    }
+}
+
 #[pyclass(name = "EncoderfileBuilder", frozen)]
 pub struct PyEncoderfileBuilder(EncoderfileBuilder);
 
 #[pymethods]
 impl PyEncoderfileBuilder {
     #[allow(clippy::too_many_arguments)]
-    #[classmethod]
-    fn from_configpath(_cls: &Bound<'_, PyType>, config: PathBuf) -> PyResult<PyEncoderfileBuilder> {
+    #[staticmethod]
+    fn from_config(config: PathBuf) -> PyResult<PyEncoderfileBuilder> {
         EncoderfileBuilder::from_file(&config)
             .map_err(|e| PyIOError::new_err(format!("Failed to load config file: {:?}", e)))
             .map(Self)
     }
 
     #[allow(clippy::too_many_arguments)]
-    #[classmethod]
-    #[pyo3(signature = (*, name, version = Some("0.1.0"), model_type, path, output_path = None, cache_dir = None, base_binary_path = None, transform = None, lua_libs = None, validate_transform = true, target = None))]
-    fn from_config(
-        _cls: &Bound<'_, PyType>, 
+    #[staticmethod]
+    #[pyo3(signature = (*, name, version = Some("0.1.0"), model_type, path, output_path = None, cache_dir = None, base_binary_path = None, transform = None, lua_libs = None, tokenizer = None, validate_transform = true, target = None))]
+    fn from_dict(
         name: String,
         version: Option<&str>,
         model_type: String,
@@ -73,38 +139,41 @@ impl PyEncoderfileBuilder {
         base_binary_path: Option<String>,
         transform: Option<String>,
         lua_libs: Option<Vec<String>>,
-        // not yet supported
-        // tokenizer: Option<String>,
+        tokenizer: Option<Bound<'_, PyTokenizerBuildConfig>>,
         validate_transform: bool,
         target: Option<String>,
     ) -> PyResult<Self> {
         let encoderfile = EncoderfileConfig {
             name,
             version: version.unwrap_or(DEFAULT_VERSION).to_string(),
-            model_type: model_type.try_into().map_err(|_| PyRuntimeError::new_err("Invalid model type"))?,
+            model_type: model_type
+                .try_into()
+                .map_err(|_| PyRuntimeError::new_err("Invalid model type"))?,
             path: ModelPath::Directory(path.into()),
             output_path: output_path.map(PathBuf::from),
             cache_dir: cache_dir.map(PathBuf::from),
             base_binary_path: base_binary_path.map(PathBuf::from),
             transform: transform.map(Transform::Inline),
             lua_libs: lua_libs.map(|libs| libs.into_iter().collect()),
-            tokenizer: None,
+            tokenizer: tokenizer.map(|t| t.borrow().0.clone()),
             validate_transform,
             target,
         };
-        Ok(PyEncoderfileBuilder(EncoderfileBuilder{config: BuildConfig{encoderfile}}))
+        Ok(PyEncoderfileBuilder(EncoderfileBuilder {
+            config: BuildConfig { encoderfile },
+        }))
     }
 
-    #[pyo3(signature = (working_dir = None, version = None, no_download = false))]
+    #[pyo3(signature = (workdir = None, version = None, no_download = false))]
     fn build(
         &self,
-        working_dir: Option<String>,
+        workdir: Option<String>,
         version: Option<String>,
         no_download: bool,
     ) -> PyResult<()> {
         // change working dir if specified
-        if let Some(working_dir) = working_dir {
-            let path = PathBuf::from(working_dir);
+        if let Some(workdir) = workdir {
+            let path = PathBuf::from(workdir);
             std::env::set_current_dir(path.as_path()).map_err(|_| {
                 PyIOError::new_err(format!(
                     "Failed to change working directory to {:?}",

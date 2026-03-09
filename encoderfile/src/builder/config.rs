@@ -1,6 +1,7 @@
 use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, ModelType};
 use anyhow::{Context, Result, bail};
 use schemars::JsonSchema;
+use std::string::String;
 use std::{
     fs::File,
     io::{BufReader, Read},
@@ -13,6 +14,7 @@ use figment::{
     providers::{Format, Yaml},
 };
 use serde::{Deserialize, Serialize};
+use serde_json;
 use sha2::{Digest, Sha256};
 
 use super::base_binary::TargetSpec;
@@ -21,6 +23,8 @@ use super::base_binary::TargetSpec;
 pub struct BuildConfig {
     pub encoderfile: EncoderfileConfig,
 }
+
+pub const DEFAULT_VERSION: &str = "0.1.0";
 
 pub const CONFIG_FILE_NOT_FOUND_MSG: &str = "Encoderfile config not found";
 
@@ -124,7 +128,7 @@ impl EncoderfileConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct TokenizerBuildConfig {
     pub pad_strategy: Option<TokenizerPadStrategy>,
     pub truncation_side: Option<TokenizerTruncationSide>,
@@ -138,6 +142,22 @@ pub struct TokenizerBuildConfig {
 pub enum TokenizerTruncationSide {
     Left,
     Right,
+}
+
+impl FromStr for TokenizerTruncationSide {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        println!("Parsing truncation side from string: {}", s);
+        serde_json::from_str::<TokenizerTruncationSide>(&format!("\"{}\"", s))
+            .map_err(|_| format!("Invalid truncation side: {}", s))
+    }
+}
+
+impl From<&TokenizerTruncationSide> for std::string::String {
+    fn from(value: &TokenizerTruncationSide) -> std::string::String {
+        serde_json::to_string(value).unwrap().replace('\"', "")
+    }
 }
 
 impl From<TokenizerTruncationSide> for tokenizers::TruncationDirection {
@@ -157,6 +177,21 @@ pub enum TokenizerTruncationStrategy {
     OnlySecond,
 }
 
+impl FromStr for TokenizerTruncationStrategy {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        serde_json::from_str::<TokenizerTruncationStrategy>(&format!("\"{}\"", s))
+            .map_err(|_| format!("Invalid truncation strategy: {}", s))
+    }
+}
+
+impl From<&TokenizerTruncationStrategy> for std::string::String {
+    fn from(value: &TokenizerTruncationStrategy) -> std::string::String {
+        serde_json::to_string(value).unwrap().replace('\"', "")
+    }
+}
+
 impl From<TokenizerTruncationStrategy> for tokenizers::TruncationStrategy {
     fn from(value: TokenizerTruncationStrategy) -> Self {
         match value {
@@ -169,14 +204,37 @@ impl From<TokenizerTruncationStrategy> for tokenizers::TruncationStrategy {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged, rename_all = "snake_case")]
 pub enum TokenizerPadStrategy {
     BatchLongest,
     Fixed { fixed: usize },
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+impl FromStr for TokenizerPadStrategy {
+    type Err = std::string::String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        if s.eq_ignore_ascii_case("batch_longest") {
+            Ok(TokenizerPadStrategy::BatchLongest)
+        } else {
+            s.parse::<usize>()
+                .map(|fixed| TokenizerPadStrategy::Fixed { fixed })
+                .map_err(|_| format!("Invalid pad strategy: {}", s))
+        }
+    }
+}
+
+impl From<&TokenizerPadStrategy> for std::string::String {
+    fn from(value: &TokenizerPadStrategy) -> std::string::String {
+        match value {
+            TokenizerPadStrategy::BatchLongest => "batch_longest".to_string(),
+            TokenizerPadStrategy::Fixed { fixed } => fixed.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum Transform {
     Path { path: PathBuf },
@@ -275,8 +333,6 @@ impl ModelPath {
     asset_path!(model_weights_path, "model.onnx", "model weights");
     asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
 }
-
-pub const DEFAULT_VERSION: &'static str = "0.1.0";
 
 pub fn default_version() -> String {
     DEFAULT_VERSION.to_string()

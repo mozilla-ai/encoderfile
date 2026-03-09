@@ -2,7 +2,7 @@ encoderfile:
   name: my-model-2-lua
   path: models/token_classification
   model_type: token_classification
-  output_path: ./test-model.encoderfile
+  output_path: /tmp/test-model-lua.encoderfile
   lua_libs:
     - table
     - math

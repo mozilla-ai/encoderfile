@@ -1,18 +1,14 @@
 from typing import Optional, final
 from .enums import ModelType
 
-
 @final
 class EncoderfileBuilder:
-    @classmethod
-    def from_configpath(
-        cls,
+    @staticmethod
+    def from_config(
         config: str,
     ) -> "EncoderfileBuilder": ...
-
-    @classmethod
-    def from_config(
-        cls,
+    @staticmethod
+    def from_dict(
         *,
         name: str,
         version: Optional[str] = "0.1.0",
@@ -23,18 +19,34 @@ class EncoderfileBuilder:
         base_binary_path: Optional[str] = None,
         transform: Optional[str] = None,
         lua_libs: Optional[list[str]] = None,
-        # not yet supported
-        # tokenizer: Optional[str],
+        tokenizer: Optional[TokenizerBuildConfig] = None,
         validate_transform: bool = True,
         target: Optional[str] = None,
     ) -> "EncoderfileBuilder": ...
-
     def build(
         self,
-        working_dir: Optional[str] = None,
+        workdir: Optional[str] = None,
         version: Optional[str] = None,
         no_download: bool = False,
     ): ...
+
+@final
+class TokenizerBuildConfig:
+    @staticmethod
+    def new(
+        *,
+        pad_strategy: Optional[str] = None,
+        truncation_side: Optional[str] = None,
+        truncation_strategy: Optional[str] = None,
+        max_length: Optional[int] = None,
+        stride: Optional[int] = None,
+    ) -> TokenizerBuildConfig: ...
+
+    pad_strategy: Optional[str]
+    truncation_side: Optional[str]
+    truncation_strategy: Optional[str]
+    max_length: Optional[int]
+    stride: Optional[int]
 
 @final
 class ModelConfig:
