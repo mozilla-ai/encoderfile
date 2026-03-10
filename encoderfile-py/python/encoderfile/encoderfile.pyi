@@ -32,6 +32,12 @@ class EncoderfileBuilder:
 
 @final
 class TokenizerBuildConfig:
+    pad_strategy: Optional[str]
+    truncation_side: Optional[str]
+    truncation_strategy: Optional[str]
+    max_length: Optional[int]
+    stride: Optional[int]
+
     @staticmethod
     def new(
         *,
@@ -41,12 +47,6 @@ class TokenizerBuildConfig:
         max_length: Optional[int] = None,
         stride: Optional[int] = None,
     ) -> TokenizerBuildConfig: ...
-
-    pad_strategy: Optional[str]
-    truncation_side: Optional[str]
-    truncation_strategy: Optional[str]
-    max_length: Optional[int]
-    stride: Optional[int]
 
 @final
 class ModelConfig:

@@ -147,7 +147,7 @@ impl PyEncoderfileBuilder {
             name,
             version: version.unwrap_or(DEFAULT_VERSION).to_string(),
             model_type: model_type
-                .try_into()
+                .parse()
                 .map_err(|_| PyRuntimeError::new_err("Invalid model type"))?,
             path: ModelPath::Directory(path.into()),
             output_path: output_path.map(PathBuf::from),
@@ -248,7 +248,7 @@ impl PyEncoderfileConfig {
 
     #[getter]
     fn get_model_type(&self) -> String {
-        format!("{:?}", self.0.model_type)
+        self.0.model_type.to_string()
     }
 
     #[getter]

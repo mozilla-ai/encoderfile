@@ -148,8 +148,7 @@ impl FromStr for TokenizerTruncationSide {
     type Err = String;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        println!("Parsing truncation side from string: {}", s);
-        serde_json::from_str::<TokenizerTruncationSide>(&format!("\"{}\"", s))
+        serde_json::from_value::<TokenizerTruncationSide>(serde_json::Value::String(s.to_string()))
             .map_err(|_| format!("Invalid truncation side: {}", s))
     }
 }
@@ -181,8 +180,10 @@ impl FromStr for TokenizerTruncationStrategy {
     type Err = String;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        serde_json::from_str::<TokenizerTruncationStrategy>(&format!("\"{}\"", s))
-            .map_err(|_| format!("Invalid truncation strategy: {}", s))
+        serde_json::from_value::<TokenizerTruncationStrategy>(serde_json::Value::String(
+            s.to_string(),
+        ))
+        .map_err(|_| format!("Invalid truncation strategy: {}", s))
     }
 }
 

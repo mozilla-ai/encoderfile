@@ -9,16 +9,22 @@ macro_rules! model_type {
             )*
         }
 
-        impl TryFrom<String> for ModelType {
-            type Error = ();
+        impl std::str::FromStr for ModelType {
+            type Err = String;
 
-            fn try_from(value: String) -> Result<Self, Self::Error> {
-                match value.as_str() {
-                    $(
-                    stringify!($x) => Ok(ModelType::$x),
-                    )*
-                    _ => Err(()),
-                }
+            fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+                serde_json::from_value::<ModelType>(serde_json::Value::String(s.to_string()))
+                    .map_err(|_| format!("Invalid model type: {}", s))
+            }
+        }
+
+        impl std::fmt::Display for ModelType {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                serde_json::to_value(self)
+                    .map_err(|_| std::fmt::Error)?
+                    .as_str()
+                    .ok_or(std::fmt::Error)?
+                    .fmt(f)
             }
         }
 

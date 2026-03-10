@@ -2,10 +2,10 @@ from enum import StrEnum
 
 
 class ModelType(StrEnum):
-    Embedding = "Embedding"
-    SequenceClassification = "SequenceClassification"
-    TokenClassification = "TokenClassification"
-    SentenceEmbedding = "SentenceEmbedding"
+    Embedding = "embedding"
+    SequenceClassification = "sequence_classification"
+    TokenClassification = "token_classification"
+    SentenceEmbedding = "sentence_embedding"
 
 
 class TokenizerTruncationSide(StrEnum):
