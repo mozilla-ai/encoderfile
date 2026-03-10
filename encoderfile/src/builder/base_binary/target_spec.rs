@@ -147,6 +147,16 @@ pub enum OperatingSystem {
     Windows,
 }
 
+impl std::fmt::Display for OperatingSystem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Linux => write!(f, "linux"),
+            Self::MacOS => write!(f, "darwin"),
+            Self::Windows => write!(f, "windows"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Abi {
     Gnu,

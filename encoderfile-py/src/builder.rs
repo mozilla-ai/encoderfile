@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use encoderfile::builder::base_binary::TargetSpec;
 use encoderfile::builder::cli::inspect::inspect_encoderfile;
 use encoderfile::builder::config::{BuildConfig, ModelPath, TokenizerBuildConfig, Transform};
 use encoderfile::builder::{
@@ -13,7 +14,7 @@ use encoderfile::builder::{
 };
 use encoderfile::common::{Config, ModelConfig};
 use pyo3::{
-    exceptions::{PyIOError, PyRuntimeError},
+    exceptions::{PyIOError, PyRuntimeError, PyValueError},
     prelude::*,
 };
 
@@ -259,6 +260,39 @@ impl PyEncoderfileConfig {
     #[getter]
     fn get_lua_libs(&self) -> Option<Vec<String>> {
         Some(self.0.lua_libs?.into())
+    }
+}
+
+#[pyclass(name = "TargetSpec", frozen)]
+pub struct PyTargetSpec(TargetSpec);
+
+#[pymethods]
+impl PyTargetSpec {
+    #[staticmethod]
+    #[pyo3(signature = (spec))]
+    fn parse(spec: &str) -> PyResult<Self> {
+        spec.parse()
+            .map(PyTargetSpec)
+            .map_err(|e| PyValueError::new_err(format!("Failed to parse target spec: {:?}", e)))
+    }
+
+    #[getter]
+    fn get_arch(&self) -> String {
+        self.0.arch.to_string()
+    }
+
+    #[getter]
+    fn get_os(&self) -> String {
+        self.0.os.to_string()
+    }
+
+    #[getter]
+    fn get_abi(&self) -> String {
+        self.0.abi.to_string()
+    }
+
+    fn __str__(&self) -> String {
+        self.0.to_string()
     }
 }
 

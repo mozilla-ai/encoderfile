@@ -7,6 +7,7 @@ from encoderfile import (
     inspect,
     ModelType,
     TokenizerBuildConfig,
+    TargetSpec,
 )
 from pathlib import Path
 from conftest import asset_path, load_yaml_asset, load_json
@@ -378,3 +379,46 @@ def test_tokenizer_config_partial_optional_fields():
     assert tokenizer_config.truncation_strategy is None
     assert tokenizer_config.max_length == config["max_length"]
     assert tokenizer_config.stride is None
+
+
+def test_parse_target_spec_valid_1():
+    spec_str = "x86_64-unknown-linux-musl"
+    target_spec = TargetSpec.parse(spec_str)
+    assert target_spec.arch == "x86_64"
+    assert target_spec.os == "linux"
+    assert target_spec.abi == "musl"
+
+
+def test_parse_target_spec_valid_2():
+    spec_str = "aarch64-apple-darwin"
+    target_spec = TargetSpec.parse(spec_str)
+    assert target_spec.arch == "aarch64"
+    assert target_spec.os == "darwin"
+    assert target_spec.abi == "gnu"
+
+
+def test_parse_target_spec_valid_3():
+    spec_str = "x86_64-pc-windows-msvc"
+    target_spec = TargetSpec.parse(spec_str)
+    assert target_spec.arch == "x86_64"
+    assert target_spec.os == "windows"
+    assert target_spec.abi == "msvc"
+
+
+def test_parse_target_spec_invalid_format():
+    spec_str = "nonsense!"
+    with pytest.raises(ValueError) as exc_info:
+        TargetSpec.parse(spec_str)
+    assert (
+        "Failed to parse target spec: invalid or unsupported target triple `nonsense!`"
+        in str(exc_info.value)
+    )
+
+
+def test_parse_target_spec_unsupported_arch():
+    spec_str = "riscv64-unknown-linux-musl"
+    with pytest.raises(ValueError) as exc_info:
+        TargetSpec.parse(spec_str)
+    assert "Failed to parse target spec: unsupported architecture `riscv64`" in str(
+        exc_info.value
+    )

@@ -2,6 +2,15 @@ from typing import Optional, final
 from .enums import ModelType
 
 @final
+class TargetSpec:
+    arch: str
+    os: str
+    abi: str
+
+    @staticmethod
+    def parse(spec: str) -> "TargetSpec": ...
+
+@final
 class EncoderfileBuilder:
     @staticmethod
     def from_config(
@@ -46,7 +55,7 @@ class TokenizerBuildConfig:
         truncation_strategy: Optional[str] = None,
         max_length: Optional[int] = None,
         stride: Optional[int] = None,
-    ) -> TokenizerBuildConfig: ...
+    ) -> "TokenizerBuildConfig": ...
 
 @final
 class ModelConfig:
