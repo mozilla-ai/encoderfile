@@ -25,3 +25,4 @@ Homepage = "https://mozilla-ai.github.io/encoderfile"
 
 [tool.maturin]
 python-source = "python"
+module-name = "encoderfile._encoderfile_rust" 
