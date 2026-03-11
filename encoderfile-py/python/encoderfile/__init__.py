@@ -1,7 +1,7 @@
 # type: ignore
-from .encoderfile import *  # noqa # type: ignore
-from .enums import *  # noqa # type: ignore
+from ._core import *  # noqa: F403
+from .enums import *  # noqa: F403
 
-__doc__ = encoderfile.__doc__  # noqa # type: ignore
-if hasattr(encoderfile, "__all__"):  # noqa # type: ignore
-    __all__ = encoderfile.__all__  # noqa # type:ignore
+__doc__ = _core.__doc__  # noqa: F405
+if hasattr(_core, "__all__"):  # noqa: F405
+    __all__ = _core.__all__  # noqa: F405
