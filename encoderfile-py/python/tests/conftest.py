@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 
 import yaml
+import json
 
 
 def asset_path(filename: str) -> str:
@@ -22,3 +24,13 @@ def load_yaml_asset(filename):
             return yaml.safe_load(f)
     else:
         raise ValueError("Only yaml files are supported for this fixture.")
+
+
+def load_json(path: Path):
+    """
+    Loads a json asset file from the assets directory.
+    """
+    if path.suffix != ".json":
+        raise ValueError("Only json files are supported for this fixture.")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)

@@ -6,6 +6,9 @@ mod builder;
 #[pymodule]
 mod encoderfile {
     #[pymodule_export]
+    use super::builder::PyTargetSpec;
+
+    #[pymodule_export]
     use super::builder::PyEncoderfileBuilder;
 
     #[pymodule_export]
@@ -19,4 +22,7 @@ mod encoderfile {
 
     #[pymodule_export]
     use super::builder::PyInspectInfo;
+
+    #[pymodule_export]
+    use super::builder::PyTokenizerBuildConfig;
 }

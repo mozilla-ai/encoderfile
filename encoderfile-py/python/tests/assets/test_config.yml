@@ -2,7 +2,7 @@ encoderfile:
   name: my-model-2
   path: models/token_classification
   model_type: token_classification
-  output_path: ./test-model.encoderfile
+  output_path: /tmp/test-model.encoderfile
   transform: |
     --- Applies a softmax across token classification logits.
     --- Each token classification is normalized independently.
