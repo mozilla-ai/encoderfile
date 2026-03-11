@@ -1,0 +1,764 @@
+STATE: Alabama
+LAW: It is illegal to wear a fake mustache in church if it causes laughter.
+CATEGORY: Religion
+CONTEXT: This law was enacted in the early 1900s to maintain decorum during religious services and prevent intentional disruptions.
+
+STATE: Alabama
+LAW: It is illegal to drive while blindfolded.
+CATEGORY: Driving
+CONTEXT: While this seems like common sense, Alabama felt the need to put it explicitly on the books.
+
+STATE: Alabama
+LAW: Putting an ice cream cone in your back pocket is illegal.
+CATEGORY: Food
+CONTEXT: This old law was originally designed to prevent people from luring horses away, since horses would follow someone with a sweet treat in their pocket.
+
+STATE: Alaska
+LAW: It is illegal to push a live moose out of a moving airplane.
+CATEGORY: Animals
+CONTEXT: This law addresses both animal welfare and public safety concerns for people on the ground.
+
+STATE: Alaska
+LAW: You may not give a moose an alcoholic beverage in Fairbanks.
+CATEGORY: Animals
+CONTEXT: Apparently someone tried this, prompting the city to make it explicitly illegal.
+
+STATE: Alaska
+LAW: Waking a sleeping bear for the purpose of taking a photograph is prohibited.
+CATEGORY: Animals
+CONTEXT: This wildlife safety regulation exists to protect both tourists and bears.
+
+STATE: Arizona
+LAW: Donkeys are not allowed to sleep in bathtubs.
+CATEGORY: Animals
+CONTEXT: This law dates back to the 1920s when a rancher's donkey fell asleep in a bathtub that was later swept away by a flood, requiring a costly rescue operation.
+
+STATE: Arizona
+LAW: It is illegal to hunt camels in the state.
+CATEGORY: Hunting
+CONTEXT: This dates back to the mid-1800s when the US Army imported camels as pack animals for the Southwest. After they were released into the wild, this law was enacted to protect them.
+
+STATE: Arizona
+LAW: You may not have more than two dildos in the same house.
+CATEGORY: Miscellaneous
+CONTEXT: An old morality statute that remains technically on the books.
+
+STATE: Arkansas
+LAW: The state legislature has legally defined the correct pronunciation of the state's name.
+CATEGORY: Government
+CONTEXT: State law says Arkansas must be pronounced in three syllables with the final "s" silent, the "a" with the Italian sound, and the accent on the first and last syllables. Pronouncing it "ar-KAN-zas" is officially discouraged.
+
+STATE: Arkansas
+LAW: No pinball machine may give away more than 25 free games to a single player in one sitting.
+CATEGORY: Entertainment
+CONTEXT: This statute was put in place to discourage gambling by limiting the addictive nature of gaming machines.
+
+STATE: California
+LAW: A frog that dies during a frog-jumping contest cannot be eaten and must be destroyed as soon as possible.
+CATEGORY: Animals
+CONTEXT: This law likely stems from the famous Calaveras County frog-jumping jubilee, immortalized by Mark Twain.
+
+STATE: California
+LAW: It is illegal to ride a bicycle in a swimming pool.
+CATEGORY: Recreation
+CONTEXT: A safety regulation that someone apparently needed to be told.
+
+STATE: California
+LAW: Residents have a legal right to sunshine for drying laundry.
+CATEGORY: Property
+CONTEXT: This law dates back to the late 1800s when many homes lacked dryers and sunlight was a necessity for everyday life.
+
+STATE: Colorado
+LAW: You need a permit to modify the weather.
+CATEGORY: Environment
+CONTEXT: Given Colorado's ski industry and cloud seeding operations, this regulation exists to control weather modification activities.
+
+STATE: Colorado
+LAW: In Boulder, it is illegal to place indoor furniture on your front porch.
+CATEGORY: Property
+CONTEXT: This law was enacted to improve neighborhood aesthetics and prevent the stereotypical college-town look of sofas on porches.
+
+STATE: Connecticut
+LAW: Pickles must be able to bounce to be officially sold as pickles.
+CATEGORY: Food
+CONTEXT: Since 1948, the state has required that pickles pass a bounce test to verify they meet quality standards for sale.
+
+STATE: Connecticut
+LAW: It is illegal to sell a car on Sunday.
+CATEGORY: Commerce
+CONTEXT: One of many "blue laws" restricting commercial activity on Sundays that still remain on the books.
+
+STATE: Connecticut
+LAW: In Hartford, you cannot collect rags, paper, glass, or junk without a license.
+CATEGORY: Commerce
+CONTEXT: The city wants to regulate who can collect waste materials within city limits.
+
+STATE: Delaware
+LAW: In Rehoboth Beach, it is illegal to whisper in church.
+CATEGORY: Religion
+CONTEXT: This 1974 law was enacted to prevent disturbances in church congregations. The prohibition extends to whispering within 300 feet of any church.
+
+STATE: Delaware
+LAW: In Lewes, wearing pants that sag below the waistline is illegal.
+CATEGORY: Clothing
+CONTEXT: This ordinance targets "sagging pants" and is intended to promote modesty and maintain public decency.
+
+STATE: Florida
+LAW: Unmarried women were once prohibited from parachuting on Sundays.
+CATEGORY: Recreation
+CONTEXT: This archaic statute remains an amusing reminder of how some laws reflect the social norms of a different era. It is no longer enforced.
+
+STATE: Florida
+LAW: If an elephant is left tied to a parking meter, the owner must pay the parking fee.
+CATEGORY: Animals
+CONTEXT: This law treats elephants, camels, and horses like any other parked vehicle when it comes to meter fees.
+
+STATE: Florida
+LAW: It is illegal to sell alcohol during a hurricane.
+CATEGORY: Alcohol
+CONTEXT: The state enacted this law to prevent people from throwing hurricane parties, citing public safety concerns.
+
+STATE: Georgia
+LAW: In Gainesville, the "Poultry Capital of the World," it is illegal to eat fried chicken with a fork.
+CATEGORY: Food
+CONTEXT: This 1961 ordinance was introduced as a publicity stunt. In 2009, a tourist was ceremoniously "arrested" for violating it.
+
+STATE: Georgia
+LAW: It is illegal to tie a giraffe to a telephone pole or street lamp.
+CATEGORY: Animals
+CONTEXT: One of many quirky animal-related laws found in southern states.
+
+STATE: Georgia
+LAW: Individuals who engage in llama-related activities are personally responsible for any injuries they sustain.
+CATEGORY: Animals
+CONTEXT: This law protects agricultural owners from lawsuits related to llama encounters.
+
+STATE: Hawaii
+LAW: Billboards are outlawed across the entire state.
+CATEGORY: Property
+CONTEXT: The Urban Beautification Initiative dates back to 1927. Only public notices and signs at the point of sale are exceptions.
+
+STATE: Hawaii
+LAW: It is illegal to place a coin in your ear.
+CATEGORY: Miscellaneous
+CONTEXT: The origin of this law is unclear, but it remains on the books.
+
+STATE: Idaho
+LAW: Cannibalism is expressly illegal.
+CATEGORY: Crime
+CONTEXT: Idaho is one of the few states that explicitly outlaws cannibalism. In most states, cannibalism itself is not directly addressed by a specific statute.
+
+STATE: Idaho
+LAW: You may not fish from a camel's back.
+CATEGORY: Animals
+CONTEXT: An unusual regulation combining two activities that apparently needed to be separated.
+
+STATE: Illinois
+LAW: It is illegal to give a lighted cigar to a dog, cat, or any other pet.
+CATEGORY: Animals
+CONTEXT: An animal welfare law that addresses a very specific scenario.
+
+STATE: Illinois
+LAW: In Chicago, it is illegal to eat in a place that is on fire.
+CATEGORY: Safety
+CONTEXT: While this seems like common sense, the city felt compelled to put it in writing.
+
+STATE: Indiana
+LAW: It is illegal to ride a horse above 10 miles per hour.
+CATEGORY: Animals
+CONTEXT: An old speed limit for horses that predates automobile speed limits.
+
+STATE: Indiana
+LAW: Pi is legally 4 in Indiana — almost. In 1897, the state nearly passed a bill declaring the mathematical value of pi to be 4.
+CATEGORY: Government
+CONTEXT: House Bill 246 passed the state House but was stopped in the Senate after a mathematics professor intervened.
+
+STATE: Iowa
+LAW: One-armed piano players must perform for free.
+CATEGORY: Entertainment
+CONTEXT: An old law that apparently regulated entertainment pricing based on the number of functioning limbs.
+
+STATE: Iowa
+LAW: It is illegal to kiss for more than five minutes.
+CATEGORY: Romance
+CONTEXT: An old morality law that limits the duration of public displays of affection.
+
+STATE: Kansas
+LAW: It is illegal to serve wine in teacups.
+CATEGORY: Alcohol
+CONTEXT: This anti-alcohol regulation was meant to prevent people from disguising wine consumption during prohibition.
+
+STATE: Kansas
+LAW: There is an age limit for people who use playgrounds.
+CATEGORY: Recreation
+CONTEXT: Adults without children may be restricted from playground equipment in some Kansas municipalities.
+
+STATE: Kentucky
+LAW: Every resident is required by law to take a bath at least once a year.
+CATEGORY: Hygiene
+CONTEXT: This historical hygiene regulation sets a very low bar for personal cleanliness.
+
+STATE: Kentucky
+LAW: It is illegal to sell dyed ducklings, chicks, or rabbits unless you are selling six or more at once.
+CATEGORY: Animals
+CONTEXT: This law was enacted to address animal welfare concerns and prevent misleading sales practices.
+
+STATE: Kentucky
+LAW: It is illegal to remarry the same person four times.
+CATEGORY: Marriage
+CONTEXT: The state draws the line at the fourth marriage to the same person.
+
+STATE: Louisiana
+LAW: It is illegal to order a pizza to be delivered to someone else's house without their permission.
+CATEGORY: Food
+CONTEXT: This law was enacted to prevent harassment through unwanted food deliveries.
+
+STATE: Louisiana
+LAW: Biting someone with your natural teeth is simple assault, but biting someone with false teeth is aggravated assault.
+CATEGORY: Crime
+CONTEXT: The distinction in charges depends on whether the teeth used in the biting are natural or artificial.
+
+STATE: Maine
+LAW: It is illegal to keep Christmas decorations up after January 14th.
+CATEGORY: Holidays
+CONTEXT: This legislation is attributed to maintaining order and preventing excessive visual clutter in public areas.
+
+STATE: Maine
+LAW: You may not step out of a plane while it is in flight.
+CATEGORY: Aviation
+CONTEXT: A safety regulation that addresses a very specific — and dangerous — activity.
+
+STATE: Maryland
+LAW: It is illegal to take a lion to the movies.
+CATEGORY: Animals
+CONTEXT: One of many laws addressing the presence of exotic animals in public entertainment venues.
+
+STATE: Maryland
+LAW: It is a violation to misuse oysters — specifically, using them as a building material is prohibited.
+CATEGORY: Food
+CONTEXT: Maryland takes its oyster industry seriously and regulates how the shellfish may be used.
+
+STATE: Massachusetts
+LAW: It is illegal to put tomatoes in clam chowder.
+CATEGORY: Food
+CONTEXT: Massachusetts takes its New England clam chowder seriously. Adding tomatoes would make it Manhattan-style, which is apparently a legal offense in the Bay State.
+
+STATE: Massachusetts
+LAW: You cannot tell fortunes without certification.
+CATEGORY: Miscellaneous
+CONTEXT: Fortune tellers must be properly licensed to practice their craft.
+
+STATE: Michigan
+LAW: It is illegal to tie a crocodile or alligator to a fire hydrant.
+CATEGORY: Animals
+CONTEXT: Another quirky animal-tethering regulation from a state with very few wild crocodilians.
+
+STATE: Michigan
+LAW: A woman is not legally allowed to cut her own hair without her husband's permission.
+CATEGORY: Marriage
+CONTEXT: An archaic law reflecting outdated gender norms that is no longer enforced.
+
+STATE: Minnesota
+LAW: It is illegal to stand around any building without a good reason.
+CATEGORY: Loitering
+CONTEXT: An anti-loitering statute that gives broad discretion to law enforcement.
+
+STATE: Minnesota
+LAW: All bathtubs must have feet.
+CATEGORY: Property
+CONTEXT: An old plumbing regulation that inadvertently outlaws modern built-in bathtubs.
+
+STATE: Mississippi
+LAW: Teaching others what polygamy is can be punished by up to five years in prison.
+CATEGORY: Education
+CONTEXT: The state takes a very strict approach to even discussing certain marriage arrangements.
+
+STATE: Missouri
+LAW: Bear wrestling is illegal.
+CATEGORY: Animals
+CONTEXT: A law specifically prohibiting the practice of wrestling with bears for entertainment purposes.
+
+STATE: Missouri
+LAW: It is illegal to drive with an uncaged bear in your vehicle.
+CATEGORY: Animals
+CONTEXT: Missouri apparently needed to specify that bears should be properly restrained during transport.
+
+STATE: Montana
+LAW: It is illegal to give a rat as a present.
+CATEGORY: Animals
+CONTEXT: Gift-giving has its limits in Montana, at least when it comes to rodents.
+
+STATE: Montana
+LAW: It is illegal to have a sheep in the cab of your truck without a chaperone.
+CATEGORY: Animals
+CONTEXT: Livestock transportation in Montana comes with specific social requirements.
+
+STATE: Nebraska
+LAW: Parents can be arrested if their children burp during church services.
+CATEGORY: Religion
+CONTEXT: Another law designed to maintain the sanctity of religious gatherings.
+
+STATE: Nebraska
+LAW: It is illegal to get married if you have a venereal disease.
+CATEGORY: Marriage
+CONTEXT: A public health measure that restricts marriage based on health status.
+
+STATE: Nevada
+LAW: It is illegal to drive a camel on the highway.
+CATEGORY: Driving
+CONTEXT: Like Arizona, Nevada has camel-related legislation dating back to the days of camel importation.
+
+STATE: New Hampshire
+LAW: It is illegal to pick up seaweed off the beach.
+CATEGORY: Environment
+CONTEXT: Seaweed collection from beaches is regulated to protect the coastal ecosystem.
+
+STATE: New Hampshire
+LAW: You cannot sell the clothes you are wearing to pay off a gambling debt.
+CATEGORY: Gambling
+CONTEXT: This law prevents people from literally losing the shirt off their back.
+
+STATE: New Jersey
+LAW: It is illegal for men to knit during the fishing season.
+CATEGORY: Recreation
+CONTEXT: This law likely stems from a desire to ensure undivided attention to fishing, minimizing distractions.
+
+STATE: New Jersey
+LAW: It is illegal to wear a bulletproof vest while committing a murder.
+CATEGORY: Crime
+CONTEXT: Wearing body armor during the commission of a violent crime carries additional penalties.
+
+STATE: New Mexico
+LAW: The state anthem must be performed in its entirety — partial renditions are illegal.
+CATEGORY: Government
+CONTEXT: Abridged versions of both the national anthem and the state anthem are prohibited at official events.
+
+STATE: New York
+LAW: It is illegal to jump off a building.
+CATEGORY: Safety
+CONTEXT: This law carries penalties regardless of the building height.
+
+STATE: New York
+LAW: Adultery is still technically a crime.
+CATEGORY: Marriage
+CONTEXT: New York maintains adultery as a misdemeanor offense, though it is rarely prosecuted.
+
+STATE: North Carolina
+LAW: It is illegal to play bingo while intoxicated.
+CATEGORY: Alcohol
+CONTEXT: The state takes the integrity of bingo nights seriously.
+
+STATE: North Carolina
+LAW: Bingo games cannot last more than five hours.
+CATEGORY: Entertainment
+CONTEXT: Even sober bingo has its time limits in the Tar Heel State.
+
+STATE: North Carolina
+LAW: It is illegal to sing off-key.
+CATEGORY: Entertainment
+CONTEXT: A noise ordinance that technically makes bad singing a citable offense.
+
+STATE: North Dakota
+LAW: It is illegal to lie down and fall asleep with your shoes on.
+CATEGORY: Miscellaneous
+CONTEXT: The reasoning behind this law is lost to history.
+
+STATE: North Dakota
+LAW: You cannot shoot fireworks after 11 PM.
+CATEGORY: Entertainment
+CONTEXT: A noise and safety regulation that limits late-night pyrotechnics.
+
+STATE: Ohio
+LAW: It is illegal to make faces at a dog.
+CATEGORY: Animals
+CONTEXT: Ohio protects its canine residents from human mockery.
+
+STATE: Ohio
+LAW: It is illegal to get a fish drunk.
+CATEGORY: Animals
+CONTEXT: Another animal welfare law addressing a very specific scenario involving alcohol and aquatic life.
+
+STATE: Oklahoma
+LAW: You can be arrested for making ugly faces at a dog.
+CATEGORY: Animals
+CONTEXT: Like Ohio, Oklahoma also has laws protecting dogs from human facial expressions.
+
+STATE: Oklahoma
+LAW: The state still officially declares that "there exists an internal communist conspiracy" that "constitutes a clear and present danger."
+CATEGORY: Government
+CONTEXT: This Cold War-era language remains in the Oklahoma state statutes.
+
+STATE: Oregon
+LAW: It is illegal to pump your own gas.
+CATEGORY: Driving
+CONTEXT: Oregon is one of the last states where self-service gas stations are restricted, though the law has been partially relaxed in rural areas.
+
+STATE: Oregon
+LAW: Hunting in a cemetery is prohibited.
+CATEGORY: Hunting
+CONTEXT: Regarded as highly disrespectful, this law keeps firearms out of burial grounds.
+
+STATE: Oregon
+LAW: Leaving your car door open for too long is a traffic violation.
+CATEGORY: Driving
+CONTEXT: This law was enacted to protect cyclists from being hit by carelessly opened car doors.
+
+STATE: Pennsylvania
+LAW: It is illegal to sleep on top of a refrigerator outdoors.
+CATEGORY: Miscellaneous
+CONTEXT: The circumstances that prompted this specific law are unclear.
+
+STATE: Pennsylvania
+LAW: You may not sing in the bathtub.
+CATEGORY: Entertainment
+CONTEXT: An old noise ordinance that technically criminalizes shower concerts.
+
+STATE: Rhode Island
+LAW: Professional sports — other than ice hockey and polo — are prohibited on Sundays.
+CATEGORY: Sports
+CONTEXT: A blue law with very specific exceptions for two sports.
+
+STATE: Rhode Island
+LAW: It is illegal to sell toothpaste and a toothbrush to the same customer on a Sunday.
+CATEGORY: Commerce
+CONTEXT: Another Sunday restriction that separates dental hygiene products.
+
+STATE: South Carolina
+LAW: Dance halls may not be located within a certain distance of cemeteries.
+CATEGORY: Entertainment
+CONTEXT: The state wants to keep the living and the dead at a respectful distance.
+
+STATE: South Carolina
+LAW: It is illegal to keep a horse in a bathtub.
+CATEGORY: Animals
+CONTEXT: Another bathtub-related animal regulation, joining Arizona's donkey ban.
+
+STATE: South Dakota
+LAW: It is illegal to fall asleep in a cheese factory.
+CATEGORY: Food
+CONTEXT: A workplace safety regulation specific to the dairy industry.
+
+STATE: South Dakota
+LAW: No horses are allowed into Fountain Inn unless they are wearing pants.
+CATEGORY: Animals
+CONTEXT: A dress code that extends to equine visitors in this particular establishment.
+
+STATE: Tennessee
+LAW: It is illegal to share your Netflix password.
+CATEGORY: Technology
+CONTEXT: A 2011 law originally targeting entertainment subscription fraud that technically applies to password sharing.
+
+STATE: Tennessee
+LAW: You are not allowed to hold any public office if you have participated in a duel.
+CATEGORY: Government
+CONTEXT: This anti-dueling provision remains in the state constitution.
+
+STATE: Texas
+LAW: It is illegal to shoot a buffalo from the second story of a hotel.
+CATEGORY: Hunting
+CONTEXT: A law likely dating back to the frontier era when buffalo hunting was common.
+
+STATE: Texas
+LAW: You can be legally married by publicly introducing a person as your spouse three times.
+CATEGORY: Marriage
+CONTEXT: Texas recognizes common-law marriage, and public representation is one way to establish it.
+
+STATE: Texas
+LAW: The entire Encyclopedia Britannica is banned because it contains a formula for making beer at home.
+CATEGORY: Alcohol
+CONTEXT: This old prohibition-era law technically bans the famous reference work.
+
+STATE: Utah
+LAW: Birds have the right of way on all highways.
+CATEGORY: Animals
+CONTEXT: Wildlife protection extends to avian road users in Utah.
+
+STATE: Utah
+LAW: It is illegal to cause a catastrophe.
+CATEGORY: Crime
+CONTEXT: While this seems obvious, Utah felt the need to specifically outlaw causing large-scale disasters.
+
+STATE: Vermont
+LAW: It is illegal for women to wear false teeth without written permission from their husbands.
+CATEGORY: Marriage
+CONTEXT: An archaic law reflecting outdated gender dynamics.
+
+STATE: Vermont
+LAW: At one point, it was illegal to deny the existence of God.
+CATEGORY: Religion
+CONTEXT: An old blasphemy statute that has been rendered unenforceable by the First Amendment.
+
+STATE: Virginia
+LAW: It is illegal to tickle women.
+CATEGORY: Miscellaneous
+CONTEXT: An unusual personal boundary law.
+
+STATE: Virginia
+LAW: In Norfolk, a woman cannot go out without wearing a corset.
+CATEGORY: Clothing
+CONTEXT: An antiquated dress code regulation from a much earlier era.
+
+STATE: Washington
+LAW: It is illegal to harass Bigfoot, Sasquatch, or other undiscovered subspecies.
+CATEGORY: Animals
+CONTEXT: Skamania County passed an ordinance in 1969 making it a felony to kill Bigfoot, later reduced to a misdemeanor with a fine.
+
+STATE: Washington
+LAW: All lollipops are banned.
+CATEGORY: Food
+CONTEXT: An old candy regulation that technically prohibits the popular sweet treat.
+
+STATE: West Virginia
+LAW: Whistling underwater is prohibited.
+CATEGORY: Miscellaneous
+CONTEXT: While physically impossible, West Virginia felt the need to outlaw it anyway.
+
+STATE: West Virginia
+LAW: You cannot use ferrets for hunting.
+CATEGORY: Hunting
+CONTEXT: Unlike in many European countries where ferreting is legal, West Virginia has banned the practice.
+
+STATE: Wisconsin
+LAW: It is illegal to serve apple pie in public restaurants without cheese.
+CATEGORY: Food
+CONTEXT: Wisconsin is America's Dairyland, and they take their cheese pairings seriously.
+
+STATE: Wisconsin
+LAW: It is illegal to throw rocks at trains.
+CATEGORY: Safety
+CONTEXT: A safety regulation that protects railway operations and passengers.
+
+STATE: Wyoming
+LAW: It is illegal to take a photograph of a rabbit from January to April without a permit.
+CATEGORY: Animals
+CONTEXT: This wildlife regulation is designed to protect rabbits during breeding season from disturbance.
+
+STATE: Wyoming
+LAW: Using a firearm to fish is strictly prohibited.
+CATEGORY: Hunting
+CONTEXT: Wyoming draws a clear line between fishing and shooting.
+
+STATE: Alabama
+LAW: You cannot play dominoes on a Sunday.
+CATEGORY: Religion
+CONTEXT: One of many blue laws that prohibited games, hunting, shooting, card playing, and racing on Sundays.
+
+STATE: Alaska
+LAW: It is legal to shoot bears, but it is illegal to wake a bear to take a photograph of it.
+CATEGORY: Animals
+CONTEXT: The state distinguishes between regulated hunting and disturbing wildlife for frivolous purposes.
+
+STATE: California
+LAW: No vehicle without a driver may exceed 60 miles per hour.
+CATEGORY: Driving
+CONTEXT: This old law was written before autonomous vehicles were a concept, making it accidentally prescient.
+
+STATE: Colorado
+LAW: It is illegal to collect rainwater without a permit.
+CATEGORY: Environment
+CONTEXT: Water rights in Colorado are complex, and rainwater collection was restricted to protect downstream water rights holders.
+
+STATE: Florida
+LAW: If you tie an elephant to a parking meter, you must feed the meter as if it were a car.
+CATEGORY: Animals
+CONTEXT: All parked animals are treated equally under Florida parking law.
+
+STATE: Georgia
+LAW: It is illegal to use profanity in front of a dead body that is lying in a funeral home or coroner's office.
+CATEGORY: Crime
+CONTEXT: A law designed to maintain respect for the deceased.
+
+STATE: Illinois
+LAW: You must contact the police before entering the city in an automobile.
+CATEGORY: Driving
+CONTEXT: An old law from the early days of automobiles when cars were rare and considered dangerous.
+
+STATE: Indiana
+LAW: Mustaches are illegal if the wearer tends to habitually kiss other people.
+CATEGORY: Miscellaneous
+CONTEXT: A hygiene regulation that links facial hair to kissing behavior.
+
+STATE: Kentucky
+LAW: It is illegal to dye a duckling blue and sell it unless more than six are for sale.
+CATEGORY: Animals
+CONTEXT: Animal welfare regulations prohibit selling individually dyed animals.
+
+STATE: Louisiana
+LAW: It is illegal to gargle in public.
+CATEGORY: Hygiene
+CONTEXT: A public decency law that keeps gargling behind closed doors.
+
+STATE: Massachusetts
+LAW: Snoring is prohibited unless all bedroom windows are closed and securely locked.
+CATEGORY: Noise
+CONTEXT: A noise ordinance that addresses nocturnal disturbances.
+
+STATE: Michigan
+LAW: A man legally owns his wife's hair.
+CATEGORY: Marriage
+CONTEXT: An archaic property law from a time when married women had few legal rights of their own.
+
+STATE: Mississippi
+LAW: It is illegal to explain polygamy to anyone.
+CATEGORY: Education
+CONTEXT: Teaching about polygamy can be punished by up to five years in prison.
+
+STATE: Nevada
+LAW: It is illegal to kiss with a mustache.
+CATEGORY: Romance
+CONTEXT: An old hygiene law that regulates facial hair in romantic situations.
+
+STATE: New Jersey
+LAW: It is against the law to wear a bulletproof vest while committing a murder.
+CATEGORY: Crime
+CONTEXT: Wearing body armor during any violent crime carries enhanced penalties under New Jersey law.
+
+STATE: New York
+LAW: The penalty for jumping off a building is death.
+CATEGORY: Safety
+CONTEXT: This darkly ironic law makes the act itself the punishment.
+
+STATE: Ohio
+LAW: It is illegal to disrobe in front of a portrait of a man.
+CATEGORY: Miscellaneous
+CONTEXT: An old modesty law that extends privacy protections to painted figures.
+
+STATE: Oklahoma
+LAW: Dogs must have a signed permit from the mayor in order to congregate in groups of three or more on private property.
+CATEGORY: Animals
+CONTEXT: Canine gatherings apparently require official authorization.
+
+STATE: Oregon
+LAW: You cannot throw excrement from a moving vehicle.
+CATEGORY: Driving
+CONTEXT: This is classified as a Class A misdemeanor, and yes, it specifies both containers of urine and fecal matter.
+
+STATE: South Carolina
+LAW: It is illegal to store horses in bathtubs.
+CATEGORY: Animals
+CONTEXT: Like Arizona with donkeys, South Carolina has taken a stand against bathtub-based equine housing.
+
+STATE: Tennessee
+LAW: You cannot hold any public office in the state if you have ever participated in a duel.
+CATEGORY: Government
+CONTEXT: The Tennessee constitution explicitly bars anyone who has been involved in a duel from holding office.
+
+STATE: Texas
+LAW: It is illegal to milk another person's cow.
+CATEGORY: Animals
+CONTEXT: Cattle rustling laws in Texas extend to unauthorized dairy extraction.
+
+STATE: Vermont
+LAW: Women must obtain written permission from their husbands to wear false teeth.
+CATEGORY: Marriage
+CONTEXT: Another archaic law reflecting historical restrictions on women's autonomy.
+
+STATE: Virginia
+LAW: Children are not allowed to go trick-or-treating on Halloween if they are over 12 years old in some cities.
+CATEGORY: Holidays
+CONTEXT: Several Virginia cities have ordinances restricting trick-or-treating to children aged 12 and under, with penalties for older trick-or-treaters.
+
+STATE: Washington
+LAW: In Seattle, it is illegal to carry a concealed weapon that is over six feet in length.
+CATEGORY: Weapons
+CONTEXT: This unusually specific weapon length regulation raises more questions than it answers.
+
+STATE: Wisconsin
+LAW: State law requires that all cheese and butter produced in the state must be "highly pleasing."
+CATEGORY: Food
+CONTEXT: Wisconsin's dairy regulations include subjective quality standards for their most important exports.
+
+STATE: Arizona
+LAW: If you are attacked by a criminal, you may only defend yourself with the same weapon that the attacker possesses.
+CATEGORY: Crime
+CONTEXT: Self-defense in Arizona comes with equipment restrictions.
+
+STATE: Connecticut
+LAW: Town records may not be kept in any location where liquor is sold.
+CATEGORY: Government
+CONTEXT: An early regulation ensuring the separation of public records and alcohol establishments.
+
+STATE: Delaware
+LAW: It is illegal to sell, barter, or offer perfume without a license.
+CATEGORY: Commerce
+CONTEXT: Fragrance sales are regulated commerce in the First State.
+
+STATE: Florida
+LAW: Doors of all public buildings must open outward.
+CATEGORY: Safety
+CONTEXT: A fire safety regulation enacted to prevent crowd crush during emergencies.
+
+STATE: Hawaii
+LAW: All residents may be fined for not owning a boat.
+CATEGORY: Property
+CONTEXT: Given Hawaii's island geography, boat ownership was once considered essential.
+
+STATE: Idaho
+LAW: You may not fish from a camel's back.
+CATEGORY: Animals
+CONTEXT: An activity that combines two things that have nothing to do with each other.
+
+STATE: Illinois
+LAW: It is illegal to give a lighted cigar to a dog, cat, or any domesticated animal.
+CATEGORY: Animals
+CONTEXT: An animal protection law that addresses secondhand smoke concerns for pets.
+
+STATE: Minnesota
+LAW: It is illegal to tease skunks.
+CATEGORY: Animals
+CONTEXT: A wildlife regulation that protects both the skunk and the would-be teaser from unpleasant consequences.
+
+STATE: Missouri
+LAW: It is not illegal to speed if you are driving while intoxicated. However, both separately are illegal.
+CATEGORY: Driving
+CONTEXT: A quirk of Missouri law means that speeding and DUI are separate offenses, but the combination is not its own charge.
+
+STATE: Montana
+LAW: It is illegal to have a sheep in the cab of your truck without a chaperone.
+CATEGORY: Animals
+CONTEXT: Transporting sheep in Montana requires supervision.
+
+STATE: North Dakota
+LAW: Beer and pretzels cannot be served at the same time in any bar or restaurant.
+CATEGORY: Food
+CONTEXT: This unusual regulation separates two classic bar snack companions.
+
+STATE: Pennsylvania
+LAW: No more than 16 women may live in a house together because that constitutes a brothel.
+CATEGORY: Housing
+CONTEXT: However, up to 120 men can live together without any legal restriction.
+
+STATE: Rhode Island
+LAW: Any marriage where either party is an idiot or a lunatic is null and void.
+CATEGORY: Marriage
+CONTEXT: Rhode Island's old marriage statutes use very outdated terminology for mental capacity requirements.
+
+STATE: South Dakota
+LAW: It is illegal to fall asleep in a cheese factory.
+CATEGORY: Food
+CONTEXT: Workplace safety regulations in the dairy industry prohibit napping on the job.
+
+STATE: Tennessee
+LAW: It is illegal to share your Netflix password.
+CATEGORY: Technology
+CONTEXT: A 2011 anti-fraud law was broadly written enough to technically cover sharing streaming service credentials.
+
+STATE: Utah
+LAW: It is illegal to cause a catastrophe.
+CATEGORY: Crime
+CONTEXT: Utah specifically criminalizes causing mass destruction — a law that seems obvious but is spelled out in detail.
+
+STATE: Virginia
+LAW: In Richmond, it is illegal to flip a coin in any restaurant to determine who pays for a cup of coffee.
+CATEGORY: Gambling
+CONTEXT: Anti-gambling regulations extend even to the smallest wagers.
+
+STATE: West Virginia
+LAW: Roadkill may be taken home for dinner.
+CATEGORY: Food
+CONTEXT: West Virginia legally allows residents to salvage and consume animals killed by vehicles.
+
+STATE: Wyoming
+LAW: You may not take a photograph of a rabbit without a permit between January and April.
+CATEGORY: Animals
+CONTEXT: Wildlife photography restrictions during breeding season protect vulnerable animal populations.
