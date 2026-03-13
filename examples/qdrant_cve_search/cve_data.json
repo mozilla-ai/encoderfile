@@ -1,0 +1,212 @@
+[
+    {
+      "id": "CVE-2024-3094",
+      "severity": "CRITICAL",
+      "description": "Malicious code was discovered in the upstream tarballs of xz-utils beginning with version 5.6.0. The backdoor manipulates the build process to inject code into the resulting liblzma library, which is used by sshd. This results in unauthorized remote access to affected systems via SSH.",
+      "affected": "xz-utils 5.6.0, 5.6.1",
+      "category": "supply-chain"
+    },
+    {
+      "id": "CVE-2024-21762",
+      "severity": "CRITICAL",
+      "description": "A out-of-bounds write vulnerability in Fortinet FortiOS allows a remote unauthenticated attacker to execute arbitrary code or command via specially crafted HTTP requests. This affects the SSL VPN component and can be exploited without authentication.",
+      "affected": "FortiOS 7.4.0 through 7.4.2, 7.2.0 through 7.2.6",
+      "category": "remote-code-execution"
+    },
+    {
+      "id": "CVE-2023-44487",
+      "severity": "HIGH",
+      "description": "The HTTP/2 protocol allows a denial of service via rapid reset. An attacker can send a large number of HTTP/2 requests and immediately cancel them, creating asymmetric resource consumption on the server. This was exploited in the wild as a zero-day to launch the largest DDoS attacks ever recorded.",
+      "affected": "Multiple HTTP/2 implementations including nginx, Apache, and cloud providers",
+      "category": "denial-of-service"
+    },
+    {
+      "id": "CVE-2023-4966",
+      "severity": "CRITICAL",
+      "description": "Citrix NetScaler ADC and NetScaler Gateway contain a buffer overflow vulnerability that allows sensitive information disclosure when configured as a Gateway or AAA virtual server. Attackers can steal session tokens and hijack authenticated sessions without credentials.",
+      "affected": "NetScaler ADC and Gateway 14.1 before 14.1-8.50, 13.1 before 13.1-49.15",
+      "category": "information-disclosure"
+    },
+    {
+      "id": "CVE-2024-1709",
+      "severity": "CRITICAL",
+      "description": "ConnectWise ScreenConnect contains an authentication bypass vulnerability that allows an attacker to create administrative accounts, upload malicious extensions, and gain remote code execution on the ScreenConnect server. This was widely exploited in the wild.",
+      "affected": "ScreenConnect versions prior to 23.9.8",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2023-36884",
+      "severity": "HIGH",
+      "description": "Microsoft Office and Windows contain a remote code execution vulnerability related to HTML processing. An attacker can craft a Microsoft Office document that, when opened, allows remote code execution in the context of the user. This was exploited by a Russian threat actor group targeting NATO summit attendees.",
+      "affected": "Microsoft Office 2013-2021, Windows 10, Windows 11, Windows Server 2022",
+      "category": "remote-code-execution"
+    },
+    {
+      "id": "CVE-2023-34362",
+      "severity": "CRITICAL",
+      "description": "MOVEit Transfer contains a SQL injection vulnerability that could allow an unauthenticated attacker to gain access to the MOVEit Transfer database. An attacker could submit crafted payloads to escalate privileges and gain unauthorized access to the file transfer environment.",
+      "affected": "MOVEit Transfer versions before 2021.0.6, 2021.1.4, 2022.0.4, 2022.1.5, 2023.0.1",
+      "category": "sql-injection"
+    },
+    {
+      "id": "CVE-2024-27198",
+      "severity": "CRITICAL",
+      "description": "JetBrains TeamCity contains an authentication bypass vulnerability that allows an unauthenticated attacker with HTTP access to perform administrative actions. This includes creating admin accounts, modifying build configurations, and executing arbitrary code on the build server.",
+      "affected": "TeamCity before 2023.11.4",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2023-42793",
+      "severity": "CRITICAL",
+      "description": "JetBrains TeamCity contains an authentication bypass vulnerability allowing unauthenticated attackers to achieve remote code execution on the TeamCity server via a crafted request to the REST API. This affects on-premises instances and was exploited by nation-state threat actors.",
+      "affected": "TeamCity on-premises before 2023.05.4",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2023-46805",
+      "severity": "HIGH",
+      "description": "Ivanti Connect Secure and Ivanti Policy Secure contain an authentication bypass vulnerability in the web component. When chained with CVE-2024-21887, this allows an attacker to craft malicious requests to execute arbitrary commands on the appliance. Widely exploited by Chinese threat actors.",
+      "affected": "Ivanti Connect Secure 9.x, 22.x, Ivanti Policy Secure 9.x, 22.x",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2024-23897",
+      "severity": "CRITICAL",
+      "description": "Jenkins has a vulnerability in its built-in CLI that allows unauthenticated attackers to read arbitrary files from the Jenkins controller file system. The args4j library used by Jenkins expands file paths in CLI arguments, enabling attackers to read SSH keys, credentials, and build secrets.",
+      "affected": "Jenkins weekly up to 2.441, LTS up to 2.426.2",
+      "category": "information-disclosure"
+    },
+    {
+      "id": "CVE-2024-0204",
+      "severity": "CRITICAL",
+      "description": "Fortra GoAnywhere MFT contains an authentication bypass vulnerability that allows an unauthorized user to create an admin user via the administration portal. This can lead to complete takeover of the managed file transfer server and access to all transferred files.",
+      "affected": "GoAnywhere MFT before 7.4.1",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2023-20198",
+      "severity": "CRITICAL",
+      "description": "Cisco IOS XE contains a privilege escalation vulnerability in the web UI feature. An unauthenticated remote attacker can create an account on the device with privilege level 15 access, granting full control of the compromised system. Tens of thousands of devices were exploited in the wild.",
+      "affected": "Cisco IOS XE with web UI enabled",
+      "category": "privilege-escalation"
+    },
+    {
+      "id": "CVE-2024-6387",
+      "severity": "HIGH",
+      "description": "A signal handler race condition was found in OpenSSH server sshd. If a client does not authenticate within LoginGraceTime seconds, the sshd SIGALRM handler is called asynchronously and calls various functions that are not async-signal-safe. A remote unauthenticated attacker may exploit this to achieve code execution as root.",
+      "affected": "OpenSSH 8.5p1 through 9.7p1",
+      "category": "remote-code-execution"
+    },
+    {
+      "id": "CVE-2023-38545",
+      "severity": "HIGH",
+      "description": "A heap-based buffer overflow vulnerability exists in curl's SOCKS5 proxy handshake. When curl is asked to use a SOCKS5 proxy and the hostname is too long, curl switches to local name resolution and copies the excessively long hostname to a heap buffer, causing a buffer overflow that could lead to code execution.",
+      "affected": "curl 7.69.0 through 8.3.0, libcurl 7.69.0 through 8.3.0",
+      "category": "buffer-overflow"
+    },
+    {
+      "id": "CVE-2024-4577",
+      "severity": "CRITICAL",
+      "description": "PHP CGI contains an argument injection vulnerability on Windows. Due to the way PHP handles character encoding conversions, an unauthenticated attacker can bypass previous protections for CVE-2012-1823 and inject arbitrary arguments to PHP binary, leading to remote code execution on Windows servers running PHP in CGI mode.",
+      "affected": "PHP 8.3 before 8.3.8, 8.2 before 8.2.20, 8.1 before 8.1.29 on Windows",
+      "category": "remote-code-execution"
+    },
+    {
+      "id": "CVE-2024-3400",
+      "severity": "CRITICAL",
+      "description": "A command injection vulnerability in the GlobalProtect feature of Palo Alto Networks PAN-OS allows an unauthenticated attacker to execute arbitrary code with root privileges on the firewall. This was exploited as a zero-day in targeted attacks against organizations.",
+      "affected": "PAN-OS 10.2, 11.0, 11.1 with GlobalProtect gateway configured",
+      "category": "command-injection"
+    },
+    {
+      "id": "CVE-2023-22515",
+      "severity": "CRITICAL",
+      "description": "Atlassian Confluence Data Center and Server contain a broken access control vulnerability that allows an external attacker to create unauthorized administrator accounts and access Confluence instances. This was exploited as a zero-day by a nation-state threat actor.",
+      "affected": "Confluence Data Center and Server 8.0.0 through 8.5.1",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2024-21887",
+      "severity": "CRITICAL",
+      "description": "A command injection vulnerability in the web components of Ivanti Connect Secure and Ivanti Policy Secure allows an authenticated administrator to send specially crafted requests to execute arbitrary commands on the appliance. When chained with CVE-2023-46805, no authentication is required.",
+      "affected": "Ivanti Connect Secure 9.x, 22.x, Ivanti Policy Secure 9.x, 22.x",
+      "category": "command-injection"
+    },
+    {
+      "id": "CVE-2023-23397",
+      "severity": "CRITICAL",
+      "description": "Microsoft Outlook contains a privilege escalation vulnerability where a specially crafted email can leak the victim's Net-NTLMv2 hash to an attacker-controlled server. The vulnerability is triggered automatically when the email is retrieved and processed by the Outlook client, requiring no user interaction.",
+      "affected": "Microsoft Outlook for Windows, all versions",
+      "category": "privilege-escalation"
+    },
+    {
+      "id": "CVE-2024-2389",
+      "severity": "CRITICAL",
+      "description": "Progress Flowmon contains a command injection vulnerability that allows an unauthenticated attacker to gain access to the Flowmon web interface via a specially crafted API request. Successful exploitation gives full system access to the network monitoring platform.",
+      "affected": "Flowmon before 12.3.5, 11.1.14",
+      "category": "command-injection"
+    },
+    {
+      "id": "CVE-2023-48788",
+      "severity": "CRITICAL",
+      "description": "Fortinet FortiClient EMS contains a SQL injection vulnerability that allows an unauthenticated attacker to execute unauthorized code or commands via specially crafted requests to the database. This affects the endpoint management server and can lead to complete compromise of managed endpoints.",
+      "affected": "FortiClient EMS 7.2.0 through 7.2.2, 7.0.1 through 7.0.10",
+      "category": "sql-injection"
+    },
+    {
+      "id": "CVE-2024-20353",
+      "severity": "HIGH",
+      "description": "A vulnerability in the management and VPN web servers for Cisco Adaptive Security Appliance and Firepower Threat Defense allows an unauthenticated remote attacker to cause a denial of service. The attacker can force the device to reload unexpectedly, disrupting VPN and firewall services.",
+      "affected": "Cisco ASA Software, Cisco FTD Software",
+      "category": "denial-of-service"
+    },
+    {
+      "id": "CVE-2023-29357",
+      "severity": "CRITICAL",
+      "description": "Microsoft SharePoint Server contains a privilege escalation vulnerability that allows an attacker to gain administrator privileges. An attacker who has obtained spoofed JWT authentication tokens can use them to execute a network attack which bypasses authentication and gives them access to administrator privileges.",
+      "affected": "Microsoft SharePoint Server 2019",
+      "category": "privilege-escalation"
+    },
+    {
+      "id": "CVE-2024-28986",
+      "severity": "CRITICAL",
+      "description": "SolarWinds Web Help Desk contains a Java deserialization vulnerability that allows a remote attacker to execute commands on the host machine. The vulnerability exists in the way the application handles serialized Java objects and can be exploited without authentication.",
+      "affected": "SolarWinds Web Help Desk 12.8.3 HF1 and prior",
+      "category": "remote-code-execution"
+    },
+    {
+      "id": "CVE-2023-29059",
+      "severity": "HIGH",
+      "description": "3CX Desktop App versions shipped with a compromised DLL that was part of a supply chain attack. The trojanized application was signed with a valid 3CX certificate and distributed through the official update mechanism, allowing attackers to deploy information-stealing malware to thousands of organizations.",
+      "affected": "3CX Desktop App 18.12.407 and 18.12.416 for Windows, 18.11.1213 for macOS",
+      "category": "supply-chain"
+    },
+    {
+      "id": "CVE-2023-27997",
+      "severity": "CRITICAL",
+      "description": "A heap-based buffer overflow vulnerability exists in the SSL VPN component of Fortinet FortiOS. A remote attacker can execute arbitrary code or commands via specifically crafted requests. This pre-authentication vulnerability affects the SSL VPN portal and was exploited by threat actors targeting government organizations.",
+      "affected": "FortiOS 7.2.0 through 7.2.4, 7.0.0 through 7.0.11, 6.4.0 through 6.4.12",
+      "category": "buffer-overflow"
+    },
+    {
+      "id": "CVE-2024-5806",
+      "severity": "CRITICAL",
+      "description": "Progress MOVEit Transfer contains an authentication bypass vulnerability in the SFTP module. An attacker can bypass authentication by manipulating SSH public key paths, allowing unauthorized access to the file transfer system and all stored files without valid credentials.",
+      "affected": "MOVEit Transfer 2023.0 before 2023.0.11, 2023.1 before 2023.1.6, 2024.0 before 2024.0.2",
+      "category": "authentication-bypass"
+    },
+    {
+      "id": "CVE-2023-20269",
+      "severity": "MEDIUM",
+      "description": "Cisco Adaptive Security Appliance and Firepower Threat Defense contain a vulnerability in the remote access VPN feature that allows an unauthenticated remote attacker to conduct brute force credential attacks against existing VPN profiles. Successful exploitation reveals valid VPN credentials.",
+      "affected": "Cisco ASA Software, Cisco FTD Software with remote access VPN enabled",
+      "category": "brute-force"
+    },
+    {
+      "id": "CVE-2024-21893",
+      "severity": "HIGH",
+      "description": "A server-side request forgery vulnerability in the SAML component of Ivanti Connect Secure, Ivanti Policy Secure, and Ivanti Neurons for ZTA allows an attacker to access certain restricted resources without authentication. This was chained with other vulnerabilities for full system compromise.",
+      "affected": "Ivanti Connect Secure 9.x, 22.x, Ivanti Policy Secure 9.x, 22.x",
+      "category": "ssrf"
+    }
+  ]
