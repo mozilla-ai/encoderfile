@@ -15,6 +15,7 @@ from typing import Protocol
 
 class Embedder(Protocol):
     """Common interface for embedding providers."""
+
     def embed(self, text: str) -> list[float]: ...
     def embed_batch(self, texts: list[str]) -> list[list[float]]: ...
     @property
@@ -84,6 +85,7 @@ class FastEmbedEmbedder:
 
     def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
         from fastembed import TextEmbedding
+
         self.model = TextEmbedding(model_name=model_name)
         self._dimension = None
 

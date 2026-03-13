@@ -72,8 +72,14 @@ def build_index(client: QdrantClient, embedder) -> None:
     print(f"Indexed {len(points)} CVEs into Qdrant.\n")
 
 
-def search(client: QdrantClient, embedder, query: str, top_k: int = 5,
-           severity: str | None = None, category: str | None = None) -> list[dict]:
+def search(
+    client: QdrantClient,
+    embedder,
+    query: str,
+    top_k: int = 5,
+    severity: str | None = None,
+    category: str | None = None,
+) -> list[dict]:
     """
     Semantic search over CVE reports.
 
@@ -107,21 +113,23 @@ def search(client: QdrantClient, embedder, query: str, top_k: int = 5,
 
     formatted = []
     for point in results.points:
-        formatted.append({
-            "cve_id": point.payload["cve_id"],
-            "score": round(point.score, 4),
-            "severity": point.payload["severity"],
-            "category": point.payload["category"],
-            "description": point.payload["description"],
-            "affected": point.payload["affected"],
-        })
+        formatted.append(
+            {
+                "cve_id": point.payload["cve_id"],
+                "score": round(point.score, 4),
+                "severity": point.payload["severity"],
+                "category": point.payload["category"],
+                "description": point.payload["description"],
+                "affected": point.payload["affected"],
+            }
+        )
 
     return formatted
 
 
 def print_results(query: str, results: list[dict]) -> None:
     """Pretty-print search results."""
-    print(f"  Query: \"{query}\"")
+    print(f'  Query: "{query}"')
     print(f"  Results: {len(results)}")
     print(f"  {'—'*60}")
 
@@ -129,7 +137,9 @@ def print_results(query: str, results: list[dict]) -> None:
 
     for i, r in enumerate(results, 1):
         icon = severity_icons.get(r["severity"], "⚪")
-        print(f"\n  {i}. {icon} {r['cve_id']}  (score: {r['score']})  [{r['severity']}]")
+        print(
+            f"\n  {i}. {icon} {r['cve_id']}  (score: {r['score']})  [{r['severity']}]"
+        )
         print(f"     Category: {r['category']}")
         print(f"     Affected: {r['affected']}")
         desc = r["description"]
@@ -161,11 +171,22 @@ def interactive_loop(client: QdrantClient, embedder) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CVE Semantic Search — Encoderfile + Qdrant")
-    parser.add_argument("--interactive", "-i", action="store_true",
-                        help="Drop into interactive search after indexing")
-    parser.add_argument("--query", "-q", type=str, default=None,
-                        help="Run a specific query instead of the default example")
+    parser = argparse.ArgumentParser(
+        description="CVE Semantic Search — Encoderfile + Qdrant"
+    )
+    parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Drop into interactive search after indexing",
+    )
+    parser.add_argument(
+        "--query",
+        "-q",
+        type=str,
+        default=None,
+        help="Run a specific query instead of the default example",
+    )
     args = parser.parse_args()
 
     # Setup
