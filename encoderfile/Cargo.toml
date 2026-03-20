@@ -78,7 +78,7 @@ console = { version = "0.16.2", optional = true }
 directories = "6.0.0"
 flate2 = "1.1.5"
 sha2 = "0.10.9"
-tar = "0.4.44"
+tar = "0.4.45"
 tempfile = "3.23.0"
 url = "2.5.8"
 utoipa = "5.4.0"
