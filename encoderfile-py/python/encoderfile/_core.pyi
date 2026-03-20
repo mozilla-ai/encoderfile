@@ -6,9 +6,7 @@ class TargetSpec:
     arch: str
     os: str
     abi: str
-
-    @staticmethod
-    def parse(spec: str) -> "TargetSpec": ...
+    def __new__(cls, spec: str): ...
 
 @final
 class EncoderfileBuilder:
@@ -20,7 +18,7 @@ class EncoderfileBuilder:
     def from_dict(
         *,
         name: str,
-        version: Optional[str] = "0.1.0",
+        version: Optional[str] = None,
         model_type: ModelType,
         path: str,
         output_path: Optional[str] = None,
@@ -30,7 +28,7 @@ class EncoderfileBuilder:
         lua_libs: Optional[list[str]] = None,
         tokenizer: Optional[TokenizerBuildConfig] = None,
         validate_transform: bool = True,
-        target: Optional[str] = None,
+        target: Optional[str | TargetSpec] = None,
     ) -> "EncoderfileBuilder": ...
     def build(
         self,

@@ -197,6 +197,37 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
     assert result.encoderfile_config.lua_libs == config.get("lua_libs")
 
 
+def test_encoderfilebuilder_with_target_spec_object(tmp_path):
+    name = "model-built-from-config"
+    target_spec = TargetSpec("x86_64-unknown-linux-musl")
+    config = {
+        "name": name,
+        "path": "models/token_classification",
+        "model_type": ModelType.TokenClassification,
+        "output_path": str(tmp_path / f"{name}.encoderfile"),
+        "tokenizer": TokenizerBuildConfig.new(
+            pad_strategy="batch_longest",
+        ),
+        "transform": """
+        --- No docs
+        ---
+        --- Args:
+        ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
+        ---                 The softmax is applied along the third axis (n_labels).
+        ---
+        --- Returns:
+        ---   Tensor: The input tensor with softmax-normalized embeddings.
+        ---@param arr Tensor
+        ---@return Tensor
+        function Postprocess(arr)
+            return arr:softmax(3)
+        end
+        """,
+        "target": target_spec,
+    }
+    EncoderfileBuilder.from_dict(**config)
+
+
 def test_encoderfilebuilder_wrong_arch(tmp_path):
     name = "model-built-from-config"
     config = {
@@ -224,11 +255,10 @@ def test_encoderfilebuilder_wrong_arch(tmp_path):
         """,
         "target": "nonsense!",
     }
-    builder = EncoderfileBuilder.from_dict(**config)
-    with pytest.raises(RuntimeError) as exc_info:
-        builder.build(workdir=None, version=None, no_download=True)
+    with pytest.raises(ValueError) as exc_info:
+        EncoderfileBuilder.from_dict(**config)
     assert (
-        f"Error building encoderfile: invalid or unsupported target triple `{config['target']}`"
+        f"Failed to parse target spec: invalid or unsupported target triple `{config['target']}`"
         in str(exc_info.value)
     )
 
@@ -383,7 +413,7 @@ def test_tokenizer_config_partial_optional_fields():
 
 def test_parse_target_spec_valid_1():
     spec_str = "x86_64-unknown-linux-musl"
-    target_spec = TargetSpec.parse(spec_str)
+    target_spec = TargetSpec(spec_str)
     assert target_spec.arch == "x86_64"
     assert target_spec.os == "linux"
     assert target_spec.abi == "musl"
@@ -391,7 +421,7 @@ def test_parse_target_spec_valid_1():
 
 def test_parse_target_spec_valid_2():
     spec_str = "aarch64-apple-darwin"
-    target_spec = TargetSpec.parse(spec_str)
+    target_spec = TargetSpec(spec_str)
     assert target_spec.arch == "aarch64"
     assert target_spec.os == "darwin"
     assert target_spec.abi == "gnu"
@@ -399,7 +429,7 @@ def test_parse_target_spec_valid_2():
 
 def test_parse_target_spec_valid_3():
     spec_str = "x86_64-pc-windows-msvc"
-    target_spec = TargetSpec.parse(spec_str)
+    target_spec = TargetSpec(spec_str)
     assert target_spec.arch == "x86_64"
     assert target_spec.os == "windows"
     assert target_spec.abi == "msvc"
@@ -408,7 +438,7 @@ def test_parse_target_spec_valid_3():
 def test_parse_target_spec_invalid_format():
     spec_str = "nonsense!"
     with pytest.raises(ValueError) as exc_info:
-        TargetSpec.parse(spec_str)
+        TargetSpec(spec_str)
     assert (
         "Failed to parse target spec: invalid or unsupported target triple `nonsense!`"
         in str(exc_info.value)
@@ -418,7 +448,7 @@ def test_parse_target_spec_invalid_format():
 def test_parse_target_spec_unsupported_arch():
     spec_str = "riscv64-unknown-linux-musl"
     with pytest.raises(ValueError) as exc_info:
-        TargetSpec.parse(spec_str)
+        TargetSpec(spec_str)
     assert "Failed to parse target spec: unsupported architecture `riscv64`" in str(
         exc_info.value
     )
