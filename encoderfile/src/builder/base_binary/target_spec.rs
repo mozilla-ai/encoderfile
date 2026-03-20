@@ -1,8 +1,9 @@
 use anyhow::Result;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, JsonSchema)]
 pub struct TargetSpec {
     pub arch: Architecture,
     pub os: OperatingSystem,
@@ -125,7 +126,7 @@ impl std::fmt::Display for TargetSpec {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, JsonSchema)]
 pub enum Architecture {
     X86_64,
     Aarch64,
@@ -140,7 +141,7 @@ impl std::fmt::Display for Architecture {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, JsonSchema)]
 pub enum OperatingSystem {
     Linux,
     MacOS,
@@ -157,7 +158,7 @@ impl std::fmt::Display for OperatingSystem {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, JsonSchema)]
 pub enum Abi {
     Gnu,
     Musl,
