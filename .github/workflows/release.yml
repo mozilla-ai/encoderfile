@@ -288,6 +288,7 @@ jobs:
           path: dist
 
       - name: Publish wheels
+        if: needs.compute-dry-run.outputs.is_dry_run != 'true'
         run: uv publish dist/**/*.whl
 
   publish-encoderfile:
