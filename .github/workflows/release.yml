@@ -285,13 +285,12 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          pattern: wheels-*
+          pattern: "*"
           merge-multiple: true
           path: dist/wheels
 
       - name: Publish wheels
-        run: |
-          uv publish wheels/*
+        run: uv publish dist/wheels/*
 
   publish-encoderfile:
     needs: [release, compute-dry-run]
