@@ -13,6 +13,7 @@ use encoderfile::builder::{
     },
 };
 use encoderfile::common::{Config, ModelConfig};
+use pyo3::types::PyString;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError, PyValueError},
     prelude::*,
@@ -160,10 +161,10 @@ impl PyEncoderfileBuilder {
             validate_transform,
             target: target
                 .map(|t| {
-                    if let Ok(spec) = t.extract::<String>() {
-                        PyTargetSpec::parse(&spec)
-                    } else if let Ok(spec) = t.extract::<PyTargetSpec>() {
-                        Ok(PyTargetSpec(spec.0.clone()))
+                    if let Ok(spec) = t.cast::<PyString>() {
+                        PyTargetSpec::parse(spec.to_str()?)
+                    } else if let Ok(spec) = t.cast::<PyTargetSpec>() {
+                        Ok(PyTargetSpec(spec.get().0.clone()))
                     } else {
                         Err(PyRuntimeError::new_err(
                             "Failed to parse target spec: expected either a string or a TargetSpec",
