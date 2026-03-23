@@ -267,6 +267,38 @@ jobs:
               ghcr.io/${{ github.repository_owner }}/encoderfile:amd64-${VERSION} \
               ghcr.io/${{ github.repository_owner }}/encoderfile:arm64-${VERSION}
           fi
+  
+  publish-encoderfile-py:
+    needs: [release, compute-dry-run]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write 
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/project-setup
+    
+      - name: Set up python
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv -p python3.13
+      
+      - name: Build wheels
+        run: |
+          sudo apt update && sudo apt install -y protobuf-compiler
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv -p python3.13
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/wheels
+
+      - name: Publish wheels
+        run: |
+          uv publish wheels/*
 
   publish-encoderfile:
     needs: [release, compute-dry-run]
