@@ -10,8 +10,9 @@ edition = "2024"
 name = "_core"
 crate-type = ["cdylib"]
 
-[dependencies]
-pyo3 = "0.27.0"
+[dependencies.pyo3]
+version = "0.27.0"
+features = ["abi3"]
 
 [dependencies.encoderfile]
 path = "../encoderfile"
