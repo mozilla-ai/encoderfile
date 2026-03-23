@@ -279,15 +279,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/project-setup
     
-      - name: Set up python
+      - name: Create venv
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv -p python3.13
-      
-      - name: Build wheels
-        run: |
-          sudo apt update && sudo apt install -y protobuf-compiler
-          curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv -p python3.13
 
       - uses: actions/download-artifact@v4
