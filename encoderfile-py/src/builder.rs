@@ -13,6 +13,7 @@ use encoderfile::builder::{
     },
 };
 use encoderfile::common::{Config, ModelConfig};
+use pyo3::types::PyString;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError, PyValueError},
     prelude::*,
@@ -129,7 +130,7 @@ impl PyEncoderfileBuilder {
 
     #[allow(clippy::too_many_arguments)]
     #[staticmethod]
-    #[pyo3(signature = (*, name, version = Some("0.1.0"), model_type, path, output_path = None, cache_dir = None, base_binary_path = None, transform = None, lua_libs = None, tokenizer = None, validate_transform = true, target = None))]
+    #[pyo3(signature = (*, name, version = None, model_type, path, output_path = None, cache_dir = None, base_binary_path = None, transform = None, lua_libs = None, tokenizer = None, validate_transform = true, target = None))]
     fn from_dict(
         name: String,
         version: Option<&str>,
@@ -142,7 +143,7 @@ impl PyEncoderfileBuilder {
         lua_libs: Option<Vec<String>>,
         tokenizer: Option<Bound<'_, PyTokenizerBuildConfig>>,
         validate_transform: bool,
-        target: Option<String>,
+        target: Option<&Bound<PyAny>>,
     ) -> PyResult<Self> {
         let encoderfile = EncoderfileConfig {
             name,
@@ -158,7 +159,20 @@ impl PyEncoderfileBuilder {
             lua_libs: lua_libs.map(|libs| libs.into_iter().collect()),
             tokenizer: tokenizer.map(|t| t.borrow().0.clone()),
             validate_transform,
-            target,
+            target: target
+                .map(|t| {
+                    if let Ok(spec) = t.cast::<PyString>() {
+                        PyTargetSpec::parse(spec.to_str()?)
+                    } else if let Ok(spec) = t.cast::<PyTargetSpec>() {
+                        Ok(PyTargetSpec(spec.get().0.clone()))
+                    } else {
+                        Err(PyRuntimeError::new_err(
+                            "Failed to parse target spec: expected either a string or a TargetSpec",
+                        ))
+                    }
+                })
+                .transpose()?
+                .map(|t| t.0),
         };
         Ok(PyEncoderfileBuilder(EncoderfileBuilder {
             config: BuildConfig { encoderfile },
@@ -264,11 +278,12 @@ impl PyEncoderfileConfig {
 }
 
 #[pyclass(name = "TargetSpec", frozen)]
+#[derive(Clone)]
 pub struct PyTargetSpec(TargetSpec);
 
 #[pymethods]
 impl PyTargetSpec {
-    #[staticmethod]
+    #[new]
     #[pyo3(signature = (spec))]
     fn parse(spec: &str) -> PyResult<Self> {
         spec.parse()

@@ -1,3 +1,3 @@
 # ignore missing __all__ in encoderfile
-encoderfile.encoderfile.__all__
+encoderfile._core.__all__
 # encoderfile.encoderfile.EncoderfileBuilder.from_config

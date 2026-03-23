@@ -54,15 +54,12 @@ pub struct EncoderfileConfig {
     pub tokenizer: Option<TokenizerBuildConfig>,
     #[serde(default = "default_validate_transform")]
     pub validate_transform: bool,
-    pub target: Option<String>,
+    pub target: Option<TargetSpec>,
 }
 
 impl EncoderfileConfig {
     pub fn target(&self) -> Result<Option<TargetSpec>> {
-        self.target
-            .as_ref()
-            .map(|s| TargetSpec::from_str(s.as_str()))
-            .transpose()
+        Ok(self.target.clone())
     }
 
     pub fn embedded_config(&self) -> Result<EmbeddedConfig> {

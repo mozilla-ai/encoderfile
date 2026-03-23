@@ -16,7 +16,7 @@ build-py:
 .PHONY: stubtest
 stubtest:
 	@echo "Running stubtest..."
-	@uv run --dev stubtest --allowlist=allowlist.txt encoderfile.encoderfile
+	@uv run --dev stubtest --allowlist=allowlist.txt encoderfile._core
 
 .PHONY: format
 format:
