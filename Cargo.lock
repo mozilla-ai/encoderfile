@@ -814,7 +814,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "encoderfile"
-version = "0.6.0-beta.5"
+version = "0.6.0-rc.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -871,7 +871,7 @@ dependencies = [
 
 [[package]]
 name = "encoderfile-py"
-version = "0.6.0-beta.5"
+version = "0.6.0-rc.1"
 dependencies = [
  "encoderfile",
  "pyo3",
@@ -879,7 +879,7 @@ dependencies = [
 
 [[package]]
 name = "encoderfile-runtime"
-version = "0.6.0-beta.5"
+version = "0.6.0-rc.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -3635,9 +3635,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.25.7+spec-1.1.0"
+version = "0.25.8+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d15b06e6c39068c203e7c1d0bc3944796d867449e7668ef7fa5ea43727cb846e"
+checksum = "16bff38f1d86c47f9ff0647e6838d7bb362522bdf44006c7068c2b1e606f1f3c"
 dependencies = [
  "indexmap",
  "toml_datetime",
@@ -3923,9 +3923,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.12.0"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
+checksum = "a559e63b5d8004e12f9bce88af5c6d939c58de839b7532cfe9653846cedd2a9e"
 
 [[package]]
 name = "unicode-width"
