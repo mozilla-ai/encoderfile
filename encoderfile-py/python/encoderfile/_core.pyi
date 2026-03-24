@@ -14,7 +14,6 @@ class EncoderfileBuilder:
     def from_config(
         config: str,
     ) -> "EncoderfileBuilder": ...
-    @staticmethod
     def __new__(
         cls,
         *,
@@ -46,7 +45,6 @@ class TokenizerBuildConfig:
     max_length: Optional[int]
     stride: Optional[int]
 
-    @staticmethod
     def __new__(
         cls,
         *,
