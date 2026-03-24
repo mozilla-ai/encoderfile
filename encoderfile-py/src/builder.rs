@@ -95,8 +95,8 @@ pub struct PyEncoderfileBuilder(EncoderfileBuilder);
 impl PyEncoderfileBuilder {
     #[allow(clippy::too_many_arguments)]
     #[staticmethod]
-    fn from_config(config: PathBuf) -> PyResult<PyEncoderfileBuilder> {
-        EncoderfileBuilder::from_file(&config)
+    fn from_config(config_path: PathBuf) -> PyResult<PyEncoderfileBuilder> {
+        EncoderfileBuilder::from_file(&config_path)
             .map_err(|e| PyIOError::new_err(format!("Failed to load config file: {:?}", e)))
             .map(Self)
     }

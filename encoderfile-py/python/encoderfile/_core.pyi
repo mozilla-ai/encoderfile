@@ -12,7 +12,7 @@ class TargetSpec:
 class EncoderfileBuilder:
     @staticmethod
     def from_config(
-        config: str,
+        config_path: str,
     ) -> "EncoderfileBuilder": ...
     def __new__(
         cls,
