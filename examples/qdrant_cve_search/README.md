@@ -51,13 +51,13 @@ chmod +x all-MiniLM-L6-v2.encoderfile
 
 ```bash
 # Run with default example query
-python main.py
+uv run main.py
 
 # Run a specific query
-python main.py -q "SQL injection in file transfer software"
+uv run main.py -q "SQL injection in file transfer software"
 
 # Interactive search mode
-python main.py --interactive
+uv run main.py --interactive
 ```
 
 The demo auto-detects whether Encoderfile is running. If not, it falls back
