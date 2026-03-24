@@ -43,7 +43,7 @@ def test_encoderfilebuilder_from_config_fails():
         """,
     }
     with pytest.raises(RuntimeError) as exc_info:
-        EncoderfileBuilder.from_dict(**config)
+        EncoderfileBuilder(**config)
     assert "Invalid model type" in str(exc_info.value)
 
 
@@ -70,7 +70,7 @@ def test_encoderfilebuilder_from_config_returns_builder():
         end
         """,
     }
-    builder = EncoderfileBuilder.from_dict(**config)
+    builder = EncoderfileBuilder(**config)
     assert isinstance(builder, EncoderfileBuilder)
 
 
@@ -104,9 +104,10 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
         "path": "models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
-        "tokenizer": TokenizerBuildConfig.new(
+        "tokenizer": TokenizerBuildConfig(
             pad_strategy="batch_longest",
         ),
+        "base_binary_path": "./target/debug/encoderfile-runtime",
         "transform": """
         --- No docs
         ---
@@ -125,7 +126,7 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
     }
     model_info = load_json(Path(config["path"]) / "config.json")
     print(model_info)
-    builder = EncoderfileBuilder.from_dict(**config)
+    builder = EncoderfileBuilder(**config)
     # Should not raise
     builder.build(workdir=None, version=None, no_download=True)
     result = inspect(config["output_path"])
@@ -172,7 +173,7 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
         end
         """,
         "lua_libs": ["table", "math"],
-        "tokenizer": TokenizerBuildConfig.new(
+        "tokenizer": TokenizerBuildConfig(
             pad_strategy="batch_longest",
             truncation_side="right",
             truncation_strategy="longest_first",
@@ -182,7 +183,7 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
         "validate_transform": False,
         "target": "x86_64-unknown-linux-musl",
     }
-    builder = EncoderfileBuilder.from_dict(**config)
+    builder = EncoderfileBuilder(**config)
     builder.build(workdir=None, version=None, no_download=True)
     result = inspect(config["output_path"])
     assert isinstance(result, InspectInfo)
@@ -205,7 +206,7 @@ def test_encoderfilebuilder_with_target_spec_object(tmp_path):
         "path": "models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
-        "tokenizer": TokenizerBuildConfig.new(
+        "tokenizer": TokenizerBuildConfig(
             pad_strategy="batch_longest",
         ),
         "transform": """
@@ -225,7 +226,7 @@ def test_encoderfilebuilder_with_target_spec_object(tmp_path):
         """,
         "target": target_spec,
     }
-    EncoderfileBuilder.from_dict(**config)
+    EncoderfileBuilder(**config)
 
 
 def test_encoderfilebuilder_wrong_arch(tmp_path):
@@ -235,7 +236,7 @@ def test_encoderfilebuilder_wrong_arch(tmp_path):
         "path": "models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
-        "tokenizer": TokenizerBuildConfig.new(
+        "tokenizer": TokenizerBuildConfig(
             pad_strategy="batch_longest",
         ),
         "transform": """
@@ -256,7 +257,7 @@ def test_encoderfilebuilder_wrong_arch(tmp_path):
         "target": "nonsense!",
     }
     with pytest.raises(ValueError) as exc_info:
-        EncoderfileBuilder.from_dict(**config)
+        EncoderfileBuilder(**config)
     assert (
         f"Failed to parse target spec: invalid or unsupported target triple `{config['target']}`"
         in str(exc_info.value)
@@ -271,7 +272,7 @@ def test_tokenizer_build_config_from_dict():
         "max_length": 512,
         "stride": 0,
     }
-    tokenizer_config = TokenizerBuildConfig.new(**config)
+    tokenizer_config = TokenizerBuildConfig(**config)
     assert tokenizer_config.pad_strategy == config["pad_strategy"]
     assert tokenizer_config.truncation_side == config["truncation_side"]
     assert tokenizer_config.truncation_strategy == config["truncation_strategy"]
@@ -288,7 +289,7 @@ def test_tokenizer_wrong_config_pad_strategy():
         "stride": 0,
     }
     with pytest.raises(RuntimeError) as exc_info:
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
     assert f"Invalid pad strategy: {config['pad_strategy']}" in str(exc_info.value)
 
 
@@ -301,7 +302,7 @@ def test_tokenizer_wrong_config_truncation_side():
         "stride": 0,
     }
     with pytest.raises(RuntimeError) as exc_info:
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
     assert f"Invalid truncation side: {config['truncation_side']}" in str(
         exc_info.value
     )
@@ -316,7 +317,7 @@ def test_tokenizer_wrong_config_truncation_strategy():
         "stride": 0,
     }
     with pytest.raises(RuntimeError) as exc_info:
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
     assert f"Invalid truncation strategy: {config['truncation_strategy']}" in str(
         exc_info.value
     )
@@ -331,7 +332,7 @@ def test_tokenizer_wrong_config_max_length():
         "stride": 0,
     }
     with pytest.raises(OverflowError):
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
 
 
 def test_tokenizer_wrong_type_max_length():
@@ -343,7 +344,7 @@ def test_tokenizer_wrong_type_max_length():
         "stride": 0,
     }
     with pytest.raises(TypeError) as exc_info:
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
     assert "'str' object cannot be interpreted as an integer" in str(exc_info.value)
 
 
@@ -356,7 +357,7 @@ def test_tokenizer_wrong_config_stride():
         "stride": -1,
     }
     with pytest.raises(OverflowError):
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
 
 
 def test_tokenizer_wrong_type_stride():
@@ -368,7 +369,7 @@ def test_tokenizer_wrong_type_stride():
         "stride": "nonsense!",
     }
     with pytest.raises(TypeError) as exc_info:
-        TokenizerBuildConfig.new(**config)
+        TokenizerBuildConfig(**config)
     assert "'str' object cannot be interpreted as an integer" in str(exc_info.value)
 
 
@@ -380,7 +381,7 @@ def test_tokenizer_config_optional_fields():
         "max_length": None,
         "stride": None,
     }
-    tokenizer_config = TokenizerBuildConfig.new(**config)
+    tokenizer_config = TokenizerBuildConfig(**config)
     assert tokenizer_config.pad_strategy is None
     assert tokenizer_config.truncation_side is None
     assert tokenizer_config.truncation_strategy is None
@@ -390,7 +391,7 @@ def test_tokenizer_config_optional_fields():
 
 def test_tokenizer_config_all_optional_fields():
     config = {}
-    tokenizer_config = TokenizerBuildConfig.new(**config)
+    tokenizer_config = TokenizerBuildConfig(**config)
     assert tokenizer_config.pad_strategy is None
     assert tokenizer_config.truncation_side is None
     assert tokenizer_config.truncation_strategy is None
@@ -403,7 +404,7 @@ def test_tokenizer_config_partial_optional_fields():
         "pad_strategy": "batch_longest",
         "max_length": 512,
     }
-    tokenizer_config = TokenizerBuildConfig.new(**config)
+    tokenizer_config = TokenizerBuildConfig(**config)
     assert tokenizer_config.pad_strategy == config["pad_strategy"]
     assert tokenizer_config.truncation_side is None
     assert tokenizer_config.truncation_strategy is None

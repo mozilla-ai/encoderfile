@@ -3,6 +3,7 @@ encoderfile:
   path: models/token_classification
   model_type: token_classification
   output_path: /tmp/test-model.encoderfile
+  base_binary_path: ./target/debug/encoderfile-runtime
   transform: |
     --- Applies a softmax across token classification logits.
     --- Each token classification is normalized independently.

@@ -3,6 +3,7 @@ encoderfile:
   path: models/token_classification
   model_type: token_classification
   output_path: /tmp/test-model-lua.encoderfile
+  base_binary_path: ./target/debug/encoderfile-runtime
   lua_libs:
     - table
     - math

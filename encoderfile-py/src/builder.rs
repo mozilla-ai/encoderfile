@@ -19,40 +19,13 @@ use pyo3::{
     prelude::*,
 };
 
-#[pyclass(name = "Transform", frozen)]
-pub struct PyTransform(Transform);
-
-#[pymethods]
-impl PyTransform {
-    #[staticmethod]
-    fn path(path: String) -> Self {
-        PyTransform(Transform::Path { path: path.into() })
-    }
-    #[staticmethod]
-    fn inline(inline: String) -> Self {
-        PyTransform(Transform::Inline(inline))
-    }
-    fn is_inline(&self) -> bool {
-        matches!(self.0, Transform::Inline(_))
-    }
-    fn is_path(&self) -> bool {
-        matches!(self.0, Transform::Path { .. })
-    }
-    fn __str__(&self) -> String {
-        match &self.0 {
-            Transform::Path { path } => format!("Path({})", path.display()),
-            Transform::Inline(inline) => format!("Inline({})", inline),
-        }
-    }
-}
-
 #[pyclass(name = "TokenizerBuildConfig", frozen)]
 pub struct PyTokenizerBuildConfig(TokenizerBuildConfig);
 
 #[pymethods]
 impl PyTokenizerBuildConfig {
     #[allow(clippy::too_many_arguments)]
-    #[staticmethod]
+    #[new]
     #[pyo3(signature = (*, pad_strategy = None, truncation_side = None, truncation_strategy = None, max_length = None, stride = None))]
     pub fn new(
         pad_strategy: Option<String>,
@@ -129,7 +102,7 @@ impl PyEncoderfileBuilder {
     }
 
     #[allow(clippy::too_many_arguments)]
-    #[staticmethod]
+    #[new]
     #[pyo3(signature = (*, name, version = None, model_type, path, output_path = None, cache_dir = None, base_binary_path = None, transform = None, lua_libs = None, tokenizer = None, validate_transform = true, target = None))]
     fn from_dict(
         name: String,
