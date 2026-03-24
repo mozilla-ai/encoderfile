@@ -15,7 +15,8 @@ class EncoderfileBuilder:
         config: str,
     ) -> "EncoderfileBuilder": ...
     @staticmethod
-    def from_dict(
+    def __new__(
+        cls,
         *,
         name: str,
         version: Optional[str] = None,
@@ -46,7 +47,8 @@ class TokenizerBuildConfig:
     stride: Optional[int]
 
     @staticmethod
-    def new(
+    def __new__(
+        cls,
         *,
         pad_strategy: Optional[str] = None,
         truncation_side: Optional[str] = None,
