@@ -26,6 +26,8 @@ nav:
       - Token Classification (NER): cookbooks/token-classification-ner.md
       - MCP Integration: cookbooks/mcp-integration.md
       - Matryoshka Embeddings: cookbooks/matryoshka-embeddings.md
+      - Local RAG: cookbooks/local-rag.md
+      - CVE Semantic Search: cookbooks/qdrant-cve-search.md
   - Code of Conduct: CODE_OF_CONDUCT.md
   - Contributing: CONTRIBUTING.md
   - Transforms:
