@@ -1,0 +1,17 @@
+[project]
+name = "cve-search"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.0",
+    "qdrant-client>=1.17",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+fastembed = [
+    "fastembed>=0.4",
+]
+
+[tool.uv]
+dev-dependencies = []
