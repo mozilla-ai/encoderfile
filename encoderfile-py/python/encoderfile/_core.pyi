@@ -49,7 +49,7 @@ class Fixed:
 
 @final
 class TokenizerBuildConfig:
-    pad_strategy: Optional[str]
+    pad_strategy: Optional[BatchLongest | Fixed]
     truncation_side: Optional[str]
     truncation_strategy: Optional[str]
     max_length: Optional[int]

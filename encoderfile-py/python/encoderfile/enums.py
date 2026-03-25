@@ -17,8 +17,3 @@ class TokenizerTruncationStrategy(StrEnum):
     LongestFirst = "longest_first"
     OnlyFirst = "only_first"
     OnlySecond = "only_second"
-
-
-class TokenizerPadStrategy(StrEnum):
-    BatchLongest = "batch_longest"
-    Fixed = "fixed"
