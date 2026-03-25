@@ -2,7 +2,7 @@ use anyhow::{Result, bail};
 use prost::Message;
 use std::io::{Read, Seek};
 
-use ort::session::Session;
+use ort::session::{Session, builder::SessionBuilder};
 
 use crate::{
     common::{Config, LuaLibs, ModelConfig, ModelType},
@@ -28,7 +28,7 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
         self.encoderfile.model_type()
     }
 
-    pub fn session(&mut self) -> Result<Session> {
+    pub fn session(&mut self, builder: &SessionBuilder) -> Result<Session> {
         let session = match self
             .encoderfile
             .open_required(self.reader, AssetKind::ModelWeights)
@@ -37,7 +37,9 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
                 let mut buf = vec![0u8; r.len() as usize];
                 r.read_exact(&mut buf)?;
 
-                ort::session::Session::builder()?.commit_from_memory(buf.as_slice())?
+                // The commit methods consume the builder, so we cannot
+                // use refs here. This seems to be the intended usage.
+                builder.clone().commit_from_memory(buf.as_slice())?
             }
             Err(e) => bail!("Error loading model weights: {e:?}"),
         };

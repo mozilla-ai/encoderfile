@@ -1,4 +1,5 @@
 use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
+use crate::runtime::assemble_ort_builder;
 use anyhow::{Result, bail};
 use ort::{
     session::{Output, Session},
@@ -76,5 +77,5 @@ fn get_outp_dim<'a>(outputs: &'a [Output], outp_name: &str) -> Result<&'a Shape>
 }
 
 fn load_model(file: &Path) -> Result<Session> {
-    Ok(Session::builder()?.commit_from_file(file)?)
+    Ok(assemble_ort_builder()?.commit_from_file(file)?)
 }
