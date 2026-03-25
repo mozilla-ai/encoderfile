@@ -814,7 +814,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "encoderfile"
-version = "0.6.0-rc.1"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -871,7 +871,7 @@ dependencies = [
 
 [[package]]
 name = "encoderfile-py"
-version = "0.6.0-rc.1"
+version = "0.6.0"
 dependencies = [
  "encoderfile",
  "pyo3",
@@ -879,7 +879,7 @@ dependencies = [
 
 [[package]]
 name = "encoderfile-runtime"
-version = "0.6.0-rc.1"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1663,9 +1663,9 @@ checksum = "b5b646652bf6661599e1da8901b3b9522896f01e736bad5f723fe7a3a27f899d"
 
 [[package]]
 name = "libredox"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1744e39d1d6a9948f4f388969627434e31128196de472883b39f148769bfe30a"
+checksum = "7ddbf48fd451246b1f8c2610bd3b4ac0cc6e149d89832867093ab69a17194f08"
 dependencies = [
  "bitflags",
  "libc",
@@ -3923,9 +3923,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.13.0"
+version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a559e63b5d8004e12f9bce88af5c6d939c58de839b7532cfe9653846cedd2a9e"
+checksum = "da36089a805484bcccfffe0739803392c8298778a2d2f09febf76fac5ad9025b"
 
 [[package]]
 name = "unicode-width"
