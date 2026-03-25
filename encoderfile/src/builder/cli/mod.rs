@@ -16,9 +16,7 @@ pub use inspect::inspect_encoderfile;
 pub fn run_cli(args: Vec<String>) -> Result<()> {
     use clap::Parser;
 
-    let cli = Cli::try_parse_from(args).map_err(|e| {
-        anyhow::anyhow!(e)
-    })?;
+    let cli = Cli::try_parse_from(args).map_err(|e| anyhow::anyhow!(e))?;
 
     cli.command.run(&cli.global_args)
 }
