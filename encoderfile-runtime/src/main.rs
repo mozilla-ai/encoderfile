@@ -43,7 +43,9 @@ macro_rules! run_cli {
 
 async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -> Result<()> {
     let cli = Cli::parse();
+    println!("just before getting the session");
     let session = Mutex::new(loader.session()?);
+    println!("session: {:?}", session.lock());
     let model_config = loader.model_config()?;
     let tokenizer = loader.tokenizer()?;
     let config = loader.encoderfile_config()?;

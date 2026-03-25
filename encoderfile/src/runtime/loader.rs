@@ -2,7 +2,11 @@ use anyhow::{Result, bail};
 use prost::Message;
 use std::io::{Read, Seek};
 
-use ort::session::Session;
+use ort::{
+    self,
+    session::Session,
+    execution_providers as ep
+};
 
 use crate::{
     common::{Config, LuaLibs, ModelConfig, ModelType},
@@ -36,8 +40,17 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
             Ok(mut r) => {
                 let mut buf = vec![0u8; r.len() as usize];
                 r.read_exact(&mut buf)?;
-
-                ort::session::Session::builder()?.commit_from_memory(buf.as_slice())?
+                ort::session::Session::builder()?
+                    .with_execution_providers([
+                        // Prefer TensorRT over CUDA.
+                        ep::TensorRTExecutionProvider::default().build(),
+                        ep::CUDAExecutionProvider::default().build(),
+                        // Use DirectML on Windows if NVIDIA EPs are not available
+                        ep::DirectMLExecutionProvider::default().build(),
+                        // Or use ANE on Apple platforms
+                        ep::CoreMLExecutionProvider::default().build()
+                    ])?
+                    .commit_from_memory(buf.as_slice())?
             }
             Err(e) => bail!("Error loading model weights: {e:?}"),
         };

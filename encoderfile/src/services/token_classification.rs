@@ -6,6 +6,8 @@ use crate::{
     transforms::TokenClassificationTransform,
 };
 
+use ort::execution_providers::{self as ep, ExecutionProvider};
+
 use super::inference::Inference;
 
 impl Inference for AppState<model_type::TokenClassification> {
@@ -16,7 +18,11 @@ impl Inference for AppState<model_type::TokenClassification> {
         let request = request.into();
 
         let session = self.session.lock();
-
+        tracing::info!("WAIT WOT?");
+        tracing::info!("TensorRT? {:?}", ep::TensorRTExecutionProvider::default().is_available());
+        tracing::info!("CUDA? {:?}", ep::CUDAExecutionProvider::default().is_available());
+        tracing::info!("DirectML? {:?}", ep::DirectMLExecutionProvider::default().is_available());
+        tracing::info!("CoreML? {:?}", ep::CoreMLExecutionProvider::default().is_available());
         let encodings = self.tokenizer.encode_text(request.inputs)?;
 
         let transform =

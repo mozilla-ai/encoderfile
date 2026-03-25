@@ -1,6 +1,7 @@
 use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use anyhow::{Result, bail};
 use ort::{
+    execution_providers::{self as ep, ExecutionProvider},
     session::{Output, Session},
     tensor::Shape,
 };
@@ -76,5 +77,15 @@ fn get_outp_dim<'a>(outputs: &'a [Output], outp_name: &str) -> Result<&'a Shape>
 }
 
 fn load_model(file: &Path) -> Result<Session> {
-    Ok(Session::builder()?.commit_from_file(file)?)
+    Ok(Session::builder()?
+        .with_execution_providers([
+            // Prefer TensorRT over CUDA.
+            ep::TensorRTExecutionProvider::default().build(),
+            ep::CUDAExecutionProvider::default().build(),
+            // Use DirectML on Windows if NVIDIA EPs are not available
+            ep::DirectMLExecutionProvider::default().build(),
+            // Or use ANE on Apple platforms
+            ep::CoreMLExecutionProvider::default().build()
+        ])?
+        .commit_from_file(file)?)
 }

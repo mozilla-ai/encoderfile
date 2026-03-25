@@ -5,7 +5,11 @@ use crate::{
     },
     runtime::{AppState, EncoderfileState},
 };
-use ort::session::Session;
+use ort::{
+    session::Session,
+    execution_providers::{self as ep, ExecutionProvider}
+};
+
 use parking_lot::Mutex;
 use std::str::FromStr;
 use std::{fs::File, io::BufReader};
@@ -65,6 +69,16 @@ fn get_model(dir: &str) -> Mutex<Session> {
     Mutex::new(
         ort::session::Session::builder()
             .expect("Failed to load session")
+            .with_execution_providers([
+                // Prefer TensorRT over CUDA.
+                ep::TensorRTExecutionProvider::default().build(),
+                ep::CUDAExecutionProvider::default().build(),
+                // Use DirectML on Windows if NVIDIA EPs are not available
+                ep::DirectMLExecutionProvider::default().build(),
+                // Or use ANE on Apple platforms
+                ep::CoreMLExecutionProvider::default().build()
+            ])
+            .expect("Failed to load exec provider")
             .commit_from_file(format!("{}/{}", dir, "model.onnx"))
             .expect("Failed to load model"),
     )
