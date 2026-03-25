@@ -38,8 +38,8 @@ chmod +x minilm.encoderfile
 ### 3. Run
 
 ```bash
-pip install -r requirements.txt
-python local_rag.py
+uv sync
+uv run local_rag.py
 ```
 
 You'll get an interactive prompt where you can ask questions about the included sample datasets:
@@ -49,10 +49,10 @@ You'll get an interactive prompt where you can ask questions about the included 
 
 ```bash
 # Ask about weird laws (default)
-python local_rag.py
+uv run local_rag.py
 
 # Ask about the GENIUS Act
-python local_rag.py --file genius_act.txt --chunk-mode window --chunk-size 800
+uv run local_rag.py --file genius_act.txt --chunk-mode window --chunk-size 800
 ```
 
 ## Use Your Own Data
@@ -61,13 +61,13 @@ Point it at any text file:
 
 ```bash
 # A congressional bill
-python local_rag.py --file bill.txt --chunk-mode window --chunk-size 800
+uv run local_rag.py --file bill.txt --chunk-mode window --chunk-size 800
 
 # A structured dataset (entries separated by blank lines)
-python local_rag.py --file my_notes.txt --chunk-mode separator
+uv run local_rag.py --file my_notes.txt --chunk-mode separator
 
 # Customize everything
-python local_rag.py \
+uv run local_rag.py \
   --file contracts.txt \
   --chunk-mode window \
   --chunk-size 1000 \
