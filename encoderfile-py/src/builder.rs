@@ -33,6 +33,12 @@ impl PyBatchLongest {
     }
 }
 
+impl Default for PyBatchLongest {
+    fn default() -> Self {
+        PyBatchLongest
+    }
+}
+
 impl From<PyBatchLongest> for TokenizerPadStrategy {
     fn from(_value: PyBatchLongest) -> Self {
         TokenizerPadStrategy::BatchLongest
