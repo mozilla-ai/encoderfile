@@ -38,8 +38,18 @@ class EncoderfileBuilder:
     ): ...
 
 @final
+class BatchLongest:
+    pass
+
+@final
+class Fixed:
+    n: int
+
+    def __new__(cls, *, n: int) -> "Fixed": ...
+
+@final
 class TokenizerBuildConfig:
-    pad_strategy: Optional[str]
+    pad_strategy: Optional[BatchLongest | Fixed]
     truncation_side: Optional[str]
     truncation_strategy: Optional[str]
     max_length: Optional[int]
@@ -48,7 +58,7 @@ class TokenizerBuildConfig:
     def __new__(
         cls,
         *,
-        pad_strategy: Optional[str] = None,
+        pad_strategy: Optional[BatchLongest | Fixed] = None,
         truncation_side: Optional[str] = None,
         truncation_strategy: Optional[str] = None,
         max_length: Optional[int] = None,

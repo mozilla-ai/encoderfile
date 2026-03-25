@@ -13,11 +13,58 @@ use encoderfile::builder::{
     },
 };
 use encoderfile::common::{Config, ModelConfig};
+use pyo3::IntoPyObjectExt;
+use pyo3::exceptions::PyTypeError;
 use pyo3::types::PyString;
 use pyo3::{
     exceptions::{PyIOError, PyRuntimeError, PyValueError},
     prelude::*,
 };
+
+#[pyclass(name = "BatchLongest")]
+#[derive(Debug, Clone)]
+pub struct PyBatchLongest;
+
+#[pymethods]
+impl PyBatchLongest {
+    #[new]
+    pub fn new() -> Self {
+        PyBatchLongest
+    }
+}
+
+impl Default for PyBatchLongest {
+    fn default() -> Self {
+        PyBatchLongest
+    }
+}
+
+impl From<PyBatchLongest> for TokenizerPadStrategy {
+    fn from(_value: PyBatchLongest) -> Self {
+        TokenizerPadStrategy::BatchLongest
+    }
+}
+
+#[pyclass(name = "Fixed")]
+#[derive(Debug, Clone)]
+pub struct PyFixed {
+    #[pyo3(get, set)]
+    n: usize,
+}
+
+#[pymethods]
+impl PyFixed {
+    #[new]
+    pub fn new(n: usize) -> Self {
+        Self { n }
+    }
+}
+
+impl From<PyFixed> for TokenizerPadStrategy {
+    fn from(value: PyFixed) -> Self {
+        TokenizerPadStrategy::Fixed { fixed: value.n }
+    }
+}
 
 #[pyclass(name = "TokenizerBuildConfig", frozen)]
 pub struct PyTokenizerBuildConfig(TokenizerBuildConfig);
@@ -28,18 +75,27 @@ impl PyTokenizerBuildConfig {
     #[new]
     #[pyo3(signature = (*, pad_strategy = None, truncation_side = None, truncation_strategy = None, max_length = None, stride = None))]
     pub fn new(
-        pad_strategy: Option<String>,
+        pad_strategy: Option<Bound<'_, PyAny>>,
         truncation_side: Option<String>,
         truncation_strategy: Option<String>,
         max_length: Option<usize>,
         stride: Option<usize>,
     ) -> PyResult<Self> {
-        let pad_strategy = pad_strategy
-            .map(|s| {
-                s.parse::<TokenizerPadStrategy>()
-                    .map_err(|e| PyRuntimeError::new_err(format!("Failed to parse: {:?}", e)))
-            })
-            .transpose()?;
+        let pad_strategy = match pad_strategy {
+            Some(ps) => {
+                if let Ok(batch_longest) = ps.cast::<PyBatchLongest>() {
+                    Some(batch_longest.extract::<PyBatchLongest>().unwrap().into())
+                } else if let Ok(fixed) = ps.cast::<PyFixed>() {
+                    Some(fixed.extract::<PyFixed>().unwrap().into())
+                } else {
+                    return Err(PyTypeError::new_err(
+                        "Class must be BatchLongest, Fixed, or None",
+                    ));
+                }
+            }
+            None => None,
+        };
+
         let truncation_side = truncation_side
             .map(|s| {
                 s.parse::<TokenizerTruncationSide>()
@@ -63,8 +119,15 @@ impl PyTokenizerBuildConfig {
     }
 
     #[getter]
-    pub fn get_pad_strategy(&self) -> Option<String> {
-        self.0.pad_strategy.as_ref().map(|s| s.into())
+    pub fn get_pad_strategy(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        match self.0.pad_strategy.as_ref() {
+            Some(ps) => match ps {
+                TokenizerPadStrategy::BatchLongest => Some(PyBatchLongest::new().into_py_any(py)),
+                TokenizerPadStrategy::Fixed { fixed } => Some(PyFixed::new(*fixed).into_py_any(py)),
+            },
+            None => None,
+        }
+        .transpose()
     }
 
     #[getter]

@@ -24,5 +24,11 @@ mod encoderfile {
     use super::builder::PyInspectInfo;
 
     #[pymodule_export]
+    use super::builder::PyBatchLongest;
+
+    #[pymodule_export]
+    use super::builder::PyFixed;
+
+    #[pymodule_export]
     use super::builder::PyTokenizerBuildConfig;
 }
