@@ -56,7 +56,6 @@ runs:
           cmake \
           zlib \
           libelf \
-          just \
           binutils || true  # binutils conflicts with Apple toolchain, so ignore failure
 
     # ----- Universal steps -----
