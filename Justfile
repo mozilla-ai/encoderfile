@@ -47,7 +47,7 @@ lint-rs:
         -- \
         -D warnings
 
-lint-py: stubtest
+lint-py:
     # ruff check
     @uv run ruff check
 
