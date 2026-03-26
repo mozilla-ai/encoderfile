@@ -38,11 +38,11 @@ git clone https://github.com/mozilla-ai/encoderfile.git
 cd encoderfile
 
 # Set up development environment
-make setup
+just setup
 
 # Run tests
-make test
+just test
 
 # Build documentation
-make docs
+just docs
 ```

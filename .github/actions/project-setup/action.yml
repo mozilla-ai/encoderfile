@@ -68,3 +68,8 @@ runs:
       shell: bash
       run: |
         curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+    - name: Install just
+      uses: extractions/setup-just@v3
+      with:
+        just-version: 1.46.0
