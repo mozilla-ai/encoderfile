@@ -41,7 +41,6 @@ runs:
           zlib1g-dev \
           libdw-dev \
           binutils-dev \
-          just \
           libelf-dev
 
     # macOS deps (Homebrew)
@@ -70,3 +69,6 @@ runs:
       shell: bash
       run: |
         curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+    - name: Install just
+      uses: extractions/setup-just@v3
