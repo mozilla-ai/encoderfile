@@ -71,4 +71,4 @@ runs:
 
     - name: Install Just
       shell: bash
-      run: cargo binstall just
+      run: cargo binstall just --no-confirm
