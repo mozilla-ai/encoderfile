@@ -1,4 +1,4 @@
-# CVE Semantic Search — Encoderfile + Qdrant POC
+# CVE Semantic Search — Encoderfile + Qdrant 
 
 A fully local, privacy-first vulnerability search system demonstrating
 how [Encoderfile](https://github.com/mozilla-ai/encoderfile) and
