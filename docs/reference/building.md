@@ -65,7 +65,7 @@ git clone https://github.com/mozilla-ai/encoderfile.git
 cd encoderfile
 
 # Set up the development environment
-make setup
+just setup
 ```
 
 This will:

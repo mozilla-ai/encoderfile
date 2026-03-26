@@ -12,7 +12,8 @@ build-py:
 docs:
     @uv run --group docs -m mkdocs serve
 
-# Check & Coverage
+# Check, Test, & Coverage
+
 check:
     @cargo hack check --each-feature
 

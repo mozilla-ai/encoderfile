@@ -68,3 +68,7 @@ runs:
       shell: bash
       run: |
         curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+    - name: Install Just
+      shell: bash
+      run: cargo binstall just
