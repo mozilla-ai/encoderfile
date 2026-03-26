@@ -41,6 +41,7 @@ runs:
           zlib1g-dev \
           libdw-dev \
           binutils-dev \
+          just \
           libelf-dev
 
     # macOS deps (Homebrew)
@@ -56,6 +57,7 @@ runs:
           cmake \
           zlib \
           libelf \
+          just \
           binutils || true  # binutils conflicts with Apple toolchain, so ignore failure
 
     # ----- Universal steps -----
@@ -68,7 +70,3 @@ runs:
       shell: bash
       run: |
         curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-
-    - name: Install Just
-      shell: bash
-      run: cargo binstall just --no-confirm
