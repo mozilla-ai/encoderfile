@@ -1,3 +1,9 @@
 # ignore missing __all__ in encoderfile
 encoderfile._core.__all__
 # encoderfile.encoderfile.EncoderfileBuilder.from_config
+
+# allow 'n' parameter for Fixed
+encoderfile._core.Fixed.__new__
+
+# run_cli should not be exposed publicly
+encoderfile._core.run_cli
