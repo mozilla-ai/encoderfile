@@ -263,19 +263,21 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Development Setup
 
+Make sure you have [Just](https://github.com/casey/just) installed.
+
 ```bash
 # Clone the repository
 git clone https://github.com/mozilla-ai/encoderfile.git
 cd encoderfile
 
 # Set up development environment
-make setup
+just setup
 
 # Run tests
-make test
+just test
 
 # Build documentation 
-make docs
+just docs
 ```
 
 ## 📄 License
