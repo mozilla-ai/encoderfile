@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod builder;
+mod cli;
 
 /// A Python module implemented in Rust.
 #[pymodule(name = "_core")]
@@ -31,4 +32,7 @@ mod encoderfile {
 
     #[pymodule_export]
     use super::builder::PyTokenizerBuildConfig;
+
+    #[pymodule_export]
+    use super::cli::run_cli;
 }

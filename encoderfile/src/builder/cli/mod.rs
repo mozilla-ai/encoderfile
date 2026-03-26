@@ -13,6 +13,14 @@ pub use build::{test_build_args, test_build_args_working_dir};
 pub use build::BuildArgs;
 pub use inspect::inspect_encoderfile;
 
+pub fn run_cli(args: Vec<String>) -> Result<()> {
+    use clap::Parser;
+
+    let cli = Cli::try_parse_from(args).map_err(|e| anyhow::anyhow!(e))?;
+
+    cli.command.run(&cli.global_args)
+}
+
 #[derive(Debug, Parser)]
 pub struct Cli {
     #[command(subcommand)]
