@@ -71,3 +71,5 @@ runs:
 
     - name: Install just
       uses: extractions/setup-just@v3
+      with:
+        just-version: 1.46.0
