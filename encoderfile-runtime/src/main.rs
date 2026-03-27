@@ -12,7 +12,7 @@ use encoderfile::{
         ModelType,
         model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
     },
-    runtime::{EncoderfileLoader, EncoderfileState, load_assets},
+    runtime::{EncoderfileLoader, EncoderfileState, GlobalState, load_assets},
     transport::cli::Cli,
 };
 
@@ -43,7 +43,10 @@ macro_rules! run_cli {
 
 async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -> Result<()> {
     let cli = Cli::parse();
-    let session = Mutex::new(loader.session()?);
+    cli.command.setup_tracing()?;
+    let global_state = GlobalState::new()?;
+
+    let session = Mutex::new(loader.session(&global_state.builder.lock())?);
     let model_config = loader.model_config()?;
     let tokenizer = loader.tokenizer()?;
     let config = loader.encoderfile_config()?;
