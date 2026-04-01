@@ -1,6 +1,5 @@
 use super::Tensor;
 use mlua::prelude::*;
-use ndarray_stats::QuantileExt;
 
 impl Tensor {
     #[tracing::instrument(skip_all)]
@@ -10,18 +9,12 @@ impl Tensor {
 
     #[tracing::instrument(skip_all)]
     pub fn min(&self) -> Result<f32, LuaError> {
-        self.0
-            .min()
-            .copied()
-            .map_err(|e| LuaError::external(format!("Min max error: {e}")))
+        Ok(self.0.iter().cloned().fold(f32::INFINITY, f32::min))
     }
 
     #[tracing::instrument(skip_all)]
     pub fn max(&self) -> Result<f32, LuaError> {
-        self.0
-            .max()
-            .copied()
-            .map_err(|e| LuaError::external(format!("Min max error: {e}")))
+        Ok(self.0.iter().cloned().fold(f32::NEG_INFINITY, f32::max))
     }
 
     #[tracing::instrument(skip_all)]

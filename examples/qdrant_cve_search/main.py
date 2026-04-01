@@ -131,7 +131,7 @@ def print_results(query: str, results: list[dict]) -> None:
     """Pretty-print search results."""
     print(f'  Query: "{query}"')
     print(f"  Results: {len(results)}")
-    print(f"  {'—'*60}")
+    print(f"  {'—' * 60}")
 
     severity_icons = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡"}
 

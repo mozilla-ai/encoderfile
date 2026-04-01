@@ -46,7 +46,7 @@ pub fn postprocess(
         for i in 0..encoding.len() {
             let argmax = logits
                 .index_axis(Axis(0), i)
-                .argmax()
+                .argmax_scalar()
                 .expect("Model has 0 labels");
             let score = logits.index_axis(Axis(0), i)[argmax];
             let label = match config.id2label(argmax as u32) {

@@ -41,7 +41,7 @@ pub fn postprocess(
         .axis_iter(Axis(0))
         .zip(outputs.axis_iter(Axis(0)))
         .map(|(logs, probs)| {
-            let predicted_index = probs.argmax().expect("Model has 0 labels");
+            let predicted_index = probs.argmax_scalar().expect("Model has 0 labels");
             SequenceClassificationResult {
                 logits: logs.to_owned().into_raw_vec_and_offset().0,
                 scores: probs.to_owned().into_raw_vec_and_offset().0,
