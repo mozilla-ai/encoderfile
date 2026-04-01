@@ -313,7 +313,7 @@ class InspectInfo:
     model_config: ModelConfig
     encoderfile_config: EncoderfileConfig
 
-def inspect(path: str) -> InspectInfo:
+def read_metadata(path: str) -> InspectInfo:
     """
     Inspect an encoderfile binary without running inference.
 

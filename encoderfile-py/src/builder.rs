@@ -348,7 +348,7 @@ impl PyTargetSpec {
 }
 
 #[pyfunction]
-pub fn inspect(_py: Python<'_>, path: &str) -> PyResult<PyInspectInfo> {
+pub fn read_metadata(_py: Python<'_>, path: &str) -> PyResult<PyInspectInfo> {
     let result = inspect_encoderfile(path)
         .map_err(|e| PyRuntimeError::new_err(format!("Failed to inspect encoderfile: {:?}", e)))?;
     Ok(PyInspectInfo(result))
