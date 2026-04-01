@@ -17,3 +17,5 @@ pub use assets::get_banner;
 pub use runtime::AppState;
 
 pub mod builder;
+
+mod tensor_ext;

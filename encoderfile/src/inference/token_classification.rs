@@ -1,10 +1,10 @@
 use crate::{
     common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo},
     error::ApiError,
+    tensor_ext::TensorExt,
     transforms::{Postprocessor, TokenClassificationTransform},
 };
 use ndarray::{Array3, Axis, Ix3};
-use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
 #[tracing::instrument(skip_all)]
@@ -46,7 +46,7 @@ pub fn postprocess(
         for i in 0..encoding.len() {
             let argmax = logits
                 .index_axis(Axis(0), i)
-                .argmax()
+                .argmax_scalar()
                 .expect("Model has 0 labels");
             let score = logits.index_axis(Axis(0), i)[argmax];
             let label = match config.id2label(argmax as u32) {

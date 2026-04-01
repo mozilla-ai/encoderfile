@@ -57,9 +57,9 @@ pub fn l2_normalize(mut x: Array2<f32>, axis: Axis) -> Array2<f32> {
 
 pub fn requires_token_type_ids<'a>(session: &MutexGuard<'a, Session>) -> bool {
     session
-        .inputs
+        .inputs()
         .iter()
-        .any(|inp| inp.name == "token_type_ids")
+        .any(|inp| inp.name() == "token_type_ids")
 }
 
 #[macro_export]
