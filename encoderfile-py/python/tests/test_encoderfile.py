@@ -4,7 +4,7 @@ from encoderfile import (
     ModelConfig,
     EncoderfileConfig,
     InspectInfo,
-    inspect,
+    read_metadata,
     ModelType,
     TokenizerBuildConfig,
     TargetSpec,
@@ -81,7 +81,7 @@ def test_encoderfilebuilder_build_runs(config_filename):
     builder = EncoderfileBuilder.from_config(config_path)
     # Should not raise
     builder.build(workdir=None, version=None, no_download=True)
-    result = inspect(config_info["encoderfile"]["output_path"])
+    result = read_metadata(config_info["encoderfile"]["output_path"])
     assert isinstance(result, InspectInfo)
     assert isinstance(result.model_config, ModelConfig)
     assert isinstance(result.encoderfile_config, EncoderfileConfig)
@@ -129,7 +129,7 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
     builder = EncoderfileBuilder(**config)
     # Should not raise
     builder.build(workdir=None, version=None, no_download=True)
-    result = inspect(config["output_path"])
+    result = read_metadata(config["output_path"])
     assert isinstance(result, InspectInfo)
     assert isinstance(result.model_config, ModelConfig)
     assert isinstance(result.encoderfile_config, EncoderfileConfig)
@@ -185,7 +185,7 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
     }
     builder = EncoderfileBuilder(**config)
     builder.build(workdir=None, version=None, no_download=True)
-    result = inspect(config["output_path"])
+    result = read_metadata(config["output_path"])
     assert isinstance(result, InspectInfo)
     assert isinstance(result.model_config, ModelConfig)
     assert isinstance(result.encoderfile_config, EncoderfileConfig)

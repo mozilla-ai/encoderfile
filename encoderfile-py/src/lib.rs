@@ -13,7 +13,7 @@ mod encoderfile {
     use super::builder::PyEncoderfileBuilder;
 
     #[pymodule_export]
-    use super::builder::inspect;
+    use super::builder::read_metadata;
 
     #[pymodule_export]
     use super::builder::PyEncoderfileConfig;
