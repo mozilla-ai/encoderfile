@@ -85,7 +85,7 @@ class EncoderfileBuilder:
         *,
         name: str,
         version: Optional[str] = None,
-        model_type: ModelType,
+        model_type: ModelType | str,
         path: str,
         output_path: Optional[str] = None,
         cache_dir: Optional[str] = None,
