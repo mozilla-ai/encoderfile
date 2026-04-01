@@ -22,7 +22,7 @@ version = "0.12.5"
 version = "0.22.1"
 
 [workspace.dependencies.ort]
-version = "=2.0.0-rc.10"
+version = "=2.0.0-rc.12"
 features = ["std", "tracing", "ndarray"]
 
 [workspace.dependencies.tokio]
