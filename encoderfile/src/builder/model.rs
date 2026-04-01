@@ -1,9 +1,6 @@
 use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use anyhow::{Result, bail};
-use ort::{
-    session::Session,
-    value::Shape,
-};
+use ort::{session::Session, value::Shape};
 use std::path::Path;
 
 pub trait ModelTypeExt {

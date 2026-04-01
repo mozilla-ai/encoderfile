@@ -1,10 +1,10 @@
 use crate::{
     common::{ModelConfig, SequenceClassificationResult},
     error::ApiError,
+    tensor_ext::TensorExt,
     transforms::{Postprocessor, SequenceClassificationTransform},
 };
 use ndarray::{Array2, Axis, Ix2};
-use ndarray_stats::QuantileExt;
 use tokenizers::Encoding;
 
 #[tracing::instrument(skip_all)]
