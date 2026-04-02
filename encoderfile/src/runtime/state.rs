@@ -1,6 +1,7 @@
 use std::{marker::PhantomData, sync::Arc};
 
-use ort::session::Session;
+use ort::execution_providers as ep;
+use ort::session::{Session, builder::SessionBuilder};
 use parking_lot::Mutex;
 
 use crate::{
@@ -10,6 +11,34 @@ use crate::{
 };
 
 pub type AppState<T> = Arc<EncoderfileState<T>>;
+
+// TODO allow options for the backend
+pub fn assemble_ort_builder() -> Result<SessionBuilder, ort::Error> {
+    SessionBuilder::new()?
+        .with_execution_providers([
+            // Prefer TensorRT over CUDA.
+            ep::TensorRTExecutionProvider::default().build(),
+            ep::CUDAExecutionProvider::default().build(),
+            // Use DirectML on Windows if NVIDIA EPs are not available
+            ep::DirectMLExecutionProvider::default().build(),
+            // Or use ANE on Apple platforms
+            ep::CoreMLExecutionProvider::default().build(),
+        ])?
+        .with_parallel_execution(true)?
+        .with_inter_threads(4)
+}
+
+pub struct GlobalState {
+    pub builder: Mutex<SessionBuilder>,
+}
+
+impl GlobalState {
+    pub fn new() -> Result<Self, ort::Error> {
+        Ok(Self {
+            builder: Mutex::new(assemble_ort_builder()?),
+        })
+    }
+}
 
 #[derive(Debug)]
 pub struct EncoderfileState<T: ModelTypeSpec> {
