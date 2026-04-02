@@ -19,7 +19,7 @@ pub struct RuntimeArgs {
     pub target: TargetSpec,
 
     #[arg(long, help = "Version override (defaults to current version).")]
-    pub version: Option<String>,
+    pub runtime_version: Option<String>,
 }
 
 impl RuntimeArgs {
@@ -28,7 +28,7 @@ impl RuntimeArgs {
             cache_dir: &global.cache_dir(),
             base_binary_path: None,
             target: self.target.clone(),
-            version: self.version.clone(),
+            runtime_version: self.runtime_version.clone(),
         };
 
         let _out_path = resolver.resolve(true)?;
@@ -41,7 +41,7 @@ impl RuntimeArgs {
             cache_dir: &global.cache_dir(),
             base_binary_path: None,
             target: self.target.clone(),
-            version: self.version.clone(),
+            runtime_version: self.runtime_version.clone(),
         };
 
         resolver.remove()

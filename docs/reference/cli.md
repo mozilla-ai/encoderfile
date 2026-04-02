@@ -39,7 +39,7 @@ encoderfile build -f <config.yml> [OPTIONS]
 | `--no-build` | - | Flag | No | Generate project files without building |
 | `--base-binary-path` | - | Path | No | Specify custom local base binary |
 | `--platform` | - | Option | No | Target platform for compiled binary (e.g., `aarch64-apple-darwin`, `x86_64-unknown-linux-gnu`). Equivalent of Cargo's `--target`. Default is the architecture of whatever machine you are using. |
-| `--version` | - | Option | No | Override default encoderfile version |
+| `--runtime-version` | - | Option | No | Override default encoderfile runtime version |
 | `--no-download` | - | Flag | No | Disable downloading of base binary |
 
 

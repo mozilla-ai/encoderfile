@@ -1,4 +1,5 @@
 from typing import Optional, final
+
 from .enums import ModelType
 
 @final
@@ -142,7 +143,7 @@ class EncoderfileBuilder:
     def build(
         self,
         workdir: Optional[str] = None,
-        version: Optional[str] = None,
+        runtime_version: Optional[str] = None,
         no_download: bool = False,
     ):
         """
@@ -160,7 +161,7 @@ class EncoderfileBuilder:
         Args:
             workdir: Temporary working directory for intermediate build
                 files. Defaults to a system temp directory.
-            version: Override the encoderfile runtime version to embed.
+            runtime_version: Override the encoderfile runtime version to embed.
                 Takes precedence over the version set on the builder.
             no_download: When ``True``, disables downloading the base
                 binary from the network. A local base binary must be
