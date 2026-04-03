@@ -24,7 +24,7 @@ def test_encoderfilebuilder_from_configpath_returns_builder():
 def test_encoderfilebuilder_from_config_fails():
     config = {
         "name": "my-model-2",
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": "whatever",
         "output_path": "./test-model.encoderfile",
         "transform": """
@@ -43,6 +43,7 @@ def test_encoderfilebuilder_from_config_fails():
             return arr:softmax(3)
         end
         """,
+        "lua_libs": None,
     }
     with pytest.raises(RuntimeError) as exc_info:
         EncoderfileBuilder(**config)
@@ -52,7 +53,7 @@ def test_encoderfilebuilder_from_config_fails():
 def test_encoderfilebuilder_from_config_returns_builder():
     config = {
         "name": "my-model-2",
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": "./test-model.encoderfile",
         "transform": """
@@ -91,7 +92,7 @@ def test_encoderfilebuilder_build_runs(config_filename):
     print(result.encoderfile_config)
     assert result.encoderfile_config.name == config_info["encoderfile"]["name"]
     assert (
-        result.encoderfile_config.transform.strip()
+        str(result.encoderfile_config.transform).strip()
         == config_info["encoderfile"].get("transform").strip()
     )
     assert result.encoderfile_config.lua_libs == config_info["encoderfile"].get(
@@ -103,13 +104,13 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
     name = "model-built-from-config"
     config = {
         "name": name,
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "tokenizer": TokenizerBuildConfig(
             pad_strategy=BatchLongest(),
         ),
-        "base_binary_path": "./target/debug/encoderfile-runtime",
+        "base_binary_path": "../target/debug/encoderfile-runtime",
         "transform": """
         --- No docs
         ---
@@ -137,7 +138,8 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
     assert isinstance(result.encoderfile_config, EncoderfileConfig)
     assert result.encoderfile_config.name == config["name"]
     assert (
-        result.encoderfile_config.transform.strip() == config.get("transform").strip()
+        str(result.encoderfile_config.transform).strip()
+        == str(config.get("transform")).strip()
     )
     assert result.encoderfile_config.lua_libs == config.get("lua_libs")
     assert result.model_config.num_labels == model_info.get(
@@ -154,11 +156,11 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
     config = {
         "name": name,
         "version": "0.2.0",
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "cache_dir": "./cache",
-        "base_binary_path": "./target/debug/encoderfile-runtime",
+        "base_binary_path": "../target/debug/encoderfile-runtime",
         "transform": """
         --- No docs
         ---
@@ -195,7 +197,8 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
     assert result.encoderfile_config.version == config["version"]
     assert result.encoderfile_config.model_type == config["model_type"].value
     assert (
-        result.encoderfile_config.transform.strip() == config.get("transform").strip()
+        str(result.encoderfile_config.transform).strip()
+        == str(config.get("transform")).strip()
     )
     assert result.encoderfile_config.lua_libs == config.get("lua_libs")
 
@@ -205,7 +208,7 @@ def test_encoderfilebuilder_with_target_spec_object(tmp_path):
     target_spec = TargetSpec("x86_64-unknown-linux-musl")
     config = {
         "name": name,
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "tokenizer": TokenizerBuildConfig(
@@ -235,7 +238,7 @@ def test_encoderfilebuilder_wrong_arch(tmp_path):
     name = "model-built-from-config"
     config = {
         "name": name,
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "tokenizer": TokenizerBuildConfig(
