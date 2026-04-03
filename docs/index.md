@@ -116,6 +116,10 @@ Encoderfile compiles your model into a self-contained binary by embedding ONNX w
 - **[Token Classification (NER)](cookbooks/token-classification-ner.md)** - Build a Named Entity Recognition system
 - **[Transforms Guide](transforms/index.md)** - Custom post-processing with Lua scripts
 
+### Python Library
+- **[Building with Python](python/building-with-python.md)** - Build encoderfiles programmatically with the Python package
+- **[Python API Reference](python/api-reference.md)** - Complete reference for all classes and functions
+
 ### Reference
 - **[CLI Reference](reference/cli.md)** - Full documentation for `build`, `serve`, and `infer` commands
 - **[API Reference](reference/api-reference.md)** - REST, gRPC, and MCP endpoint specifications
