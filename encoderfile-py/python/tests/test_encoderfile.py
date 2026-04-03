@@ -1,16 +1,18 @@
+from pathlib import Path
+
 import pytest
+from conftest import asset_path, load_json, load_yaml_asset  # type: ignore
 from encoderfile import (
+    BatchLongest,
     EncoderfileBuilder,
-    ModelConfig,
     EncoderfileConfig,
     InspectInfo,
-    read_metadata,
+    ModelConfig,
     ModelType,
-    TokenizerBuildConfig,
     TargetSpec,
+    TokenizerBuildConfig,
+    read_metadata,
 )
-from pathlib import Path
-from conftest import asset_path, load_yaml_asset, load_json
 
 
 def test_encoderfilebuilder_from_configpath_returns_builder():
@@ -22,13 +24,13 @@ def test_encoderfilebuilder_from_configpath_returns_builder():
 def test_encoderfilebuilder_from_config_fails():
     config = {
         "name": "my-model-2",
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": "whatever",
         "output_path": "./test-model.encoderfile",
         "transform": """
         --- Applies a softmax across token classification logits.
         --- Each token classification is normalized independently.
-        --- 
+        ---
         --- Args:
         ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
         ---                 The softmax is applied along the third axis (n_labels).
@@ -41,6 +43,7 @@ def test_encoderfilebuilder_from_config_fails():
             return arr:softmax(3)
         end
         """,
+        "lua_libs": None,
     }
     with pytest.raises(RuntimeError) as exc_info:
         EncoderfileBuilder(**config)
@@ -50,13 +53,13 @@ def test_encoderfilebuilder_from_config_fails():
 def test_encoderfilebuilder_from_config_returns_builder():
     config = {
         "name": "my-model-2",
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": "./test-model.encoderfile",
         "transform": """
         --- Applies a softmax across token classification logits.
         --- Each token classification is normalized independently.
-        --- 
+        ---
         --- Args:
         ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
         ---                 The softmax is applied along the third axis (n_labels).
@@ -80,7 +83,7 @@ def test_encoderfilebuilder_build_runs(config_filename):
     config_info = load_yaml_asset(config_filename)
     builder = EncoderfileBuilder.from_config(config_path)
     # Should not raise
-    builder.build(workdir=None, version=None, no_download=True)
+    builder.build(workdir=None, runtime_version=None, no_download=True)
     result = read_metadata(config_info["encoderfile"]["output_path"])
     assert isinstance(result, InspectInfo)
     assert isinstance(result.model_config, ModelConfig)
@@ -89,7 +92,7 @@ def test_encoderfilebuilder_build_runs(config_filename):
     print(result.encoderfile_config)
     assert result.encoderfile_config.name == config_info["encoderfile"]["name"]
     assert (
-        result.encoderfile_config.transform.strip()
+        str(result.encoderfile_config.transform).strip()
         == config_info["encoderfile"].get("transform").strip()
     )
     assert result.encoderfile_config.lua_libs == config_info["encoderfile"].get(
@@ -101,13 +104,13 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
     name = "model-built-from-config"
     config = {
         "name": name,
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "tokenizer": TokenizerBuildConfig(
-            pad_strategy="batch_longest",
+            pad_strategy=BatchLongest(),
         ),
-        "base_binary_path": "./target/debug/encoderfile-runtime",
+        "base_binary_path": "../target/debug/encoderfile-runtime",
         "transform": """
         --- No docs
         ---
@@ -128,14 +131,15 @@ def test_encoderfilebuilder_build_from_dict(tmp_path):
     print(model_info)
     builder = EncoderfileBuilder(**config)
     # Should not raise
-    builder.build(workdir=None, version=None, no_download=True)
+    builder.build(workdir=None, runtime_version=None, no_download=True)
     result = read_metadata(config["output_path"])
     assert isinstance(result, InspectInfo)
     assert isinstance(result.model_config, ModelConfig)
     assert isinstance(result.encoderfile_config, EncoderfileConfig)
     assert result.encoderfile_config.name == config["name"]
     assert (
-        result.encoderfile_config.transform.strip() == config.get("transform").strip()
+        str(result.encoderfile_config.transform).strip()
+        == str(config.get("transform")).strip()
     )
     assert result.encoderfile_config.lua_libs == config.get("lua_libs")
     assert result.model_config.num_labels == model_info.get(
@@ -152,11 +156,11 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
     config = {
         "name": name,
         "version": "0.2.0",
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "cache_dir": "./cache",
-        "base_binary_path": "./target/debug/encoderfile-runtime",
+        "base_binary_path": "../target/debug/encoderfile-runtime",
         "transform": """
         --- No docs
         ---
@@ -174,7 +178,7 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
         """,
         "lua_libs": ["table", "math"],
         "tokenizer": TokenizerBuildConfig(
-            pad_strategy="batch_longest",
+            pad_strategy=BatchLongest(),
             truncation_side="right",
             truncation_strategy="longest_first",
             max_length=512,
@@ -184,7 +188,7 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
         "target": "x86_64-unknown-linux-musl",
     }
     builder = EncoderfileBuilder(**config)
-    builder.build(workdir=None, version=None, no_download=True)
+    builder.build(workdir=None, runtime_version=None, no_download=True)
     result = read_metadata(config["output_path"])
     assert isinstance(result, InspectInfo)
     assert isinstance(result.model_config, ModelConfig)
@@ -193,7 +197,8 @@ def test_encoderfilebuilder_build_all_from_dict(tmp_path):
     assert result.encoderfile_config.version == config["version"]
     assert result.encoderfile_config.model_type == config["model_type"].value
     assert (
-        result.encoderfile_config.transform.strip() == config.get("transform").strip()
+        str(result.encoderfile_config.transform).strip()
+        == str(config.get("transform")).strip()
     )
     assert result.encoderfile_config.lua_libs == config.get("lua_libs")
 
@@ -203,11 +208,11 @@ def test_encoderfilebuilder_with_target_spec_object(tmp_path):
     target_spec = TargetSpec("x86_64-unknown-linux-musl")
     config = {
         "name": name,
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "tokenizer": TokenizerBuildConfig(
-            pad_strategy="batch_longest",
+            pad_strategy=BatchLongest(),
         ),
         "transform": """
         --- No docs
@@ -233,11 +238,11 @@ def test_encoderfilebuilder_wrong_arch(tmp_path):
     name = "model-built-from-config"
     config = {
         "name": name,
-        "path": "models/token_classification",
+        "path": "../models/token_classification",
         "model_type": ModelType.TokenClassification,
         "output_path": str(tmp_path / f"{name}.encoderfile"),
         "tokenizer": TokenizerBuildConfig(
-            pad_strategy="batch_longest",
+            pad_strategy=BatchLongest(),
         ),
         "transform": """
         --- No docs
@@ -266,7 +271,7 @@ def test_encoderfilebuilder_wrong_arch(tmp_path):
 
 def test_tokenizer_build_config_from_dict():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "truncation_side": "right",
         "truncation_strategy": "longest_first",
         "max_length": 512,
@@ -288,14 +293,16 @@ def test_tokenizer_wrong_config_pad_strategy():
         "max_length": 512,
         "stride": 0,
     }
-    with pytest.raises(RuntimeError) as exc_info:
+    with pytest.raises(TypeError) as exc_info:
         TokenizerBuildConfig(**config)
-    assert f"Invalid pad strategy: {config['pad_strategy']}" in str(exc_info.value)
+
+    # error should return type received
+    assert "Received: 'str'" in str(exc_info.value)
 
 
 def test_tokenizer_wrong_config_truncation_side():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "truncation_side": "nonsense!",
         "truncation_strategy": "longest_first",
         "max_length": 512,
@@ -310,7 +317,7 @@ def test_tokenizer_wrong_config_truncation_side():
 
 def test_tokenizer_wrong_config_truncation_strategy():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "truncation_side": "right",
         "truncation_strategy": "nonsense!",
         "max_length": 512,
@@ -325,7 +332,7 @@ def test_tokenizer_wrong_config_truncation_strategy():
 
 def test_tokenizer_wrong_config_max_length():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "truncation_side": "right",
         "truncation_strategy": "longest_first",
         "max_length": -1,
@@ -337,7 +344,7 @@ def test_tokenizer_wrong_config_max_length():
 
 def test_tokenizer_wrong_type_max_length():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "truncation_side": "right",
         "truncation_strategy": "longest_first",
         "max_length": "nonsense!",
@@ -350,7 +357,7 @@ def test_tokenizer_wrong_type_max_length():
 
 def test_tokenizer_wrong_config_stride():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "truncation_side": "right",
         "truncation_strategy": "longest_first",
         "max_length": 512,
@@ -401,7 +408,7 @@ def test_tokenizer_config_all_optional_fields():
 
 def test_tokenizer_config_partial_optional_fields():
     config = {
-        "pad_strategy": "batch_longest",
+        "pad_strategy": BatchLongest(),
         "max_length": 512,
     }
     tokenizer_config = TokenizerBuildConfig(**config)
