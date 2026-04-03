@@ -22,7 +22,7 @@ pub struct BaseBinaryResolver<'a> {
     pub cache_dir: &'a Path,
     pub base_binary_path: Option<&'a Path>,
     pub target: TargetSpec,
-    pub version: Option<String>,
+    pub runtime_version: Option<String>,
 }
 
 impl BaseBinaryResolver<'_> {
@@ -182,7 +182,7 @@ impl BaseBinaryResolver<'_> {
     }
 
     fn version(&self) -> String {
-        self.version
+        self.runtime_version
             .clone()
             .unwrap_or(env!("CARGO_PKG_VERSION").to_string())
     }
@@ -298,12 +298,12 @@ mod tests {
     // -------- helpers --------
 
     impl<'a> BaseBinaryResolver<'a> {
-        fn test_new(target: TargetSpec, version: Option<&'a str>) -> Self {
+        fn test_new(target: TargetSpec, runtime_version: Option<&'a str>) -> Self {
             Self {
                 cache_dir: Path::new("/tmp"),
                 base_binary_path: None,
                 target,
-                version: version.map(|i| i.to_string()),
+                runtime_version: runtime_version.map(|i| i.to_string()),
             }
         }
     }

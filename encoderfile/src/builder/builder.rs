@@ -36,7 +36,7 @@ impl EncoderfileBuilder {
         BuildConfig::load(file_path).map(|config| EncoderfileBuilder { config })
     }
 
-    pub fn build(&self, version: &Option<String>, no_download: bool) -> Result<()> {
+    pub fn build(&self, runtime_version: &Option<String>, no_download: bool) -> Result<()> {
         let target = self
             .config
             .encoderfile
@@ -52,7 +52,7 @@ impl EncoderfileBuilder {
                 cache_dir: cache_dir.as_path(),
                 base_binary_path,
                 target,
-                version: version.clone(),
+                runtime_version: runtime_version.clone(),
             };
 
             resolver.resolve(no_download)?

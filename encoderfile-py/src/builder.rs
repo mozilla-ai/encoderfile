@@ -215,11 +215,11 @@ impl PyEncoderfileBuilder {
         }))
     }
 
-    #[pyo3(signature = (workdir = None, version = None, no_download = false))]
+    #[pyo3(signature = (workdir = None, runtime_version = None, no_download = false))]
     fn build(
         &self,
         workdir: Option<String>,
-        version: Option<String>,
+        runtime_version: Option<String>,
         no_download: bool,
     ) -> PyResult<()> {
         // change working dir if specified
@@ -234,7 +234,7 @@ impl PyEncoderfileBuilder {
         }
 
         self.0
-            .build(&version, no_download)
+            .build(&runtime_version, no_download)
             .map_err(|e| PyRuntimeError::new_err(format!("Error building encoderfile: {:?}", e)))?;
 
         Ok(())
