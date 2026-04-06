@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test_python:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +22,9 @@ jobs:
         with:
           # use MSRV
           python_version: "3.10"
+
+      - name: Install Maturin
+        run: cargo binstall maturin
 
       - name: Maturin develop
         run: just build-py
