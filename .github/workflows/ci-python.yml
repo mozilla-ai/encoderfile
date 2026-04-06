@@ -34,3 +34,4 @@ jobs:
 
       - name: Stubtest
         run: just stubtest
+
