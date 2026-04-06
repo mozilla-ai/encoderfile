@@ -26,6 +26,9 @@ jobs:
       - name: Install Maturin
         run: cargo binstall maturin
 
+      - name: Build rs (debug)
+        run: cargo build --locked
+
       - name: Maturin develop
         run: just build-py
 
