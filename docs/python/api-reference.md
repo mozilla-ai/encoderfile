@@ -87,7 +87,7 @@ EncoderfileBuilder.from_config(config_path: str) -> EncoderfileBuilder
 
 Create an `EncoderfileBuilder` from a YAML configuration file.
 
-The YAML file must have an `encoderfile` top-level key:
+The YAML file must have an `encoderfile` top-level key, containing any of the keywords described in the constructor:
 
 ```yaml
 encoderfile:
