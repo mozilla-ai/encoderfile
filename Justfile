@@ -1,3 +1,4 @@
+export PATH := "/home/runner/.cargo/bin" + env_var("PATH")
 # Setup
 setup:
     @echo "creating .venv"

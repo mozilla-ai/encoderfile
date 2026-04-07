@@ -24,13 +24,17 @@ jobs:
           python_version: "3.10"
 
       - name: Install Maturin
-        run: cargo binstall maturin
+        run: |
+          cargo binstall maturin --force --disable-telemetry
+          ls -la /home/runner/.cargo/bin/
 
       - name: Build rs (debug)
         run: cargo build --locked
 
       - name: Maturin develop
-        run: just build-py
+        run: |
+          ls -la /home/runner/.cargo/bin/
+          just build-py
 
       - name: Test
         run: just test-py
