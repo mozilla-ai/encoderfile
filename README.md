@@ -106,6 +106,33 @@ cargo build --bin encoderfile --release
 ./target/release/encoderfile --help
 ```
 
+### Option 3: Python Package
+Install the Python library to build encoderfiles programmatically:
+```bash
+pip install encoderfile
+# or with uv
+uv add encoderfile
+```
+```python
+from encoderfile import EncoderfileBuilder, ModelType
+
+builder = EncoderfileBuilder(
+    name="sentiment-analyzer",
+    model_type=ModelType.SequenceClassification,
+    path="./sentiment-model",
+)
+builder.build()
+```
+
+The package also provides a CLI entry point:
+
+```bash
+uv run -m encoderfile build -f config.yml
+```
+
+See the **[Python Library docs](https://mozilla-ai.github.io/encoderfile/python/building-with-python/)** for the full guide and **[API reference](https://mozilla-ai.github.io/encoderfile/python/api-reference/)**.
+
+
 ## 🚀 Quick Start
 
 ### Step 1: Prepare Your Model
@@ -236,6 +263,7 @@ See the **[CLI Reference](https://mozilla-ai.github.io/encoderfile/latest/refere
 - **[Building Guide](https://mozilla-ai.github.io/encoderfile/reference/building/)** - Build encoderfiles from ONNX models
 - **[CLI Reference](https://mozilla-ai.github.io/encoderfile/reference/cli/)** - Complete command-line documentation
 - **[API Reference](https://mozilla-ai.github.io/encoderfile/reference/api-reference/)** - REST, gRPC, and MCP API docs
+- **[Python Library](https://mozilla-ai.github.io/encoderfile/python/building-with-python/)** - Build encoderfiles from Python
 
 ## 🛠️ Building Custom Encoderfiles
 

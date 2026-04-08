@@ -22,6 +22,9 @@ nav:
   - Getting Started: getting-started.md
   - Building Encoderfiles:
     - Building with Docker: building_encoderfiles/docker.md
+  - Python Library:
+    - Building with Python: python/building-with-python.md
+    - API Reference: python/api-reference.md
   - Cookbooks:
       - Token Classification (NER): cookbooks/token-classification-ner.md
       - MCP Integration: cookbooks/mcp-integration.md
