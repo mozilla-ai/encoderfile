@@ -89,6 +89,10 @@ pub enum Commands {
         #[arg(long, default_value = "9100")]
         port: String,
         #[arg(long)]
+        enable_otel: bool,
+        #[arg(long, default_value = "http://localhost:4317")]
+        otel_exporter_url: String,
+        #[arg(long)]
         cert_file: Option<String>,
         #[arg(long)]
         key_file: Option<String>,
@@ -96,6 +100,29 @@ pub enum Commands {
 }
 
 impl Commands {
+    pub fn setup_tracing(&self) -> anyhow::Result<()> {
+        match self {
+            Commands::Serve {
+                enable_otel,
+                otel_exporter_url,
+                ..
+            }
+            | Commands::Mcp {
+                enable_otel,
+                otel_exporter_url,
+                ..
+            } => {
+                if *enable_otel {
+                    setup_tracing(Some(otel_exporter_url.as_str()))?;
+                } else {
+                    setup_tracing(None)?;
+                }
+            }
+            _ => setup_tracing(None)?,
+        }
+        Ok(())
+    }
+
     pub async fn execute<S>(self, state: S) -> Result<()>
     where
         S: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
@@ -108,10 +135,9 @@ impl Commands {
                 http_port,
                 disable_grpc,
                 disable_http,
-                enable_otel,
-                otel_exporter_url,
                 cert_file,
                 key_file,
+                ..
             } => {
                 let banner = crate::get_banner(state.model_id().as_str());
 
@@ -120,11 +146,6 @@ impl Commands {
                         "Cannot disable both gRPC and HTTP",
                     ))?;
                 }
-
-                match enable_otel {
-                    true => setup_tracing(Some(otel_exporter_url.as_str())),
-                    false => setup_tracing(None),
-                }?;
 
                 let grpc_process = match disable_grpc {
                     true => tokio::spawn(async { Ok(()) }),
@@ -156,16 +177,13 @@ impl Commands {
                 inputs,
                 format,
                 out_dir,
-            } => {
-                setup_tracing(None)?;
-
-                state.cli_route(inputs, format, out_dir)?
-            }
+            } => state.cli_route(inputs, format, out_dir)?,
             Commands::Mcp {
                 hostname,
                 port,
                 cert_file,
                 key_file,
+                ..
             } => {
                 let banner = crate::get_banner(state.model_id().as_str());
                 let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
