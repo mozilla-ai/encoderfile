@@ -1,44 +1,66 @@
-name: docs
+name: Documentation
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "scripts/convert_to_gitbook.py"
+      - ".gitbook.yaml"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "scripts/convert_to_gitbook.py"
+      - ".gitbook.yaml"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  deploy:
+  docs:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the repository
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # <-- required so tags + full history are present
+          fetch-depth: 0
 
-      - name: Configure Git Credentials
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-
-      - uses: actions/setup-python@v5
+      - name: Install the latest version of uv and set the python version to 3.13
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: 3.x
+          python-version: "3.13"
+          activate-environment: true
 
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
-      - uses: actions/cache@v4
-        with:
-          key: mkdocs-material-${{ env.cache_id }}
-          path: ~/.cache 
+      - name: Build GitBook site
+        run: python scripts/convert_to_gitbook.py
 
-          restore-keys: |
-            mkdocs-material-
+      - name: Verify committed docs are up to date
+        if: github.event_name == 'pull_request'
+        run: git diff --exit-code -- docs
 
-      - name: Install dependencies
+      - name: Deploy to gitbook-docs branch
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         run: |
-          pip install uv
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          cp .gitbook-branch-readme.md site/README-BRANCH.md
+          cp .gitbook.yaml site/.gitbook.yaml
 
-      - name: Build & Deploy
-        run: |
-          uv run --group docs mkdocs gh-deploy --force
+          mv site/ /tmp/gitbook-site/
+
+          git fetch origin gitbook-docs || true
+          if git rev-parse --verify origin/gitbook-docs >/dev/null 2>&1; then
+            git checkout gitbook-docs
+          else
+            git checkout --orphan gitbook-docs
+            git rm -rf .
+          fi
+
+          rsync -a --delete --exclude='.git' /tmp/gitbook-site/ .
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: update GitBook documentation from ${{ github.sha }}"
+            git push origin gitbook-docs
+          fi

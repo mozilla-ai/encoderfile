@@ -10,7 +10,7 @@ build-py:
 
 # Docs
 docs:
-    @uv run --group docs -m mkdocs serve
+    @python scripts/convert_to_gitbook.py
 
 # Check, Test, & Coverage
 
