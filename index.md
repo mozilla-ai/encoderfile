@@ -108,6 +108,7 @@ Encoderfile compiles your model into a self-contained binary by embedding ONNX w
   <img
     src="assets/encoderfile-light.svg"
     alt="Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server."
+    width="100%"
   />
 </picture>
 
