@@ -71,6 +71,7 @@ description = "Distribute and run transformer encoders with a single file."
 repository = "https://github.com/mozilla-ai/encoderfile"
 
 [dependencies]
+ndarray-stats = "0.6.0"
 ring = "0.17.14"
 clap_derive = "4.5.49"
 console = { version = "0.16.2", optional = true }
