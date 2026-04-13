@@ -100,16 +100,7 @@ See the [API Reference](reference/api-reference.md) for complete endpoint docume
 
 Encoderfile compiles your model into a self-contained binary by embedding ONNX weights, tokenizer, and config directly into Rust code. The result is a portable executable with zero runtime dependencies.
 
-<picture>
-  <source
-    srcset="assets/encoderfile-dark.svg"
-    media="(prefers-color-scheme: dark)"
-  />
-  <img
-    src="assets/encoderfile-light.svg"
-    alt="Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server."
-  />
-</picture>
+![Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server.](assets/encoderfile-light.svg)
 
 ## Documentation
 
