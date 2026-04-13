@@ -68,7 +68,11 @@ impl BuildArgs {
         }
 
         if let Some(base_binary_path) = &self.base_binary_path {
-            config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf())
+            config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf());
+        }
+
+        if let Some(platform) = &self.platform {
+            config.encoderfile.target = Some(platform.clone());
         }
 
         super::super::builder::EncoderfileBuilder::new(config)
