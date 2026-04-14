@@ -11,6 +11,9 @@ use ort::{
     },
 };
 
+const CUDA_ENABLED: bool = cfg!(feature = "cuda");
+const METAL_ENABLED: bool = cfg!(feature = "metal");
+
 #[derive(Debug)]
 pub struct ORTSessionBuilder {
     pub execution_provider: ORTExecutionProvider,
@@ -99,6 +102,12 @@ fn get_cpu_execution_provider(arena_allocator: bool) -> Result<ExecutionProvider
 }
 
 fn get_tensorrt_provider(device_id: i32) -> Result<ExecutionProviderDispatch> {
+    if !CUDA_ENABLED {
+        anyhow::bail!(
+            "Current encoderfile runtime is not built with CUDA/TensorRT. Please use a GPU-enabled encoderfile runtime."
+        )
+    }
+
     let ep =
         ort::execution_providers::TensorRTExecutionProvider::default().with_device_id(device_id);
 
@@ -108,6 +117,12 @@ fn get_tensorrt_provider(device_id: i32) -> Result<ExecutionProviderDispatch> {
 }
 
 fn get_cuda_execution_provider(device_id: i32) -> Result<ExecutionProviderDispatch> {
+    if !CUDA_ENABLED {
+        anyhow::bail!(
+            "Current encoderfile runtime is not built with CUDA/TensorRT. Please use a GPU-enabled encoderfile runtime."
+        )
+    }
+
     let ep = ort::execution_providers::CUDAExecutionProvider::default().with_device_id(device_id);
 
     check_provider(&ep)?;
@@ -118,6 +133,12 @@ fn get_cuda_execution_provider(device_id: i32) -> Result<ExecutionProviderDispat
 fn get_metal_execution_provider(
     compute_units: CoreMLComputeUnits,
 ) -> Result<ExecutionProviderDispatch> {
+    if !METAL_ENABLED {
+        anyhow::bail!(
+            "Current encoderfile runtime is not built with Apple Metal. Please use a Metal-enabled encoderfile runtime."
+        )
+    }
+
     let ep = ort::execution_providers::CoreMLExecutionProvider::default()
         .with_compute_units(compute_units);
 
