@@ -30,9 +30,6 @@ message EncoderfileManifest {
   // This value is informational and has no behavioral impact.
   string version = 3;
 
-  // Backend.
-  Backend backend = 4;
-
   // ------------------------------------------------------------------
   // 50–99: Transforms and preprocessing
   // ------------------------------------------------------------------
@@ -103,22 +100,4 @@ enum TransformType {
 
   // Lua source executed by the runtime.
   LUA = 1;
-}
-
-// Execution backend required by the embedded runtime binary.
-//
-// This enum is informational here; backend compatibility is enforced
-// by the runtime binary itself, not by the payload.
-enum Backend {
-  // CPU-only execution (no hardware acceleration).
-  CPU = 0;
-
-  // NVIDIA CUDA backend.
-  CUDA = 1;
-
-  // TensorRT
-  TENSORRT = 2;
-
-  // Apple CoreML backend.
-  COREML = 3;
 }
