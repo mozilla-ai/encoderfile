@@ -2,6 +2,7 @@ use ort::session::Session;
 use parking_lot::MutexGuard;
 
 mod loader;
+pub mod session;
 mod state;
 mod tokenizer;
 
