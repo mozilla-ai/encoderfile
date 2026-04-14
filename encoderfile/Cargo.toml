@@ -107,6 +107,8 @@ transport = [
 dev-utils = ["transport"]
 cli = ["dep:console"]
 internal = []
+cuda = ["ort/cuda", "ort/tensorrt"]
+metal = ["ort/coreml"]
 
 [dev-dependencies]
 tempfile = "3.23.0"
