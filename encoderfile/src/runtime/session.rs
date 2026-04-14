@@ -22,7 +22,10 @@ impl ORTSessionBuilder {
     fn builder(self) -> Result<SessionBuilder> {
         let mut eps = vec![self.execution_provider.dispatch()?];
 
-        if self.enable_cpu_fallback {
+        // ignore cpu fallback if EP is cpu in the first place
+        if self.enable_cpu_fallback
+            && !matches!(self.execution_provider, ORTExecutionProvider::Cpu { .. })
+        {
             eps.push(ORTExecutionProvider::default().dispatch()?);
         }
 
