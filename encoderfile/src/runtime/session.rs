@@ -57,6 +57,9 @@ pub enum ORTExecutionProvider {
     Cuda {
         device_id: Option<i32>,
     },
+    TensorRT {
+        device_id: Option<i32>,
+    },
     Metal {
         compute_units: Option<CoreMLComputeUnits>,
     },
@@ -75,6 +78,7 @@ impl ORTExecutionProvider {
         match self {
             Self::Cpu { arena_allocator } => get_cpu_execution_provider(*arena_allocator),
             Self::Cuda { device_id } => get_cuda_execution_provider(device_id.unwrap_or(0)),
+            Self::TensorRT { device_id } => get_tensorrt_provider(device_id.unwrap_or(0)),
             Self::Metal { compute_units } => {
                 get_metal_execution_provider((*compute_units).unwrap_or(CoreMLComputeUnits::All))
             }
@@ -85,6 +89,15 @@ impl ORTExecutionProvider {
 fn get_cpu_execution_provider(arena_allocator: bool) -> Result<ExecutionProviderDispatch> {
     let ep = ort::execution_providers::CPUExecutionProvider::default()
         .with_arena_allocator(arena_allocator);
+
+    check_provider(&ep)?;
+
+    Ok(ep.build())
+}
+
+fn get_tensorrt_provider(device_id: i32) -> Result<ExecutionProviderDispatch> {
+    let ep =
+        ort::execution_providers::TensorRTExecutionProvider::default().with_device_id(device_id);
 
     check_provider(&ep)?;
 
