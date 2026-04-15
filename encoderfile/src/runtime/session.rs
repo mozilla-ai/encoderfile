@@ -21,6 +21,16 @@ pub struct ORTSessionBuilder {
     pub graph_optimization_level: Option<GraphOptimizationLevel>,
 }
 
+impl Default for ORTSessionBuilder {
+    fn default() -> Self {
+        ORTSessionBuilder {
+            execution_provider: ORTExecutionProvider::default(),
+            enable_cpu_fallback: true,
+            graph_optimization_level: None,
+        }
+    }
+}
+
 impl ORTSessionBuilder {
     fn builder(self) -> Result<SessionBuilder> {
         let mut eps = vec![self.execution_provider.dispatch()?];
@@ -153,4 +163,27 @@ fn check_provider<E: ExecutionProvider + std::fmt::Debug>(provider: &E) -> Resul
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_ort_session_builder() {
+        let builder = ORTSessionBuilder::default();
+
+        // cpu fallback should be true by default
+        assert!(builder.enable_cpu_fallback);
+
+        // graph optimization level should be none
+        assert!(builder.graph_optimization_level.is_none());
+
+        match builder.execution_provider {
+            ORTExecutionProvider::Cpu { arena_allocator } => {
+                assert!(!arena_allocator);
+            }
+            _ => panic!("default ORT execution provider should be CPU"),
+        }
+    }
 }
