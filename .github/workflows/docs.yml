@@ -27,11 +27,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install the latest version of uv and set the python version to 3.13
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-          activate-environment: true
 
       - name: Build GitBook site
         run: python scripts/convert_to_gitbook.py
