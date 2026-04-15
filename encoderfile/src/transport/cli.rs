@@ -1,5 +1,6 @@
 use crate::{
     common::FromCliInput,
+    runtime::ORTExecutionProvider,
     services::Inference,
     transport::{
         grpc::GrpcRouter,
@@ -9,7 +10,7 @@ use crate::{
     },
 };
 use anyhow::Result;
-use clap_derive::{Parser, Subcommand, ValueEnum};
+use clap_derive::{Args, Parser, Subcommand, ValueEnum};
 use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
@@ -74,6 +75,8 @@ pub enum Commands {
         cert_file: Option<String>,
         #[arg(long)]
         key_file: Option<String>,
+        #[command(flatten)]
+        ep_args: ExecutionProviderArgs,
     },
     Infer {
         #[arg(required = true)]
@@ -112,6 +115,7 @@ impl Commands {
                 otel_exporter_url,
                 cert_file,
                 key_file,
+                ep_args,
             } => {
                 let banner = crate::get_banner(state.model_id().as_str());
 
@@ -174,6 +178,54 @@ impl Commands {
             }
         }
         Ok(())
+    }
+}
+
+#[derive(Clone, Args)]
+pub struct ExecutionProviderArgs {
+    #[arg(long, default_value_t = ExecutionProvider::Cpu)]
+    execution_provider: ExecutionProvider,
+    #[arg(long, default_value_t = false)]
+    with_arena_allocator: bool,
+    #[arg(long)]
+    device_id: Option<i32>,
+}
+
+impl ExecutionProviderArgs {
+    pub fn to_provider(&self) -> ORTExecutionProvider {
+        match self.execution_provider {
+            ExecutionProvider::Cpu => ORTExecutionProvider::Cpu {
+                arena_allocator: self.with_arena_allocator,
+            },
+            ExecutionProvider::Cuda => ORTExecutionProvider::Cuda {
+                device_id: self.device_id,
+            },
+            ExecutionProvider::Tensorrt => ORTExecutionProvider::TensorRT {
+                device_id: self.device_id,
+            },
+            ExecutionProvider::Coreml => ORTExecutionProvider::CoreML {
+                compute_units: None,
+            },
+        }
+    }
+}
+
+#[derive(Clone, ValueEnum)]
+pub enum ExecutionProvider {
+    Cpu,
+    Cuda,
+    Tensorrt,
+    Coreml,
+}
+
+impl Display for ExecutionProvider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExecutionProvider::Cpu => write!(f, "cpu"),
+            ExecutionProvider::Cuda => write!(f, "cuda"),
+            ExecutionProvider::Tensorrt => write!(f, "tensorrt"),
+            ExecutionProvider::Coreml => write!(f, "coreml"),
+        }
     }
 }
 
