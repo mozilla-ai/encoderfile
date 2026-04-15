@@ -185,10 +185,23 @@ impl Commands {
 pub struct ExecutionProviderArgs {
     #[arg(long, default_value_t = ExecutionProvider::Cpu)]
     execution_provider: ExecutionProvider,
-    #[arg(long, default_value_t = false)]
+    #[arg(
+        long,
+        default_value_t = false,
+        help = "Use arena allocator. Use only if execution provider is CPU."
+    )]
     with_arena_allocator: bool,
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Device. Use only if execution provider is CUDA/TensorRT."
+    )]
     device_id: Option<i32>,
+    #[arg(
+        long,
+        default_value_t = CoreMLComputeUnits::All,
+        help = "Compute units. Use only if execution provider is CoreML."
+    )]
+    compute_units: CoreMLComputeUnits,
 }
 
 impl ExecutionProviderArgs {
@@ -204,8 +217,40 @@ impl ExecutionProviderArgs {
                 device_id: self.device_id,
             },
             ExecutionProvider::Coreml => ORTExecutionProvider::CoreML {
-                compute_units: None,
+                compute_units: Some(match self.compute_units {
+                    CoreMLComputeUnits::All => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::All
+                    }
+                    CoreMLComputeUnits::CpuAndNeuralEngine => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::CPUAndNeuralEngine
+                    }
+                    CoreMLComputeUnits::CpuAndGpu => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::CPUAndGPU
+                    }
+                    CoreMLComputeUnits::CpuOnly => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::CPUOnly
+                    }
+                }),
             },
+        }
+    }
+}
+
+#[derive(Clone, ValueEnum)]
+pub enum CoreMLComputeUnits {
+    All,
+    CpuAndNeuralEngine,
+    CpuAndGpu,
+    CpuOnly,
+}
+
+impl Display for CoreMLComputeUnits {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CoreMLComputeUnits::All => write!(f, "all"),
+            CoreMLComputeUnits::CpuAndNeuralEngine => write!(f, "cpu-and-neural-engine"),
+            CoreMLComputeUnits::CpuAndGpu => write!(f, "cpu-and-gpu"),
+            CoreMLComputeUnits::CpuOnly => write!(f, "cpu-only"),
         }
     }
 }
