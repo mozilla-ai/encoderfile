@@ -83,7 +83,7 @@ pub enum Commands {
         #[arg(long)]
         key_file: Option<String>,
         #[command(flatten)]
-        ep_args: ExecutionProviderArgs,
+        onnx_args: ONNXArgs,
     },
     Infer {
         #[arg(required = true)]
@@ -92,6 +92,8 @@ pub enum Commands {
         format: Format,
         #[arg(short)]
         out_dir: Option<String>,
+        #[command(flatten)]
+        onnx_args: ONNXArgs,
     },
     Mcp {
         #[arg(long, default_value = "0.0.0.0")]
@@ -102,6 +104,8 @@ pub enum Commands {
         cert_file: Option<String>,
         #[arg(long)]
         key_file: Option<String>,
+        #[command(flatten)]
+        onnx_args: ONNXArgs,
     },
 }
 
@@ -148,9 +152,15 @@ impl Commands {
                 otel_exporter_url,
                 cert_file,
                 key_file,
-                ep_args,
+                onnx_args,
             } => {
-                let session = loader.session()?.into();
+                let session = loader
+                    .session(
+                        onnx_args.to_provider(),
+                        onnx_args.enable_cpu_fallback(),
+                        onnx_args.graph_optimization_level(),
+                    )?
+                    .into();
                 let model_config = loader.model_config()?;
                 let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
@@ -205,8 +215,16 @@ impl Commands {
                 inputs,
                 format,
                 out_dir,
+                onnx_args,
             } => {
-                let session = loader.session()?.into();
+                let session = loader
+                    .session(
+                        onnx_args.to_provider(),
+                        onnx_args.enable_cpu_fallback(),
+                        onnx_args.graph_optimization_level(),
+                    )?
+                    .into();
+
                 let model_config = loader.model_config()?;
                 let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
@@ -227,8 +245,16 @@ impl Commands {
                 port,
                 cert_file,
                 key_file,
+                onnx_args,
             } => {
-                let session = loader.session()?.into();
+                let session = loader
+                    .session(
+                        onnx_args.to_provider(),
+                        onnx_args.enable_cpu_fallback(),
+                        onnx_args.graph_optimization_level(),
+                    )?
+                    .into();
+
                 let model_config = loader.model_config()?;
                 let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
@@ -251,7 +277,11 @@ impl Commands {
 }
 
 #[derive(Clone, Args)]
-pub struct ExecutionProviderArgs {
+pub struct ONNXArgs {
+    #[arg(long, default_value_t = false)]
+    disable_cpu_fallback: bool,
+    #[arg(long)]
+    graph_optimization_level: Option<GraphOptimizationLevel>,
     #[arg(long, default_value_t = ExecutionProvider::Cpu)]
     execution_provider: ExecutionProvider,
     #[arg(
@@ -273,7 +303,15 @@ pub struct ExecutionProviderArgs {
     compute_units: CoreMLComputeUnits,
 }
 
-impl ExecutionProviderArgs {
+impl ONNXArgs {
+    pub fn graph_optimization_level(self) -> Option<ort::session::builder::GraphOptimizationLevel> {
+        self.graph_optimization_level.clone().map(|i| i.into())
+    }
+
+    pub fn enable_cpu_fallback(&self) -> bool {
+        !self.disable_cpu_fallback
+    }
+
     pub fn to_provider(&self) -> ORTExecutionProvider {
         match self.execution_provider {
             ExecutionProvider::Cpu => ORTExecutionProvider::Cpu {
@@ -301,6 +339,32 @@ impl ExecutionProviderArgs {
                     }
                 }),
             },
+        }
+    }
+}
+
+#[derive(Clone, ValueEnum, Default)]
+pub enum GraphOptimizationLevel {
+    #[value(name = "disable")]
+    Disable,
+    #[value(name = "1")]
+    Level1,
+    #[value(name = "2")]
+    Level2,
+    #[default]
+    #[value(name = "3")]
+    Level3,
+}
+
+impl From<GraphOptimizationLevel> for ort::session::builder::GraphOptimizationLevel {
+    fn from(value: GraphOptimizationLevel) -> Self {
+        match value {
+            GraphOptimizationLevel::Disable => {
+                ort::session::builder::GraphOptimizationLevel::Disable
+            }
+            GraphOptimizationLevel::Level1 => ort::session::builder::GraphOptimizationLevel::Level1,
+            GraphOptimizationLevel::Level2 => ort::session::builder::GraphOptimizationLevel::Level2,
+            GraphOptimizationLevel::Level3 => ort::session::builder::GraphOptimizationLevel::Level3,
         }
     }
 }
