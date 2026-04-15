@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package encoderfile.image_segmentation;
+
+import "proto/token.proto";
+import "proto/metadata.proto";
+
+service ImageSegmentation {
+  rpc Predict(ImageSegmentationRequest) returns (ImageSegmentationResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message ImageSegmentationRequest {
+  optional string url = 1;
+  optional string store_url = 2;
+  optional bytes image = 3;
+  map<string, string> metadata = 11;
+}
+
+message ImageSegment {
+  string label = 1;
+  optional float score = 2;
+  optional string url = 3;
+  optional bytes mask = 4;
+}
+
+message ImageSegmentationResponse {
+  repeated ImageSegment = 1;
+  map<string, string> metadata = 11;
+}
