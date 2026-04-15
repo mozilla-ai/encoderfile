@@ -1,7 +1,10 @@
 use crate::{
-    common::FromCliInput,
-    runtime::ORTExecutionProvider,
-    services::Inference,
+    common::{
+        FromCliInput, ModelType,
+        model_type::{self, ModelTypeSpec},
+    },
+    runtime::{EncoderfileLoader, EncoderfileState, ORTExecutionProvider},
+    services::{Inference, Metadata},
     transport::{
         grpc::GrpcRouter,
         http::HttpRouter,
@@ -14,7 +17,11 @@ use clap_derive::{Args, Parser, Subcommand, ValueEnum};
 use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
-use std::{fmt::Display, io::Write};
+use std::{
+    fmt::Display,
+    io::{Read, Seek, Write},
+    sync::Arc,
+};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub trait CliRoute: Inference {
@@ -99,9 +106,35 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute<S>(self, state: S) -> Result<()>
+    pub async fn execute<'a, R: Read + Seek>(
+        self,
+        loader: &mut EncoderfileLoader<'a, R>,
+    ) -> Result<()> {
+        match loader.model_type() {
+            ModelType::Embedding => {
+                self.execute_from_loader::<R, model_type::Embedding>(loader)
+                    .await
+            }
+            ModelType::SequenceClassification => {
+                self.execute_from_loader::<R, model_type::SequenceClassification>(loader)
+                    .await
+            }
+            ModelType::TokenClassification => {
+                self.execute_from_loader::<R, model_type::TokenClassification>(loader)
+                    .await
+            }
+            ModelType::SentenceEmbedding => {
+                self.execute_from_loader::<R, model_type::SentenceEmbedding>(loader)
+                    .await
+            }
+        }
+    }
+    pub async fn execute_from_loader<'a, R: Read + Seek, T: ModelTypeSpec>(
+        self,
+        loader: &mut EncoderfileLoader<'a, R>,
+    ) -> Result<()>
     where
-        S: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
+        Arc<EncoderfileState<T>>: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
     {
         match self {
             Commands::Serve {
@@ -117,6 +150,18 @@ impl Commands {
                 key_file,
                 ep_args,
             } => {
+                let session = loader.session()?.into();
+                let model_config = loader.model_config()?;
+                let tokenizer = loader.tokenizer()?;
+                let config = loader.encoderfile_config()?;
+
+                let state = Arc::new(EncoderfileState::<T>::new(
+                    config,
+                    session,
+                    tokenizer,
+                    model_config,
+                ));
+
                 let banner = crate::get_banner(state.model_id().as_str());
 
                 if disable_grpc && disable_http {
@@ -161,6 +206,18 @@ impl Commands {
                 format,
                 out_dir,
             } => {
+                let session = loader.session()?.into();
+                let model_config = loader.model_config()?;
+                let tokenizer = loader.tokenizer()?;
+                let config = loader.encoderfile_config()?;
+
+                let state = Arc::new(EncoderfileState::<T>::new(
+                    config,
+                    session,
+                    tokenizer,
+                    model_config,
+                ));
+
                 setup_tracing(None)?;
 
                 state.cli_route(inputs, format, out_dir)?
@@ -171,6 +228,18 @@ impl Commands {
                 cert_file,
                 key_file,
             } => {
+                let session = loader.session()?.into();
+                let model_config = loader.model_config()?;
+                let tokenizer = loader.tokenizer()?;
+                let config = loader.encoderfile_config()?;
+
+                let state = Arc::new(EncoderfileState::<T>::new(
+                    config,
+                    session,
+                    tokenizer,
+                    model_config,
+                ));
+
                 let banner = crate::get_banner(state.model_id().as_str());
                 let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
                 println!("{}", banner);
