@@ -10,10 +10,12 @@ service ObjectDetection {
   rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
 }
 
+message ImageInput {
+  bytes image = 1;
+}
+
 message ObjectDetectionRequest {
-  optional string url = 1;
-  optional string store_url = 2;
-  optional bytes image = 3;
+  repeated bytes images = 1;
   map<string, string> metadata = 11;
 }
 
@@ -26,7 +28,11 @@ message ImageBoundingBox {
   ymax int32 = 6;
 }
 
+message ImageBoundingBoxes {
+  repeated ImageBoundingBox boxes = 1;
+}
+
 message ObjectDetectionResponse {
-  repeated ImageBoundingBox = 1;
+  repeated ImageBoundingBoxes boxes_batch = 1;
   map<string, string> metadata = 11;
 }

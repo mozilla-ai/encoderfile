@@ -10,21 +10,26 @@ service ImageSegmentation {
   rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
 }
 
+message ImageInput {
+  bytes image = 1;
+}
+
 message ImageSegmentationRequest {
-  optional string url = 1;
-  optional string store_url = 2;
-  optional bytes image = 3;
+  repeated ImageInput images = 1;
   map<string, string> metadata = 11;
 }
 
 message ImageSegment {
   string label = 1;
   optional float score = 2;
-  optional string url = 3;
-  optional bytes mask = 4;
+  bytes mask = 4;
+}
+
+message ImageSegments {
+  repeated ImageSegment segments = 1;
 }
 
 message ImageSegmentationResponse {
-  repeated ImageSegment = 1;
+  repeated ImageSegments segments_batch = 1;
   map<string, string> metadata = 11;
 }

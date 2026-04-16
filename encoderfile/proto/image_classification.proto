@@ -10,9 +10,12 @@ service ImageClassification {
   rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
 }
 
+message ImageInput {
+  bytes image = 1;
+}
+
 message ImageClassificationRequest {
-  optional string url = 1;
-  optional bytes image = 2;
+  repeated ImageInput inputs = 1;
   map<string, string> metadata = 11;
 }
 
@@ -21,7 +24,11 @@ message ImageLabelScore {
   float score = 2;
 }
 
+message ImageLabels {
+  repeated ImageLabelScore labels = 1;
+}
+
 message ImageClassificationResponse {
-  repeated ImageLabelScore = 1;
+  repeated ImageLabels labels_batch = 1;
   map<string, string> metadata = 11;
 }
