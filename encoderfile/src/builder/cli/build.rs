@@ -77,6 +77,7 @@ impl BuildArgs {
 
         super::super::builder::EncoderfileBuilder::new(config)
             .build(&self.version, self.no_download)
+            .map_err(|e| anyhow::anyhow!(e))
     }
 }
 

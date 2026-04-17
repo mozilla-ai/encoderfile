@@ -9,6 +9,7 @@ use crate::{
     builder::{
         base_binary::{BaseBinaryResolver, TargetSpec},
         config::BuildConfig,
+        error::EncoderfileBuildError,
         model::ModelTypeExt as _,
         terminal,
     },
@@ -36,7 +37,11 @@ impl EncoderfileBuilder {
         BuildConfig::load(file_path).map(|config| EncoderfileBuilder { config })
     }
 
-    pub fn build(&self, runtime_version: &Option<String>, no_download: bool) -> Result<()> {
+    pub fn build(
+        &self,
+        runtime_version: &Option<String>,
+        no_download: bool,
+    ) -> Result<(), EncoderfileBuildError> {
         let target = self
             .config
             .encoderfile
@@ -64,7 +69,10 @@ impl EncoderfileBuilder {
         let model_config = self.config.encoderfile.model_config()?;
 
         planned_assets.push(PlannedAsset::from_asset_source(
-            AssetSource::InMemory(Cow::Owned(serde_json::to_vec(&model_config)?)),
+            AssetSource::InMemory(Cow::Owned(
+                serde_json::to_vec(&model_config)
+                    .map_err(EncoderfileBuildError::ConfigSerialization)?,
+            )),
             AssetKind::ModelConfig,
         )?);
         terminal::success("Model config validated");
@@ -116,7 +124,12 @@ impl EncoderfileBuilder {
         ))?;
 
         // get metadata start position
-        let payload_start = out.stream_position()?;
+        let payload_start = out
+            .stream_position()
+            .map_err(|e| EncoderfileBuildError::Write {
+                path: base_path.to_path_buf(),
+                source: e,
+            })?;
 
         // create codec
         let codec = EncoderfileCodec::new(payload_start);
@@ -134,7 +147,10 @@ impl EncoderfileBuilder {
             &mut out,
         )?;
 
-        out.flush()?;
+        out.flush().map_err(|e| EncoderfileBuildError::Write {
+            path: base_path.to_path_buf(),
+            source: e,
+        })?;
 
         terminal::success_kv("Encoderfile written to", output_path.display());
 
