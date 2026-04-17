@@ -30,9 +30,9 @@ impl<'de> Deserialize<'de> for TargetSpec {
 }
 
 impl FromStr for TargetSpec {
-    type Err = anyhow::Error;
+    type Err = TargetError;
 
-    fn from_str(s: &str) -> Result<Self> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split('-').collect();
 
         match parts.as_slice() {
@@ -41,13 +41,23 @@ impl FromStr for TargetSpec {
                 let arch = match *arch {
                     "x86_64" => Architecture::X86_64,
                     "aarch64" => Architecture::Aarch64,
-                    other => anyhow::bail!("unsupported architecture `{other}`"),
+                    other => {
+                        return Err(TargetError::UnsupportedArchForOs {
+                            arch: other.to_string(),
+                            os: "linux",
+                        });
+                    }
                 };
 
                 let abi = match *abi {
                     "gnu" => Abi::Gnu,
                     "musl" => Abi::Musl,
-                    other => anyhow::bail!("unsupported linux ABI `{other}`"),
+                    other => {
+                        return Err(TargetError::UnsupportedAbi {
+                            abi: other.to_string(),
+                            os: "linux",
+                        });
+                    }
                 };
 
                 Ok(Self {
@@ -62,7 +72,12 @@ impl FromStr for TargetSpec {
                 let arch = match *arch {
                     "x86_64" => Architecture::X86_64,
                     "aarch64" => Architecture::Aarch64,
-                    other => anyhow::bail!("unsupported architecture `{other}`"),
+                    other => {
+                        return Err(TargetError::UnsupportedArchForOs {
+                            arch: other.to_string(),
+                            os: "apple",
+                        });
+                    }
                 };
 
                 Ok(Self {
@@ -76,7 +91,12 @@ impl FromStr for TargetSpec {
             [arch, "pc", "windows", "msvc"] => {
                 let arch = match *arch {
                     "x86_64" => Architecture::X86_64,
-                    other => anyhow::bail!("unsupported architecture `{other}`"),
+                    other => {
+                        return Err(TargetError::UnsupportedArchForOs {
+                            arch: other.to_string(),
+                            os: "windows",
+                        });
+                    }
                 };
 
                 Ok(Self {
@@ -86,24 +106,24 @@ impl FromStr for TargetSpec {
                 })
             }
 
-            _ => anyhow::bail!("invalid or unsupported target triple `{s}`"),
+            _ => Err(TargetError::InvalidTriple(s.to_string())),
         }
     }
 }
 
 impl TargetSpec {
-    pub fn detect_host() -> Result<Self> {
+    pub fn detect_host() -> Result<Self, TargetError> {
         let arch = match std::env::consts::ARCH {
             "x86_64" => Architecture::X86_64,
             "aarch64" => Architecture::Aarch64,
-            other => anyhow::bail!("unsupported architecture: {other}"),
+            other => return Err(TargetError::UnsupportedArch(other.to_string())),
         };
 
         let os = match std::env::consts::OS {
             "linux" => OperatingSystem::Linux,
             "macos" => OperatingSystem::MacOS,
             "windows" => OperatingSystem::Windows,
-            other => anyhow::bail!("unsupported operating system: {other}"),
+            other => return Err(TargetError::UnsupportedOs(other.to_string())),
         };
 
         let abi = match os {
@@ -173,4 +193,22 @@ impl std::fmt::Display for Abi {
             Self::Msvc => write!(f, "msvc"),
         }
     }
+}
+
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum TargetError {
+    #[error("invalid or unsupported target triple `{0}`")]
+    InvalidTriple(String),
+
+    #[error("unsupported architecture `{0}`")]
+    UnsupportedArch(String),
+
+    #[error("unsupported operating system `{0}`")]
+    UnsupportedOs(String),
+
+    #[error("unsupported ABI `{abi}` for {os}")]
+    UnsupportedAbi { abi: String, os: &'static str },
+
+    #[error("architecture `{arch}` is not supported on {os}")]
+    UnsupportedArchForOs { arch: String, os: &'static str },
 }

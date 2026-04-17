@@ -82,6 +82,7 @@ tar = "0.4.44"
 tempfile = "3.23.0"
 url = "2.5.8"
 utoipa = "5.4.0"
+thiserror.workspace = true
 
 [build-dependencies]
 dotenv = "0.15.0"
@@ -231,9 +232,6 @@ workspace = true
 [dependencies.tracing-subscriber]
 version = "0.3.20"
 features = ["fmt", "env-filter"]
-
-[dependencies.thiserror]
-workspace = true
 
 [dependencies.mlua]
 version = "0.11.4"
