@@ -1,3 +1,4 @@
+use super::error::TargetError;
 use anyhow::Result;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -193,22 +194,4 @@ impl std::fmt::Display for Abi {
             Self::Msvc => write!(f, "msvc"),
         }
     }
-}
-
-#[derive(thiserror::Error, Debug, PartialEq, Eq)]
-pub enum TargetError {
-    #[error("invalid or unsupported target triple `{0}`")]
-    InvalidTriple(String),
-
-    #[error("unsupported architecture `{0}`")]
-    UnsupportedArch(String),
-
-    #[error("unsupported operating system `{0}`")]
-    UnsupportedOs(String),
-
-    #[error("unsupported ABI `{abi}` for {os}")]
-    UnsupportedAbi { abi: String, os: &'static str },
-
-    #[error("architecture `{arch}` is not supported on {os}")]
-    UnsupportedArchForOs { arch: String, os: &'static str },
 }

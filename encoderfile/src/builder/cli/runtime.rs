@@ -44,7 +44,7 @@ impl RuntimeArgs {
             runtime_version: self.runtime_version.clone(),
         };
 
-        resolver.remove()
+        resolver.remove().map_err(|e| anyhow::anyhow!(e))
     }
 }
 

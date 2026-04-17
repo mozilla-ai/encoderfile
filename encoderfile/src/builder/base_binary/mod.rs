@@ -1,5 +1,5 @@
 use crate::builder::terminal;
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -9,8 +9,10 @@ use url::Url;
 #[cfg(test)]
 use std::cell::RefCell;
 
+pub mod error;
 pub mod target_spec;
 
+pub use error::{BaseBinaryError, TargetError};
 pub use target_spec::{Abi, Architecture, OperatingSystem, TargetSpec};
 
 const DOWNLOAD_URL: &str = "https://github.com/mozilla-ai/encoderfile/releases/download/";
@@ -26,10 +28,10 @@ pub struct BaseBinaryResolver<'a> {
 }
 
 impl BaseBinaryResolver<'_> {
-    pub fn remove(&self) -> Result<()> {
+    pub fn remove(&self) -> Result<(), BaseBinaryError> {
         // Explicit path overrides cache semantics
         if self.base_binary_path.is_some() {
-            anyhow::bail!("cannot remove an explicitly provided base binary path");
+            return Err(BaseBinaryError::CannotRemoveExplicitPath);
         }
 
         let path = self.cache_path();
@@ -39,14 +41,17 @@ impl BaseBinaryResolver<'_> {
             return Ok(());
         }
 
-        fs::remove_file(&path).with_context(|| format!("failed to remove {}", path.display()))?;
+        fs::remove_file(&path).map_err(|e| BaseBinaryError::Io {
+            path: path.clone(),
+            source: e,
+        })?;
 
-        self.cleanup_empty_parents(path.parent());
+        self.cleanup_empty_parents(path.parent())?;
 
         Ok(())
     }
 
-    fn cleanup_empty_parents(&self, mut dir: Option<&Path>) {
+    fn cleanup_empty_parents(&self, mut dir: Option<&Path>) -> Result<(), BaseBinaryError> {
         while let Some(d) = dir {
             // Stop at cache_dir — never go above it
             if d == self.cache_dir {
@@ -56,16 +61,21 @@ impl BaseBinaryResolver<'_> {
             match fs::read_dir(d) {
                 Ok(mut entries) => {
                     if entries.next().is_none() {
-                        let _ = fs::remove_dir(d);
+                        fs::remove_dir(d).map_err(|e| BaseBinaryError::Io {
+                            path: d.to_path_buf(),
+                            source: e,
+                        })?;
                         dir = d.parent();
                     }
                 }
                 _ => break,
             }
         }
+
+        Ok(())
     }
 
-    pub fn resolve(&self, no_download: bool) -> Result<PathBuf> {
+    pub fn resolve(&self, no_download: bool) -> Result<PathBuf, BaseBinaryError> {
         // 1. Explicit override always wins
         if let Some(path) = self.base_binary_path {
             terminal::info_kv("Using local binary target:", path.display());
@@ -85,7 +95,7 @@ impl BaseBinaryResolver<'_> {
         // 3. Cache miss → download
         match no_download {
             false => self.download_and_install(&final_path)?,
-            true => bail!("Cannot download {:?}", self.file_name()),
+            true => return Err(BaseBinaryError::DownloadDisabled),
         }
 
         // 4. Final sanity check
@@ -103,20 +113,22 @@ impl BaseBinaryResolver<'_> {
             .join(ENCODERFILE_RUNTIME_NAME)
     }
 
-    fn validate_binary(&self, path: &Path) -> Result<()> {
+    fn validate_binary(&self, path: &Path) -> Result<(), BaseBinaryError> {
         terminal::info("Validating binary...");
         use std::os::unix::fs::PermissionsExt;
 
-        let meta = fs::metadata(path)
-            .with_context(|| format!("base binary missing at {}", path.display()))?;
+        let meta = fs::metadata(path).map_err(|e| BaseBinaryError::BinaryMissing {
+            path: path.to_path_buf(),
+            source: e,
+        })?;
 
         if !meta.is_file() {
-            anyhow::bail!("base binary is not a file: {}", path.display());
+            return Err(BaseBinaryError::NotAFile(path.to_path_buf()));
         }
 
         let mode = meta.permissions().mode();
         if mode & 0o111 == 0 {
-            anyhow::bail!("base binary is not executable: {}", path.display());
+            return Err(BaseBinaryError::NotExecutable(path.to_path_buf()));
         }
 
         terminal::success("Binary validated");
@@ -124,7 +136,7 @@ impl BaseBinaryResolver<'_> {
         Ok(())
     }
 
-    fn download_and_install(&self, final_path: &Path) -> Result<()> {
+    fn download_and_install(&self, final_path: &Path) -> Result<(), BaseBinaryError> {
         use std::io;
         use tempfile::{NamedTempFile, TempDir};
 
@@ -134,35 +146,65 @@ impl BaseBinaryResolver<'_> {
 
         let parent = final_path.parent().expect("cache path always has a parent");
 
-        fs::create_dir_all(parent)?;
+        fs::create_dir_all(parent).map_err(|e| BaseBinaryError::Io {
+            path: parent.to_path_buf(),
+            source: e,
+        })?;
 
         // ---- download to temp file ----
-        let mut resp = reqwest::blocking::get(url.as_str())
-            .with_context(|| format!("failed to download {}", url))?;
+        let mut resp =
+            reqwest::blocking::get(url.as_str()).map_err(|e| BaseBinaryError::DownloadRequest {
+                url: url.clone(),
+                source: e,
+            })?;
 
         if !resp.status().is_success() {
-            anyhow::bail!("download failed with status {} for {}", resp.status(), url);
+            return Err(BaseBinaryError::DownloadStatus {
+                status: resp.status(),
+                url,
+            });
         }
 
-        let mut archive = NamedTempFile::new_in(self.cache_dir)?;
-        io::copy(&mut resp, &mut archive)?;
+        let mut archive =
+            NamedTempFile::new_in(self.cache_dir).map_err(|e| BaseBinaryError::Io {
+                path: self.cache_dir.to_path_buf(),
+                source: e,
+            })?;
+
+        io::copy(&mut resp, &mut archive).map_err(|e| BaseBinaryError::Io {
+            path: self.cache_dir.to_path_buf(),
+            source: e,
+        })?;
 
         // ---- extract to temp dir ----
-        let extract_dir = TempDir::new_in(self.cache_dir)?;
-        let tar_gz = fs::File::open(archive.path())?;
+        let extract_dir = TempDir::new_in(self.cache_dir).map_err(|e| BaseBinaryError::Io {
+            path: self.cache_dir.to_path_buf(),
+            source: e,
+        })?;
+        let tar_gz = fs::File::open(archive.path()).map_err(|e| BaseBinaryError::Io {
+            path: self.cache_dir.to_path_buf(),
+            source: e,
+        })?;
         let decoder = flate2::read::GzDecoder::new(tar_gz);
         let mut archive = tar::Archive::new(decoder);
 
-        archive.unpack(&extract_dir)?;
+        archive
+            .unpack(&extract_dir)
+            .map_err(BaseBinaryError::ArchiveExtract)?;
 
         // ---- move runtime into final place ----
         let extracted = extract_dir.path().join(ENCODERFILE_RUNTIME_NAME);
 
         if !extracted.exists() {
-            anyhow::bail!("archive did not contain `{}`", ENCODERFILE_RUNTIME_NAME);
+            return Err(BaseBinaryError::ArchiveMissingRuntime(
+                ENCODERFILE_RUNTIME_NAME,
+            ));
         }
 
-        fs::rename(extracted, final_path)?;
+        fs::rename(extracted, final_path).map_err(|e| BaseBinaryError::Io {
+            path: self.cache_dir.to_path_buf(),
+            source: e,
+        })?;
 
         terminal::success("Binary successfully downloaded");
 
@@ -171,14 +213,14 @@ impl BaseBinaryResolver<'_> {
 }
 
 impl BaseBinaryResolver<'_> {
-    fn download_url(&self) -> Result<Url> {
+    fn download_url(&self) -> Result<Url, BaseBinaryError> {
         let version = self.version();
         let file_name = self.file_name();
 
         self.base_url()?
-            .join(&format!("v{}/", version))?
-            .join(&file_name)
-            .context("Failed to construct download url")
+            .join(&format!("v{}/", version))
+            .and_then(|i| i.join(&file_name))
+            .map_err(BaseBinaryError::UrlConstruction)
     }
 
     fn version(&self) -> String {
@@ -191,19 +233,23 @@ impl BaseBinaryResolver<'_> {
         format!("{ENCODERFILE_RUNTIME_NAME}-{}.tar.gz", self.target)
     }
 
-    fn base_url(&self) -> Result<Url> {
+    fn base_url(&self) -> Result<Url, BaseBinaryError> {
         if let Some(raw) = base_url_override() {
-            let mut url = Url::parse(&raw).map_err(|e| {
-                anyhow::anyhow!("invalid {DOWNLOAD_URL_OVERRIDE_ENV_VAR} `{raw}`: {e}")
-            })?;
+            let mut url =
+                Url::parse(&raw).map_err(|e| BaseBinaryError::InvalidBaseUrlOverride {
+                    env_var: DOWNLOAD_URL_OVERRIDE_ENV_VAR,
+                    raw: raw.clone(),
+                    source: e,
+                })?;
 
             if !url.as_str().ends_with('/') {
-                url = Url::parse(&(url.as_str().to_owned() + "/"))?;
+                url = Url::parse(&(url.as_str().to_owned() + "/"))
+                    .map_err(BaseBinaryError::UrlConstruction)?;
             }
 
             Ok(url)
         } else {
-            Ok(Url::parse(DOWNLOAD_URL)?)
+            Url::parse(DOWNLOAD_URL).map_err(BaseBinaryError::UrlConstruction)
         }
     }
 }
@@ -215,7 +261,9 @@ pub struct DownloadedRuntime {
     pub path: PathBuf,
 }
 
-pub fn list_downloaded_runtimes(cache_dir: &Path) -> Result<Vec<DownloadedRuntime>> {
+pub fn list_downloaded_runtimes(
+    cache_dir: &Path,
+) -> Result<Vec<DownloadedRuntime>, BaseBinaryError> {
     let mut results = Vec::new();
 
     let root = cache_dir.join("base-binaries").join("encoderfile");
@@ -224,18 +272,44 @@ pub fn list_downloaded_runtimes(cache_dir: &Path) -> Result<Vec<DownloadedRuntim
         return Ok(results);
     }
 
-    for version_entry in fs::read_dir(&root)? {
-        let version_entry = version_entry?;
-        if !version_entry.file_type()?.is_dir() {
+    for version_entry in fs::read_dir(&root).map_err(|e| BaseBinaryError::Io {
+        path: root.to_path_buf(),
+        source: e,
+    })? {
+        let version_entry = version_entry.map_err(|e| BaseBinaryError::Io {
+            path: root.to_path_buf(),
+            source: e,
+        })?;
+        if !version_entry
+            .file_type()
+            .map_err(|e| BaseBinaryError::Io {
+                path: version_entry.path(),
+                source: e,
+            })?
+            .is_dir()
+        {
             continue;
         }
 
         let version = version_entry.file_name().to_string_lossy().to_string();
         let version_dir = version_entry.path();
 
-        for target_entry in fs::read_dir(&version_dir)? {
-            let target_entry = target_entry?;
-            if !target_entry.file_type()?.is_dir() {
+        for target_entry in fs::read_dir(&version_dir).map_err(|e| BaseBinaryError::Io {
+            path: version_dir.to_path_buf(),
+            source: e,
+        })? {
+            let target_entry = target_entry.map_err(|e| BaseBinaryError::Io {
+                path: version_dir.to_path_buf(),
+                source: e,
+            })?;
+            if !target_entry
+                .file_type()
+                .map_err(|e| BaseBinaryError::Io {
+                    path: target_entry.path(),
+                    source: e,
+                })?
+                .is_dir()
+            {
                 continue;
             }
 
