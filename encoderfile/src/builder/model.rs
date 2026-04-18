@@ -1,4 +1,7 @@
-use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
+use crate::{
+    format::assets::{AssetKind, AssetSource, PlannedAsset},
+    runtime::ORTSessionBuilder,
+};
 use anyhow::{Result, bail};
 use ort::{
     session::{Output, Session},
@@ -12,7 +15,7 @@ pub trait ModelTypeExt {
 
 impl ModelTypeExt for crate::common::ModelType {
     fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>> {
-        let model = load_model(path)?;
+        let model = ORTSessionBuilder::default().from_file(path)?;
 
         match self {
             Self::Embedding => validate_embedding_model(model),
@@ -73,8 +76,4 @@ fn get_outp_dim<'a>(outputs: &'a [Output], outp_name: &str) -> Result<&'a Shape>
         .output_type
         .tensor_shape()
         .ok_or(anyhow::anyhow!("Model must return tensor"))
-}
-
-fn load_model(file: &Path) -> Result<Session> {
-    Ok(Session::builder()?.commit_from_file(file)?)
 }

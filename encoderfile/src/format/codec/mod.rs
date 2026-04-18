@@ -70,7 +70,6 @@ mod tests {
             name: "test".into(),
             version: "0.0.0".into(),
             model_type: 0,
-            backend: 0,
             model_config: None,
             weights: None,
             transform: None,
