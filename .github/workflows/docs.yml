@@ -5,14 +5,18 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "scripts/convert_to_gitbook.py"
+      - "scripts/prepare_gitbook_site.py"
+      - "scripts/check_docs.py"
       - ".gitbook.yaml"
+      - "Justfile"
       - ".github/workflows/docs.yml"
   pull_request:
     paths:
       - "docs/**"
-      - "scripts/convert_to_gitbook.py"
+      - "scripts/prepare_gitbook_site.py"
+      - "scripts/check_docs.py"
       - ".gitbook.yaml"
+      - "Justfile"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -31,20 +35,23 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Build GitBook site
-        run: python scripts/convert_to_gitbook.py
+      - name: Install uv
+        run: python -m pip install uv
 
-      - name: Verify committed docs are up to date
-        if: github.event_name == 'pull_request'
-        run: git diff --exit-code -- docs
+      - name: Sync Python dependencies
+        run: uv sync --locked
+
+      - name: Check documentation links
+        run: uv run python scripts/check_docs.py
+
+      - name: Build GitBook site
+        run: uv run python scripts/prepare_gitbook_site.py
 
       - name: Deploy to gitbook-docs branch
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          cp .gitbook-branch-readme.md site/README-BRANCH.md
-          cp .gitbook.yaml site/.gitbook.yaml
 
           mv site/ /tmp/gitbook-site/
 

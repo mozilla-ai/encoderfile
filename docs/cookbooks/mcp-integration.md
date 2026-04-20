@@ -34,7 +34,7 @@ pip install any-llm-sdk[mistral]
 Now we will write an agent with the appropriate prompt. We instruct the agent to use the provided tool, since the current description is fairly generic, and not use metadata that it might consider useful but is not documented anywhere in the tool itself. We will also instruct it to replace only surnames to showcase that the tags can be extracted appropriately:
 
 ```python
---8<-- "examples/agent_mcp_integration/agent_test.py"
+{{#include examples/agent_mcp_integration/agent_test.py}}
 ```
 
 After some struggling with the call conventions, the LLM finally obtains the information from the encoderfile and acts accordingly:

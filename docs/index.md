@@ -17,7 +17,7 @@
 
 **Encoderfile** packages transformer encoders—and their classification heads—into a single, self-contained executable.
 
-Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have **zero runtime dependencies**[^1]. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.
+Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have **zero runtime dependencies**. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.
 
 ## Why Encoderfile?
 
@@ -126,4 +126,6 @@ Encoderfile compiles your model into a self-contained binary by embedding ONNX w
 - **[Contributing Guide](CONTRIBUTING.md)** - Learn how to contribute
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
 
-[^1]: Standard builds of Encoderfile require glibc to run because of the ONNX runtime. See [this issue](https://github.com/mozilla-ai/encoderfile/issues/69) on progress on building Encoderfile for musl linux.
+{% hint style="info" %}
+Standard builds of Encoderfile require glibc to run because of the ONNX runtime. See [this issue](https://github.com/mozilla-ai/encoderfile/issues/69) on progress on building Encoderfile for musl linux.
+{% endhint %}
