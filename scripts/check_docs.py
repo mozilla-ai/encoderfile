@@ -11,7 +11,6 @@ Usage:
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -103,15 +102,16 @@ def validate_gitbook_config(errors: list[str]) -> None:
 
         path = DOCS_DIR / match.group(1)
         if not path.exists():
-            errors.append(f".gitbook.yaml points `{key}` to missing file: {path.relative_to(REPO_ROOT)}")
+            errors.append(
+                f".gitbook.yaml points `{key}` to missing file: {path.relative_to(REPO_ROOT)}"
+            )
 
 
 def main() -> int:
     """Validate docs links and anchors. Returns a process exit code."""
     errors: list[str] = []
     anchors_by_file = {
-        path.resolve(): extract_anchors(path)
-        for path in DOCS_DIR.rglob("*.md")
+        path.resolve(): extract_anchors(path) for path in DOCS_DIR.rglob("*.md")
     }
 
     validate_gitbook_config(errors)
