@@ -28,9 +28,9 @@ pub struct BuildArgs {
     pub target: Option<TargetSpec>,
     #[arg(
         long,
-        help = "Encoderfile version override (defaults to current version)."
+        help = "Encoderfile base binary version override (defaults to current version)."
     )]
-    pub version: Option<String>,
+    pub runtime_version: Option<String>,
     #[arg(
         long = "no-download",
         help = "Disable downloading",
@@ -76,7 +76,7 @@ impl BuildArgs {
         }
 
         super::super::builder::EncoderfileBuilder::new(config)
-            .build(&self.version, self.no_download)
+            .build(&self.runtime_version, self.no_download)
     }
 }
 
