@@ -90,7 +90,7 @@ pub fn test_build_args(
         output_path: None,
         base_binary_path: Some(base_binary_path.into()),
         target: None,
-        version: None,
+        runtime_version: None,
         no_download: true,
         working_dir: None,
     }
@@ -107,7 +107,7 @@ pub fn test_build_args_working_dir(
         output_path: None,
         base_binary_path: Some(base_binary_path.into()),
         target: None,
-        version: None,
+        runtime_version: None,
         no_download: true,
         working_dir: Some(working_dir.into()),
     }
