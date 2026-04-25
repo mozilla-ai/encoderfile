@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - encoderfile-py/**
+  pull_request:
+    paths:
+      - encoderfile-py/**
+  workflow_dispatch:
+
+jobs:
+  test_python:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+        with:
+          # use MSRV
+          python_version: "3.10"
+
+      - name: Install Maturin
+        run: |
+          cargo binstall maturin --force --disable-telemetry
+          ls -la /home/runner/.cargo/bin/
+
+      - name: Build rs (debug)
+        run: cargo build --locked
+
+      - name: Maturin develop
+        run: |
+          ls -la /home/runner/.cargo/bin/
+          just build-py
+
+      - name: Test
+        run: just test-py
+
+      - name: Stubtest
+        run: just stubtest
