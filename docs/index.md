@@ -17,7 +17,7 @@
 
 **Encoderfile** packages transformer encoders—and their classification heads—into a single, self-contained executable.
 
-Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have **zero runtime dependencies**[^1]. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.
+Replace fragile, multi-gigabyte Python containers with lean, auditable binaries that have **zero runtime dependencies**. Written in Rust and built on ONNX Runtime, Encoderfile ensures strict determinism and high performance for financial platforms, content moderation pipelines, and search infrastructure.
 
 ## Why Encoderfile?
 
@@ -100,11 +100,7 @@ See the [API Reference](reference/api-reference.md) for complete endpoint docume
 
 Encoderfile compiles your model into a self-contained binary by embedding ONNX weights, tokenizer, and config directly into Rust code. The result is a portable executable with zero runtime dependencies.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/encoderfile-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/encoderfile-light.svg">
-  <img alt="Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server." src="assets/encoderfile-light.svg">
-</picture>
+![Encoderfile architecture diagram illustrating the build process: compiling ONNX models, tokenizers, and configs into a single binary executable that runs as a zero-dependency gRPC, HTTP, or MCP server.](assets/encoderfile-light.svg)
 
 ## Documentation
 
@@ -130,4 +126,6 @@ Encoderfile compiles your model into a self-contained binary by embedding ONNX w
 - **[Contributing Guide](CONTRIBUTING.md)** - Learn how to contribute
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
 
-[^1]: Standard builds of Encoderfile require glibc to run because of the ONNX runtime. See [this issue](https://github.com/mozilla-ai/encoderfile/issues/69) on progress on building Encoderfile for musl linux.
+{% hint style="info" %}
+Standard builds of Encoderfile require glibc to run because of the ONNX runtime. See [this issue](https://github.com/mozilla-ai/encoderfile/issues/69) on progress on building Encoderfile for musl linux.
+{% endhint %}

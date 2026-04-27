@@ -31,8 +31,11 @@ With a handful of exceptions, the `Postprocess` function must return a `Tensor` 
 - Embedding and sentence embedding models can modify the length of `hidden` (useful for matryoshka embeddings)
 - Sentence embeddings are given a `Tensor` of shape `[batch_size, seq_len, hidden]` and attention mask of `[batch_size, seq_len]`, and must return a `Tensor` of shape `[batch_size, hidden]`. In other words, it expects a pooling operation along dimension `seq_len`.
 
-!!! note "Note on indexing"
-    Lua is 1-indexed, meaning that it starts counting at 1 instead of 0. The `Tensor` API reflects this, meaning that you must count your axes and indices starting at 1 instead of 0.
+{% hint style="info" %}
+**Note on indexing**
+
+Lua is 1-indexed, meaning that it starts counting at 1 instead of 0. The `Tensor` API reflects this, meaning that you must count your axes and indices starting at 1 instead of 0.
+{% endhint %}
 
 We provide a built-in API for standard tensor operations. To learn more, check out our [Tensor API reference page](reference.md). You can find the stub file [here](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/stubs/lua/tensor.lua).
 
@@ -92,8 +95,11 @@ end
 ### Sentence Embedding
 
 
-!!! note "Mean Pooling"
-    To mean-pool embeddings, you can use the `Tensor:mean_pool` function like this: `tensor:mean_pool(mask)`.
+{% hint style="info" %}
+**Mean Pooling**
+
+To mean-pool embeddings, you can use the `Tensor:mean_pool` function like this: `tensor:mean_pool(mask)`.
+{% endhint %}
 
 ```lua
 --- input: 3d tensor of shape [batch_size, seq_len, hidden]
@@ -148,8 +154,11 @@ end
 
 ## Best Practices
 
-!!! warning "Performance Implications"
-    Transforms run synchronously during inference, so expensive Lua-side loops will increase latency. If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
+{% hint style="warning" %}
+**Performance Implications**
+
+Transforms run synchronously during inference, so expensive Lua-side loops will increase latency. If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
+{% endhint %}
 
 A typical transform follows this structure:
 
@@ -206,4 +215,3 @@ transform: |
     return arr
 end
 ```
-
