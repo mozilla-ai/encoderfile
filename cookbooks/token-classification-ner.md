@@ -32,6 +32,7 @@ This model recognizes 4 entity types:
 - **LOC** - Locations
 - **MISC** - Miscellaneous entities
 {% endhint %}
+
 ### Export to ONNX
 
 ```bash
@@ -49,6 +50,7 @@ optimum-cli export onnx \
 **What files are created?**
 
 The export creates:
+
 ```
 ner-model/
 ├── config.json          # Model configuration
@@ -58,6 +60,7 @@ ner-model/
 └── special_tokens_map.json
 ```
 {% endhint %}
+
 ---
 
 ## Step 2: Create Configuration
@@ -66,7 +69,6 @@ Create a YAML configuration file for building the encoderfile.
 
 {% tabs %}
 {% tab title="ner-config.yml" %}
-
 ```yaml
 encoderfile:
   name: ner-tagger
@@ -77,7 +79,6 @@ encoderfile:
 ```
 {% endtab %}
 {% tab title="With Optional Transform" %}
-
 ```yaml
 encoderfile:
   name: ner-tagger
@@ -93,6 +94,7 @@ encoderfile:
 ```
 {% endtab %}
 {% endtabs %}
+
 {% hint style="success" %}
 **Configuration Options**
 
@@ -102,6 +104,7 @@ encoderfile:
 - `output_path` - Where to save the binary (optional)
 - `transform` - Optional Lua script for post-processing
 {% endhint %}
+
 ---
 
 ## Step 3: Build the Binary
@@ -120,6 +123,7 @@ encoderfile build -f ner-config.yml
 **Build Output**
 
 You should see output like:
+
 ```
 Validating model...
 Generating project...
@@ -127,6 +131,7 @@ Compiling binary...
 ✓ Build complete: ./build/ner-tagger.encoderfile
 ```
 {% endhint %}
+
 The resulting binary is **completely self-contained** - it includes:
 
 - ONNX model weights
@@ -157,6 +162,7 @@ Starting gRPC server on [::]:50051
 Model: ner-tagger v1.0.0
 ```
 {% endhint %}
+
 The server is now running with both HTTP and gRPC endpoints.
 
 ---
@@ -169,7 +175,6 @@ Now let's test the NER model with different types of text.
 
 {% tabs %}
 {% tab title="Request" %}
-
 ```bash
 curl -X POST http://localhost:8080/predict \
   -H "Content-Type: application/json" \
@@ -179,7 +184,6 @@ curl -X POST http://localhost:8080/predict \
 ```
 {% endtab %}
 {% tab title="Expected Response" %}
-
 ```json
 {
   "results": [
@@ -210,7 +214,6 @@ curl -X POST http://localhost:8080/predict \
 ```
 {% endtab %}
 {% tab title="Interpretation" %}
-
 **Entities Found:**
 
 - **Mozilla** → `B-ORG`, `I-ORG` (Organization)
@@ -220,11 +223,11 @@ curl -X POST http://localhost:8080/predict \
 The `B-` prefix indicates the beginning of an entity, `I-` indicates inside/continuation, and `O` means outside any entity.
 {% endtab %}
 {% endtabs %}
+
 ### Example 2: Multiple Sentences
 
 {% tabs %}
 {% tab title="Request" %}
-
 ```bash
 curl -X POST http://localhost:8080/predict \
   -H "Content-Type: application/json" \
@@ -237,7 +240,6 @@ curl -X POST http://localhost:8080/predict \
 ```
 {% endtab %}
 {% tab title="Expected Entities" %}
-
 **Sentence 1:**
 - **Yvon** → Person (PER)
 - **Patagonia** → Organization (ORG)
@@ -248,6 +250,7 @@ curl -X POST http://localhost:8080/predict \
 - **France** → Location (LOC)
 {% endtab %}
 {% endtabs %}
+
 ## Step 6: CLI Inference
 
 For batch processing or one-off predictions, use the CLI directly:
@@ -355,6 +358,7 @@ The model may struggle with:
 - Non-English text
 - Very long sequences (>512 tokens)
 {% endhint %}
+
 **Solution:** Fine-tune on domain-specific data or use a specialized model.
 
 ### Performance Optimization

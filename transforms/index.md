@@ -36,6 +36,7 @@ With a handful of exceptions, the `Postprocess` function must return a `Tensor` 
 
 Lua is 1-indexed, meaning that it starts counting at 1 instead of 0. The `Tensor` API reflects this, meaning that you must count your axes and indices starting at 1 instead of 0.
 {% endhint %}
+
 We provide a built-in API for standard tensor operations. To learn more, check out our [Tensor API reference page](reference.md). You can find the stub file [here](https://github.com/mozilla-ai/encoderfile/blob/main/encoderfile/stubs/lua/tensor.lua).
 
 If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
@@ -99,6 +100,7 @@ end
 
 To mean-pool embeddings, you can use the `Tensor:mean_pool` function like this: `tensor:mean_pool(mask)`.
 {% endhint %}
+
 ```lua
 --- input: 3d tensor of shape [batch_size, seq_len, hidden]
 ---@param arr Tensor
@@ -157,6 +159,7 @@ end
 
 Transforms run synchronously during inference, so expensive Lua-side loops will increase latency. If you don't see an op that you need, please don't hesitate to [create an issue](https://github.com/mozilla-ai/encoderfile/issues) on Github.
 {% endhint %}
+
 A typical transform follows this structure:
 
 ```lua
@@ -212,4 +215,3 @@ transform: |
     return arr
 end
 ```
-

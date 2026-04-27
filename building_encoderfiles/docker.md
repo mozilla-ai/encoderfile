@@ -13,8 +13,9 @@ docker pull ghcr.io/mozilla-ai/encoderfile:latest
 {% hint style="info" %}
 **Note on Architecture**
 
-Images are published for both `x86_64` and `arm64`. If you're on a more exotic architecture, you'll need to build the encoderfile CLI from source — see our guide on [Building from Source](../reference/building.md) for more details.
+Images are published for both `x86_64` and `arm64`. If you're on a more exotic architecture, you'll need to build the encoderfile CLI from source - see our guide on [Building from Source](../reference/building.md) for more details.
 {% endhint %}
+
 ## Mounting Assets
 
 The Docker container needs access to the following elements to build an Encoderfile:
