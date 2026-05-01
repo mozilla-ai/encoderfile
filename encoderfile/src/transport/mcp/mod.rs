@@ -151,3 +151,16 @@ generate_mcp!(
     "Performs sentence embedding of input text sequences.",
     "This tool will embed a sequence of texts."
 );
+
+// Doesn't use a json schema, see how we can go around this limitation
+/*
+generate_mcp!(
+    ImageClassification,
+    ImageClassificationTool,
+    image_classification,
+    ImageClassificationRequest,
+    ImageClassificationResponse,
+    "Performs image classification of input images.",
+    "This tool will classify input images."
+);
+*/

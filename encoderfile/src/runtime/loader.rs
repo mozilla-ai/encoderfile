@@ -5,7 +5,7 @@ use std::io::{Read, Seek};
 use ort::session::{Session, builder::GraphOptimizationLevel};
 
 use crate::{
-    common::{Config, LuaLibs, ModelConfig, ModelType},
+    common::{Config, LuaLibs, ModelConfig, model_type::ModelType},
     format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
     generated::manifest::{self, TransformType},
     runtime::{ORTExecutionProvider, ORTSessionBuilder, TokenizerService},

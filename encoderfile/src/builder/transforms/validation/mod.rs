@@ -1,5 +1,5 @@
 use crate::{
-    common::{ModelConfig, ModelType},
+    common::{ModelConfig, model_type::ModelType},
     format::assets::{AssetKind, AssetSource, PlannedAsset},
     generated::manifest::LuaLibs as ManifestLuaLibs,
     transforms::{TransformSpec, convert_libs},
@@ -13,6 +13,7 @@ mod embedding;
 mod sentence_embedding;
 mod sequence_classification;
 mod token_classification;
+mod image_classification;
 mod utils;
 
 pub trait TransformValidatorExt: TransformSpec {
@@ -85,6 +86,12 @@ pub fn validate_transform<'a>(
         ),
         ModelType::SentenceEmbedding => validate_transform!(
             SentenceEmbeddingTransform,
+            transform_str,
+            encoderfile_config,
+            model_config
+        ),
+        ModelType::ImageClassification => validate_transform!(
+            ImageClassificationTransform,
             transform_str,
             encoderfile_config,
             model_config

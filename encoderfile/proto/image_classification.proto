@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package encoderfile.image_classification;
+
+import "proto/token.proto";
+import "proto/metadata.proto";
+
+service ImageClassification {
+  rpc Predict(ImageClassificationRequest) returns (ImageClassificationResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message ImageInput {
+  bytes image = 1;
+}
+
+message ImageClassificationRequest {
+  repeated ImageInput inputs = 1;
+  map<string, string> metadata = 11;
+}
+
+message ImageLabelScore {
+  string label = 1;
+  float score = 2;
+}
+
+message ImageLabels {
+  repeated ImageLabelScore labels = 1;
+}
+
+message ImageClassificationResponse {
+  repeated ImageLabels labels_batch = 1;
+  map<string, string> metadata = 11;
+}

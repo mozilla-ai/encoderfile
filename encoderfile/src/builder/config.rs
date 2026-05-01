@@ -1,4 +1,4 @@
-use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, ModelType};
+use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, model_type::ModelType};
 use anyhow::{Context, Result, bail};
 use schemars::JsonSchema;
 use std::string::String;

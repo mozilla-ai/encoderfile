@@ -14,7 +14,7 @@ pub fn token_classification<'a>(
     config: &ModelConfig,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
-    let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
+    let (a_ids, a_mask, a_type_ids) = crate::prepare_text_inputs!(encodings);
 
     let mut outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
         .get("logits")

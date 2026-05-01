@@ -16,6 +16,7 @@ mod embedding;
 mod sentence_embedding;
 mod sequence_classification;
 mod token_classification;
+mod image_classification;
 
 impl From<&LuaLibs> for Vec<mlua::StdLib> {
     fn from(value: &LuaLibs) -> Self {
@@ -86,6 +87,7 @@ transform!(EmbeddingTransform, Embedding);
 transform!(SequenceClassificationTransform, SequenceClassification);
 transform!(TokenClassificationTransform, TokenClassification);
 transform!(SentenceEmbeddingTransform, SentenceEmbedding);
+transform!(ImageClassificationTransform, ImageClassification);
 
 pub trait Postprocessor: TransformSpec {
     type Input;

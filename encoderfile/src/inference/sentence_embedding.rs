@@ -13,7 +13,7 @@ pub fn sentence_embedding<'a>(
     transform: &SentenceEmbeddingTransform,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SentenceEmbedding>, ApiError> {
-    let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
+    let (a_ids, a_mask, a_type_ids) = crate::prepare_text_inputs!(encodings);
 
     let a_mask_arr = a_mask
         .try_extract_array::<i64>()

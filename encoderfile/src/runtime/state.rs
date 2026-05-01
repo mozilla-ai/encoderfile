@@ -4,7 +4,7 @@ use ort::session::Session;
 use parking_lot::Mutex;
 
 use crate::{
-    common::{Config, ModelConfig, ModelType, model_type::ModelTypeSpec},
+    common::{Config, ModelConfig, model_type::ModelType, model_type::ModelTypeSpec},
     runtime::TokenizerService,
     transforms::DEFAULT_LIBS,
 };

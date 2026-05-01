@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{GetModelMetadataResponse, ModelType, model_type::ModelTypeSpec},
+    common::{GetModelMetadataResponse, model_type::ModelType, model_type::ModelTypeSpec},
     runtime::AppState,
 };
 
