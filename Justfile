@@ -8,7 +8,7 @@ dev-py:
     uv run maturin develop \
         -m encoderfile-py/Cargo.toml
 
-build target variant="" python=".venv/bin/python3.13":
+build target="" variant="":
     #!/usr/bin/env bash
     set -euo pipefail
     # build encoderfile
@@ -23,22 +23,30 @@ build target variant="" python=".venv/bin/python3.13":
     just build-encoderfile-runtime {{ target }}
 
     # build python bindings
-    just build-encoderfile-py {{ target }} {{ python }}
+    just build-encoderfile-py {{ target }}
 
-build-encoderfile-py target python=".venv/bin/python3.13":
+build-encoderfile-py target="":
     #!/usr/bin/env bash
     set -euo pipefail
-    mkdir -p wheels
-    maturin build --release --target {{ target }} -m encoderfile-py/Cargo.toml --out wheels -i {{ python }}
+    targ_str=$([ -n "{{ target }}" ] && echo "--target {{ target }}" || echo "")
 
-build-encoderfile target:
+    mkdir -p wheels
+    uv run maturin build \
+        --release \
+        $targ_str \
+        -m encoderfile-py/Cargo.toml \
+        --out wheels \
+        -i .venv/bin/python3.13
+
+build-encoderfile target="":
     #!/usr/bin/env bash
     set -euo pipefail
     version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name=="encoderfile-runtime") | .version')
+    targ_str=$([ -n "{{ target }}" ] && echo "--target {{ target }}" || echo "")
 
     cargo build \
         --release \
-        --target {{ target }} \
+        $targ_str \
         -p encoderfile
 
     pkg=encoderfile-{{ target }}
@@ -49,17 +57,18 @@ build-encoderfile target:
     tar -czf "encoderfile-${version}-{{ target }}.tar.gz" -C "$pkg" .
     rm -rf "$pkg"
 
-build-encoderfile-runtime target variant="":
+build-encoderfile-runtime target="" variant="":
     #!/usr/bin/env bash
     set -euo pipefail
     version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name=="encoderfile-runtime") | .version')
+    targ_str=$([ -n "{{ target }}" ] && echo "--target {{ target }}" || echo "")
 
     features=$([ -n "{{ variant }}" ] && echo "--features {{ variant }}" || echo "")
     suffix=$([ -n "{{ variant }}" ] && echo "-{{ variant }}" || echo "")
 
     cargo build \
         --release \
-        --target {{ target }} \
+        $targ_str \
         -p encoderfile-runtime \
         $features
 
