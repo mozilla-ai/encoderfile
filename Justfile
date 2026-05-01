@@ -11,11 +11,19 @@ dev-py:
 build target="" variant="":
     #!/usr/bin/env bash
     set -euo pipefail
+
+    # build encoderfile cli
     just build-encoderfile "{{ target }}"
+
+    # build encoderfile-runtime with EP (if provided)
     if [ -n "{{ variant }}" ]; then
         just build-encoderfile-runtime "{{ target }}" "{{ variant }}"
     fi
+
+    # build encoderfile-runtime (cpu-only)
     just build-encoderfile-runtime "{{ target }}"
+
+    # build python bindings
     just build-encoderfile-py "{{ target }}"
 
 build-encoderfile-py target="":
