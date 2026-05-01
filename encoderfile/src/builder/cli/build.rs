@@ -22,15 +22,15 @@ pub struct BuildArgs {
     )]
     pub base_binary_path: Option<PathBuf>,
     #[arg(
-        long = "platform",
+        long = "target",
         help = "Target platform to build. Follows standard rust target triple format."
     )]
-    pub platform: Option<TargetSpec>,
+    pub target: Option<TargetSpec>,
     #[arg(
         long,
-        help = "Encoderfile version override (defaults to current version)."
+        help = "Encoderfile base binary version override (defaults to current version)."
     )]
-    pub version: Option<String>,
+    pub runtime_version: Option<String>,
     #[arg(
         long = "no-download",
         help = "Disable downloading",
@@ -68,11 +68,15 @@ impl BuildArgs {
         }
 
         if let Some(base_binary_path) = &self.base_binary_path {
-            config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf())
+            config.encoderfile.base_binary_path = Some(base_binary_path.to_path_buf());
+        }
+
+        if let Some(target) = &self.target {
+            config.encoderfile.target = Some(target.clone());
         }
 
         super::super::builder::EncoderfileBuilder::new(config)
-            .build(&self.version, self.no_download)
+            .build(&self.runtime_version, self.no_download)
     }
 }
 
@@ -85,8 +89,8 @@ pub fn test_build_args(
         config: config.into(),
         output_path: None,
         base_binary_path: Some(base_binary_path.into()),
-        platform: None,
-        version: None,
+        target: None,
+        runtime_version: None,
         no_download: true,
         working_dir: None,
     }
@@ -102,8 +106,8 @@ pub fn test_build_args_working_dir(
         config: config.into(),
         output_path: None,
         base_binary_path: Some(base_binary_path.into()),
-        platform: None,
-        version: None,
+        target: None,
+        runtime_version: None,
         no_download: true,
         working_dir: Some(working_dir.into()),
     }

@@ -1,6 +1,12 @@
-use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
+use crate::{
+    format::assets::{AssetKind, AssetSource, PlannedAsset},
+    runtime::ORTSessionBuilder,
+};
 use anyhow::{Result, bail};
-use ort::{session::Session, value::Shape};
+use ort::{
+    session::{Output, Session},
+    tensor::Shape,
+};
 use std::path::Path;
 
 pub trait ModelTypeExt {
@@ -9,7 +15,7 @@ pub trait ModelTypeExt {
 
 impl ModelTypeExt for crate::common::ModelType {
     fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>> {
-        let model = load_model(path)?;
+        let model = ORTSessionBuilder::default().from_file(path)?;
 
         match self {
             Self::Embedding => validate_embedding_model(model),
@@ -22,8 +28,8 @@ impl ModelTypeExt for crate::common::ModelType {
     }
 }
 
-fn validate_sentence_embedding_model(session: Session) -> Result<()> {
-    let shape = get_outp_dim(&session, "last_hidden_state")?;
+fn validate_sentence_embedding_model(model: Session) -> Result<()> {
+    let shape = get_outp_dim(model.outputs.as_slice(), "last_hidden_state")?;
 
     if shape.len() != 3 {
         bail!("Model must return tensor of shape [batch_size, seq_len, hidden_dim]")
@@ -32,8 +38,8 @@ fn validate_sentence_embedding_model(session: Session) -> Result<()> {
     Ok(())
 }
 
-fn validate_embedding_model(session: Session) -> Result<()> {
-    let shape = get_outp_dim(&session, "last_hidden_state")?;
+fn validate_embedding_model(model: Session) -> Result<()> {
+    let shape = get_outp_dim(model.outputs.as_slice(), "last_hidden_state")?;
 
     if shape.len() != 3 {
         bail!("Model must return tensor of shape [batch_size, seq_len, hidden_dim]")
@@ -42,8 +48,8 @@ fn validate_embedding_model(session: Session) -> Result<()> {
     Ok(())
 }
 
-fn validate_sequence_classification_model(session: Session) -> Result<()> {
-    let shape = get_outp_dim(&session, "logits")?;
+fn validate_sequence_classification_model(model: Session) -> Result<()> {
+    let shape = get_outp_dim(model.outputs.as_slice(), "logits")?;
 
     if shape.len() != 2 {
         bail!("Model must return tensor of shape [batch_size, n_labels]")
@@ -52,8 +58,8 @@ fn validate_sequence_classification_model(session: Session) -> Result<()> {
     Ok(())
 }
 
-fn validate_token_classification_model(session: Session) -> Result<()> {
-    let shape = get_outp_dim(&session, "logits")?;
+fn validate_token_classification_model(model: Session) -> Result<()> {
+    let shape = get_outp_dim(model.outputs.as_slice(), "logits")?;
 
     if shape.len() != 3 {
         bail!("Model must return tensor of shape [batch_size, seq_len, n_labels]")
@@ -62,17 +68,12 @@ fn validate_token_classification_model(session: Session) -> Result<()> {
     Ok(())
 }
 
-fn get_outp_dim<'a>(session: &'a Session, outp_name: &str) -> Result<&'a Shape> {
-    session
-        .outputs()
+fn get_outp_dim<'a>(outputs: &'a [Output], outp_name: &str) -> Result<&'a Shape> {
+    outputs
         .iter()
-        .find(|i| i.name() == outp_name)
+        .find(|i| i.name == outp_name)
         .ok_or(anyhow::anyhow!(format!("Model must return {}", outp_name)))?
-        .dtype()
+        .output_type
         .tensor_shape()
-        .ok_or(anyhow::anyhow!(format!("{} must have a shape", outp_name)))
-}
-
-fn load_model(file: &Path) -> Result<Session> {
-    Ok(Session::builder()?.commit_from_file(file)?)
+        .ok_or(anyhow::anyhow!("Model must return tensor"))
 }

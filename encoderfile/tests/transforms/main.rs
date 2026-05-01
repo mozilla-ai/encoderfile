@@ -3,7 +3,7 @@ use encoderfile::transforms::{
     TokenClassificationTransform,
 };
 use ndarray::{Array2, Array3, Axis};
-use ort::util::ArrayExt;
+use ort::tensor::ArrayExtensions;
 
 #[test]
 fn test_l2_normalization() {

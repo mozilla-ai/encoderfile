@@ -3,5 +3,5 @@
 ## `Tensor`
 
 ```lua
---8<-- "encoderfile/stubs/lua/tensor.lua"
+{{#include encoderfile/stubs/lua/tensor.lua}}
 ```

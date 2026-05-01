@@ -114,7 +114,6 @@ mod tests {
             assets::{AssetPlan, AssetSource, PlannedAsset},
             codec::EncoderfileCodec,
         },
-        generated::manifest::Backend,
     };
     use std::{
         borrow::Cow,
@@ -141,7 +140,6 @@ mod tests {
                 "test-model".into(),
                 "1.0.0".into(),
                 ModelType::Embedding,
-                Backend::Cpu,
                 &plan,
                 &mut buf,
             )

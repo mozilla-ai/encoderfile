@@ -1,14 +1,21 @@
 [package]
 name = "encoderfile-runtime"
-version = "0.6.1"
+version = "0.6.2"
 edition = "2024"
 publish = false
+
+[features]
+default = []
+coreml = ["encoderfile/coreml"]
+cuda = ["encoderfile/cuda"]
+bench = []
+dev-utils = []
 
 [dependencies]
 
 [dependencies.encoderfile]
 path = "../encoderfile"
-version = "0.6.1"
+version = "0.6.2"
 features = ["transport"]
 default-features = false
 
@@ -23,7 +30,3 @@ workspace = true
 
 [dependencies.tokio]
 workspace = true
-
-[features]
-bench = []
-dev-utils = []

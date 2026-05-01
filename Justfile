@@ -9,8 +9,13 @@ build-py:
         -m encoderfile-py/Cargo.toml
 
 # Docs
-docs:
-    @uv run --group docs -m mkdocs serve
+docs: docs-check docs-build
+
+docs-build:
+    @uv run python scripts/prepare_gitbook_site.py
+
+docs-check:
+    @uv run python scripts/check_docs.py
 
 # Check, Test, & Coverage
 

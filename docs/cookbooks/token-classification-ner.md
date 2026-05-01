@@ -22,13 +22,16 @@ This cookbook walks through building, deploying, and using a Named Entity Recogn
 
 We'll use `dslim/bert-base-NER`, a BERT model fine-tuned for named entity recognition.
 
-!!! info "About the Model"
-    This model recognizes 4 entity types:
+{% hint style="info" %}
+**About the Model**
 
-    - **PER** - Person names
-    - **ORG** - Organizations
-    - **LOC** - Locations
-    - **MISC** - Miscellaneous entities
+This model recognizes 4 entity types:
+
+- **PER** - Person names
+- **ORG** - Organizations
+- **LOC** - Locations
+- **MISC** - Miscellaneous entities
+{% endhint %}
 
 ### Export to ONNX
 
@@ -43,16 +46,20 @@ optimum-cli export onnx \
   ./ner-model
 ```
 
-??? question "What files are created?"
-    The export creates:
-    ```
-    ner-model/
-    ├── config.json          # Model configuration
-    ├── model.onnx          # ONNX weights
-    ├── tokenizer.json      # Fast tokenizer
-    ├── tokenizer_config.json
-    └── special_tokens_map.json
-    ```
+{% hint style="info" %}
+**What files are created?**
+
+The export creates:
+
+```
+ner-model/
+├── config.json          # Model configuration
+├── model.onnx          # ONNX weights
+├── tokenizer.json      # Fast tokenizer
+├── tokenizer_config.json
+└── special_tokens_map.json
+```
+{% endhint %}
 
 ---
 
@@ -60,39 +67,43 @@ optimum-cli export onnx \
 
 Create a YAML configuration file for building the encoderfile.
 
-=== "ner-config.yml"
+{% tabs %}
+{% tab title="ner-config.yml" %}
+```yaml
+encoderfile:
+  name: ner-tagger
+  version: "1.0.0"
+  path: ./ner-model
+  model_type: token_classification
+  output_path: ./build/ner-tagger.encoderfile
+```
+{% endtab %}
+{% tab title="With Optional Transform" %}
+```yaml
+encoderfile:
+  name: ner-tagger
+  version: "1.0.0"
+  path: ./ner-model
+  model_type: token_classification
+  output_path: ./build/ner-tagger.encoderfile
+  transform: |
+    --- Apply softmax to normalize logits
+    function Postprocess(arr)
+        return arr:softmax(3)
+    end
+```
+{% endtab %}
+{% endtabs %}
 
-    ```yaml
-    encoderfile:
-      name: ner-tagger
-      version: "1.0.0"
-      path: ./ner-model
-      model_type: token_classification
-      output_path: ./build/ner-tagger.encoderfile
-    ```
+{% hint style="success" %}
+**Configuration Options**
 
-=== "With Optional Transform"
-
-    ```yaml
-    encoderfile:
-      name: ner-tagger
-      version: "1.0.0"
-      path: ./ner-model
-      model_type: token_classification
-      output_path: ./build/ner-tagger.encoderfile
-      transform: |
-        --- Apply softmax to normalize logits
-        function Postprocess(arr)
-            return arr:softmax(3)
-        end
-    ```
-
-!!! tip "Configuration Options"
-    - `name` - Model identifier used in API responses
-    - `path` - Directory containing ONNX model files
-    - `model_type` - Must be `token_classification` for NER
-    - `output_path` - Where to save the binary (optional)
-    - `transform` - Optional Lua script for post-processing
+- `name` - Model identifier used in API responses
+- `path` - Directory containing ONNX model files
+- `model_type` - Must be `token_classification` for NER
+- `output_path` - Where to save the binary (optional)
+- `transform` - Optional Lua script for post-processing
+{% endhint %}
 
 ---
 
@@ -108,14 +119,18 @@ mkdir -p build
 encoderfile build -f ner-config.yml
 ```
 
-!!! success "Build Output"
-    You should see output like:
-    ```
-    Validating model...
-    Generating project...
-    Compiling binary...
-    ✓ Build complete: ./build/ner-tagger.encoderfile
-    ```
+{% hint style="success" %}
+**Build Output**
+
+You should see output like:
+
+```
+Validating model...
+Generating project...
+Compiling binary...
+✓ Build complete: ./build/ner-tagger.encoderfile
+```
+{% endhint %}
 
 The resulting binary is **completely self-contained** - it includes:
 
@@ -138,12 +153,15 @@ chmod +x ./build/ner-tagger.encoderfile
 ./build/ner-tagger.encoderfile serve
 ```
 
-??? info "Server Startup"
-    ```
-    Starting HTTP server on 0.0.0.0:8080
-    Starting gRPC server on [::]:50051
-    Model: ner-tagger v1.0.0
-    ```
+{% hint style="info" %}
+**Server Startup**
+
+```
+Starting HTTP server on 0.0.0.0:8080
+Starting gRPC server on [::]:50051
+Model: ner-tagger v1.0.0
+```
+{% endhint %}
 
 The server is now running with both HTTP and gRPC endpoints.
 
@@ -155,82 +173,83 @@ Now let's test the NER model with different types of text.
 
 ### Example 1: Basic Entity Recognition
 
-=== "Request"
-
-    ```bash
-    curl -X POST http://localhost:8080/predict \
-      -H "Content-Type: application/json" \
-      -d '{
-        "inputs": ["Mozilla is headquartered in San Fancisco, CA"]
-      }'
-    ```
-
-=== "Expected Response"
-
-    ```json
+{% tabs %}
+{% tab title="Request" %}
+```bash
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inputs": ["Mozilla is headquartered in San Fancisco, CA"]
+  }'
+```
+{% endtab %}
+{% tab title="Expected Response" %}
+```json
+{
+  "results": [
     {
-      "results": [
-        {
-          tokens: [{
-           "token_info": {
-                        "token": "Mozilla",
-                        "token_id": 12556,
-                        "start": 0,
-                        "end": 2
-                    },
-                    "scores": [
-                        -0.48987845,
-                        2.912971,
-                        -1.6960273,
-                        2.2318482,
-                        -3.2153757
-                      ]
-                  .....
-          "label": "B-ORG",
-          "score": 4.5583587
-        }
-        ]
-        }
-      ],
-      "model_id": "ner-tagger"
+      tokens: [{
+       "token_info": {
+                    "token": "Mozilla",
+                    "token_id": 12556,
+                    "start": 0,
+                    "end": 2
+                },
+                "scores": [
+                    -0.48987845,
+                    2.912971,
+                    -1.6960273,
+                    2.2318482,
+                    -3.2153757
+                  ]
+              .....
+      "label": "B-ORG",
+      "score": 4.5583587
     }
-    ```
+    ]
+    }
+  ],
+  "model_id": "ner-tagger"
+}
+```
+{% endtab %}
+{% tab title="Interpretation" %}
+**Entities Found:**
 
-=== "Interpretation"
+- **Mozilla** → `B-ORG`, `I-ORG` (Organization)
+- **San Francisco** → `B-LOC` (Location)
+- **CA** → `B-LOC` (Location)
 
-    **Entities Found:**
-
-    - **Mozilla** → `B-ORG`, `I-ORG` (Organization)
-    - **San Francisco** → `B-LOC` (Location)
-    - **CA** → `B-LOC` (Location)
-
-    The `B-` prefix indicates the beginning of an entity, `I-` indicates inside/continuation, and `O` means outside any entity.
+The `B-` prefix indicates the beginning of an entity, `I-` indicates inside/continuation, and `O` means outside any entity.
+{% endtab %}
+{% endtabs %}
 
 ### Example 2: Multiple Sentences
 
-=== "Request"
+{% tabs %}
+{% tab title="Request" %}
+```bash
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inputs": [
+      "Yvon Chouinard founded Patagonia in 1957.",
+      "The Eiffel Tower is located in Paris, France."
+    ]
+  }'
+```
+{% endtab %}
+{% tab title="Expected Entities" %}
+**Sentence 1:**
+- **Yvon** → Person (PER)
+- **Patagonia** → Organization (ORG)
 
-    ```bash
-    curl -X POST http://localhost:8080/predict \
-      -H "Content-Type: application/json" \
-      -d '{
-        "inputs": [
-          "Yvon Chouinard founded Patagonia in 1957.",
-          "The Eiffel Tower is located in Paris, France."
-        ]
-      }'
-    ```
-
-=== "Expected Entities"
-
-    **Sentence 1:**
-    - **Yvon** → Person (PER)
-    - **Patagonia** → Organization (ORG)
-
-    **Sentence 2:**
-    - **Eiffel Tower** → Miscellaneous (MISC)
-    - **Paris** → Location (LOC)
-    - **France** → Location (LOC)
+**Sentence 2:**
+- **Eiffel Tower** → Miscellaneous (MISC)
+- **Paris** → Location (LOC)
+- **France** → Location (LOC)
+{% endtab %}
+{% endtabs %}
 
 ## Step 6: CLI Inference
 
@@ -329,13 +348,16 @@ The model uses the IOB (Inside-Outside-Beginning) tagging scheme:
 
 ### Unexpected Entity Recognition
 
-!!! warning "Model Limitations"
-    The model may struggle with:
+{% hint style="warning" %}
+**Model Limitations**
 
-    - Rare or domain-specific entities
-    - Ambiguous contexts (e.g., "Washington" as person vs. location)
-    - Non-English text
-    - Very long sequences (>512 tokens)
+The model may struggle with:
+
+- Rare or domain-specific entities
+- Ambiguous contexts (e.g., "Washington" as person vs. location)
+- Non-English text
+- Very long sequences (>512 tokens)
+{% endhint %}
 
 **Solution:** Fine-tune on domain-specific data or use a specialized model.
 

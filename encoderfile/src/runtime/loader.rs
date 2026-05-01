@@ -2,13 +2,13 @@ use anyhow::{Result, bail};
 use prost::Message;
 use std::io::{Read, Seek};
 
-use ort::session::Session;
+use ort::session::{Session, builder::GraphOptimizationLevel};
 
 use crate::{
     common::{Config, LuaLibs, ModelConfig, ModelType},
     format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
     generated::manifest::{self, TransformType},
-    runtime::TokenizerService,
+    runtime::{ORTExecutionProvider, ORTSessionBuilder, TokenizerService},
 };
 
 pub struct EncoderfileLoader<'a, R: Read + Seek> {
@@ -28,7 +28,12 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
         self.encoderfile.model_type()
     }
 
-    pub fn session(&mut self) -> Result<Session> {
+    pub fn session(
+        &mut self,
+        execution_provider: ORTExecutionProvider,
+        enable_cpu_fallback: bool,
+        graph_optimization_level: Option<GraphOptimizationLevel>,
+    ) -> Result<Session> {
         let session = match self
             .encoderfile
             .open_required(self.reader, AssetKind::ModelWeights)
@@ -37,7 +42,13 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
                 let mut buf = vec![0u8; r.len() as usize];
                 r.read_exact(&mut buf)?;
 
-                ort::session::Session::builder()?.commit_from_memory(buf.as_slice())?
+                let builder = ORTSessionBuilder {
+                    execution_provider,
+                    enable_cpu_fallback,
+                    graph_optimization_level,
+                };
+
+                builder.from_memory(buf.as_slice())?
             }
             Err(e) => bail!("Error loading model weights: {e:?}"),
         };

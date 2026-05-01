@@ -1,78 +1,22 @@
-use parking_lot::Mutex;
-use std::{
-    fs::File,
-    io::{BufReader, Read, Seek},
-    sync::Arc,
-};
+use std::{fs::File, io::BufReader};
 
 use anyhow::Result;
 use clap::Parser;
-use encoderfile::{
-    common::{
-        ModelType,
-        model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
-    },
-    runtime::{EncoderfileLoader, EncoderfileState, load_assets},
-    transport::cli::Cli,
-};
+use encoderfile::{runtime::load_assets, transport::cli::Cli};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // parse CLI
+    let cli = Cli::parse();
+
     // open current executable
     let path = std::env::current_exe()?;
     let file = File::open(path)?;
     let mut file = BufReader::new(file);
+
     // load encoderfile
     let mut loader = load_assets(&mut file)?;
 
-    // entrypoint
-    entrypoint(&mut loader).await
-}
-
-macro_rules! run_cli {
-    ($model_type:ident, $cli:expr, $config:expr, $session:expr, $tokenizer:expr, $model_config:expr) => {{
-        let state = Arc::new(EncoderfileState::<$model_type>::new(
-            $config,
-            $session,
-            $tokenizer,
-            $model_config,
-        ));
-        $cli.command.execute(state).await
-    }};
-}
-
-async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -> Result<()> {
-    let cli = Cli::parse();
-    let session = Mutex::new(loader.session()?);
-    let model_config = loader.model_config()?;
-    let tokenizer = loader.tokenizer()?;
-    let config = loader.encoderfile_config()?;
-
-    match loader.model_type() {
-        ModelType::Embedding => run_cli!(Embedding, cli, config, session, tokenizer, model_config),
-        ModelType::SequenceClassification => run_cli!(
-            SequenceClassification,
-            cli,
-            config,
-            session,
-            tokenizer,
-            model_config
-        ),
-        ModelType::TokenClassification => run_cli!(
-            TokenClassification,
-            cli,
-            config,
-            session,
-            tokenizer,
-            model_config
-        ),
-        ModelType::SentenceEmbedding => run_cli!(
-            SentenceEmbedding,
-            cli,
-            config,
-            session,
-            tokenizer,
-            model_config
-        ),
-    }
+    // execute
+    cli.command.execute(&mut loader).await
 }

@@ -1,6 +1,10 @@
 use crate::{
-    common::FromCliInput,
-    services::Inference,
+    common::{
+        FromCliInput, ModelType,
+        model_type::{self, ModelTypeSpec},
+    },
+    runtime::{EncoderfileLoader, EncoderfileState, ORTExecutionProvider},
+    services::{Inference, Metadata},
     transport::{
         grpc::GrpcRouter,
         http::HttpRouter,
@@ -9,11 +13,15 @@ use crate::{
     },
 };
 use anyhow::Result;
-use clap_derive::{Parser, Subcommand, ValueEnum};
+use clap_derive::{Args, Parser, Subcommand, ValueEnum};
 use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
-use std::{fmt::Display, io::Write};
+use std::{
+    fmt::Display,
+    io::{Read, Seek, Write},
+    sync::Arc,
+};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub trait CliRoute: Inference {
@@ -74,6 +82,8 @@ pub enum Commands {
         cert_file: Option<String>,
         #[arg(long)]
         key_file: Option<String>,
+        #[command(flatten)]
+        onnx_args: ONNXArgs,
     },
     Infer {
         #[arg(required = true)]
@@ -82,6 +92,8 @@ pub enum Commands {
         format: Format,
         #[arg(short)]
         out_dir: Option<String>,
+        #[command(flatten)]
+        onnx_args: ONNXArgs,
     },
     Mcp {
         #[arg(long, default_value = "0.0.0.0")]
@@ -92,13 +104,41 @@ pub enum Commands {
         cert_file: Option<String>,
         #[arg(long)]
         key_file: Option<String>,
+        #[command(flatten)]
+        onnx_args: ONNXArgs,
     },
 }
 
 impl Commands {
-    pub async fn execute<S>(self, state: S) -> Result<()>
+    pub async fn execute<'a, R: Read + Seek>(
+        self,
+        loader: &mut EncoderfileLoader<'a, R>,
+    ) -> Result<()> {
+        match loader.model_type() {
+            ModelType::Embedding => {
+                self.execute_from_loader::<R, model_type::Embedding>(loader)
+                    .await
+            }
+            ModelType::SequenceClassification => {
+                self.execute_from_loader::<R, model_type::SequenceClassification>(loader)
+                    .await
+            }
+            ModelType::TokenClassification => {
+                self.execute_from_loader::<R, model_type::TokenClassification>(loader)
+                    .await
+            }
+            ModelType::SentenceEmbedding => {
+                self.execute_from_loader::<R, model_type::SentenceEmbedding>(loader)
+                    .await
+            }
+        }
+    }
+    pub async fn execute_from_loader<'a, R: Read + Seek, T: ModelTypeSpec>(
+        self,
+        loader: &mut EncoderfileLoader<'a, R>,
+    ) -> Result<()>
     where
-        S: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
+        Arc<EncoderfileState<T>>: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
     {
         match self {
             Commands::Serve {
@@ -112,7 +152,26 @@ impl Commands {
                 otel_exporter_url,
                 cert_file,
                 key_file,
+                onnx_args,
             } => {
+                let session = loader
+                    .session(
+                        onnx_args.to_provider(),
+                        onnx_args.enable_cpu_fallback(),
+                        onnx_args.graph_optimization_level(),
+                    )?
+                    .into();
+                let model_config = loader.model_config()?;
+                let tokenizer = loader.tokenizer()?;
+                let config = loader.encoderfile_config()?;
+
+                let state = Arc::new(EncoderfileState::<T>::new(
+                    config,
+                    session,
+                    tokenizer,
+                    model_config,
+                ));
+
                 let banner = crate::get_banner(state.model_id().as_str());
 
                 if disable_grpc && disable_http {
@@ -156,7 +215,27 @@ impl Commands {
                 inputs,
                 format,
                 out_dir,
+                onnx_args,
             } => {
+                let session = loader
+                    .session(
+                        onnx_args.to_provider(),
+                        onnx_args.enable_cpu_fallback(),
+                        onnx_args.graph_optimization_level(),
+                    )?
+                    .into();
+
+                let model_config = loader.model_config()?;
+                let tokenizer = loader.tokenizer()?;
+                let config = loader.encoderfile_config()?;
+
+                let state = Arc::new(EncoderfileState::<T>::new(
+                    config,
+                    session,
+                    tokenizer,
+                    model_config,
+                ));
+
                 setup_tracing(None)?;
 
                 state.cli_route(inputs, format, out_dir)?
@@ -166,7 +245,27 @@ impl Commands {
                 port,
                 cert_file,
                 key_file,
+                onnx_args,
             } => {
+                let session = loader
+                    .session(
+                        onnx_args.to_provider(),
+                        onnx_args.enable_cpu_fallback(),
+                        onnx_args.graph_optimization_level(),
+                    )?
+                    .into();
+
+                let model_config = loader.model_config()?;
+                let tokenizer = loader.tokenizer()?;
+                let config = loader.encoderfile_config()?;
+
+                let state = Arc::new(EncoderfileState::<T>::new(
+                    config,
+                    session,
+                    tokenizer,
+                    model_config,
+                ));
+
                 let banner = crate::get_banner(state.model_id().as_str());
                 let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
                 println!("{}", banner);
@@ -174,6 +273,137 @@ impl Commands {
             }
         }
         Ok(())
+    }
+}
+
+#[derive(Clone, Args)]
+pub struct ONNXArgs {
+    #[arg(long, default_value_t = false)]
+    disable_cpu_fallback: bool,
+    #[arg(long)]
+    graph_optimization_level: Option<GraphOptimizationLevel>,
+    #[arg(long, default_value_t = ExecutionProvider::Cpu)]
+    execution_provider: ExecutionProvider,
+    #[arg(
+        long,
+        default_value_t = false,
+        help = "Use arena allocator. Use only if execution provider is CPU."
+    )]
+    with_arena_allocator: bool,
+    #[arg(
+        long,
+        help = "Device. Use only if execution provider is CUDA/TensorRT."
+    )]
+    device_id: Option<i32>,
+    #[arg(
+        long,
+        default_value_t = CoreMLComputeUnits::All,
+        help = "Compute units. Use only if execution provider is CoreML."
+    )]
+    compute_units: CoreMLComputeUnits,
+}
+
+impl ONNXArgs {
+    pub fn graph_optimization_level(self) -> Option<ort::session::builder::GraphOptimizationLevel> {
+        self.graph_optimization_level.clone().map(|i| i.into())
+    }
+
+    pub fn enable_cpu_fallback(&self) -> bool {
+        !self.disable_cpu_fallback
+    }
+
+    pub fn to_provider(&self) -> ORTExecutionProvider {
+        match self.execution_provider {
+            ExecutionProvider::Cpu => ORTExecutionProvider::Cpu {
+                arena_allocator: self.with_arena_allocator,
+            },
+            ExecutionProvider::Cuda => ORTExecutionProvider::Cuda {
+                device_id: self.device_id,
+            },
+            ExecutionProvider::Tensorrt => ORTExecutionProvider::TensorRT {
+                device_id: self.device_id,
+            },
+            ExecutionProvider::Coreml => ORTExecutionProvider::CoreML {
+                compute_units: Some(match self.compute_units {
+                    CoreMLComputeUnits::All => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::All
+                    }
+                    CoreMLComputeUnits::CpuAndNeuralEngine => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::CPUAndNeuralEngine
+                    }
+                    CoreMLComputeUnits::CpuAndGpu => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::CPUAndGPU
+                    }
+                    CoreMLComputeUnits::CpuOnly => {
+                        ort::execution_providers::coreml::CoreMLComputeUnits::CPUOnly
+                    }
+                }),
+            },
+        }
+    }
+}
+
+#[derive(Clone, ValueEnum, Default)]
+pub enum GraphOptimizationLevel {
+    #[value(name = "disable")]
+    Disable,
+    #[value(name = "1")]
+    Level1,
+    #[value(name = "2")]
+    Level2,
+    #[default]
+    #[value(name = "3")]
+    Level3,
+}
+
+impl From<GraphOptimizationLevel> for ort::session::builder::GraphOptimizationLevel {
+    fn from(value: GraphOptimizationLevel) -> Self {
+        match value {
+            GraphOptimizationLevel::Disable => {
+                ort::session::builder::GraphOptimizationLevel::Disable
+            }
+            GraphOptimizationLevel::Level1 => ort::session::builder::GraphOptimizationLevel::Level1,
+            GraphOptimizationLevel::Level2 => ort::session::builder::GraphOptimizationLevel::Level2,
+            GraphOptimizationLevel::Level3 => ort::session::builder::GraphOptimizationLevel::Level3,
+        }
+    }
+}
+
+#[derive(Clone, ValueEnum)]
+pub enum CoreMLComputeUnits {
+    All,
+    CpuAndNeuralEngine,
+    CpuAndGpu,
+    CpuOnly,
+}
+
+impl Display for CoreMLComputeUnits {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CoreMLComputeUnits::All => write!(f, "all"),
+            CoreMLComputeUnits::CpuAndNeuralEngine => write!(f, "cpu-and-neural-engine"),
+            CoreMLComputeUnits::CpuAndGpu => write!(f, "cpu-and-gpu"),
+            CoreMLComputeUnits::CpuOnly => write!(f, "cpu-only"),
+        }
+    }
+}
+
+#[derive(Clone, ValueEnum)]
+pub enum ExecutionProvider {
+    Cpu,
+    Cuda,
+    Tensorrt,
+    Coreml,
+}
+
+impl Display for ExecutionProvider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExecutionProvider::Cpu => write!(f, "cpu"),
+            ExecutionProvider::Cuda => write!(f, "cuda"),
+            ExecutionProvider::Tensorrt => write!(f, "tensorrt"),
+            ExecutionProvider::Coreml => write!(f, "coreml"),
+        }
     }
 }
 

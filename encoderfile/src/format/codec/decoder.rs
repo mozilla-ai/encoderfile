@@ -49,7 +49,6 @@ mod tests {
     use crate::{
         common::model_type::ModelType,
         format::assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
-        generated::manifest::Backend,
     };
     use std::{
         borrow::Cow,
@@ -81,7 +80,6 @@ mod tests {
                 "test-model".to_string(),
                 "0.1.0".to_string(),
                 ModelType::Embedding,
-                Backend::Cpu,
                 &plan,
                 &mut buf,
             )
@@ -113,7 +111,6 @@ mod tests {
                 "offset-test".to_string(),
                 "1.0.0".to_string(),
                 ModelType::Embedding,
-                Backend::Cpu,
                 &plan,
                 &mut buf,
             )
