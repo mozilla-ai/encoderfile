@@ -8,6 +8,24 @@ build-py:
     uv run maturin develop \
         -m encoderfile-py/Cargo.toml
 
+build-encoderfile target:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name=="encoderfile-runtime") | .version')
+
+    cargo build \
+        --release \
+        --target {{ target }} \
+        -p encoderfile
+
+    pkg=encoderfile-{{ target }}
+    rm -rf "$pkg" && mkdir -p "$pkg"
+    cp target/{{ target }}/release/encoderfile "$pkg/"
+
+    cp README.md LICENSE THIRDPARTY.md "$pkg/"
+    tar -czf "encoderfile-${version}-{{ target }}.tar.gz" -C "$pkg" .
+    rm -rf "$pkg"
+
 build-encoderfile-runtime target variant="":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -28,6 +46,7 @@ build-encoderfile-runtime target variant="":
 
     cp README.md LICENSE THIRDPARTY.md "$pkg/"
     tar -czf "encoderfile-runtime-${version}-{{ target }}${suffix}.tar.gz" -C "$pkg" .
+    rm -rf "$pkg"
 
 # Docs
 docs: docs-check docs-build
