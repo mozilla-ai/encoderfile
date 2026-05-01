@@ -1,0 +1,36 @@
+name: ci (python)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - encoderfile-py/**
+  pull_request:
+    paths:
+      - encoderfile-py/**
+  workflow_dispatch:
+
+jobs:
+  test_python:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Project setup
+        uses: ./.github/actions/project-setup
+        with:
+          # use MSRV
+          python_version: "3.10"
+
+      - name: Build runtime
+        run: cargo build -p encoderfile-runtime
+
+      - name: Maturin develop
+        run: just build-py
+
+      - name: Test
+        run: just test-py
+
+      - name: Stubtest
+        run: just stubtest

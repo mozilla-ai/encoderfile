@@ -1,16 +1,16 @@
 encoderfile:
   name: my-model-2-lua
-  path: models/token_classification
+  path: ../models/token_classification
   model_type: token_classification
   output_path: /tmp/test-model-lua.encoderfile
-  base_binary_path: ./target/debug/encoderfile-runtime
+  base_binary_path: ../target/debug/encoderfile-runtime
   lua_libs:
     - table
     - math
   transform: |
     --- Applies a softmax across token classification logits.
     --- Each token classification is normalized independently.
-    --- 
+    ---
     --- Args:
     ---   arr (Tensor): A tensor of shape [batch_size, n_tokens, n_labels].
     ---                 The softmax is applied along the third axis (n_labels).
