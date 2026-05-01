@@ -26,9 +26,6 @@ jobs:
       - name: Build runtime
         run: cargo build -p encoderfile-runtime
 
-      - name: Install Maturin
-        run: cargo binstall maturin
-
       - name: Maturin develop
         run: just build-py
 
