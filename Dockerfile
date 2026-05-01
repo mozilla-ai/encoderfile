@@ -12,8 +12,11 @@ RUN apt-get update && \
         curl \
         ca-certificates \
         build-essential \
+        jq \
         pkg-config \
         protobuf-compiler \
+        python3 \
+        python3-venv \
         libssl-dev && \
         rm -rf /var/lib/apt/lists/*
 
@@ -25,6 +28,17 @@ ARG RUST_VERSION=1.91.0
 RUN rustup toolchain install ${RUST_VERSION}
 RUN rustup default ${RUST_VERSION}
 
+# install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+RUN uv python install 3.13
+
+# install cargo-binstall
+RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+# install just
+RUN cargo binstall just
+
 FROM base AS build
 
 WORKDIR /app
@@ -35,12 +49,12 @@ COPY Cargo.toml Cargo.lock ./
 COPY encoderfile ./encoderfile
 COPY encoderfile-runtime ./encoderfile-runtime
 COPY encoderfile-py ./encoderfile-py
+COPY Justfile README.md LICENSE THIRDPARTY.md ./
+COPY pyproject.toml uv.lock ./
 
 # Build release binary.
-RUN cargo build \
-    -p encoderfile \
-    -p encoderfile-runtime \
-    --release
+ARG VARIANT=""
+RUN just build "" ${VARIANT}
 
 # ---- Final stage ------------------------------------------------------------
 FROM debian:bookworm-slim AS final
