@@ -10,7 +10,7 @@ pub trait ModelTypeExt {
     fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>>;
 }
 
-impl ModelTypeExt for crate::common::ModelType {
+impl ModelTypeExt for crate::common::model_type::ModelType {
     fn validate_model<'a>(&self, path: &'a Path) -> Result<PlannedAsset<'a>> {
         let model = load_model(path)?;
 
@@ -19,6 +19,7 @@ impl ModelTypeExt for crate::common::ModelType {
             Self::SequenceClassification => validate_sequence_classification_model(model),
             Self::TokenClassification => validate_token_classification_model(model),
             Self::SentenceEmbedding => validate_sentence_embedding_model(model),
+            Self::ImageClassification => validate_image_classification_model(model),
         }?;
 
         PlannedAsset::from_asset_source(AssetSource::File(path), AssetKind::ModelWeights)
@@ -60,6 +61,16 @@ fn validate_token_classification_model(model: Session) -> Result<()> {
 
     if shape.len() != 3 {
         bail!("Model must return tensor of shape [batch_size, seq_len, n_labels]")
+    }
+
+    Ok(())
+}
+
+fn validate_image_classification_model(model: Session) -> Result<()> {
+    let shape = get_outp_dim(model.outputs.as_slice(), "logits")?;
+
+    if shape.len() != 2 {
+        bail!("Model must return tensor of shape [batch_size, n_labels]")
     }
 
     Ok(())

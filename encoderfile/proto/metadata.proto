@@ -6,6 +6,7 @@ message GetModelMetadataRequest {}
 
 message GetModelMetadataResponse {
   string model_id = 1;
+  // TODO decide if we want a model family/area at a higher level
   ModelType model_type = 2;
   map<uint32, string> id2label = 3;
 }
@@ -16,4 +17,8 @@ enum ModelType {
   SEQUENCE_CLASSIFICATION = 2;
   TOKEN_CLASSIFICATION = 3;
   SENTENCE_EMBEDDING = 4;
+
+  IMAGE_CLASSIFICATION = 21;
+  // IMAGE_SEGMENTATION = 22;
+  // OBJECT_DETECTION = 23;
 }

@@ -3,7 +3,7 @@ use ort::session::Session;
 use parking_lot::MutexGuard;
 
 #[macro_export]
-macro_rules! prepare_inputs {
+macro_rules! prepare_text_inputs {
     ($encodings:ident) => {{
         let padded_token_length = $encodings[0].len();
 
@@ -69,6 +69,17 @@ macro_rules! run_model {
             true => $session.run(ort::inputs!($a_ids, $a_mask, $a_type_ids)),
             false => $session.run(ort::inputs!($a_ids, $a_mask)),
         }
+        .map_err(|e| {
+            tracing::error!("Error running model: {:?}", e);
+            $crate::error::ApiError::InternalError("Error running model")
+        })
+    }};
+}
+
+#[macro_export]
+macro_rules! run_cv_model {
+    ($session:expr, $image_bytes:expr) => {{
+        $session.run(ort::inputs!($image_bytes))
         .map_err(|e| {
             tracing::error!("Error running model: {:?}", e);
             $crate::error::ApiError::InternalError("Error running model")

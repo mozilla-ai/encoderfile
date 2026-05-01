@@ -56,7 +56,7 @@ impl TransformValidatorExt for EmbeddingTransform {
 #[cfg(test)]
 mod tests {
     use crate::builder::config::{EncoderfileConfig, ModelPath};
-    use crate::common::ModelType;
+    use crate::common::model_type::ModelType;
     use crate::transforms::DEFAULT_LIBS;
 
     use super::*;

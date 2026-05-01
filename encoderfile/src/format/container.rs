@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::io::{Read, Seek, SeekFrom};
 
 use crate::{
-    common::ModelType,
+    common::model_type::ModelType,
     format::{assets::AssetKind, footer::EncoderfileFooter},
     generated::manifest::{Artifact, EncoderfileManifest},
 };

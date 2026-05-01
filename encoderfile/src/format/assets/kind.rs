@@ -78,3 +78,4 @@ asset_policy_spec!(Encoder, Embedding);
 asset_policy_spec!(Encoder, SequenceClassification);
 asset_policy_spec!(Encoder, TokenClassification);
 asset_policy_spec!(Encoder, SentenceEmbedding);
+asset_policy_spec!(Encoder, ImageClassification);

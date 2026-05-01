@@ -139,7 +139,16 @@ workspace = true
 [dependencies.serde_json]
 workspace = true
 
+[dependencies.bytes]
+workspace = true
+
 [dependencies.ndarray]
+workspace = true
+
+[dependencies.image]
+workspace = true
+
+[dependencies.image-ndarray]
 workspace = true
 
 [dependencies.figment]
