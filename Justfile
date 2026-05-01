@@ -11,29 +11,25 @@ dev-py:
 build target="" variant="":
     #!/usr/bin/env bash
     set -euo pipefail
-    # build encoderfile
-    just build-encoderfile {{ target }}
-
-    # build runtime with variant if provided
+    just build-encoderfile "{{ target }}"
     if [ -n "{{ variant }}" ]; then
-        just build-encoderfile-runtime {{ target }} {{ variant }}
+        just build-encoderfile-runtime "{{ target }}" "{{ variant }}"
     fi
-
-    # build runtime (cpu-only)
-    just build-encoderfile-runtime {{ target }}
-
-    # build python bindings
-    just build-encoderfile-py {{ target }}
+    just build-encoderfile-runtime "{{ target }}"
+    just build-encoderfile-py "{{ target }}"
 
 build-encoderfile-py target="":
     #!/usr/bin/env bash
     set -euo pipefail
-    targ_str=$([ -n "{{ target }}" ] && echo "--target {{ target }}" || echo "")
+    target="{{ target }}"
+    if [ -z "$target" ]; then
+            target=$(rustc -vV | sed -n 's|host: ||p')
+        fi
 
     mkdir -p wheels
     uv run maturin build \
         --release \
-        $targ_str \
+        --target $target \
         -m encoderfile-py/Cargo.toml \
         --out wheels \
         -i .venv/bin/python3.13
@@ -41,43 +37,51 @@ build-encoderfile-py target="":
 build-encoderfile target="":
     #!/usr/bin/env bash
     set -euo pipefail
+    target="{{ target }}"
+    if [ -z "$target" ]; then
+            target=$(rustc -vV | sed -n 's|host: ||p')
+        fi
+    mkdir -p dist/
     version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name=="encoderfile-runtime") | .version')
-    targ_str=$([ -n "{{ target }}" ] && echo "--target {{ target }}" || echo "")
 
     cargo build \
         --release \
-        $targ_str \
+        --target "$target" \
         -p encoderfile
 
-    pkg=encoderfile-{{ target }}
+    pkg=encoderfile-$target
     rm -rf "$pkg" && mkdir -p "$pkg"
-    cp target/{{ target }}/release/encoderfile "$pkg/"
+    cp target/$target/release/encoderfile "$pkg/"
 
     cp README.md LICENSE THIRDPARTY.md "$pkg/"
-    tar -czf "encoderfile-${version}-{{ target }}.tar.gz" -C "$pkg" .
+    tar -czf "dist/encoderfile-${version}-${target}.tar.gz" -C "$pkg" .
     rm -rf "$pkg"
 
 build-encoderfile-runtime target="" variant="":
     #!/usr/bin/env bash
     set -euo pipefail
+    mkdir -p dist/
+    target="{{ target }}"
+    if [ -z "$target" ]; then
+            target=$(rustc -vV | sed -n 's|host: ||p')
+        fi
     version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name=="encoderfile-runtime") | .version')
-    targ_str=$([ -n "{{ target }}" ] && echo "--target {{ target }}" || echo "")
 
     features=$([ -n "{{ variant }}" ] && echo "--features {{ variant }}" || echo "")
     suffix=$([ -n "{{ variant }}" ] && echo "-{{ variant }}" || echo "")
 
     cargo build \
         --release \
-        $targ_str \
+        --target $target \
         -p encoderfile-runtime \
         $features
 
-    pkg=encoderfile-runtime-{{ target }}${suffix}
+    pkg=encoderfile-runtime-${target}${suffix}
     rm -rf "$pkg" && mkdir -p "$pkg"
-    cp target/{{ target }}/release/encoderfile-runtime "$pkg/"
+    cp target/$target/release/encoderfile-runtime "$pkg/"
 
     cp README.md LICENSE THIRDPARTY.md "$pkg/"
-    tar -czf "encoderfile-runtime-${version}-{{ target }}${suffix}.tar.gz" -C "$pkg" .
+    tar -czf "dist/encoderfile-runtime-${version}-${target}${suffix}.tar.gz" -C "$pkg" .
     rm -rf "$pkg"
 
 # Docs
