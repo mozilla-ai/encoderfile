@@ -8,6 +8,23 @@ dev-py:
     uv run maturin develop \
         -m encoderfile-py/Cargo.toml
 
+build target variant="" python=".venv/bin/python3.13":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # build encoderfile
+    just build-encoderfile {{ target }}
+
+    # build runtime with variant if provided
+    if [ -n "{{ variant }}" ]; then
+        just build-encoderfile-runtime {{ target }} {{ variant }}
+    fi
+
+    # build runtime (cpu-only)
+    just build-encoderfile-runtime {{ target }}
+
+    # build python bindings
+    just build-encoderfile-py {{ target }} {{ python }}
+
 build-encoderfile-py target python=".venv/bin/python3.13":
     #!/usr/bin/env bash
     set -euo pipefail
