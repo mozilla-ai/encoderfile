@@ -23,11 +23,11 @@ jobs:
           # use MSRV
           python_version: "3.10"
 
-      - name: Install Maturin
-        run: cargo binstall maturin
-
       - name: Build runtime
         run: cargo build -p encoderfile-runtime
+
+      - name: Install Maturin
+        run: cargo binstall maturin
 
       - name: Maturin develop
         run: just build-py
