@@ -52,6 +52,7 @@ lint-py:
     @uv run ruff check
 
 test-py:
+    # test encoderfile-py bindings
     @uv run \
         --dev \
         --directory encoderfile-py \
