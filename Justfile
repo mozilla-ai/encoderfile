@@ -4,9 +4,15 @@ setup:
     @uv sync --locked
 
 # Build
-build-py:
+dev-py:
     uv run maturin develop \
         -m encoderfile-py/Cargo.toml
+
+build-encoderfile-py target python=".venv/bin/python3.13":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p wheels
+    maturin build --release --target {{ target }} -m encoderfile-py/Cargo.toml --out wheels -i {{ python }}
 
 build-encoderfile target:
     #!/usr/bin/env bash

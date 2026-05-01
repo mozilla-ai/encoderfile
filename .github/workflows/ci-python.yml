@@ -27,7 +27,7 @@ jobs:
         run: cargo build -p encoderfile-runtime
 
       - name: Maturin develop
-        run: just build-py
+        run: just dev-py
 
       - name: Test
         run: just test-py
