@@ -8,9 +8,8 @@ use std::{
 use anyhow::Result;
 use clap::Parser;
 use encoderfile::{
-    common::{
-        ModelType,
-        model_type::{Embedding, SentenceEmbedding, SequenceClassification, TokenClassification},
+    common::model_type::{
+        Embedding, SentenceEmbedding, SequenceClassification, TokenClassification, ModelType,
     },
     runtime::{EncoderfileLoader, EncoderfileState, load_assets},
     transport::cli::Cli,
@@ -74,5 +73,6 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
             tokenizer,
             model_config
         ),
+        ModelType::ImageClassification => panic!("ImageClassification is not yet supported in the CLI"),
     }
 }

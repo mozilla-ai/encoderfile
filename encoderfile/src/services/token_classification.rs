@@ -3,12 +3,14 @@ use crate::{
     error::ApiError,
     inference,
     runtime::AppState,
+    runtime::TextInputState,
     transforms::TokenClassificationTransform,
 };
 
 use super::inference::Inference;
 
-impl Inference for AppState<model_type::TokenClassification> {
+impl Inference for AppState<model_type::TokenClassification>
+{
     type Input = TokenClassificationRequest;
     type Output = TokenClassificationResponse;
 
@@ -17,7 +19,7 @@ impl Inference for AppState<model_type::TokenClassification> {
 
         let session = self.session.lock();
 
-        let encodings = self.tokenizer.encode_text(request.inputs)?;
+        let encodings = self.per_model_input_state.tokenizer.encode_text(request.inputs)?;
 
         let transform =
             TokenClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
@@ -25,7 +27,7 @@ impl Inference for AppState<model_type::TokenClassification> {
         let results = inference::token_classification::token_classification(
             session,
             &transform,
-            &self.model_config,
+            &self.per_model_input_state.model_config,
             encodings,
         )?;
 

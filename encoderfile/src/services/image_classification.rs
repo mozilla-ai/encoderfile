@@ -9,6 +9,7 @@ use crate::{
 
     error::ApiError,
     runtime::AppState,
+    runtime::ImageInputState,
 };
 
 use image::{DynamicImage, GenericImageView};
@@ -17,8 +18,8 @@ use super::inference::Inference;
 
 // No service impl yet
 
-/*
-impl Inference for AppState<model_type::ImageClassification> {
+impl Inference for AppState<model_type::ImageClassification>
+{
     type Input = ImageClassificationRequest;
     type Output = ImageClassificationResponse;
 
@@ -58,4 +59,3 @@ impl Inference for AppState<model_type::ImageClassification> {
         })
     }
 }
-    */

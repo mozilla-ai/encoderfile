@@ -8,14 +8,15 @@ use crate::{
 
 use super::inference::Inference;
 
-impl Inference for AppState<model_type::Embedding> {
+impl Inference for AppState<model_type::Embedding>
+{
     type Input = EmbeddingRequest;
     type Output = EmbeddingResponse;
 
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
 
-        let encodings = self.tokenizer.encode_text(request.inputs)?;
+        let encodings = self.per_model_input_state.tokenizer.encode_text(request.inputs)?;
 
         let transform = EmbeddingTransform::new(self.lua_libs.clone(), self.transform_str())?;
 

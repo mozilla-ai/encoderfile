@@ -4,11 +4,13 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModelConfig {
     pub model_type: String,
+    // FIXME to be moved to per-task structs
     pub num_labels: Option<usize>,
     pub id2label: Option<HashMap<u32, String>>,
     pub label2id: Option<HashMap<String, u32>>,
 }
 
+// TODO add image handling metadata
 impl ModelConfig {
     pub fn id2label(&self, id: u32) -> Option<&str> {
         self.id2label.as_ref()?.get(&id).map(|s| s.as_str())

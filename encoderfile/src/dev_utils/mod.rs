@@ -3,18 +3,21 @@ use crate::{
         Config, ModelConfig, TokenizerConfig,
         model_type::{self, ModelTypeSpec},
     },
-    runtime::{AppState, EncoderfileState},
+    runtime::{AppState, EncoderfileState, FeatureExtractorState, ClassifierState, TextInputState, ImageInputState},
 };
 use ort::session::Session;
 use parking_lot::Mutex;
+use rmcp::model;
 use std::str::FromStr;
 use std::{fs::File, io::BufReader};
 
 const EMBEDDING_DIR: &str = "../models/embedding";
+// CHECK sentence embedding????
 const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
-pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
+pub fn get_state<T: ModelTypeSpec + InputType + TaskType>(dir: &str) -> AppState<T>
+{
     let config = Config {
         name: "my-model".to_string(),
         version: "0.0.1".to_string(),
@@ -23,30 +26,146 @@ pub fn get_state<T: ModelTypeSpec>(dir: &str) -> AppState<T> {
         lua_libs: None,
     };
 
-    let model_config = get_model_config(dir);
-    let tokenizer = get_tokenizer(dir);
     let session = get_model(dir);
 
-    EncoderfileState::new(config, session, tokenizer, model_config).into()
+    EncoderfileState::new(
+        config,
+        session,
+        T::get_input_state(dir),
+        T::get_task_state(dir),
+    ).into()
 }
 
-pub fn embedding_state() -> AppState<model_type::Embedding> {
+pub fn get_reader(dir: &str) -> BufReader<File> {
+    let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
+    BufReader::new(file)
+}
+
+// Input types
+pub trait InputType {
+    type InputState;
+    fn get_input_state(dir: &str) -> Self::InputState;
+}
+
+fn get_text_input_state(dir: &str) -> TextInputState {
+    let reader = get_reader(dir);
+    let tokenizer = get_tokenizer(dir);
+    let model_config = serde_json::from_reader(reader).expect("Invalid model config");
+
+    TextInputState { tokenizer, model_config }
+}
+
+macro_rules! text_input {
+    ($model_type:ty) => {
+        impl InputType for $model_type {
+            type InputState = TextInputState;
+            fn get_input_state(dir: &str) -> Self::InputState {
+                get_text_input_state(dir)
+            }
+        }
+    };
+}
+
+text_input!(model_type::Embedding);
+text_input!(model_type::SentenceEmbedding);
+text_input!(model_type::SequenceClassification);
+text_input!(model_type::TokenClassification);
+
+fn get_image_input_state(dir: &str) -> ImageInputState {
+    let reader = get_reader(dir);
+    serde_json::from_reader(reader).expect("Invalid model config")
+}
+
+macro_rules! image_input {
+    ($model_type:ty) => {
+        impl InputType for $model_type {
+            type InputState = ImageInputState;
+            fn get_input_state(dir: &str) -> Self::InputState {
+                get_image_input_state(dir)
+            }
+        }
+    };
+}
+
+image_input!(model_type::ImageClassification);
+
+
+// Task types
+pub trait TaskType {
+    type TaskState;
+    fn get_task_state(dir: &str) -> Self::TaskState;
+}
+
+fn get_class_task_state(dir: &str) -> ClassifierState {
+    let reader = get_reader(dir);
+    serde_json::from_reader(reader).expect("Invalid model config")
+}
+
+macro_rules! class_task {
+    ($model_type:ty) => {
+        impl TaskType for $model_type {
+            type TaskState = ClassifierState;
+            fn get_task_state(dir: &str) -> Self::TaskState {
+                get_class_task_state(dir)
+            }
+        }
+    };
+}
+
+class_task!(model_type::SequenceClassification);
+class_task!(model_type::TokenClassification);
+class_task!(model_type::ImageClassification);
+
+fn get_feature_task_state(_dir: &str) -> FeatureExtractorState {
+    FeatureExtractorState {}
+}
+
+macro_rules! feature_task {
+    ($model_type:ty) => {
+        impl TaskType for $model_type {
+            type TaskState = FeatureExtractorState;
+            fn get_task_state(dir: &str) -> Self::TaskState {
+                get_feature_task_state(dir)
+            }
+        }
+    };
+}
+
+feature_task!(model_type::Embedding);
+feature_task!(model_type::SentenceEmbedding);
+
+
+
+
+pub fn embedding_state() -> AppState<model_type::Embedding>
+{
     get_state(EMBEDDING_DIR)
 }
 
-pub fn sentence_embedding_state() -> AppState<model_type::SentenceEmbedding> {
+pub fn sentence_embedding_state() -> AppState<model_type::SentenceEmbedding>
+{
     get_state(EMBEDDING_DIR)
 }
 
-pub fn sequence_classification_state() -> AppState<model_type::SequenceClassification> {
+pub fn sequence_classification_state() -> AppState<model_type::SequenceClassification>
+{
     get_state(SEQUENCE_CLASSIFICATION_DIR)
 }
 
-pub fn token_classification_state() -> AppState<model_type::TokenClassification> {
+pub fn token_classification_state() -> AppState<model_type::TokenClassification>
+{
     get_state(TOKEN_CLASSIFICATION_DIR)
 }
 
-fn get_model_config(dir: &str) -> ModelConfig {
+fn get_text_model_config(dir: &str) -> ModelConfig {
+    let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
+    let reader = BufReader::new(file);
+
+    // Deserialize into struct
+    serde_json::from_reader(reader).expect("Invalid model config")
+}
+
+fn get_image_model_config(dir: &str) -> ImageInputState {
     let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
     let reader = BufReader::new(file);
 

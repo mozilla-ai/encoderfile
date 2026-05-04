@@ -7,11 +7,13 @@ use image::ImageFormat;
 use bytes::Bytes;
 
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ImageInfo {
     pub image_bytes: Bytes,
     pub image_format: ImageFormat,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ImageClassificationRequest {
     pub images: Vec<ImageInfo>,
     pub metadata: Option<HashMap<String, String>>,
@@ -78,10 +80,11 @@ pub struct ImageClassificationResult {
 mod tests {
     use super::*;
     use std::fs::File;
+    use std::env::current_dir;
 
     #[test]
     fn test_image_classification_request_from_read_input() {
-        let mut file = File::open("test-pictures/w3c_home.jpg").expect("Failed to open test image");
+        let mut file = File::open("../test-pictures/w3c_home.jpg").expect("Failed to open test image");
         let file_vec = vec![&mut file];
         let request = ImageClassificationRequest::from_read_input(file_vec).expect("Failed to create request from read input");
 

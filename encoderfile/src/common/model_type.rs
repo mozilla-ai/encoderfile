@@ -46,8 +46,6 @@ macro_rules! model_type {
     }
 }
 
-
-
 model_type![
     Embedding,
     SequenceClassification,
@@ -55,6 +53,3 @@ model_type![
     SentenceEmbedding,
     ImageClassification
 ];
-
-
-

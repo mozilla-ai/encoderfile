@@ -1,16 +1,19 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{GetModelMetadataResponse, model_type::ModelType, model_type::ModelTypeSpec},
-    runtime::AppState,
+    common::{GetModelMetadataResponse, model_type::{ModelType, ModelTypeSpec}}, dev_utils::TaskType, dev_utils::InputType, runtime::AppState
 };
+
+pub trait ClassifierMetadata {
+    fn id2label(&self) -> Option<HashMap<u32, String>>;
+}
 
 pub trait Metadata {
     fn metadata(&self) -> GetModelMetadataResponse {
         GetModelMetadataResponse {
             model_id: self.model_id(),
             model_type: self.model_type(),
-            id2label: self.id2label(),
+            id2label: None,
         }
     }
 
@@ -18,10 +21,9 @@ pub trait Metadata {
 
     fn model_type(&self) -> ModelType;
 
-    fn id2label(&self) -> Option<HashMap<u32, String>>;
 }
 
-impl<T: ModelTypeSpec> Metadata for AppState<T> {
+impl<T: ModelTypeSpec + InputType + TaskType> Metadata for AppState<T> {
     fn model_id(&self) -> String {
         self.config.name.clone()
     }
@@ -30,7 +32,4 @@ impl<T: ModelTypeSpec> Metadata for AppState<T> {
         T::enum_val()
     }
 
-    fn id2label(&self) -> Option<HashMap<u32, String>> {
-        self.model_config.id2label.clone()
-    }
 }

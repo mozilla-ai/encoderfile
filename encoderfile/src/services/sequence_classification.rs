@@ -8,14 +8,15 @@ use crate::{
 
 use super::inference::Inference;
 
-impl Inference for AppState<model_type::SequenceClassification> {
+impl Inference for AppState<model_type::SequenceClassification>
+{
     type Input = SequenceClassificationRequest;
     type Output = SequenceClassificationResponse;
 
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
 
-        let encodings = self.tokenizer.encode_text(request.inputs)?;
+        let encodings = self.per_model_input_state.tokenizer.encode_text(request.inputs)?;
 
         let transform =
             SequenceClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
@@ -23,7 +24,7 @@ impl Inference for AppState<model_type::SequenceClassification> {
         let results = inference::sequence_classification::sequence_classification(
             self.session.lock(),
             &transform,
-            &self.model_config,
+            &self.per_model_input_state.model_config,
             encodings,
         )?;
 
