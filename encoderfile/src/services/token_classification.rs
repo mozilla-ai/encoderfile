@@ -3,7 +3,6 @@ use crate::{
     error::ApiError,
     inference,
     runtime::AppState,
-    runtime::TextInputState,
     transforms::TokenClassificationTransform,
 };
 
@@ -27,7 +26,7 @@ impl Inference for AppState<model_type::TokenClassification>
         let results = inference::token_classification::token_classification(
             session,
             &transform,
-            &self.per_model_input_state.model_config,
+            &self.per_task_state,
             encodings,
         )?;
 

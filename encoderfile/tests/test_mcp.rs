@@ -5,7 +5,7 @@ use encoderfile::transport::mcp::McpRouter;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 use tower_http::trace::DefaultOnResponse;
-use encoderfile::dev_utils::{InputType, TaskType};
+use encoderfile::runtime::{InputType, TaskType};
 
 async fn run_mcp<T: ModelTypeSpec + InputType + TaskType>(
     addr: String,

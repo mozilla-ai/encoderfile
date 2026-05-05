@@ -45,3 +45,16 @@ pub fn test_sequence_classification() {
             .is_ok()
     );
 }
+
+#[test]
+pub fn test_image_classification() {
+    let path = PathBuf::from("../models/image_classification/model.onnx");
+
+    assert!(ModelType::ImageClassification.validate_model(&path).is_ok());
+    assert!(
+        ModelType::TokenClassification
+            .validate_model(&path)
+            .is_err()
+    );
+}
+

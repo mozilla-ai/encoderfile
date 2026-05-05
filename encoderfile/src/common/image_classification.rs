@@ -80,7 +80,6 @@ pub struct ImageClassificationResult {
 mod tests {
     use super::*;
     use std::fs::File;
-    use std::env::current_dir;
 
     #[test]
     fn test_image_classification_request_from_read_input() {

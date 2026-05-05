@@ -12,9 +12,6 @@ pub fn image_classification<'a>(
     // CHECK if this is a vec of flattened rgb images with num_channels X height X width
     images: Array4<f32>,
     classes: Vec<String>,
-    channels: usize,
-    height: usize,
-    width: usize,
 ) -> Result<Vec<Vec<ImageLabelScore>>, ApiError> {
     let grouped_images = ort::value::TensorRef::from_array_view(
         &images)
@@ -48,4 +45,9 @@ pub fn postprocess(outputs: Array2<f32>, classes: Vec<String>) -> Vec<Vec<ImageL
                 .collect()
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    // Add your test cases here
 }

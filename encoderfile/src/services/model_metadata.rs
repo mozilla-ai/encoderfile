@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{GetModelMetadataResponse, model_type::{ModelType, ModelTypeSpec}}, dev_utils::TaskType, dev_utils::InputType, runtime::AppState
+    common::{GetModelMetadataResponse, model_type::{ModelType, ModelTypeSpec}}, runtime::{AppState, TaskType, InputType},
 };
 
 pub trait ClassifierMetadata {

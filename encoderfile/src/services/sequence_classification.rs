@@ -24,7 +24,7 @@ impl Inference for AppState<model_type::SequenceClassification>
         let results = inference::sequence_classification::sequence_classification(
             self.session.lock(),
             &transform,
-            &self.per_model_input_state.model_config,
+            &self.per_task_state,
             encodings,
         )?;
 

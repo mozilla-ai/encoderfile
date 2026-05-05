@@ -1,13 +1,21 @@
 use crate::{
     common::{
-        Config, ModelConfig, TokenizerConfig,
+        Config, TokenizerConfig,
         model_type::{self, ModelTypeSpec},
     },
-    runtime::{AppState, EncoderfileState, FeatureExtractorState, ClassifierState, TextInputState, ImageInputState},
+    runtime::{
+        AppState,
+        EncoderfileState,
+        FeatureExtractorState,
+        ClassifierState,
+        TextInputState,
+        ImageInputState,
+        InputType,
+        TaskType,
+    },
 };
 use ort::session::Session;
 use parking_lot::Mutex;
-use rmcp::model;
 use std::str::FromStr;
 use std::{fs::File, io::BufReader};
 
@@ -16,7 +24,7 @@ const EMBEDDING_DIR: &str = "../models/embedding";
 const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
 
-pub fn get_state<T: ModelTypeSpec + InputType + TaskType>(dir: &str) -> AppState<T>
+pub fn get_state<T: ModelTypeSpec + InputTypeFromFile + TaskTypeFromFile>(dir: &str) -> AppState<T>
 {
     let config = Config {
         name: "my-model".to_string(),
@@ -36,17 +44,20 @@ pub fn get_state<T: ModelTypeSpec + InputType + TaskType>(dir: &str) -> AppState
     ).into()
 }
 
+pub trait TaskTypeFromFile: TaskType {
+    fn get_task_state(dir: &str) -> Self::TaskState;
+}
+
+pub trait InputTypeFromFile: InputType {
+    fn get_input_state(dir: &str) -> Self::InputState;
+}
+
 pub fn get_reader(dir: &str) -> BufReader<File> {
     let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
     BufReader::new(file)
 }
 
 // Input types
-pub trait InputType {
-    type InputState;
-    fn get_input_state(dir: &str) -> Self::InputState;
-}
-
 fn get_text_input_state(dir: &str) -> TextInputState {
     let reader = get_reader(dir);
     let tokenizer = get_tokenizer(dir);
@@ -55,85 +66,53 @@ fn get_text_input_state(dir: &str) -> TextInputState {
     TextInputState { tokenizer, model_config }
 }
 
-macro_rules! text_input {
-    ($model_type:ty) => {
-        impl InputType for $model_type {
-            type InputState = TextInputState;
-            fn get_input_state(dir: &str) -> Self::InputState {
-                get_text_input_state(dir)
-            }
-        }
-    };
-}
-
-text_input!(model_type::Embedding);
-text_input!(model_type::SentenceEmbedding);
-text_input!(model_type::SequenceClassification);
-text_input!(model_type::TokenClassification);
-
 fn get_image_input_state(dir: &str) -> ImageInputState {
     let reader = get_reader(dir);
     serde_json::from_reader(reader).expect("Invalid model config")
 }
 
-macro_rules! image_input {
-    ($model_type:ty) => {
-        impl InputType for $model_type {
-            type InputState = ImageInputState;
+macro_rules! input_state_impl {
+    ($model_type:ty, $state_fun:ident) => {
+        impl InputTypeFromFile for $model_type {
             fn get_input_state(dir: &str) -> Self::InputState {
-                get_image_input_state(dir)
+                $state_fun(dir)
             }
         }
     };
 }
 
-image_input!(model_type::ImageClassification);
+input_state_impl!(model_type::SequenceClassification, get_text_input_state);
+input_state_impl!(model_type::TokenClassification, get_text_input_state);
+input_state_impl!(model_type::ImageClassification, get_image_input_state);
+input_state_impl!(model_type::Embedding, get_text_input_state);
+input_state_impl!(model_type::SentenceEmbedding, get_text_input_state);
 
 
 // Task types
-pub trait TaskType {
-    type TaskState;
-    fn get_task_state(dir: &str) -> Self::TaskState;
-}
-
 fn get_class_task_state(dir: &str) -> ClassifierState {
     let reader = get_reader(dir);
     serde_json::from_reader(reader).expect("Invalid model config")
 }
 
-macro_rules! class_task {
-    ($model_type:ty) => {
-        impl TaskType for $model_type {
-            type TaskState = ClassifierState;
-            fn get_task_state(dir: &str) -> Self::TaskState {
-                get_class_task_state(dir)
-            }
-        }
-    };
-}
-
-class_task!(model_type::SequenceClassification);
-class_task!(model_type::TokenClassification);
-class_task!(model_type::ImageClassification);
-
 fn get_feature_task_state(_dir: &str) -> FeatureExtractorState {
     FeatureExtractorState {}
 }
 
-macro_rules! feature_task {
-    ($model_type:ty) => {
-        impl TaskType for $model_type {
-            type TaskState = FeatureExtractorState;
+macro_rules! task_state_impl {
+    ($model_type:ty, $state_fun:ident) => {
+        impl TaskTypeFromFile for $model_type {
             fn get_task_state(dir: &str) -> Self::TaskState {
-                get_feature_task_state(dir)
+                $state_fun(dir)
             }
         }
     };
 }
 
-feature_task!(model_type::Embedding);
-feature_task!(model_type::SentenceEmbedding);
-
+task_state_impl!(model_type::SequenceClassification, get_class_task_state);
+task_state_impl!(model_type::TokenClassification, get_class_task_state);
+task_state_impl!(model_type::ImageClassification, get_class_task_state);
+task_state_impl!(model_type::Embedding, get_feature_task_state);
+task_state_impl!(model_type::SentenceEmbedding, get_feature_task_state);
 
 
 
@@ -155,22 +134,6 @@ pub fn sequence_classification_state() -> AppState<model_type::SequenceClassific
 pub fn token_classification_state() -> AppState<model_type::TokenClassification>
 {
     get_state(TOKEN_CLASSIFICATION_DIR)
-}
-
-fn get_text_model_config(dir: &str) -> ModelConfig {
-    let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
-    let reader = BufReader::new(file);
-
-    // Deserialize into struct
-    serde_json::from_reader(reader).expect("Invalid model config")
-}
-
-fn get_image_model_config(dir: &str) -> ImageInputState {
-    let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
-    let reader = BufReader::new(file);
-
-    // Deserialize into struct
-    serde_json::from_reader(reader).expect("Invalid model config")
 }
 
 fn get_tokenizer(dir: &str) -> crate::runtime::TokenizerService {

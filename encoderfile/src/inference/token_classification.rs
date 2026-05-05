@@ -1,7 +1,5 @@
 use crate::{
-    common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo},
-    error::ApiError,
-    transforms::{Postprocessor, TokenClassificationTransform},
+    common::{ModelConfig, TokenClassification, TokenClassificationResult, TokenInfo}, error::ApiError, runtime::ClassifierState, transforms::{Postprocessor, TokenClassificationTransform}
 };
 use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;
@@ -11,7 +9,7 @@ use tokenizers::Encoding;
 pub fn token_classification<'a>(
     mut session: crate::runtime::Model<'a>,
     transform: &TokenClassificationTransform,
-    config: &ModelConfig,
+    config: &ClassifierState,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<TokenClassificationResult>, ApiError> {
     let (a_ids, a_mask, a_type_ids) = crate::prepare_text_inputs!(encodings);
@@ -36,7 +34,7 @@ pub fn token_classification<'a>(
 pub fn postprocess(
     outputs: Array3<f32>,
     encodings: Vec<Encoding>,
-    config: &ModelConfig,
+    config: &ClassifierState,
 ) -> Vec<TokenClassificationResult> {
     let mut predictions = Vec::new();
 

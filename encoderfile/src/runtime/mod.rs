@@ -6,7 +6,7 @@ mod state;
 mod tokenizer;
 
 pub use loader::{EncoderfileLoader, load_assets};
-pub use state::{AppState, EncoderfileState, ClassifierState, FeatureExtractorState, ImageInputState, TextInputState};
+pub use state::{AppState, EncoderfileState, ClassifierState, FeatureExtractorState, ImageInputState, TextInputState, InputType, TaskType};
 pub use tokenizer::TokenizerService;
 
 pub type Model<'a> = MutexGuard<'a, Session>;

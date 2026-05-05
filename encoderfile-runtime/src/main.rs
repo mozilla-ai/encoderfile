@@ -11,7 +11,8 @@ use encoderfile::{
     common::model_type::{
         Embedding, SentenceEmbedding, SequenceClassification, TokenClassification, ModelType,
     },
-    runtime::{EncoderfileLoader, EncoderfileState, load_assets},
+    common::ModelConfig,
+    runtime::{EncoderfileLoader, EncoderfileState, load_assets, TextInputState, FeatureExtractorState, ClassifierState},
     transport::cli::Cli,
 };
 
@@ -29,12 +30,12 @@ async fn main() -> Result<()> {
 }
 
 macro_rules! run_cli {
-    ($model_type:ident, $cli:expr, $config:expr, $session:expr, $tokenizer:expr, $model_config:expr) => {{
+    ($model_type:ident, $cli:expr, $config:expr, $session:expr, $input_state:expr, $task_state:expr) => {{
         let state = Arc::new(EncoderfileState::<$model_type>::new(
             $config,
             $session,
-            $tokenizer,
-            $model_config,
+            $input_state,
+            $task_state,
         ));
         $cli.command.execute(state).await
     }};
@@ -47,31 +48,46 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
     let tokenizer = loader.tokenizer()?;
     let config = loader.encoderfile_config()?;
 
+    fn class_task_state(model_config: &ModelConfig) -> ClassifierState {
+        ClassifierState {
+            id2label: model_config.id2label.clone(),
+            label2id: model_config.label2id.clone(),
+            num_labels: model_config.num_labels,
+        }
+    }
+
     match loader.model_type() {
-        ModelType::Embedding => run_cli!(Embedding, cli, config, session, tokenizer, model_config),
+        ModelType::Embedding => run_cli!(
+            Embedding,
+            cli,
+            config,
+            session,
+            TextInputState { tokenizer, model_config },
+            FeatureExtractorState {}
+        ),
         ModelType::SequenceClassification => run_cli!(
             SequenceClassification,
             cli,
             config,
             session,
-            tokenizer,
-            model_config
+            TextInputState { tokenizer, model_config: model_config.clone() },
+            class_task_state(&model_config)
         ),
         ModelType::TokenClassification => run_cli!(
             TokenClassification,
             cli,
             config,
             session,
-            tokenizer,
-            model_config
+            TextInputState { tokenizer, model_config: model_config.clone() },
+            class_task_state(&model_config)
         ),
         ModelType::SentenceEmbedding => run_cli!(
             SentenceEmbedding,
             cli,
             config,
             session,
-            tokenizer,
-            model_config
+            TextInputState { tokenizer, model_config },
+            FeatureExtractorState {}
         ),
         ModelType::ImageClassification => panic!("ImageClassification is not yet supported in the CLI"),
     }
