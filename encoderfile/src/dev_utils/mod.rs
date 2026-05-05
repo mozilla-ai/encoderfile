@@ -68,7 +68,13 @@ fn get_text_input_state(dir: &str) -> TextInputState {
 
 fn get_image_input_state(dir: &str) -> ImageInputState {
     let reader = get_reader(dir);
-    serde_json::from_reader(reader).expect("Invalid model config")
+    let incomplete_state: ImageInputState = serde_json::from_reader(reader).expect("Invalid model config");
+    ImageInputState {
+        num_channels: incomplete_state.num_channels,
+        height: incomplete_state.height.or(Some(incomplete_state.image_size)),
+        width: incomplete_state.width.or(Some(incomplete_state.image_size)),
+        image_size: incomplete_state.image_size,
+    }
 }
 
 macro_rules! input_state_impl {

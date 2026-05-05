@@ -64,13 +64,13 @@ pub struct ImageClassificationResponse {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct ImageLabelScore {
     pub label: String,
     pub score: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct ImageClassificationResult {
     pub labels: Vec<ImageLabelScore>,
 }

@@ -56,8 +56,8 @@ pub struct TextInputState {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ImageInputState {
     pub num_channels: usize,
-    pub height: usize,
-    pub width: usize,
+    pub height: Option<usize>,
+    pub width: Option<usize>,
     pub image_size: usize,
 }
 
