@@ -10,19 +10,14 @@ service ImageSegmentation {
   rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
 }
 
-message ImageInput {
-  bytes image = 1;
-}
-
 message ImageSegmentationRequest {
-  repeated ImageInput images = 1;
+  repeated encoderfile.image_types.ImageInput images = 1;
   map<string, string> metadata = 11;
 }
 
 message ImageSegment {
-  string label = 1;
-  optional float score = 2;
-  bytes mask = 4;
+  encoderfile.image_types.ImageLabelScore label = 1;
+  bytes mask = 2;
 }
 
 message ImageSegments {

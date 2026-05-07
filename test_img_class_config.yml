@@ -1,0 +1,6 @@
+encoderfile:
+  name: test-img-class
+  path: models/image_classification
+  model_type: image_classification
+  output_path: ./test-img-class.encoderfile
+

@@ -1,4 +1,6 @@
 use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, model_type::ModelType};
+use crate::runtime::TaskType;
+use crate::runtime::InputType;
 use anyhow::{Context, Result, bail};
 use schemars::JsonSchema;
 use std::string::String;
@@ -24,7 +26,7 @@ pub struct BuildConfig {
     pub encoderfile: EncoderfileConfig,
 }
 
-pub const DEFAULT_VERSION: &str = "0.1.0";
+pub const DEFAULT_VERSION: &str = "0.2.0";
 
 pub const CONFIG_FILE_NOT_FOUND_MSG: &str = "Encoderfile config not found";
 
@@ -270,6 +272,8 @@ pub enum ModelPath {
         tokenizer_config_path: Option<PathBuf>,
     },
 }
+
+
 
 impl ModelPath {
     fn resolve(

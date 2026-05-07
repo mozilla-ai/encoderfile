@@ -10,44 +10,39 @@ use crate::{
 
 pub type AppState<T> = Arc<EncoderfileState<T>>;
 
+#[derive(PartialEq)]
+pub enum Task {
+    Classification,
+    FeatureExtraction,
+}
+
+#[derive(PartialEq)]
+pub enum Input {
+    Text,
+    Image,
+}
+
 pub trait TaskType {
+    const TASK: Task;
+    fn task_type_val(&self) -> Task {
+        Self::task_type()
+    }
+    fn task_type() -> Task {
+        Self::TASK
+    }
     type TaskState;
-    // fn get_task_state(dir: &str) -> Self::TaskState;
 }
 
 pub trait InputType {
+    const INPUT: Input;
+    fn input_type_val(&self) -> Input {
+        Self::input_type()
+    }
+    fn input_type() -> Input {
+        Self::INPUT
+    }
     type InputState;
-    // fn get_input_state(dir: &str) -> Self::InputState;
 }
-
-macro_rules! input_state_impl {
-    ($model_type:ty, $state_type:ty) => {
-        impl InputType for $model_type {
-            type InputState = $state_type;
-        }
-    };
-}
-
-input_state_impl!(model_type::Embedding, TextInputState);
-input_state_impl!(model_type::SentenceEmbedding, TextInputState);
-input_state_impl!(model_type::SequenceClassification, TextInputState);
-input_state_impl!(model_type::TokenClassification, TextInputState);
-input_state_impl!(model_type::ImageClassification, ImageInputState);
-
-macro_rules! task_state_impl {
-    ($model_type:ty, $state_type:ty) => {
-        impl TaskType for $model_type {
-            type TaskState = $state_type;
-        }
-    };
-}
-
-task_state_impl!(model_type::SequenceClassification, ClassifierState);
-task_state_impl!(model_type::TokenClassification, ClassifierState);
-task_state_impl!(model_type::ImageClassification, ClassifierState);
-task_state_impl!(model_type::Embedding, FeatureExtractorState);
-task_state_impl!(model_type::SentenceEmbedding, FeatureExtractorState);
-
 
 pub struct TextInputState {
     pub tokenizer: TokenizerService,
@@ -55,10 +50,10 @@ pub struct TextInputState {
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ImageInputState {
-    pub num_channels: usize,
-    pub height: Option<usize>,
-    pub width: Option<usize>,
-    pub image_size: usize,
+    pub num_channels: u32,
+    pub height: Option<u32>,
+    pub width: Option<u32>,
+    pub image_size: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -95,6 +90,64 @@ impl ClassifierState {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureExtractorState {}
+
+macro_rules! input_state_impl {
+    ($model_type:ty, $state_type:ty, $input:expr) => {
+        impl InputType for $model_type {
+            const INPUT: Input = $input;
+            type InputState = $state_type;
+        }
+    };
+}
+
+input_state_impl!(model_type::Embedding, TextInputState, Input::Text);
+input_state_impl!(model_type::SentenceEmbedding, TextInputState, Input::Text);
+input_state_impl!(model_type::SequenceClassification, TextInputState, Input::Text);
+input_state_impl!(model_type::TokenClassification, TextInputState, Input::Text);
+input_state_impl!(model_type::ImageClassification, ImageInputState, Input::Image);
+
+macro_rules! task_state_impl {
+    ($model_type:ty, $state_type:ty, $task:expr) => {
+        impl TaskType for $model_type {
+            const TASK: Task = $task;
+            type TaskState = $state_type;
+        }
+    };
+}
+
+task_state_impl!(model_type::SequenceClassification, ClassifierState, Task::Classification);
+task_state_impl!(model_type::TokenClassification, ClassifierState, Task::Classification);
+task_state_impl!(model_type::ImageClassification, ClassifierState, Task::Classification);
+task_state_impl!(model_type::Embedding, FeatureExtractorState, Task::FeatureExtraction);
+task_state_impl!(model_type::SentenceEmbedding, FeatureExtractorState, Task::FeatureExtraction);
+
+macro_rules! input_type_impl {
+    [ $( $x:ident ),* $(,)? ] => {
+        impl ModelType {
+            pub fn input_type(&self) -> crate::runtime::Input {
+                match self {
+                    $(
+                        ModelType::$x => model_type::$x::input_type(),
+                    )*
+                }
+            }
+            pub fn task_type(&self) -> crate::runtime::Task {
+                match self {
+                    $(
+                        ModelType::$x => model_type::$x::task_type(),
+                    )*
+                }
+            }
+        }   
+    }
+}
+input_type_impl![
+    Embedding,
+    SequenceClassification,
+    TokenClassification,
+    SentenceEmbedding,
+    ImageClassification
+];
 
 #[derive(Debug)]
 pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType> {

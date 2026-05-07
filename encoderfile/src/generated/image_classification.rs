@@ -1,0 +1,32 @@
+use crate::common;
+
+tonic::include_proto!("encoderfile.image_classification");
+
+impl From<ImageClassificationRequest> for common::ImageClassificationRequest {
+    fn from(val: ImageClassificationRequest) -> Self {
+        let images = val.inputs.into_iter().map(|input| {
+            common::ImageInfo {
+                image_bytes: bytes::Bytes::from(input.image),
+                image_format: image::ImageFormat::Png, // TODO: detect format properly
+            }
+        }).collect();
+        Self {
+            images,
+            metadata: if val.metadata.is_empty() { None } else { Some(val.metadata) },
+        }
+    }
+}
+
+impl From<common::ImageClassificationResponse> for ImageClassificationResponse {
+    fn from(val: common::ImageClassificationResponse) -> Self {
+        Self {
+            labels_batch: val.results.into_iter().map(|labels| ImageLabels {
+                labels: labels.labels.into_iter().map(|label| ImageLabelScore {
+                    label: label.label,
+                    score: label.score,
+                }).collect(),
+            }).collect(),
+            metadata: val.metadata.unwrap_or_default(),
+        }
+    }
+}

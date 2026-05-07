@@ -220,6 +220,7 @@ optional = true
 
 [dependencies.axum]
 version = "0.8.6"
+features = ["multipart"]
 optional = true
 
 [dependencies.axum-server]

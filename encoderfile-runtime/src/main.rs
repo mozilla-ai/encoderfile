@@ -1,19 +1,16 @@
 use parking_lot::Mutex;
 use std::{
-    fs::File,
-    io::{BufReader, Read, Seek},
-    sync::Arc,
+    error::Error, fs::File, io::{BufReader, Read, Seek, Error as IOError, ErrorKind}, sync::Arc,
 };
 
 use anyhow::Result;
 use clap::Parser;
 use encoderfile::{
-    common::model_type::{
-        Embedding, SentenceEmbedding, SequenceClassification, TokenClassification, ModelType,
-    },
-    common::ModelConfig,
-    runtime::{EncoderfileLoader, EncoderfileState, load_assets, TextInputState, FeatureExtractorState, ClassifierState},
-    transport::cli::Cli,
+    common::{ModelConfig, model_type::{
+        Embedding, ImageClassification, ModelType, SentenceEmbedding, SequenceClassification, TokenClassification
+    }},
+    runtime::{ClassifierState, EncoderfileLoader, EncoderfileState, FeatureExtractorState, ImageInputState, TextInputState, load_assets},
+    transport::cli::{TextCli, ImageCli},
 };
 
 #[tokio::main]
@@ -42,13 +39,14 @@ macro_rules! run_cli {
 }
 
 async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -> Result<()> {
-    let cli = Cli::parse();
     let session = Mutex::new(loader.session()?);
     let model_config = loader.model_config()?;
-    let tokenizer = loader.tokenizer()?;
     let config = loader.encoderfile_config()?;
+    // TODO clear out lifetimes in state and loader to avoid
 
     fn class_task_state(model_config: &ModelConfig) -> ClassifierState {
+        // if num_labels, make a vector of labels
+        // if id2label, make sure it's 0..n-1
         ClassifierState {
             id2label: model_config.id2label.clone(),
             label2id: model_config.label2id.clone(),
@@ -59,36 +57,48 @@ async fn entrypoint<'a, R: Read + Seek>(loader: &mut EncoderfileLoader<'a, R>) -
     match loader.model_type() {
         ModelType::Embedding => run_cli!(
             Embedding,
-            cli,
+            TextCli::parse(),
             config,
             session,
-            TextInputState { tokenizer, model_config },
+            TextInputState { tokenizer: loader.tokenizer()?, model_config },
             FeatureExtractorState {}
         ),
         ModelType::SequenceClassification => run_cli!(
             SequenceClassification,
-            cli,
+            TextCli::parse(),
             config,
             session,
-            TextInputState { tokenizer, model_config: model_config.clone() },
+            TextInputState { tokenizer: loader.tokenizer()?, model_config: model_config.clone() },
             class_task_state(&model_config)
         ),
         ModelType::TokenClassification => run_cli!(
             TokenClassification,
-            cli,
+            TextCli::parse(),
             config,
             session,
-            TextInputState { tokenizer, model_config: model_config.clone() },
+            TextInputState { tokenizer: loader.tokenizer()?, model_config: model_config.clone() },
             class_task_state(&model_config)
         ),
         ModelType::SentenceEmbedding => run_cli!(
             SentenceEmbedding,
-            cli,
+            TextCli::parse(),
             config,
             session,
-            TextInputState { tokenizer, model_config },
+            TextInputState { tokenizer: loader.tokenizer()?, model_config },
             FeatureExtractorState {}
         ),
-        ModelType::ImageClassification => panic!("ImageClassification is not yet supported in the CLI"),
+        ModelType::ImageClassification => run_cli!(
+            ImageClassification,
+            ImageCli::parse(),
+            config,
+            session,
+            ImageInputState { 
+                height: model_config.height(),
+                width: model_config.width(),
+                num_channels: model_config.num_channels().ok_or(IOError::new(ErrorKind::InvalidData, "Missing required configuration field"))?,
+                image_size: model_config.image_size,
+            },
+            class_task_state(&model_config)
+        ),
     }
 }

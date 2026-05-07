@@ -46,13 +46,13 @@ pub trait CliRoute: Inference {
 impl<T: Inference> CliRoute for T {}
 
 #[derive(Parser)]
-pub struct Cli {
+pub struct TextCli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: TextCommands,
 }
 
 #[derive(Subcommand)]
-pub enum Commands {
+pub enum TextCommands {
     Serve {
         #[arg(long, default_value = "[::]")]
         grpc_hostname: String,
@@ -95,13 +95,13 @@ pub enum Commands {
     },
 }
 
-impl Commands {
+impl TextCommands {
     pub async fn execute<S>(self, state: S) -> Result<()>
     where
         S: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
     {
         match self {
-            Commands::Serve {
+            TextCommands::Serve {
                 grpc_hostname,
                 grpc_port,
                 http_hostname,
@@ -152,7 +152,7 @@ impl Commands {
 
                 let _ = tokio::join!(grpc_process, http_process);
             }
-            Commands::Infer {
+            TextCommands::Infer {
                 inputs,
                 format,
                 out_dir,
@@ -161,7 +161,7 @@ impl Commands {
 
                 state.cli_route(inputs, format, out_dir)?
             }
-            Commands::Mcp {
+            TextCommands::Mcp {
                 hostname,
                 port,
                 cert_file,
@@ -171,6 +171,117 @@ impl Commands {
                 let mcp_process = tokio::spawn(run_mcp(hostname, port, cert_file, key_file, state));
                 println!("{}", banner);
                 let _ = tokio::join!(mcp_process);
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Parser)]
+pub struct ImageCli {
+    #[command(subcommand)]
+    pub command: ImageCommands,
+}
+
+#[derive(Subcommand)]
+pub enum ImageCommands {
+    Serve {
+        #[arg(long, default_value = "[::]")]
+        grpc_hostname: String,
+        #[arg(long, default_value = "50051")]
+        grpc_port: String,
+        #[arg(long, default_value = "0.0.0.0")]
+        http_hostname: String,
+        #[arg(long, default_value = "8080")]
+        http_port: String,
+        #[arg(long, default_value_t = false)]
+        disable_grpc: bool,
+        #[arg(long, default_value_t = false)]
+        disable_http: bool,
+        #[arg(long, default_value_t = false)]
+        enable_otel: bool,
+        #[arg(long, default_value = "http://localhost:4317")]
+        otel_exporter_url: String,
+        #[arg(long)]
+        cert_file: Option<String>,
+        #[arg(long)]
+        key_file: Option<String>,
+    },
+    Infer {
+        #[arg(required = true)]
+        inputs: Vec<String>,
+        #[arg(short, long, default_value_t = Format::Json)]
+        format: Format,
+        #[arg(short)]
+        out_dir: Option<String>,
+    },
+}
+
+impl ImageCommands {
+    pub async fn execute<S>(self, state: S) -> Result<()>
+    where
+        S: Inference + GrpcRouter + HttpRouter + CliRoute,
+    {
+        match self {
+            ImageCommands::Serve {
+                grpc_hostname,
+                grpc_port,
+                http_hostname,
+                http_port,
+                disable_grpc,
+                disable_http,
+                enable_otel,
+                otel_exporter_url,
+                cert_file,
+                key_file,
+            } => {
+                let banner = crate::get_banner(state.model_id().as_str());
+
+                if disable_grpc && disable_http {
+                    return Err(crate::error::ApiError::ConfigError(
+                        "Cannot disable both gRPC and HTTP",
+                    ))?;
+                }
+
+                match enable_otel {
+                    true => setup_tracing(Some(otel_exporter_url.as_str())),
+                    false => setup_tracing(None),
+                }?;
+
+                let grpc_process = match disable_grpc {
+                    true => tokio::spawn(async { Ok(()) }),
+                    false => tokio::spawn(run_grpc(
+                        grpc_hostname,
+                        grpc_port,
+                        cert_file.clone(),
+                        key_file.clone(),
+                        state.clone(),
+                    )),
+                };
+
+                let http_process = match disable_http {
+                    true => tokio::spawn(async { Ok(()) }),
+                    false => tokio::spawn(run_http(
+                        http_hostname,
+                        http_port,
+                        cert_file.clone(),
+                        key_file.clone(),
+                        state.clone(),
+                    )),
+                };
+
+                println!("{}", banner);
+
+                let _ = tokio::join!(grpc_process, http_process);
+            }
+            ImageCommands::Infer {
+                inputs,
+                format,
+                out_dir,
+            } => {
+                setup_tracing(None)?;
+
+                state.cli_route(inputs, format, out_dir)?
             }
         }
         Ok(())

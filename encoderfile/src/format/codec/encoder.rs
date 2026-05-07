@@ -9,7 +9,7 @@ use crate::{
         assets::{AssetPlan, AssetPolicySpec},
         footer::EncoderfileFooter,
     },
-    generated::manifest::{Artifact, Backend, EncoderfileManifest},
+    generated::manifest::{Artifact, Backend, EncoderfileManifest}, runtime::InputType,
 };
 
 use prost::Message;

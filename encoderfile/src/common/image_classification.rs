@@ -5,7 +5,7 @@ use anyhow::Result;
 use crate::common::FromReadInput;
 use image::ImageFormat;
 use bytes::Bytes;
-
+use crate::transport::http::multipart_openapi::{FromMultipart, MultipartApiError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageInfo {
@@ -57,6 +57,37 @@ impl FromReadInput for ImageClassificationRequest {
     }
 }
 
+impl FromMultipart for ImageClassificationRequest {
+    fn from_multipart(
+        payload: serde_json::Value,
+        attachments: Vec<(Option<String>, Option<String>, bytes::Bytes)>,
+    ) -> Result<Self, MultipartApiError> {
+        let images = attachments
+            .into_iter()
+            .map(|(_file_name, _content_type, image_bytes)| {
+                let format = image::guess_format(&image_bytes)
+                    .map_err(|e| MultipartApiError::RequestConstruction(
+                        format!("Failed to detect image format: {}", e)
+                    ))?;
+                Ok(ImageInfo {
+                    image_bytes,
+                    image_format: format,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let metadata = if payload.is_null() || payload == serde_json::json!({}) {
+            Some(HashMap::default())
+        } else {
+            serde_json::from_value(payload)
+                .ok()
+                .or(Some(HashMap::default()))
+        };
+
+        Ok(Self { images, metadata })
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema, utoipa::ToResponse)]
 pub struct ImageClassificationResponse {
     pub results: Vec<ImageClassificationResult>,
@@ -76,7 +107,6 @@ pub struct ImageClassificationResult {
 }
 
 #[cfg(test)]
-
 mod tests {
     use super::*;
     use std::fs::File;
@@ -92,4 +122,3 @@ mod tests {
         assert!(!request.images[0].image_bytes.is_empty());
     }
 }
-

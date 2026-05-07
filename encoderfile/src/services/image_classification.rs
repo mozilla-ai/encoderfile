@@ -3,7 +3,6 @@ use crate::{
         ImageClassificationRequest,
         ImageClassificationResponse,
         ImageClassificationResult,
-        ImageLabelScore,
         model_type
     },
 
@@ -11,7 +10,7 @@ use crate::{
     runtime::AppState,
 };
 use image::RgbImage;
-use ndarray::{Array2, Array4, Ix2, Axis};
+use ndarray::{Array4};
 
 use super::inference::Inference;
 use crate::inference::image_classification::image_classification;
@@ -33,18 +32,18 @@ impl Inference for AppState<model_type::ImageClassification>
             let img = image::load_from_memory(&image_info.image_bytes).expect("Failed to load image from bytes");
             img
                 .resize_exact(
-                    self.per_model_input_state.width.unwrap() as u32,
-                    self.per_model_input_state.height.unwrap() as u32,
+                    self.per_model_input_state.width.unwrap(),
+                    self.per_model_input_state.height.unwrap(),
                     DEFAULT_FILTER_TYPE
                 )
                 .to_rgb8()
         }).collect();
         let images_array = Array4::from_shape_vec(
             (
-                request.images.len().clone(),
-                self.per_model_input_state.num_channels,
-                self.per_model_input_state.height.unwrap(),
-                self.per_model_input_state.width.unwrap()
+                request.images.len().clone() as usize,
+                self.per_model_input_state.num_channels as usize,
+                self.per_model_input_state.height.unwrap() as usize,
+                self.per_model_input_state.width.unwrap() as usize
             ),
             images
                 .into_iter()
@@ -52,13 +51,17 @@ impl Inference for AppState<model_type::ImageClassification>
                 .collect()
         ).expect("Failed to convert images to ndarray");
 
+        let label_map = self.per_task_state.id2label.clone().unwrap();
+        let mut entries: Vec<_> = label_map.iter().collect();
+        entries.sort_by(|x, y| x.0.cmp(&y.0));
+        let classes: Vec<String> = entries.into_iter().map(|(_, label)| label.clone()).collect();
+
         let labels_batch = image_classification(
             self.session.lock(),
             images_array,
             // COMMENT having optional fields complicates things later on, but otoh
             // it allows models with variations of these fields
-            self.per_task_state.label2id.clone().unwrap().keys().cloned().collect())?;
-        print!("labels_batch: {:?}", &labels_batch);
+            classes)?;
 
         Ok(ImageClassificationResponse {
             results: labels_batch.iter().map(|labels| ImageClassificationResult { labels: labels.clone() }).collect(),

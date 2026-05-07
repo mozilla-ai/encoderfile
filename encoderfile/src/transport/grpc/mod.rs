@@ -1,6 +1,6 @@
 use crate::{
     common::model_type,
-    generated::{embedding, sentence_embedding, sequence_classification, token_classification},
+    generated::{embedding, sentence_embedding, sequence_classification, token_classification, image_classification},
     runtime::AppState,
     services::{Inference, Metadata},
 };
@@ -115,4 +115,14 @@ generate_grpc_server!(
     SentenceEmbeddingResponse,
     SentenceEmbeddingInference,
     SentenceEmbeddingInferenceServer
+);
+
+generate_grpc_server!(
+    ImageClassification,
+    image_classification,
+    image_classification_inference_server,
+    ImageClassificationRequest,
+    ImageClassificationResponse,
+    ImageClassificationInference,
+    ImageClassificationInferenceServer
 );

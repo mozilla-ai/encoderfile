@@ -71,8 +71,8 @@ fn get_image_input_state(dir: &str) -> ImageInputState {
     let incomplete_state: ImageInputState = serde_json::from_reader(reader).expect("Invalid model config");
     ImageInputState {
         num_channels: incomplete_state.num_channels,
-        height: incomplete_state.height.or(Some(incomplete_state.image_size)),
-        width: incomplete_state.width.or(Some(incomplete_state.image_size)),
+        height: incomplete_state.height.or(incomplete_state.image_size),
+        width: incomplete_state.width.or(incomplete_state.image_size),
         image_size: incomplete_state.image_size,
     }
 }

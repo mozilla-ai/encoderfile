@@ -32,14 +32,21 @@ pub fn image_classification<'a>(
 
 #[tracing::instrument(skip_all)]
 pub fn postprocess(outputs: Array2<f32>, classes: Vec<String>) -> Vec<Vec<ImageLabelScore>> {
+    println!("outputs shape: {:?}", outputs.dim());
+    println!("outputs: {:?}", outputs);
     outputs
         .axis_iter(Axis(0))
         .map(|logs| {
+            println!("logs: {:?}", logs);
             logs.iter().enumerate()
-                .map(|(idx, score)| 
-                    ImageLabelScore {
-                        label: classes[idx].to_string(), // TODO: get label from config
-                        score: *score
+                .map(|(idx, score)| {
+                        println!("idx: {}, score: {}", idx, score);
+                        println!("classes: {:?}", classes);
+                        println!("label: {}", classes[idx]);
+                        ImageLabelScore {
+                            label: classes[idx].to_string(), // TODO: get label from config
+                            score: *score
+                        }
                     }
                 )
                 .collect()

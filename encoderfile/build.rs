@@ -12,6 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/sequence_classification.proto",
                 "proto/token_classification.proto",
                 "proto/sentence_embedding.proto",
+                "proto/image_classification.proto",
                 "proto/manifest.proto",
             ],
             &[
@@ -19,6 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/sequence_classification",
                 "proto/token_classification",
                 "proto/sentence_embedding",
+                "proto/image_classification",
                 "proto/manifest",
             ],
         )?;
