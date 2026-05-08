@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/sentence_embedding.proto",
                 "proto/image_classification.proto",
                 "proto/manifest.proto",
+                "proto/image_types.proto",
             ],
             &[
                 "proto/embedding",
@@ -22,6 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/sentence_embedding",
                 "proto/image_classification",
                 "proto/manifest",
+                "proto/image_types",
             ],
         )?;
 

@@ -1,10 +1,16 @@
-use ndarray::{Array2, Array4, Ix2, Axis};
+use std::os::raw;
+
+use ndarray::{Array2, Array4, Ix2, Axis, s};
 
 use crate::{
     error::ApiError,
 };
 
 use crate::common::{ImageLabelScore};
+
+fn logit_to_prob(logit: f32) -> f32 {
+    1.0 / (1.0 + (-logit).exp())
+}
 
 #[tracing::instrument(skip_all)]
 pub fn image_classification<'a>(
@@ -17,7 +23,9 @@ pub fn image_classification<'a>(
         &images)
         .unwrap()
         .to_owned();
-    let outputs = crate::run_cv_model!(session, grouped_images)?
+    let raw_outputs = crate::run_cv_model!(session, grouped_images)?;
+    println!("Raw outputs: {:?}", raw_outputs.keys().collect::<Vec<_>>());
+    let mut outputs = raw_outputs
         .get("logits")
         .expect("Model does not return logits")
         .try_extract_array::<f32>()
@@ -25,27 +33,23 @@ pub fn image_classification<'a>(
         .into_dimensionality::<Ix2>()
         .expect("Model does not return tensor of shape [n_batch, n_classes]")
         .into_owned();
-
+    println!("Model outputs: {:?}", outputs);
+    outputs.mapv_inplace(logit_to_prob);
+    println!("Model outputs: {:?}", outputs);
 
     Ok(postprocess(outputs, classes))
 }
 
 #[tracing::instrument(skip_all)]
 pub fn postprocess(outputs: Array2<f32>, classes: Vec<String>) -> Vec<Vec<ImageLabelScore>> {
-    println!("outputs shape: {:?}", outputs.dim());
-    println!("outputs: {:?}", outputs);
     outputs
         .axis_iter(Axis(0))
         .map(|logs| {
-            println!("logs: {:?}", logs);
             logs.iter().enumerate()
                 .map(|(idx, score)| {
-                        println!("idx: {}, score: {}", idx, score);
-                        println!("classes: {:?}", classes);
-                        println!("label: {}", classes[idx]);
                         ImageLabelScore {
                             label: classes[idx].to_string(), // TODO: get label from config
-                            score: *score
+                            score: Some(*score)
                         }
                     }
                 )

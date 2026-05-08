@@ -6,3 +6,4 @@ pub mod sequence_classification;
 pub mod token;
 pub mod token_classification;
 pub mod image_classification;
+pub mod image_types;

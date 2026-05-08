@@ -10,14 +10,14 @@ use crate::{
     runtime::AppState,
 };
 use image::RgbImage;
-use ndarray::{Array4};
+use ndarray::{Array4, s};
 
 use super::inference::Inference;
 use crate::inference::image_classification::image_classification;
 
 // No service impl yet
 
-const DEFAULT_FILTER_TYPE: image::imageops::FilterType = image::imageops::FilterType::Nearest;
+const DEFAULT_FILTER_TYPE: image::imageops::FilterType = image::imageops::FilterType::Triangle;
 
 impl Inference for AppState<model_type::ImageClassification>
 {
@@ -26,10 +26,15 @@ impl Inference for AppState<model_type::ImageClassification>
 
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
+        let rescale_factor = 0.00392156862745098 as f32;
+        let image_mean = 0.5;
+        let image_std = 0.5;
+        // bilinear resampling
 
         // convert input image into flattened rbg
         let images: Vec<RgbImage> = (&request.images).into_iter().map(|image_info| {
             let img = image::load_from_memory(&image_info.image_bytes).expect("Failed to load image from bytes");
+            println!("Height x width: {:?} x {:?}", img.height(), img.width());
             img
                 .resize_exact(
                     self.per_model_input_state.width.unwrap(),
@@ -38,18 +43,33 @@ impl Inference for AppState<model_type::ImageClassification>
                 )
                 .to_rgb8()
         }).collect();
-        let images_array = Array4::from_shape_vec(
-            (
-                request.images.len().clone() as usize,
-                self.per_model_input_state.num_channels as usize,
-                self.per_model_input_state.height.unwrap() as usize,
-                self.per_model_input_state.width.unwrap() as usize
-            ),
-            images
-                .into_iter()
-                .flat_map(|img| img.into_raw().into_iter().map(|pixel| pixel as f32))
-                .collect()
-        ).expect("Failed to convert images to ndarray");
+        let batch_size = request.images.len();
+        let num_channels = self.per_model_input_state.num_channels as usize;
+        let height = self.per_model_input_state.height.unwrap() as usize;
+        let width = self.per_model_input_state.width.unwrap() as usize;
+
+        if num_channels != 3 {
+            return Err(ApiError::InputError("Image classification currently expects 3 RGB channels"));
+        }
+
+        let mut images_array = Array4::<f32>::zeros((batch_size, num_channels, height, width));
+        for (image_idx, img) in images.into_iter().enumerate() {
+            let raw = img.into_raw();
+
+            // The image crate stores RGB bytes in HWC order; rewrite into NCHW.
+            for y in 0..height {
+                for x in 0..width {
+                    let pixel_offset = (y * width + x) * num_channels;
+                    for c in 0..num_channels {
+                        images_array[[image_idx, c, y, x]] = raw[pixel_offset + c] as f32;
+                    }
+                }
+            }
+        }
+        println!("Some sample slice of the input array (pre scale, post reshape): {:?}", images_array.slice(s![.., .., 0..5, 0..5]));
+        // TODO make parallel
+        images_array.mapv_inplace(|x| ((x * rescale_factor) - image_mean) / image_std);
+        println!("Some sample slice of the input array (post scale): {:?}", images_array.slice(s![.., .., 0..5, 0..5]));
 
         let label_map = self.per_task_state.id2label.clone().unwrap();
         let mut entries: Vec<_> = label_map.iter().collect();
@@ -106,8 +126,8 @@ mod tests {
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].labels.len(), 2);
         assert_eq!(response.results[0].labels[0].label, "normal");
-        assert_eq!(response.results[0].labels[0].score, 1.5378942);
+        assert_eq!(response.results[0].labels[0].score, Some(1.5378942));
         assert_eq!(response.results[0].labels[1].label, "nsfw");
-        assert_eq!(response.results[0].labels[1].score, -1.6556994);
+        assert_eq!(response.results[0].labels[1].score, Some(-1.6556994));
     }
 }

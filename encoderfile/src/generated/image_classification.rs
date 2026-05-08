@@ -1,4 +1,4 @@
-use crate::common;
+use crate::{common, generated::image_types::ImageLabels};
 
 tonic::include_proto!("encoderfile.image_classification");
 
@@ -20,13 +20,16 @@ impl From<ImageClassificationRequest> for common::ImageClassificationRequest {
 impl From<common::ImageClassificationResponse> for ImageClassificationResponse {
     fn from(val: common::ImageClassificationResponse) -> Self {
         Self {
-            labels_batch: val.results.into_iter().map(|labels| ImageLabels {
-                labels: labels.labels.into_iter().map(|label| ImageLabelScore {
-                    label: label.label,
-                    score: label.score,
-                }).collect(),
-            }).collect(),
+            labels: val.results.into_iter().map(|result| result.into()).collect(),
             metadata: val.metadata.unwrap_or_default(),
+        }
+    }
+}
+
+impl From<common::ImageClassificationResult> for ImageLabels {
+    fn from(val: common::ImageClassificationResult) -> Self {
+        ImageLabels {
+            labels: val.labels.into_iter().map(|label| label.into()).collect(),
         }
     }
 }

@@ -6,12 +6,7 @@ use crate::common::FromReadInput;
 use image::ImageFormat;
 use bytes::Bytes;
 use crate::transport::http::multipart_openapi::{FromMultipart, MultipartApiError};
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ImageInfo {
-    pub image_bytes: Bytes,
-    pub image_format: ImageFormat,
-}
+use crate::common::image_types::{ImageInfo, ImageLabelScore};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageClassificationRequest {
@@ -93,12 +88,6 @@ pub struct ImageClassificationResponse {
     pub results: Vec<ImageClassificationResult>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
-pub struct ImageLabelScore {
-    pub label: String,
-    pub score: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package encoderfile.image_classification;
+package encoderfile.image_types;
 
 message ImageInput {
   bytes image = 1;

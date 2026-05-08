@@ -10,6 +10,7 @@ mod token_classification;
 
 // CV
 mod image_classification;
+mod image_types;
 
 pub use config::*;
 pub use embedding::*;
@@ -22,6 +23,7 @@ pub use token_classification::*;
 
 // CV
 pub use image_classification::*;
+pub use image_types::*;
 use std::io::Read;
 use anyhow::Result;
 
