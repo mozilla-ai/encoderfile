@@ -179,7 +179,7 @@ features = ["grpc-tonic"]
 optional = true
 
 [dependencies.rmcp]
-version = "0.8.0"
+version = "1.4.0"
 features = ["server", "transport-streamable-http-server"]
 optional = true
 
@@ -249,7 +249,7 @@ version = "4.0.5"
 package = "codspeed-divan-compat"
 
 [dev-dependencies.rmcp]
-version = "0.8.0"
+version = "1.4.0"
 features = ["client", "transport-streamable-http-client-reqwest"]
 
 [package.metadata.binstall]
