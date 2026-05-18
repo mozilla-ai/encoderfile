@@ -16,8 +16,6 @@ use crate::{
         assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
         codec::EncoderfileCodec,
     },
-    generated::manifest::Backend,
-    runtime::{InputType, Input}
 };
 use anyhow::{Context, Result};
 use ort::session::input;
@@ -138,7 +136,6 @@ impl EncoderfileBuilder {
             self.config.encoderfile.name.clone(),
             self.config.encoderfile.version.clone(),
             self.config.encoderfile.model_type.clone(),
-            Backend::Cpu,
             &asset_plan,
             &mut out,
         )?;

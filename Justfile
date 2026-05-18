@@ -9,8 +9,13 @@ build-py:
         -m encoderfile-py/Cargo.toml
 
 # Docs
-docs:
-    @uv run --group docs -m mkdocs serve
+docs: docs-check docs-build
+
+docs-build:
+    @uv run python scripts/prepare_gitbook_site.py
+
+docs-check:
+    @uv run python scripts/check_docs.py
 
 # Check, Test, & Coverage
 
@@ -18,11 +23,11 @@ check:
     @cargo hack check --each-feature
 
 coverage:
-	@cargo llvm-cov \
-		--workspace \
-		--all-features \
-		--lcov \
-		--output-path lcov.info
+    @cargo llvm-cov \
+    	--workspace \
+    	--all-features \
+    	--lcov \
+    	--output-path lcov.info
 
 pre-commit:
     @uv run --dev pre-commit run --all-files
@@ -51,6 +56,13 @@ lint-py:
     # ruff check
     @uv run ruff check
 
+test-py:
+    # test encoderfile-py bindings
+    @uv run \
+        --dev \
+        --directory encoderfile-py \
+        -m pytest
+
 stubtest:
     @uv run \
         --dev \
@@ -71,10 +83,11 @@ generate-docs:
         --all-features
 
 licenses:
-	@echo "Generating licenses..."
-	@cargo about generate about.hbs > THIRDPARTY.md
+    @echo "Generating licenses..."
+    @cargo about generate about.hbs > THIRDPARTY.md
 
 # Utilities
+
 target_max_mb := "2000"
 
 clean:
@@ -82,8 +95,8 @@ clean:
     if [ -d target ]; then
         target_size_mb=$(du -sm target | cut -f1)
         echo "target/ size: ${target_size_mb} MB"
-        if [ "${target_size_mb}" -gt "{{target_max_mb}}" ]; then
-            echo "target/ exceeds {{target_max_mb}} MB — running cargo clean..."
+        if [ "${target_size_mb}" -gt "{{ target_max_mb }}" ]; then
+            echo "target/ exceeds {{ target_max_mb }} MB — running cargo clean..."
             cargo clean
         else
             echo "target/ size within limits — skipping clean."

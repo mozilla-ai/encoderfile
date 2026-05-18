@@ -150,12 +150,10 @@ fn get_tokenizer(dir: &str) -> crate::runtime::TokenizerService {
 }
 
 fn get_model(dir: &str) -> Mutex<Session> {
-    Mutex::new(
-        ort::session::Session::builder()
-            .expect("Failed to load session")
-            .commit_from_file(format!("{}/{}", dir, "model.onnx"))
-            .expect("Failed to load model"),
-    )
+    ORTSessionBuilder::default()
+        .from_file(format!("{}/{}", dir, "model.onnx"))
+        .expect("Failed to load model")
+        .into()
 }
 
 fn get_tokenizer_from_string(s: &str) -> crate::runtime::TokenizerService {

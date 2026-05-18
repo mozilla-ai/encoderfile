@@ -7,7 +7,13 @@ requires-python = ">=3.13"
 dependencies = [ "pip>=25.2", "protobuf>=6.33.0"]
 
 [dependency-groups]
-dev = [ "pre-commit>=4.3.0", "ruff>=0.14.2", "mypy>=1.19", "pytest"]
+dev = [
+ "pre-commit>=4.3.0",
+ "ruff>=0.14.2",
+ "mypy>=1.19",
+ "pytest",
+ "maturin>=1.13.1",
+]
 docs = [ "mkdocs>=1.6.1", "mkdocs-include-markdown-plugin>=7.2.0", "mkdocs-material>=9.7.0",]
 setup = [ "onnxruntime>=1.23.1", "optimum[onnxruntime]>=2.0.0", "transformers>=4.55.0",]
 models = [ "torch>=2.9.0", "click", {include-group = "setup"} ]

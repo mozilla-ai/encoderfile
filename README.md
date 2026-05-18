@@ -52,9 +52,15 @@ Encoderfiles can run as:
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/encoderfile-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/encoderfile-light.svg">
-    <img alt="Architecture Diagram" src="docs/assets/encoderfile-light.svg" width="80%">
+    <source
+      srcset="docs/assets/encoderfile-dark.svg"
+      media="(prefers-color-scheme: dark)"
+    />
+    <img
+      src="docs/assets/encoderfile-light.svg"
+      alt="Architecture Diagram"
+      width="80%"
+    />
   </picture>
 </p>
 

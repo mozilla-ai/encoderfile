@@ -9,7 +9,7 @@ use crate::{
         assets::{AssetPlan, AssetPolicySpec},
         footer::EncoderfileFooter,
     },
-    generated::manifest::{Artifact, Backend, EncoderfileManifest}, runtime::InputType,
+    generated::manifest::{Artifact, EncoderfileManifest}, runtime::InputType,
 };
 
 use prost::Message;
@@ -70,7 +70,6 @@ impl EncoderfileCodec {
         name: String,
         version: String,
         model_type: ModelType,
-        backend: Backend,
         plan: &AssetPlan,
         out: &mut W,
     ) -> Result<()>
@@ -97,7 +96,6 @@ impl EncoderfileCodec {
             name,
             version,
             model_type: model_type.into(),
-            backend: backend.into(),
             model_config: None,
             weights: None,
             transform: None,
@@ -208,7 +206,6 @@ mod tests {
     use super::*;
     use crate::common::model_type::{Embedding, ModelType};
     use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
-    use crate::generated::manifest::Backend;
     use std::borrow::Cow;
 
     fn planned(kind: AssetKind, bytes: &'static [u8]) -> PlannedAsset<'static> {
@@ -282,7 +279,6 @@ mod tests {
                 "test-model".to_string(),
                 "0.1.0".to_string(),
                 ModelType::Embedding,
-                Backend::Cpu,
                 &plan,
                 &mut out,
             )

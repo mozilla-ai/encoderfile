@@ -21,8 +21,8 @@ use pyo3::{
     prelude::*,
 };
 
-#[pyclass(name = "BatchLongest")]
-#[derive(Debug, Clone)]
+#[pyclass(name = "BatchLongest", eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyBatchLongest;
 
 #[pymethods]
@@ -45,8 +45,8 @@ impl From<PyBatchLongest> for TokenizerPadStrategy {
     }
 }
 
-#[pyclass(name = "Fixed")]
-#[derive(Debug, Clone)]
+#[pyclass(name = "Fixed", eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyFixed {
     #[pyo3(get, set)]
     n: usize,
@@ -88,9 +88,11 @@ impl PyTokenizerBuildConfig {
                 } else if let Ok(fixed) = ps.cast::<PyFixed>() {
                     Some(fixed.extract::<PyFixed>().unwrap().into())
                 } else {
-                    return Err(PyTypeError::new_err(
-                        "Class must be BatchLongest, Fixed, or None",
-                    ));
+                    let err_msg = format!(
+                        "Class must be BatchLongest, Fixed, or None. Received: {:?}",
+                        ps.get_type().getattr("__name__")?
+                    );
+                    return Err(PyTypeError::new_err(err_msg));
                 }
             }
             None => None,

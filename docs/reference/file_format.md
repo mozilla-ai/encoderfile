@@ -26,12 +26,12 @@ Base binaries are built in a `debian:bookworm` image and are compatible with gli
 
 ### Cross-compilation & Custom Base Binaries
 
-Pre-built binaries make cross-compilation for major platforms and operating systems trivial. When building encoderfiles, just specify which platform you want to build the encoderfile for with the `--platform` argument. For example:
+Pre-built binaries make cross-compilation for major platforms and operating systems trivial. When building encoderfiles, just specify which platform you want to build the encoderfile for with the `--target` argument. For example:
 
 ```bash
 encoderfile build \
     -f encoderfile.yml \
-    --platform x86_64-unknown-linux-gnu
+    --target x86_64-unknown-linux-gnu
 ```
 
 Platform identifiers use Rust target triples. If you do not specify a platform identifier, encoderfile CLI will auto-detect your machine's architecture and download its corresponding base binary (if not already cached).

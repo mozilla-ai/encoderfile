@@ -1,5 +1,6 @@
-from encoderfile import run_cli
 import sys
+
+from encoderfile import run_cli  # type: ignore
 
 if __name__ == "__main__":
     args = ["encoderfile"] + sys.argv[1:]
