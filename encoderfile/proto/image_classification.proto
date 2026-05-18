@@ -16,6 +16,6 @@ message ImageClassificationRequest {
 }
 
 message ImageClassificationResponse {
-  repeated encoderfile.image_types.ImageLabels labels = 1;
+  repeated encoderfile.image_types.ImageLabels results = 1;
   map<string, string> metadata = 11;
 }

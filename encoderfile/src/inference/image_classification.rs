@@ -24,7 +24,6 @@ pub fn image_classification<'a>(
         .unwrap()
         .to_owned();
     let raw_outputs = crate::run_cv_model!(session, grouped_images)?;
-    println!("Raw outputs: {:?}", raw_outputs.keys().collect::<Vec<_>>());
     let mut outputs = raw_outputs
         .get("logits")
         .expect("Model does not return logits")
@@ -33,9 +32,7 @@ pub fn image_classification<'a>(
         .into_dimensionality::<Ix2>()
         .expect("Model does not return tensor of shape [n_batch, n_classes]")
         .into_owned();
-    println!("Model outputs: {:?}", outputs);
     outputs.mapv_inplace(logit_to_prob);
-    println!("Model outputs: {:?}", outputs);
 
     Ok(postprocess(outputs, classes))
 }

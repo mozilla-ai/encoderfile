@@ -1,11 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, io::Read};
 use utoipa::ToSchema;
-use anyhow::Result;
-use crate::common::FromReadInput;
 use image::ImageFormat;
 use bytes::Bytes;
-use crate::transport::http::multipart_openapi::{FromMultipart, MultipartApiError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageInfo {

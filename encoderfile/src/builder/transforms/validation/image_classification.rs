@@ -1,12 +1,14 @@
 use super::{
     TransformValidatorExt,
-    utils::{BATCH_SIZE, SEQ_LEN, random_tensor, validation_err, validation_err_ctx},
+    utils::{BATCH_SIZE, random_tensor, validation_err, validation_err_ctx},
 };
 use crate::{
     common::ModelConfig,
     transforms::{ImageClassificationTransform, Postprocessor},
 };
 use anyhow::{Context, Result};
+
+const TEST_NUM_LABELS: usize = 16;
 
 impl TransformValidatorExt for ImageClassificationTransform {
     fn dry_run(&self, model_config: &ModelConfig) -> Result<()> {
@@ -17,7 +19,7 @@ impl TransformValidatorExt for ImageClassificationTransform {
             )?,
         };
 
-        let dummy_logits = random_tensor(&[BATCH_SIZE, SEQ_LEN, num_labels], (-1.0, 1.0))?;
+        let dummy_logits = random_tensor(&[BATCH_SIZE, TEST_NUM_LABELS], (-1.0, 1.0))?;
         let shape = dummy_logits.shape().to_owned();
 
         let res = self.postprocess(dummy_logits)

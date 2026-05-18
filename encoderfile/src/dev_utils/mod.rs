@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        Config, TokenizerConfig,
+        ModelConfig, Config, TokenizerConfig,
         model_type::{self, ModelTypeSpec},
     },
     runtime::{
@@ -21,14 +21,14 @@ use std::str::FromStr;
 use std::{fs::File, io::BufReader, fmt::Debug};
 
 const EMBEDDING_DIR: &str = "../models/embedding";
-// CHECK sentence embedding????
 const SEQUENCE_CLASSIFICATION_DIR: &str = "../models/sequence_classification";
 const TOKEN_CLASSIFICATION_DIR: &str = "../models/token_classification";
+const IMAGE_CLASSIFICATION_DIR: &str = "../models/image_classification";
 
 pub fn get_state<'a, T: ModelTypeSpec + InputType + TaskType>(dir: &'a str) -> AppState<T>
-    where <T as InputType>::State: TryFrom<&'a str> + Debug,
+    where <T as InputType>::State: TryFrom<&'a str>,
           <<T as InputType>::State as TryFrom<&'a str>>::Error: Debug,
-          <T as TaskType>::State: TryFrom<&'a str> + Debug,
+          <T as TaskType>::State: TryFrom<&'a str>,
           <<T as TaskType>::State as TryFrom<&'a str>>::Error: Debug,
 {
     let config = Config {
@@ -128,6 +128,11 @@ pub fn sequence_classification_state() -> AppState<model_type::SequenceClassific
 pub fn token_classification_state() -> AppState<model_type::TokenClassification>
 {
     get_state(TOKEN_CLASSIFICATION_DIR)
+}
+
+pub fn image_classification_state() -> AppState<model_type::ImageClassification>
+{
+    get_state(IMAGE_CLASSIFICATION_DIR)
 }
 
 fn get_tokenizer(dir: &str) -> crate::runtime::TokenizerService {

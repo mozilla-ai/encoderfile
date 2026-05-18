@@ -11,7 +11,7 @@ fn test_embedding_model() {
     let state = embedding_state();
 
     let encodings = state
-        .per_model_input_state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -36,7 +36,7 @@ fn test_embedding_inference_with_bad_model() {
     let state = token_classification_state();
 
     let encodings = state
-        .per_model_input_state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -57,7 +57,7 @@ fn test_sequence_classification_model() {
     let state = sequence_classification_state();
 
     let encodings = state
-        .per_model_input_state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -73,7 +73,7 @@ fn test_sequence_classification_model() {
     let results = sequence_classification(
         session_lock,
         &transform,
-        &state.per_task_state,
+        &state.task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");
@@ -117,7 +117,7 @@ fn test_token_classification_model() {
     let state = token_classification_state();
 
     let encodings = state
-        .per_model_input_state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -133,7 +133,7 @@ fn test_token_classification_model() {
     let results = token_classification(
         session_lock,
         &transform,
-        &state.per_task_state,
+        &state.task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");
@@ -147,7 +147,7 @@ fn test_token_classification_inference_with_bad_model() {
     let state = sequence_classification_state();
 
     let encodings = state
-        .per_model_input_state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -163,7 +163,7 @@ fn test_token_classification_inference_with_bad_model() {
     token_classification(
         session_lock,
         &transform,
-        &state.per_task_state,
+        &state.task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");

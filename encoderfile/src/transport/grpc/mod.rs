@@ -71,6 +71,7 @@ macro_rules! generate_grpc_server {
                 tonic::Response<$crate::generated::metadata::GetModelMetadataResponse>,
                 tonic::Status,
             > {
+                println!("And the metadata is...: {:?}", self.state.metadata());
                 Ok(tonic::Response::new(self.state.metadata().into()))
             }
         }

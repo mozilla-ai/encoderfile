@@ -1,7 +1,8 @@
 use std::{
     marker::PhantomData,
     sync::Arc,
-    io::{Read, Seek, Write},
+    io::{Read, Seek},
+    fmt::Debug,
 };
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +36,7 @@ pub trait TaskType {
     fn task_type() -> Task {
         Self::TASK
     }
-    type State;
+    type State: Debug;
 }
 
 pub trait InputType {
@@ -46,7 +47,7 @@ pub trait InputType {
     fn input_type() -> Input {
         Self::INPUT
     }
-    type State;
+    type State: Debug;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -222,8 +223,6 @@ input_type_impl![
 
 #[derive(Debug)]
 pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType> 
-    where <T as InputType>::State: std::fmt::Debug,
-          <T as TaskType>::State: std::fmt::Debug,
 {
     pub config: Config,
     pub session: Mutex<Session>,
@@ -234,8 +233,6 @@ pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType>
 }
 
 impl<T: ModelTypeSpec + InputType + TaskType> EncoderfileState<T>
-    where <T as InputType>::State: std::fmt::Debug,
-          <T as TaskType>::State: std::fmt::Debug,
 {
     pub fn new(
         config: Config,

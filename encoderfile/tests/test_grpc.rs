@@ -1,5 +1,8 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 
+use bytes::Bytes;
 use encoderfile::{
     dev_utils::*,
     generated::{
@@ -19,6 +22,11 @@ use encoderfile::{
             TokenClassificationRequest, TokenClassificationResponse,
             token_classification_inference_server::TokenClassificationInference,
         },
+        image_classification::{
+            ImageClassificationRequest, ImageClassificationResponse,
+            image_classification_inference_server::ImageClassificationInference,
+        },
+        image_types::{ImageInput}
     },
     transport::grpc::GrpcService,
 };
@@ -45,8 +53,6 @@ macro_rules! test_grpc_service {
                     .await
                     .unwrap()
                     .into_inner();
-
-                println!("Model metadata: {:?}", response);
 
                 if $has_labels {
                     assert!(!response.id2label.is_empty(), "id2label is an empty dict")
@@ -139,4 +145,27 @@ test_grpc_service!(
         metadata: HashMap::new(),
     },
     SentenceEmbeddingResponse
+);
+
+const TEST_IMAGE_PATH: &str = "../test-pictures/w3c_home.jpg";
+
+fn get_file_bytes(filename: &str) -> Vec<u8> {
+    let mut file = File::open(filename).expect("Failed to open test image");
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).expect("Failed to read test image");
+    buffer
+}
+
+test_grpc_service!(
+    image_classification_tests,
+    { GrpcService::new(image_classification_state()) },
+    true,
+    ImageClassificationRequest {
+        inputs: vec![
+            TEST_IMAGE_PATH,
+            TEST_IMAGE_PATH
+            ].iter().map(|s| ImageInput { image: get_file_bytes(s) }).collect(),
+        metadata: HashMap::new(),
+    },
+    ImageClassificationResponse
 );

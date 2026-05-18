@@ -3,7 +3,6 @@ use std::{collections::HashMap, io::Read};
 use utoipa::ToSchema;
 use anyhow::Result;
 use crate::common::FromReadInput;
-use image::ImageFormat;
 use bytes::Bytes;
 use crate::transport::http::multipart_openapi::{FromMultipart, MultipartApiError};
 use crate::common::image_types::{ImageInfo, ImageLabelScore};
@@ -99,6 +98,7 @@ pub struct ImageClassificationResult {
 mod tests {
     use super::*;
     use std::fs::File;
+    use image::ImageFormat;
 
     #[test]
     fn test_image_classification_request_from_read_input() {

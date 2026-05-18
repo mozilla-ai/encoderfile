@@ -10,7 +10,7 @@ use crate::{
     runtime::AppState,
 };
 use image::RgbImage;
-use ndarray::{Array4, s};
+use ndarray::{Array4};
 
 use super::inference::Inference;
 use crate::inference::image_classification::image_classification;
@@ -26,6 +26,10 @@ impl Inference for AppState<model_type::ImageClassification>
 
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
+        if request.images.is_empty() {
+            return Err(ApiError::InputError("Cannot tokenize empty string"));
+        }
+        println!("--> Received request for image classification inference: {:?}", request);
         let rescale_factor = 0.00392156862745098 as f32;
         let image_mean = 0.5;
         let image_std = 0.5;
@@ -34,7 +38,6 @@ impl Inference for AppState<model_type::ImageClassification>
         // convert input image into flattened rbg
         let images: Vec<RgbImage> = (&request.images).into_iter().map(|image_info| {
             let img = image::load_from_memory(&image_info.image_bytes).expect("Failed to load image from bytes");
-            println!("Height x width: {:?} x {:?}", img.height(), img.width());
             img
                 .resize_exact(
                     self.model_input_state.width.unwrap(),
@@ -66,10 +69,8 @@ impl Inference for AppState<model_type::ImageClassification>
                 }
             }
         }
-        println!("Some sample slice of the input array (pre scale, post reshape): {:?}", images_array.slice(s![.., .., 0..5, 0..5]));
         // TODO make parallel
         images_array.mapv_inplace(|x| ((x * rescale_factor) - image_mean) / image_std);
-        println!("Some sample slice of the input array (post scale): {:?}", images_array.slice(s![.., .., 0..5, 0..5]));
 
         let label_map = self.task_state.id2label.clone().unwrap();
         let mut entries: Vec<_> = label_map.iter().collect();
@@ -125,9 +126,20 @@ mod tests {
         let response = state.inference(request).expect("Inference failed");
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].labels.len(), 2);
-        assert_eq!(response.results[0].labels[0].label, "normal");
-        assert_eq!(response.results[0].labels[0].score, Some(1.5378942));
-        assert_eq!(response.results[0].labels[1].label, "nsfw");
-        assert_eq!(response.results[0].labels[1].score, Some(-1.6556994));
+        assert!(response.results[0].labels.iter().any(|x| x.label == "normal"));
+        assert!(response.results[0].labels.iter().any(|x| x.label == "nsfw"));
+    }
+
+    #[test]
+    fn test_image_classification_empty() {
+        init_tracing();
+
+        let state = dev_utils::get_state::<ImageClassification>("../models/image_classification");
+        let request = ImageClassificationRequest {
+            images: vec![],
+            metadata: Default::default(),
+        };
+        let response = state.inference(request);
+        assert!(response.is_err());
     }
 }

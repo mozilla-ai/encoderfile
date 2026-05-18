@@ -20,7 +20,10 @@ impl From<ImageClassificationRequest> for common::ImageClassificationRequest {
 impl From<common::ImageClassificationResponse> for ImageClassificationResponse {
     fn from(val: common::ImageClassificationResponse) -> Self {
         Self {
-            labels: val.results.into_iter().map(|result| result.into()).collect(),
+            results: val
+                .results
+                .into_iter()
+                .map(|result| result.into()).collect(),
             metadata: val.metadata.unwrap_or_default(),
         }
     }
