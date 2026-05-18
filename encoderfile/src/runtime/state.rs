@@ -1,11 +1,16 @@
-use std::{marker::PhantomData, sync::Arc};
+use std::{
+    marker::PhantomData,
+    sync::Arc,
+    io::{Read, Seek, Write},
+};
 use serde::{Deserialize, Serialize};
 
 use ort::session::Session;
 use parking_lot::Mutex;
 
 use crate::{
-    common::{Config, ModelConfig, model_type::{ModelType, ModelTypeSpec, self}}, runtime::TokenizerService, transforms::DEFAULT_LIBS
+    common::{Config, ModelConfig, model_type::{ModelType, ModelTypeSpec, self}}, runtime::TokenizerService, transforms::DEFAULT_LIBS,
+    runtime::loader::EncoderfileLoader,
 };
 
 pub type AppState<T> = Arc<EncoderfileState<T>>;
@@ -30,7 +35,7 @@ pub trait TaskType {
     fn task_type() -> Task {
         Self::TASK
     }
-    type TaskState;
+    type State;
 }
 
 pub trait InputType {
@@ -41,10 +46,12 @@ pub trait InputType {
     fn input_type() -> Input {
         Self::INPUT
     }
-    type InputState;
+    type State;
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TextInputState {
+    // TODO check Clone impl
     pub tokenizer: TokenizerService,
     pub model_config: ModelConfig,
 }
@@ -91,11 +98,75 @@ impl ClassifierState {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureExtractorState {}
 
+fn text_input_state_try_from_loader<'a, R>(loader: &mut EncoderfileLoader<'a, R>) -> Result<TextInputState, anyhow::Error>
+where
+    R: Read + Seek,
+{
+    let tokenizer = loader.tokenizer()?;
+    let model_config = loader.model_config()?;
+    Ok(TextInputState {
+        tokenizer,
+        model_config,
+    })
+}
+
+fn image_input_state_try_from_loader<'a, R>(loader: &mut EncoderfileLoader<'a, R>) -> Result<ImageInputState, anyhow::Error>
+where
+    R: Read + Seek,
+{
+    let model_config = loader.model_config()?;
+    Ok(ImageInputState {
+        num_channels: model_config.num_channels.ok_or_else(|| anyhow::anyhow!("num_channels is required for image models"))?,
+        height: model_config.height,
+        width: model_config.width,
+        image_size: model_config.image_size,
+    })
+}
+
+fn classifier_state_try_from_loader<'a, R>(loader: &mut EncoderfileLoader<'a, R>) -> Result<ClassifierState, anyhow::Error>
+where
+    R: Read + Seek,
+{
+    let model_config = loader.model_config()?.clone();
+    Ok(ClassifierState {
+        id2label: model_config.id2label.clone(),
+        label2id: model_config.label2id.clone(),
+        num_labels: model_config.num_labels(),
+    })
+}
+
+fn feature_extractor_state_try_from_loader<'a, R>(_loader: &mut EncoderfileLoader<'a, R>) -> Result<FeatureExtractorState, anyhow::Error>
+where
+    R: Read + Seek,
+{
+    Ok(FeatureExtractorState {})
+}
+
+macro_rules! state_from_source_impl {
+    ($base_type:tt, $state_type:ty, $state_fun:ident) => {
+        impl<'a, 'borrow, R> TryFrom<&'borrow mut EncoderfileLoader<'a, R>> for $state_type
+        where R: Read + Seek,
+        {
+            type Error = anyhow::Error;
+
+            fn try_from(loader: &'borrow mut EncoderfileLoader<'a, R>) -> Result<Self, Self::Error> {
+                $state_fun::<R>(loader)
+            }
+        }
+    };
+}
+
+state_from_source_impl!(InputType, TextInputState, text_input_state_try_from_loader);
+state_from_source_impl!(InputType, ImageInputState, image_input_state_try_from_loader);
+state_from_source_impl!(TaskType, ClassifierState, classifier_state_try_from_loader);
+state_from_source_impl!(TaskType, FeatureExtractorState, feature_extractor_state_try_from_loader);
+
+
 macro_rules! input_state_impl {
     ($model_type:ty, $state_type:ty, $input:expr) => {
         impl InputType for $model_type {
             const INPUT: Input = $input;
-            type InputState = $state_type;
+            type State = $state_type;
         }
     };
 }
@@ -110,7 +181,7 @@ macro_rules! task_state_impl {
     ($model_type:ty, $state_type:ty, $task:expr) => {
         impl TaskType for $model_type {
             const TASK: Task = $task;
-            type TaskState = $state_type;
+            type State = $state_type;
         }
     };
 }
@@ -150,21 +221,27 @@ input_type_impl![
 ];
 
 #[derive(Debug)]
-pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType> {
+pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType> 
+    where <T as InputType>::State: std::fmt::Debug,
+          <T as TaskType>::State: std::fmt::Debug,
+{
     pub config: Config,
     pub session: Mutex<Session>,
-    pub per_model_input_state: T::InputState,
-    pub per_task_state: T::TaskState,
+    pub model_input_state: <T as InputType>::State,
+    pub task_state: <T as TaskType>::State,
     pub lua_libs: Vec<mlua::StdLib>,
     _marker: PhantomData<T>,
 }
 
-impl<T: ModelTypeSpec + InputType + TaskType> EncoderfileState<T> {
+impl<T: ModelTypeSpec + InputType + TaskType> EncoderfileState<T>
+    where <T as InputType>::State: std::fmt::Debug,
+          <T as TaskType>::State: std::fmt::Debug,
+{
     pub fn new(
         config: Config,
         session: Mutex<Session>,
-        per_model_input_state: T::InputState,
-        per_task_state: T::TaskState,
+        model_input_state: <T as InputType>::State,
+        task_state: <T as TaskType>::State,
     ) -> EncoderfileState<T> {
         let lua_libs = match config.lua_libs {
             Some(ref libs) => Vec::<mlua::StdLib>::from(libs),
@@ -173,8 +250,8 @@ impl<T: ModelTypeSpec + InputType + TaskType> EncoderfileState<T> {
         EncoderfileState {
             config,
             session,
-            per_model_input_state,
-            per_task_state,
+            model_input_state,
+            task_state,
             lua_libs,
             _marker: PhantomData,
         }

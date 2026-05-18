@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 use crate::{
     common::{GetModelMetadataResponse, model_type::{ModelType, ModelTypeSpec}}, runtime::{AppState, TaskType, InputType},
@@ -23,7 +24,10 @@ pub trait Metadata {
 
 }
 
-impl<T: ModelTypeSpec + InputType + TaskType> Metadata for AppState<T> {
+impl<T: ModelTypeSpec + InputType + TaskType> Metadata for AppState<T>
+    where <T as TaskType>::State: Debug,
+        <T as InputType>::State: Debug,
+{
     fn model_id(&self) -> String {
         self.config.name.clone()
     }

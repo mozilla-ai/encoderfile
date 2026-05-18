@@ -1,9 +1,9 @@
 use crate::{
     common::{
-        FromCliInput, ModelType,
-        model_type::{self, ModelTypeSpec},
+        FromCliInput,
+        model_type::{self, ModelType, ModelTypeSpec},
     },
-    runtime::{EncoderfileLoader, EncoderfileState, ORTExecutionProvider},
+    runtime::{EncoderfileLoader, EncoderfileState, ORTExecutionProvider, InputType, TaskType},
     services::{Inference, Metadata},
     transport::{
         grpc::GrpcRouter,
@@ -18,7 +18,7 @@ use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{
-    fmt::Display,
+    fmt::{Display, Debug},
     io::{Read, Seek, Write},
     sync::Arc,
 };
@@ -54,13 +54,13 @@ pub trait CliRoute: Inference {
 impl<T: Inference> CliRoute for T {}
 
 #[derive(Parser)]
-pub struct TextCli {
+pub struct Cli {
     #[command(subcommand)]
-    pub command: TextCommands,
+    pub command: Commands,
 }
 
 #[derive(Subcommand)]
-pub enum TextCommands {
+pub enum Commands {
     Serve {
         #[arg(long, default_value = "[::]")]
         grpc_hostname: String,
@@ -109,10 +109,10 @@ pub enum TextCommands {
     },
 }
 
-impl TextCommands {
-    pub async fn execute<'a, R: Read + Seek>(
+impl Commands {
+    pub async fn execute<'loader, R: Read + Seek>(
         self,
-        loader: &mut EncoderfileLoader<'a, R>,
+        loader: &mut EncoderfileLoader<'loader, R>,
     ) -> Result<()> {
         match loader.model_type() {
             ModelType::Embedding => {
@@ -131,17 +131,24 @@ impl TextCommands {
                 self.execute_from_loader::<R, model_type::SentenceEmbedding>(loader)
                     .await
             }
+            ModelType::ImageClassification => {
+                Err(anyhow::anyhow!("Image classification is not yet supported in the CLI transport"))
+            }
         }
     }
-    pub async fn execute_from_loader<'a, R: Read + Seek, T: ModelTypeSpec>(
+    pub async fn execute_from_loader<'loader, R: Read + Seek, T: ModelTypeSpec + InputType + TaskType>(
         self,
-        loader: &mut EncoderfileLoader<'a, R>,
+        loader: &mut EncoderfileLoader<'loader, R>,
     ) -> Result<()>
     where
         Arc<EncoderfileState<T>>: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
+        <T as InputType>::State: Debug,
+        <T as TaskType>::State: Debug,
+        for<'b> <T as InputType>::State: TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
+        for<'b> <T as TaskType>::State: TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
     {
         match self {
-            TextCommands::Serve {
+            Commands::Serve {
                 grpc_hostname,
                 grpc_port,
                 http_hostname,
@@ -161,15 +168,13 @@ impl TextCommands {
                         onnx_args.graph_optimization_level(),
                     )?
                     .into();
-                let model_config = loader.model_config()?;
-                let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
 
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    tokenizer,
-                    model_config,
+                    <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader).expect("could not load model task state from file")
                 ));
 
                 let banner = crate::get_banner(state.model_id().as_str());
@@ -211,7 +216,7 @@ impl TextCommands {
 
                 let _ = tokio::join!(grpc_process, http_process);
             }
-            TextCommands::Infer {
+            Commands::Infer {
                 inputs,
                 format,
                 out_dir,
@@ -225,22 +230,20 @@ impl TextCommands {
                     )?
                     .into();
 
-                let model_config = loader.model_config()?;
-                let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
 
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    tokenizer,
-                    model_config,
+                    <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader).expect("could not load model input state from file"),
                 ));
 
                 setup_tracing(None)?;
 
                 state.cli_route(inputs, format, out_dir)?
             }
-            TextCommands::Mcp {
+            Commands::Mcp {
                 hostname,
                 port,
                 cert_file,
@@ -255,15 +258,13 @@ impl TextCommands {
                     )?
                     .into();
 
-                let model_config = loader.model_config()?;
-                let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
 
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    tokenizer,
-                    model_config,
+                    <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader).expect("could not load model input state from file"),
                 ));
 
                 let banner = crate::get_banner(state.model_id().as_str());
@@ -276,114 +277,7 @@ impl TextCommands {
     }
 }
 
-#[derive(Parser)]
-pub struct ImageCli {
-    #[command(subcommand)]
-    pub command: ImageCommands,
-}
 
-#[derive(Subcommand)]
-pub enum ImageCommands {
-    Serve {
-        #[arg(long, default_value = "[::]")]
-        grpc_hostname: String,
-        #[arg(long, default_value = "50051")]
-        grpc_port: String,
-        #[arg(long, default_value = "0.0.0.0")]
-        http_hostname: String,
-        #[arg(long, default_value = "8080")]
-        http_port: String,
-        #[arg(long, default_value_t = false)]
-        disable_grpc: bool,
-        #[arg(long, default_value_t = false)]
-        disable_http: bool,
-        #[arg(long, default_value_t = false)]
-        enable_otel: bool,
-        #[arg(long, default_value = "http://localhost:4317")]
-        otel_exporter_url: String,
-        #[arg(long)]
-        cert_file: Option<String>,
-        #[arg(long)]
-        key_file: Option<String>,
-    },
-    Infer {
-        #[arg(required = true)]
-        inputs: Vec<String>,
-        #[arg(short, long, default_value_t = Format::Json)]
-        format: Format,
-        #[arg(short)]
-        out_dir: Option<String>,
-    },
-}
-
-impl ImageCommands {
-    pub async fn execute<S>(self, state: S) -> Result<()>
-    where
-        S: Inference + GrpcRouter + HttpRouter + CliRoute,
-    {
-        match self {
-            ImageCommands::Serve {
-                grpc_hostname,
-                grpc_port,
-                http_hostname,
-                http_port,
-                disable_grpc,
-                disable_http,
-                enable_otel,
-                otel_exporter_url,
-                cert_file,
-                key_file,
-            } => {
-                let banner = crate::get_banner(state.model_id().as_str());
-
-                if disable_grpc && disable_http {
-                    return Err(crate::error::ApiError::ConfigError(
-                        "Cannot disable both gRPC and HTTP",
-                    ))?;
-                }
-
-                match enable_otel {
-                    true => setup_tracing(Some(otel_exporter_url.as_str())),
-                    false => setup_tracing(None),
-                }?;
-
-                let grpc_process = match disable_grpc {
-                    true => tokio::spawn(async { Ok(()) }),
-                    false => tokio::spawn(run_grpc(
-                        grpc_hostname,
-                        grpc_port,
-                        cert_file.clone(),
-                        key_file.clone(),
-                        state.clone(),
-                    )),
-                };
-
-                let http_process = match disable_http {
-                    true => tokio::spawn(async { Ok(()) }),
-                    false => tokio::spawn(run_http(
-                        http_hostname,
-                        http_port,
-                        cert_file.clone(),
-                        key_file.clone(),
-                        state.clone(),
-                    )),
-                };
-
-                println!("{}", banner);
-
-                let _ = tokio::join!(grpc_process, http_process);
-            }
-            ImageCommands::Infer {
-                inputs,
-                format,
-                out_dir,
-            } => {
-                setup_tracing(None)?;
-
-                state.cli_route(inputs, format, out_dir)?
-            }
-        }
-        Ok(())
 #[derive(Clone, Args)]
 pub struct ONNXArgs {
     #[arg(long, default_value_t = false)]

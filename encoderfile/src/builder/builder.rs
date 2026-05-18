@@ -16,9 +16,9 @@ use crate::{
         assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
         codec::EncoderfileCodec,
     },
+    runtime::Input,
 };
 use anyhow::{Context, Result};
-use ort::session::input;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

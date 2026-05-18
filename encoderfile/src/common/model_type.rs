@@ -1,9 +1,5 @@
 macro_rules! model_type {
     [ $( $x:ident ),* $(,)? ] => {
-        pub trait ModelTypeSpec: Send + Sync + Clone + std::fmt::Debug + 'static {
-        fn enum_val() -> ModelType;
-        }
-
         // create enum
         #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, schemars::JsonSchema)]
         #[serde(rename_all = "snake_case")]
@@ -44,6 +40,10 @@ macro_rules! model_type {
         )*
 
     }
+}
+
+pub trait ModelTypeSpec: Send + Sync + Clone + std::fmt::Debug + 'static {
+    fn enum_val() -> ModelType;
 }
 
 model_type![

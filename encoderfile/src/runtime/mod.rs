@@ -7,6 +7,7 @@ mod state;
 mod tokenizer;
 
 pub use loader::{EncoderfileLoader, load_assets};
+pub use session::{ORTExecutionProvider, ORTSessionBuilder};
 pub use state::{
     AppState,
     EncoderfileState,

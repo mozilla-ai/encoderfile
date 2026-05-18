@@ -37,16 +37,16 @@ impl Inference for AppState<model_type::ImageClassification>
             println!("Height x width: {:?} x {:?}", img.height(), img.width());
             img
                 .resize_exact(
-                    self.per_model_input_state.width.unwrap(),
-                    self.per_model_input_state.height.unwrap(),
+                    self.model_input_state.width.unwrap(),
+                    self.model_input_state.height.unwrap(),
                     DEFAULT_FILTER_TYPE
                 )
                 .to_rgb8()
         }).collect();
         let batch_size = request.images.len();
-        let num_channels = self.per_model_input_state.num_channels as usize;
-        let height = self.per_model_input_state.height.unwrap() as usize;
-        let width = self.per_model_input_state.width.unwrap() as usize;
+        let num_channels = self.model_input_state.num_channels as usize;
+        let height = self.model_input_state.height.unwrap() as usize;
+        let width = self.model_input_state.width.unwrap() as usize;
 
         if num_channels != 3 {
             return Err(ApiError::InputError("Image classification currently expects 3 RGB channels"));
@@ -71,7 +71,7 @@ impl Inference for AppState<model_type::ImageClassification>
         images_array.mapv_inplace(|x| ((x * rescale_factor) - image_mean) / image_std);
         println!("Some sample slice of the input array (post scale): {:?}", images_array.slice(s![.., .., 0..5, 0..5]));
 
-        let label_map = self.per_task_state.id2label.clone().unwrap();
+        let label_map = self.task_state.id2label.clone().unwrap();
         let mut entries: Vec<_> = label_map.iter().collect();
         entries.sort_by(|x, y| x.0.cmp(&y.0));
         let classes: Vec<String> = entries.into_iter().map(|(_, label)| label.clone()).collect();

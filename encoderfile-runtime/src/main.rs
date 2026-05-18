@@ -2,10 +2,7 @@ use std::{fs::File, io::BufReader};
 
 use anyhow::Result;
 use clap::Parser;
-use encoderfile::{
-    runtime::load_assets,
-    transport::cli::Cli,
-};
+use encoderfile::{runtime::load_assets, transport::cli::Cli};
 
 #[tokio::main]
 async fn main() -> Result<()> {
