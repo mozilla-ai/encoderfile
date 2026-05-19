@@ -7,6 +7,8 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use utoipa::OpenApi;
 use crate::common::model_type::ImageClassification;
+use crate::common::{ImageClassificationRequest, ImageInfo};
+use std::collections::HashMap;
 use crate::runtime::AppState;
 
 pub const MULTIPART_PREDICT_ENDPOINT: &str = "/predict/multipart";
@@ -68,6 +70,38 @@ pub trait FromMultipart: Sized {
         attachments: Vec<(Option<String>, Option<String>, bytes::Bytes)>,
     ) -> Result<Self, MultipartApiError>;
 }
+
+impl FromMultipart for ImageClassificationRequest {
+    fn from_multipart(
+        payload: serde_json::Value,
+        attachments: Vec<(Option<String>, Option<String>, bytes::Bytes)>,
+    ) -> Result<Self, MultipartApiError> {
+        let images = attachments
+            .into_iter()
+            .map(|(_file_name, _content_type, image_bytes)| {
+                let format = image::guess_format(&image_bytes)
+                    .map_err(|e| MultipartApiError::RequestConstruction(
+                        format!("Failed to detect image format: {}", e)
+                    ))?;
+                Ok(ImageInfo {
+                    image_bytes,
+                    image_format: format,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let metadata = if payload.is_null() || payload == serde_json::json!({}) {
+            Some(HashMap::default())
+        } else {
+            serde_json::from_value(payload)
+                .ok()
+                .or(Some(HashMap::default()))
+        };
+
+        Ok(Self { images, metadata })
+    }
+}
+
 
 #[derive(Debug, utoipa::OpenApi)]
 #[openapi(paths(post_multipart), components(schemas(MultipartPredictBody, MultipartPredictResponse, ParsedAttachment)))]

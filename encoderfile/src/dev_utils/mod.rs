@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        ModelConfig, Config, TokenizerConfig,
+        Config, TokenizerConfig,
         model_type::{self, ModelTypeSpec},
     },
     runtime::{
@@ -15,7 +15,7 @@ use crate::{
         TaskType,
     },
 };
-use ort::session::{Input, Session};
+use ort::session::Session;
 use parking_lot::Mutex;
 use std::str::FromStr;
 use std::{fs::File, io::BufReader, fmt::Debug};

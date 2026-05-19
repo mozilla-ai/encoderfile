@@ -27,16 +27,16 @@ impl Inference for AppState<model_type::ImageClassification>
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
         let request = request.into();
         if request.images.is_empty() {
-            return Err(ApiError::InputError("Cannot tokenize empty string"));
+            return Err(ApiError::InputError("Cannot classify empty image list"));
         }
         println!("--> Received request for image classification inference: {:?}", request);
-        let rescale_factor = 0.00392156862745098 as f32;
+        let rescale_factor = 0.003_921_569_f32;
         let image_mean = 0.5;
         let image_std = 0.5;
         // bilinear resampling
 
         // convert input image into flattened rbg
-        let images: Vec<RgbImage> = (&request.images).into_iter().map(|image_info| {
+        let images: Vec<RgbImage> = request.images.iter().map(|image_info| {
             let img = image::load_from_memory(&image_info.image_bytes).expect("Failed to load image from bytes");
             img
                 .resize_exact(
@@ -74,7 +74,7 @@ impl Inference for AppState<model_type::ImageClassification>
 
         let label_map = self.task_state.id2label.clone().unwrap();
         let mut entries: Vec<_> = label_map.iter().collect();
-        entries.sort_by(|x, y| x.0.cmp(&y.0));
+        entries.sort_by(|x, y| x.0.cmp(y.0));
         let classes: Vec<String> = entries.into_iter().map(|(_, label)| label.clone()).collect();
 
         let labels_batch = image_classification(

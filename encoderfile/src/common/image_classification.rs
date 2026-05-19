@@ -4,7 +4,6 @@ use utoipa::ToSchema;
 use anyhow::Result;
 use crate::common::FromReadInput;
 use bytes::Bytes;
-use crate::transport::http::multipart_openapi::{FromMultipart, MultipartApiError};
 use crate::common::image_types::{ImageInfo, ImageLabelScore};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -13,7 +12,6 @@ pub struct ImageClassificationRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-// FIXME check if we need to reorganize the from*input traits
 impl super::FromCliInput for ImageClassificationRequest {
     fn from_cli_input(inputs: Vec<String>) -> Self {
         let images = inputs.into_iter().map(|path| {
@@ -48,37 +46,6 @@ impl FromReadInput for ImageClassificationRequest {
             images,
             metadata: Some(HashMap::default()),
         })
-    }
-}
-
-impl FromMultipart for ImageClassificationRequest {
-    fn from_multipart(
-        payload: serde_json::Value,
-        attachments: Vec<(Option<String>, Option<String>, bytes::Bytes)>,
-    ) -> Result<Self, MultipartApiError> {
-        let images = attachments
-            .into_iter()
-            .map(|(_file_name, _content_type, image_bytes)| {
-                let format = image::guess_format(&image_bytes)
-                    .map_err(|e| MultipartApiError::RequestConstruction(
-                        format!("Failed to detect image format: {}", e)
-                    ))?;
-                Ok(ImageInfo {
-                    image_bytes,
-                    image_format: format,
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let metadata = if payload.is_null() || payload == serde_json::json!({}) {
-            Some(HashMap::default())
-        } else {
-            serde_json::from_value(payload)
-                .ok()
-                .or(Some(HashMap::default()))
-        };
-
-        Ok(Self { images, metadata })
     }
 }
 

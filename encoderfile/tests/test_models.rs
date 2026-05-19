@@ -4,7 +4,6 @@ use encoderfile::inference::{
     token_classification::token_classification,
 };
 use encoderfile::transforms::{DEFAULT_LIBS, Transform};
-use encoderfile::runtime::{InputType, TaskType};
 
 #[test]
 fn test_embedding_model() {

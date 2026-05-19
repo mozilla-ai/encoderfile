@@ -1,6 +1,4 @@
-use std::os::raw;
-
-use ndarray::{Array2, Array4, Ix2, Axis, s};
+use ndarray::{Array2, Array4, Ix2, Axis};
 
 use crate::{
     error::ApiError,

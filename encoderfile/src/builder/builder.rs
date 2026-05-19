@@ -27,7 +27,7 @@ pub struct EncoderfileBuilder {
     pub config: BuildConfig,
 }
 
-pub fn validate(input: &Input) -> Result<()> { 
+pub fn validate(_input: &Input) -> Result<()> { 
     Ok(())
 }
 

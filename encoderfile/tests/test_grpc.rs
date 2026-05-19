@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use bytes::Bytes;
 use encoderfile::{
     dev_utils::*,
     generated::{
@@ -161,10 +160,7 @@ test_grpc_service!(
     { GrpcService::new(image_classification_state()) },
     true,
     ImageClassificationRequest {
-        inputs: vec![
-            TEST_IMAGE_PATH,
-            TEST_IMAGE_PATH
-            ].iter().map(|s| ImageInput { image: get_file_bytes(s) }).collect(),
+        inputs: [TEST_IMAGE_PATH, TEST_IMAGE_PATH].iter().map(|s| ImageInput { image: get_file_bytes(s) }).collect(),
         metadata: HashMap::new(),
     },
     ImageClassificationResponse
