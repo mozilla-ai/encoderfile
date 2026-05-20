@@ -426,6 +426,7 @@ mod tests {
         cleanup(&base);
     }
 
+    #[test]
     fn test_modelpath_explicit_paths_image() {
         let base = create_temp_model_dir();
         let mp = ModelPath::Paths {

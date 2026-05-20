@@ -10,7 +10,6 @@ use crate::{
     format::assets::{AssetKind, AssetSource, PlannedAsset},
 };
 use anyhow::Result;
-use std::str::FromStr;
 
 use super::config::{
     EncoderfileConfig
@@ -20,7 +19,7 @@ use crate::runtime::{
 };
 
 pub fn validate_image_preprocessor<'a>(efconfig: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
-    let mut config = match efconfig.path.preprocessor_config_path()? {
+    let config = match efconfig.path.preprocessor_config_path()? {
         // if preprocessor_config.json is provided, use that
         Some(preprocessor_config_path) => {
             // open preprocessor_config
@@ -39,16 +38,14 @@ pub fn validate_image_preprocessor<'a>(efconfig: &'a EncoderfileConfig) -> Resul
 
     // num_channels must be same as len for mean and std
     if let Some(num_channels) = model_config.num_channels {
-        if let Some(image_mean) = config.image_mean.as_ref() {
-            if image_mean.len() != num_channels as usize {
+        if let Some(image_mean) = config.image_mean.as_ref() &&
+            image_mean.len() != num_channels as usize {
                 anyhow::bail!("num_channels must match length of image_mean");
             }
-        }
-        if let Some(image_std) = config.image_std.as_ref() {
-            if image_std.len() != num_channels as usize {
+        if let Some(image_std) = config.image_std.as_ref() &&
+            image_std.len() != num_channels as usize {
                 anyhow::bail!("num_channels must match length of image_std");
             }
-        }
     }
 
     PlannedAsset::from_asset_source(
