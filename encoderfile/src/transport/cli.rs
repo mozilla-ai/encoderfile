@@ -132,7 +132,8 @@ impl Commands {
                     .await
             }
             ModelType::ImageClassification => {
-                Err(anyhow::anyhow!("Image classification is not yet supported in the CLI transport"))
+                self.execute_from_loader::<R, model_type::ImageClassification>(loader)
+                    .await
             }
         }
     }
@@ -236,7 +237,7 @@ impl Commands {
                     config,
                     session,
                     <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
-                    <T as TaskType>::State::try_from(loader).expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader).expect("could not load model task state from file"),
                 ));
 
                 setup_tracing(None)?;

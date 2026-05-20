@@ -95,11 +95,19 @@ impl EncoderfileBuilder {
         }
 
         // validate tokenizer
-        if self.config.encoderfile.model_type.input_type() == crate::runtime::Input::Text {
-            let tokenizer_asset =
-                crate::builder::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
-            planned_assets.push(tokenizer_asset);
-            terminal::success("Tokenizer validated");
+        match self.config.encoderfile.model_type.input_type() {
+            Input::Text => {
+                let tokenizer_asset =
+                    crate::builder::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
+                planned_assets.push(tokenizer_asset);
+                terminal::success("Tokenizer validated");
+            }
+            Input::Image => {
+                let image_preprocessor_asset =
+                    crate::builder::image_preprocessor::validate_image_preprocessor(&self.config.encoderfile)?;
+                planned_assets.push(image_preprocessor_asset);
+                terminal::success("Image preprocessor validated");
+            }
         }
 
         // initialize final binary

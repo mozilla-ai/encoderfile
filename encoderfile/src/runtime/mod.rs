@@ -19,6 +19,9 @@ pub use state::{
     FeatureExtractorState,
     ImageInputState,
     TextInputState,
+    ImageConfig,
+    ImageSize,
+    ImagePreprocessing
 };
 pub use tokenizer::TokenizerService;
 

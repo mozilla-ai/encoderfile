@@ -10,7 +10,7 @@ use crate::{
     runtime::AppState,
 };
 use image::RgbImage;
-use ndarray::{Array4};
+use ndarray::{Array4, s};
 
 use super::inference::Inference;
 use crate::inference::image_classification::image_classification;
@@ -29,10 +29,9 @@ impl Inference for AppState<model_type::ImageClassification>
         if request.images.is_empty() {
             return Err(ApiError::InputError("Cannot classify empty image list"));
         }
-        println!("--> Received request for image classification inference: {:?}", request);
-        let rescale_factor = 0.003_921_569_f32;
-        let image_mean = 0.5;
-        let image_std = 0.5;
+        let rescale_factor = self.model_input_state.preprocessing.rescale_factor.ok_or(ApiError::InternalError("missing rescale factor"))?;
+        let image_mean = self.model_input_state.preprocessing.image_mean.as_ref().ok_or(ApiError::InternalError("missing image mean"))?;
+        let image_std = self.model_input_state.preprocessing.image_std.as_ref().ok_or(ApiError::InternalError("missing image std"))?;
         // bilinear resampling
 
         // convert input image into flattened rbg
@@ -40,16 +39,16 @@ impl Inference for AppState<model_type::ImageClassification>
             let img = image::load_from_memory(&image_info.image_bytes).expect("Failed to load image from bytes");
             img
                 .resize_exact(
-                    self.model_input_state.width.unwrap(),
-                    self.model_input_state.height.unwrap(),
+                    self.model_input_state.preprocessing.size.as_ref().unwrap().width.unwrap(),
+                    self.model_input_state.preprocessing.size.as_ref().unwrap().height.unwrap(),
                     DEFAULT_FILTER_TYPE
                 )
                 .to_rgb8()
         }).collect();
         let batch_size = request.images.len();
-        let num_channels = self.model_input_state.num_channels as usize;
-        let height = self.model_input_state.height.unwrap() as usize;
-        let width = self.model_input_state.width.unwrap() as usize;
+        let num_channels = self.model_input_state.config.num_channels as usize;
+        let height = self.model_input_state.preprocessing.size.as_ref().unwrap().height.unwrap() as usize;
+        let width = self.model_input_state.preprocessing.size.as_ref().unwrap().width.unwrap() as usize;
 
         if num_channels != 3 {
             return Err(ApiError::InputError("Image classification currently expects 3 RGB channels"));
@@ -70,7 +69,11 @@ impl Inference for AppState<model_type::ImageClassification>
             }
         }
         // TODO make parallel
-        images_array.mapv_inplace(|x| ((x * rescale_factor) - image_mean) / image_std);
+        for c in 0..num_channels {
+            let mean = image_mean[c];
+            let std = image_std[c];
+            images_array.slice_mut(s![.., c, .., ..]).mapv_inplace(|x| ((x * rescale_factor) - mean) / std);
+        }
 
         let label_map = self.task_state.id2label.clone().unwrap();
         let mut entries: Vec<_> = label_map.iter().collect();
@@ -120,14 +123,14 @@ mod tests {
         init_tracing();
 
         let state = dev_utils::get_state::<ImageClassification>("../models/image_classification");
-        let mut file = File::open("../test-pictures/w3c_home.jpg").expect("Failed to open test image");
+        let mut file = File::open("../test-pictures/yoga02.jpg").expect("Failed to open test image");
         let file_vec = vec![&mut file];
         let request = ImageClassificationRequest::from_read_input(file_vec).expect("Failed to create request from read input");
         let response = state.inference(request).expect("Inference failed");
+        println!("Inference response: {:?}", response);
         assert_eq!(response.results.len(), 1);
-        assert_eq!(response.results[0].labels.len(), 2);
-        assert!(response.results[0].labels.iter().any(|x| x.label == "normal"));
-        assert!(response.results[0].labels.iter().any(|x| x.label == "nsfw"));
+        assert_eq!(response.results[0].labels.len(), 9);
+        assert!(response.results[0].labels.iter().enumerate().max_by(|a, b| a.1.score.partial_cmp(&b.1.score).unwrap()).unwrap().1.label == "Downward-Dog"); // top label should be "yoga mat"
     }
 
     #[test]

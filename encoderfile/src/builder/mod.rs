@@ -11,3 +11,4 @@ pub mod templates;
 pub mod terminal;
 pub mod tokenizer;
 pub mod transforms;
+pub mod image_preprocessor;

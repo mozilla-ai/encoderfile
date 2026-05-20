@@ -16,7 +16,7 @@ async fn run_mcp<T: ModelTypeSpec + InputType + TaskType>(
 where
     AppState<T>: McpRouter,
 {
-    let router = state.mcp_router().layer(
+    let router = state.mcp_router()?.layer(
         tower_http::trace::TraceLayer::new_for_http()
             // TODO check if otel is enabled
             // .make_span_with(crate::middleware::format_span)

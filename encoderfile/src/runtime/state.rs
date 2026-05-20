@@ -56,12 +56,36 @@ pub struct TextInputState {
     pub tokenizer: TokenizerService,
     pub model_config: ModelConfig,
 }
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ImageInputState {
+    pub config: ImageConfig,
+    pub preprocessing: ImagePreprocessing,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImageConfig {
     pub num_channels: u32,
+    pub image_size: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImagePreprocessing {
+    pub rescale_factor: Option<f32>,
+    pub image_mean: Option<Vec<f32>>,
+    pub image_std: Option<Vec<f32>>,
+    pub do_normalize: Option<bool>,
+    pub do_rescale: Option<bool>,
+    pub do_resize: Option<bool>,
+    pub image_processor_type: Option<String>,
+    pub size: Option<ImageSize>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImageSize {
     pub height: Option<u32>,
     pub width: Option<u32>,
-    pub image_size: Option<u32>,
+    pub shortest_edge: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -116,11 +140,22 @@ where
     R: Read + Seek,
 {
     let model_config = loader.model_config()?;
+    let preprocessor_config = loader.image_preprocessor_config()?;
     Ok(ImageInputState {
-        num_channels: model_config.num_channels.ok_or_else(|| anyhow::anyhow!("num_channels is required for image models"))?,
-        height: model_config.height,
-        width: model_config.width,
-        image_size: model_config.image_size,
+        config: ImageConfig {
+            num_channels: model_config.num_channels.ok_or_else(|| anyhow::anyhow!("num_channels is required for image models"))?,
+            image_size: model_config.image_size,
+        },
+        preprocessing: ImagePreprocessing {
+            rescale_factor: preprocessor_config.rescale_factor,
+            image_mean: preprocessor_config.image_mean,
+            image_std: preprocessor_config.image_std,
+            do_normalize: preprocessor_config.do_normalize,
+            do_rescale: preprocessor_config.do_rescale,
+            do_resize: preprocessor_config.do_resize,
+            image_processor_type: preprocessor_config.image_processor_type,
+            size: preprocessor_config.size,
+        },
     })
 }
 

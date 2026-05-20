@@ -100,6 +100,7 @@ impl EncoderfileCodec {
             weights: None,
             transform: None,
             tokenizer: None,
+            image_preprocessor: None,
         };
 
         // Populate artifacts with length + hash

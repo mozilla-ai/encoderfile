@@ -5,14 +5,15 @@ use crate::{
     },
     runtime::{
         AppState,
+        ClassifierState,
         EncoderfileState,
         FeatureExtractorState,
-        ORTSessionBuilder,
-        ClassifierState,
-        TextInputState,
         ImageInputState,
+        ImageConfig,
+        ImagePreprocessing,
+        ImageSize,
         InputType,
-        TaskType,
+        ORTSessionBuilder, TaskType, TextInputState
     },
 };
 use ort::session::Session;
@@ -56,14 +57,19 @@ pub trait TaskTypeFromFile: TaskType {
     fn get_task_state(dir: &str) -> Result<Self::State, anyhow::Error>;
 }
 
-pub fn get_reader(dir: &str) -> BufReader<File> {
+pub fn get_config_reader(dir: &str) -> BufReader<File> {
     let file = File::open(format!("{}/{}", dir, "config.json")).expect("Config not found");
+    BufReader::new(file)
+}
+
+pub fn get_preproc_reader(dir: &str) -> BufReader<File> {
+    let file = File::open(format!("{}/{}", dir, "preprocessor_config.json")).expect("Preprocessing config not found");
     BufReader::new(file)
 }
 
 // Input types
 fn get_text_input_state(dir: &str) -> Result<TextInputState, anyhow::Error> {
-    let reader = get_reader(dir);
+    let reader = get_config_reader(dir);
     let tokenizer = get_tokenizer(dir);
     let model_config = serde_json::from_reader(reader)?;
 
@@ -71,13 +77,28 @@ fn get_text_input_state(dir: &str) -> Result<TextInputState, anyhow::Error> {
 }
 
 fn get_image_input_state(dir: &str) -> Result<ImageInputState, anyhow::Error> {
-    let reader = get_reader(dir);
-    let incomplete_state: ImageInputState = serde_json::from_reader(reader)?;
+    let config_reader = get_config_reader(dir);
+    let preproc_reader = get_preproc_reader(dir);
+    let config_state: ImageConfig = serde_json::from_reader(config_reader)?;
+    let preproc_state: ImagePreprocessing = serde_json::from_reader(preproc_reader)?;
     Ok(ImageInputState {
-        num_channels: incomplete_state.num_channels,
-        height: incomplete_state.height.or(incomplete_state.image_size),
-        width: incomplete_state.width.or(incomplete_state.image_size),
-        image_size: incomplete_state.image_size,
+        config: ImageConfig {
+            num_channels: config_state.num_channels,
+            image_size: config_state.image_size },
+        preprocessing: ImagePreprocessing {
+            do_normalize: preproc_state.do_normalize,
+            do_rescale: preproc_state.do_rescale,
+            do_resize: preproc_state.do_resize,
+            image_processor_type: preproc_state.image_processor_type,
+            rescale_factor: preproc_state.rescale_factor,
+            image_mean: preproc_state.image_mean,
+            image_std: preproc_state.image_std,
+            size: preproc_state.size.or(
+                Some(
+                    ImageSize{ width: config_state.image_size, height: config_state.image_size, shortest_edge: None }
+                )
+            )
+        }
     })
 }
 
@@ -100,7 +121,7 @@ state_impl!(FeatureExtractorState, get_feature_task_state);
 
 // Task types
 fn get_class_task_state(dir: &str) -> Result<ClassifierState, anyhow::Error> {
-    let reader = get_reader(dir);
+    let reader = get_config_reader(dir);
     let state: ClassifierState = serde_json::from_reader(reader)?;
     Ok(state)
 }

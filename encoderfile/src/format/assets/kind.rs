@@ -39,6 +39,9 @@ pub enum AssetKind {
 
     /// Tokenizer data required for text-based models.
     Tokenizer,
+
+    /// Optional image preprocessing configuration.
+    ImagePreprocessor,
 }
 
 impl AssetKind {
@@ -47,6 +50,7 @@ impl AssetKind {
         AssetKind::Transform,
         AssetKind::ModelConfig,
         AssetKind::Tokenizer,
+        AssetKind::ImagePreprocessor,
     ];
 }
 
@@ -66,10 +70,12 @@ pub trait AssetPolicySpec: ModelTypeSpec + InputType + TaskType {
             (Input::Image, Task::Classification) => &[
                 AssetKind::ModelWeights,
                 AssetKind::ModelConfig,
+                AssetKind::ImagePreprocessor,
             ],
             (Input::Image, Task::FeatureExtraction) => &[
                 AssetKind::ModelWeights,
                 AssetKind::ModelConfig,
+                AssetKind::ImagePreprocessor,
             ],
         }
     }

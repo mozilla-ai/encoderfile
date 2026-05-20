@@ -452,6 +452,7 @@ mod tests {
             model_weights_path: path.model_weights_path().unwrap(),
             tokenizer_path: path.tokenizer_path().unwrap(),
             tokenizer_config_path: None,
+            preprocessor_config_path: None,
         };
 
         let config = EncoderfileConfig {

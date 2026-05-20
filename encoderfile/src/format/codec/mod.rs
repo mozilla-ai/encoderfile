@@ -41,6 +41,7 @@ impl EncoderfileManifest {
             AssetKind::ModelConfig => &mut self.model_config,
             AssetKind::Transform => &mut self.transform,
             AssetKind::Tokenizer => &mut self.tokenizer,
+            AssetKind::ImagePreprocessor => &mut self.image_preprocessor,
         }
     }
 
@@ -50,6 +51,7 @@ impl EncoderfileManifest {
             AssetKind::ModelConfig => &self.model_config,
             AssetKind::Transform => &self.transform,
             AssetKind::Tokenizer => &self.tokenizer,
+            AssetKind::ImagePreprocessor => &self.image_preprocessor,
         }
     }
 
@@ -74,6 +76,7 @@ mod tests {
             weights: None,
             transform: None,
             tokenizer: None,
+            image_preprocessor: None,
         }
     }
 
