@@ -30,7 +30,7 @@ pub fn image_classification<'a>(
         .into_dimensionality::<Ix2>()
         .expect("Model does not return tensor of shape [n_batch, n_classes]")
         .into_owned();
-    outputs.mapv_inplace(logit_to_prob);
+    // outputs.mapv_inplace(logit_to_prob);
 
     Ok(postprocess(outputs, classes))
 }
