@@ -89,6 +89,11 @@ transform!(TokenClassificationTransform, TokenClassification);
 transform!(SentenceEmbeddingTransform, SentenceEmbedding);
 transform!(ImageClassificationTransform, ImageClassification);
 
+pub trait TransformSpec {
+    fn has_postprocessor(&self) -> bool;
+    fn has_preprocessor(&self) -> bool;
+}
+
 pub trait Postprocessor: TransformSpec {
     type Input;
     type Output;
@@ -96,14 +101,18 @@ pub trait Postprocessor: TransformSpec {
     fn postprocess(&self, data: Self::Input) -> Result<Self::Output, ApiError>;
 }
 
-pub trait TransformSpec {
-    fn has_postprocessor(&self) -> bool;
+pub trait Preprocessor: TransformSpec {
+    type Input;
+    type Output;
+
+    fn preprocess(&self, data: Self::Input) -> Result<Self::Output, ApiError>;
 }
 
 #[derive(Debug)]
 pub struct Transform<T: ModelTypeSpec> {
     #[allow(dead_code)]
     lua: Lua,
+    preprocessor: Option<LuaFunction>,
     postprocessor: Option<LuaFunction>,
     _marker: PhantomData<T>,
 }
@@ -111,6 +120,10 @@ pub struct Transform<T: ModelTypeSpec> {
 impl<T: ModelTypeSpec> Transform<T> {
     fn postprocessor(&self) -> &Option<LuaFunction> {
         &self.postprocessor
+    }
+
+    fn preprocessor(&self) -> &Option<LuaFunction> {
+        &self.preprocessor
     }
 
     #[tracing::instrument(name = "new_transform", skip_all)]
@@ -126,8 +139,14 @@ impl<T: ModelTypeSpec> Transform<T> {
             .get::<Option<LuaFunction>>("Postprocess")
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
+        let preprocessor = lua
+            .globals()
+            .get::<Option<LuaFunction>>("Preprocess")
+            .map_err(|e| ApiError::LuaError(e.to_string()))?;
+
         Ok(Self {
             lua,
+            preprocessor,
             postprocessor,
             _marker: PhantomData,
         })
@@ -137,6 +156,10 @@ impl<T: ModelTypeSpec> Transform<T> {
 impl<T: ModelTypeSpec> TransformSpec for Transform<T> {
     fn has_postprocessor(&self) -> bool {
         self.postprocessor.is_some()
+    }
+
+    fn has_preprocessor(&self) -> bool {
+        self.preprocessor.is_some()
     }
 }
 

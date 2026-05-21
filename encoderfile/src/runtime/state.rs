@@ -5,6 +5,7 @@ use std::{
     fmt::Debug,
 };
 use serde::{Deserialize, Serialize};
+use mlua::prelude::*;
 
 use ort::session::Session;
 use parking_lot::Mutex;
@@ -86,6 +87,39 @@ pub struct ImageSize {
     pub height: Option<u32>,
     pub width: Option<u32>,
     pub shortest_edge: Option<u32>,
+}
+
+impl LuaUserData for ImageInputState {
+    fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
+        fields.add_field_method_get("num_channels", |_, this| Ok(this.config.num_channels));
+        fields.add_field_method_get("image_size", |_, this| Ok(this.config.image_size));
+        fields.add_field_method_get("rescale_factor", |_, this| Ok(this.preprocessing.rescale_factor));
+        fields.add_field_method_get("image_mean", |_, this| Ok(this.preprocessing.image_mean.clone()));
+        fields.add_field_method_get("image_std", |_, this| Ok(this.preprocessing.image_std.clone()));
+        fields.add_field_method_get("do_normalize", |_, this| Ok(this.preprocessing.do_normalize));
+        fields.add_field_method_get("do_rescale", |_, this| Ok(this.preprocessing.do_rescale));
+        fields.add_field_method_get("do_resize", |_, this| Ok(this.preprocessing.do_resize));
+        fields.add_field_method_get("size_height", |_, this| Ok(this.preprocessing.size.as_ref().and_then(|s| s.height)));
+        fields.add_field_method_get("size_width", |_, this| Ok(this.preprocessing.size.as_ref().and_then(|s| s.width)));
+        fields.add_field_method_get("size_shortest_edge", |_, this| Ok(this.preprocessing.size.as_ref().and_then(|s| s.shortest_edge)));
+    }
+}
+
+impl LuaUserData for TextInputState {
+    fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
+        fields.add_field_method_get("model_type", |_, this| Ok(this.model_config.model_type.clone()));
+        fields.add_field_method_get("num_labels", |_, this| Ok(this.model_config.num_labels()));
+        fields.add_field_method_get("id2label", |_, this| Ok(this.model_config.id2label.clone()));
+        fields.add_field_method_get("label2id", |_, this| Ok(this.model_config.label2id.clone()));
+    }
+}
+
+impl LuaUserData for ClassifierState {
+    fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
+        fields.add_field_method_get("num_labels", |_, this| Ok(this.num_labels()));
+        fields.add_field_method_get("id2label", |_, this| Ok(this.id2label.clone()));
+        fields.add_field_method_get("label2id", |_, this| Ok(this.label2id.clone()));
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

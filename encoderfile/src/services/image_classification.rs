@@ -25,10 +25,19 @@ impl Inference for AppState<model_type::ImageClassification>
     type Output = ImageClassificationResponse;
 
     fn inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
+        // let transform = ImageClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
+
         let request = request.into();
         if request.images.is_empty() {
             return Err(ApiError::InputError("Cannot classify empty image list"));
         }
+        /*
+        transform.preprocessor().as_ref().map(|pre| {
+            pre.call::<_, ()>(())
+                .map_err(|e| ApiError::LuaError(format!("Preprocessor error: {e}")))
+        })?;
+        */
+
         let rescale_factor = self.model_input_state.preprocessing.rescale_factor.ok_or(ApiError::InternalError("missing rescale factor"))?;
         let image_mean = self.model_input_state.preprocessing.image_mean.as_ref().ok_or(ApiError::InternalError("missing image mean"))?;
         let image_std = self.model_input_state.preprocessing.image_std.as_ref().ok_or(ApiError::InternalError("missing image std"))?;
@@ -92,6 +101,65 @@ impl Inference for AppState<model_type::ImageClassification>
             metadata: request.metadata,
         })
     }
+
+
+
+
+
+    /*
+    fn new_inference(&self, request: impl Into<Self::Input>) -> Result<Self::Output, ApiError> {
+        let transform = ImageClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;
+
+        let request = request.into();
+        if request.images.is_empty() {
+            return Err(ApiError::InputError("Cannot classify empty image list"));
+        }
+
+        let postprocess_code = r##"
+        function Preprocess(img)
+            return img:resize(224,224):to_array(3)
+        end
+        "##.to_string();
+
+        let engine = ImageClassificationTransform::new(
+            DEFAULT_LIBS.to_vec(),
+            Some(postprocess_code),
+        )
+        .expect("Failed to create engine");
+
+        transform.preprocessor().as_ref().map(|pre| {
+            pre.call::<_, ()>(())
+                .map_err(|e| ApiError::LuaError(format!("Preprocessor error: {e}")))
+        })?;
+
+
+
+        // TODO make parallel
+        for c in 0..num_channels {
+            let mean = image_mean[c];
+            let std = image_std[c];
+            images_array.slice_mut(s![.., c, .., ..]).mapv_inplace(|x| ((x * rescale_factor) - mean) / std);
+        }
+
+        let label_map = self.task_state.id2label.clone().unwrap();
+        let mut entries: Vec<_> = label_map.iter().collect();
+        entries.sort_by(|x, y| x.0.cmp(y.0));
+        let classes: Vec<String> = entries.into_iter().map(|(_, label)| label.clone()).collect();
+
+        let labels_batch = image_classification(
+            self.session.lock(),
+            images_array,
+            // COMMENT having optional fields complicates things later on, but otoh
+            // it allows models with variations of these fields
+            classes)?;
+
+        Ok(ImageClassificationResponse {
+            results: labels_batch.iter().map(|labels| ImageClassificationResult { labels: labels.clone() }).collect(),
+            metadata: request.metadata,
+        })
+    }
+    */
+
 }
 
 #[cfg(test)]

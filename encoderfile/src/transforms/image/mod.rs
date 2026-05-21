@@ -1,5 +1,5 @@
 use ndarray::Array3;
-use image::DynamicImage;
+use image::{DynamicImage, GenericImageView};
 use mlua::prelude::*;
 use super::Tensor;
 
@@ -25,10 +25,12 @@ impl FromLua for Image {
     }
 }
 
-fn dyn_image_to_array3(image: &DynamicImage, height: u32, width: u32, num_channels: u32) -> Array3<f32> {
+fn dyn_image_to_array3(image: &DynamicImage, num_channels: u32) -> Array3<f32> {
+    // TODO num_channels is tied to the format we convert to
     let raw = image.to_rgb8().into_raw();
-    let h_us: usize = height as usize;
-    let w_us: usize = width as usize;
+    let (h_us, w_us) = image.dimensions();
+    let h_us: usize = h_us as usize;
+    let w_us: usize = w_us as usize;
     let nc_us: usize = num_channels as usize;
 
     // Build CHW array directly from raw HWC bytes, avoiding an intermediate array and transpose.
@@ -44,7 +46,7 @@ fn resize_image(image: &DynamicImage, height: u32, width: u32) -> DynamicImage {
 impl LuaUserData for Image {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         // tensor ops
-        methods.add_method("to_array", |_, this, (height, width, num_channels)| Ok(Tensor(dyn_image_to_array3(this.into_inner(), height, width, num_channels).into_dyn())));
+        methods.add_method("to_array", |_, this, num_channels| Ok(Tensor(dyn_image_to_array3(this.into_inner(), num_channels).into_dyn())));
         methods.add_method("resize", |_, this, (height, width)| Ok(Image(resize_image(this.into_inner(), height, width))));
     }
 }
@@ -76,7 +78,7 @@ fn test_image_to_array() {
     let img_val = Image(img);
     lua.globals().set("img", img_val).unwrap();
     let array: Tensor = lua
-        .load("return img:to_array(224, 224, 3)")
+        .load("return img:resize(224,224):to_array(3)")
         .eval()
         .unwrap();
     assert_eq!(array.into_inner().shape(), &[3, 224, 224]);
