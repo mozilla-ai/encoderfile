@@ -24,11 +24,11 @@ pub fn image_classification<'a>(
     let raw_outputs = crate::run_cv_model!(session, grouped_images)?;
     let mut outputs = raw_outputs
         .get("logits")
-        .expect("Model does not return logits")
+        .ok_or(ApiError::InternalError("Model does not return logits"))?
         .try_extract_array::<f32>()
-        .expect("Model does not return tensor extractable to f32")
+        .map_err(|_| ApiError::InternalError("Model does not return tensor extractable to f32"))?
         .into_dimensionality::<Ix2>()
-        .expect("Model does not return tensor of shape [n_batch, n_classes]")
+        .map_err(|_| ApiError::InternalError("Model does not return tensor of shape [n_batch, n_classes]"))?
         .into_owned();
     // outputs.mapv_inplace(logit_to_prob);
 
