@@ -9,19 +9,9 @@ mod tokenizer;
 pub use loader::{EncoderfileLoader, load_assets};
 pub use session::{ORTExecutionProvider, ORTSessionBuilder};
 pub use state::{
-    AppState,
-    EncoderfileState,
-    Input,
-    Task,
-    InputType,
-    TaskType,
-    ClassifierState,
-    FeatureExtractorState,
-    ImageInputState,
+    AppState, ClassifierState, EncoderfileState, FeatureExtractorState, ImageConfig,
+    ImageInputState, ImagePreprocessing, ImageSize, Input, InputType, Task, TaskType,
     TextInputState,
-    ImageConfig,
-    ImageSize,
-    ImagePreprocessing
 };
 pub use tokenizer::TokenizerService;
 

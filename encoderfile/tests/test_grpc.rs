@@ -8,6 +8,11 @@ use encoderfile::{
         embedding::{
             EmbeddingRequest, EmbeddingResponse, embedding_inference_server::EmbeddingInference,
         },
+        image_classification::{
+            ImageClassificationRequest, ImageClassificationResponse,
+            image_classification_inference_server::ImageClassificationInference,
+        },
+        image_types::ImageInput,
         metadata::{GetModelMetadataRequest, GetModelMetadataResponse},
         sentence_embedding::{
             SentenceEmbeddingRequest, SentenceEmbeddingResponse,
@@ -21,11 +26,6 @@ use encoderfile::{
             TokenClassificationRequest, TokenClassificationResponse,
             token_classification_inference_server::TokenClassificationInference,
         },
-        image_classification::{
-            ImageClassificationRequest, ImageClassificationResponse,
-            image_classification_inference_server::ImageClassificationInference,
-        },
-        image_types::{ImageInput}
     },
     transport::grpc::GrpcService,
 };
@@ -146,12 +146,13 @@ test_grpc_service!(
     SentenceEmbeddingResponse
 );
 
-const TEST_IMAGE_PATH: &str = "../test-pictures/w3c_home.jpg";
+const TEST_IMAGE_PATH: &str = "../test-pictures/yoga01.jpg";
 
 fn get_file_bytes(filename: &str) -> Vec<u8> {
     let mut file = File::open(filename).expect("Failed to open test image");
     let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).expect("Failed to read test image");
+    file.read_to_end(&mut buffer)
+        .expect("Failed to read test image");
     buffer
 }
 
@@ -160,7 +161,12 @@ test_grpc_service!(
     { GrpcService::new(image_classification_state()) },
     true,
     ImageClassificationRequest {
-        inputs: [TEST_IMAGE_PATH, TEST_IMAGE_PATH].iter().map(|s| ImageInput { image: get_file_bytes(s) }).collect(),
+        inputs: [TEST_IMAGE_PATH, TEST_IMAGE_PATH]
+            .iter()
+            .map(|s| ImageInput {
+                image: get_file_bytes(s)
+            })
+            .collect(),
         metadata: HashMap::new(),
     },
     ImageClassificationResponse

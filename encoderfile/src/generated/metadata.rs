@@ -28,7 +28,9 @@ impl From<ModelType> for common::model_type::ModelType {
     fn from(val: ModelType) -> Self {
         match val {
             ModelType::Embedding => common::model_type::ModelType::Embedding,
-            ModelType::SequenceClassification => common::model_type::ModelType::SequenceClassification,
+            ModelType::SequenceClassification => {
+                common::model_type::ModelType::SequenceClassification
+            }
             ModelType::TokenClassification => common::model_type::ModelType::TokenClassification,
             ModelType::SentenceEmbedding => common::model_type::ModelType::SentenceEmbedding,
             ModelType::ImageClassification => common::model_type::ModelType::ImageClassification,

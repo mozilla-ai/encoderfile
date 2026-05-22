@@ -194,4 +194,3 @@ fn test_image_classification_model() {
     assert!(results.len() == encodings.len());
     */
 }
-

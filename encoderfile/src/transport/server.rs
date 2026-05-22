@@ -100,7 +100,12 @@ async fn serve_with_optional_tls<S: Inference>(
     maybe_key_file: Option<String>,
     server_type_str: &str,
     state: S,
-    into_service_fn: impl Fn(&S) -> Result<IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>, crate::error::ApiError>,
+    into_service_fn: impl Fn(
+        &S,
+    ) -> Result<
+        IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
+        crate::error::ApiError,
+    >,
 ) -> Result<()> {
     let addr = format!("{}:{}", &hostname, &port);
 

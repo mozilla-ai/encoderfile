@@ -1,3 +1,6 @@
+use crate::common::model_type::ImageClassification;
+use crate::common::{ImageClassificationRequest, ImageInfo};
+use crate::runtime::AppState;
 use axum::{
     Json,
     extract::{Multipart, State},
@@ -5,11 +8,8 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
-use utoipa::OpenApi;
-use crate::common::model_type::ImageClassification;
-use crate::common::{ImageClassificationRequest, ImageInfo};
 use std::collections::HashMap;
-use crate::runtime::AppState;
+use utoipa::OpenApi;
 
 pub const MULTIPART_PREDICT_ENDPOINT: &str = "/predict/multipart";
 pub const MULTIPART_OPENAPI_ENDPOINT: &str = "/predict/multipart/openapi.json";
@@ -79,10 +79,12 @@ impl FromMultipart for ImageClassificationRequest {
         let images = attachments
             .into_iter()
             .map(|(_file_name, _content_type, image_bytes)| {
-                let format = image::guess_format(&image_bytes)
-                    .map_err(|e| MultipartApiError::RequestConstruction(
-                        format!("Failed to detect image format: {}", e)
-                    ))?;
+                let format = image::guess_format(&image_bytes).map_err(|e| {
+                    MultipartApiError::RequestConstruction(format!(
+                        "Failed to detect image format: {}",
+                        e
+                    ))
+                })?;
                 Ok(ImageInfo {
                     image_bytes,
                     image_format: format,
@@ -102,9 +104,11 @@ impl FromMultipart for ImageClassificationRequest {
     }
 }
 
-
 #[derive(Debug, utoipa::OpenApi)]
-#[openapi(paths(post_multipart), components(schemas(MultipartPredictBody, MultipartPredictResponse, ParsedAttachment)))]
+#[openapi(
+    paths(post_multipart),
+    components(schemas(MultipartPredictBody, MultipartPredictResponse, ParsedAttachment))
+)]
 pub struct MultipartApiDoc;
 
 #[utoipa::path(
@@ -162,7 +166,8 @@ pub async fn parse_multipart(
         match name.as_deref() {
             Some("payload") => {
                 payload = Some(
-                    serde_json::from_slice(&bytes).map_err(|_| MultipartApiError::InvalidPayload)?,
+                    serde_json::from_slice(&bytes)
+                        .map_err(|_| MultipartApiError::InvalidPayload)?,
                 );
             }
             Some("files") => {
@@ -210,7 +215,8 @@ pub async fn post_multipart_typed<R: FromMultipart>(
         match name.as_deref() {
             Some("payload") => {
                 payload = Some(
-                    serde_json::from_slice(&bytes).map_err(|_| MultipartApiError::InvalidPayload)?,
+                    serde_json::from_slice(&bytes)
+                        .map_err(|_| MultipartApiError::InvalidPayload)?,
                 );
             }
             Some("files") => {
@@ -239,7 +245,10 @@ pub async fn post_multipart_typed<R: FromMultipart>(
 
 pub fn router() -> axum::Router {
     axum::Router::new()
-        .route(MULTIPART_PREDICT_ENDPOINT, axum::routing::post(post_multipart))
+        .route(
+            MULTIPART_PREDICT_ENDPOINT,
+            axum::routing::post(post_multipart),
+        )
         .route(MULTIPART_OPENAPI_ENDPOINT, axum::routing::get(openapi))
 }
 
@@ -274,9 +283,7 @@ async fn post_multipart_image_classification(
 /// Standard predict endpoint for ImageClassification.
 async fn predict_handler(
     State(state): State<AppState<ImageClassification>>,
-    Json(req): Json<
-        <AppState<ImageClassification> as crate::services::Inference>::Input,
-    >,
+    Json(req): Json<<AppState<ImageClassification> as crate::services::Inference>::Input>,
 ) -> impl IntoResponse {
     super::base::predict(State(state), Json(req)).await
 }

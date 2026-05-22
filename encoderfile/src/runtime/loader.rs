@@ -8,7 +8,7 @@ use crate::{
     common::{Config, LuaLibs, ModelConfig, model_type::ModelType},
     format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
     generated::manifest::{self, TransformType},
-    runtime::{ORTExecutionProvider, ORTSessionBuilder, TokenizerService, ImagePreprocessing},
+    runtime::{ImagePreprocessing, ORTExecutionProvider, ORTSessionBuilder, TokenizerService},
 };
 
 pub struct EncoderfileLoader<'a, R: Read + Seek> {

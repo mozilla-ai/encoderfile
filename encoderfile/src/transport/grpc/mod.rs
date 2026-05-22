@@ -1,6 +1,9 @@
 use crate::{
     common::model_type,
-    generated::{embedding, sentence_embedding, sequence_classification, token_classification, image_classification},
+    generated::{
+        embedding, image_classification, sentence_embedding, sequence_classification,
+        token_classification,
+    },
     runtime::AppState,
     services::{Inference, Metadata},
 };

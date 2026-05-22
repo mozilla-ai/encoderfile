@@ -27,10 +27,9 @@ pub struct EncoderfileBuilder {
     pub config: BuildConfig,
 }
 
-pub fn validate(_input: &Input) -> Result<()> { 
+pub fn validate(_input: &Input) -> Result<()> {
     Ok(())
 }
-
 
 impl EncoderfileBuilder {
     pub fn new(config: BuildConfig) -> EncoderfileBuilder {
@@ -104,7 +103,9 @@ impl EncoderfileBuilder {
             }
             Input::Image => {
                 let image_preprocessor_asset =
-                    crate::builder::image_preprocessor::validate_image_preprocessor(&self.config.encoderfile)?;
+                    crate::builder::image_preprocessor::validate_image_preprocessor(
+                        &self.config.encoderfile,
+                    )?;
                 planned_assets.push(image_preprocessor_asset);
                 terminal::success("Image preprocessor validated");
             }

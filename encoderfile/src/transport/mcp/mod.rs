@@ -59,7 +59,9 @@ impl McpRouter for AppState<model_type::ImageClassification> {
     type Tool = DummyTool;
     const NEW_TOOL: fn(Self) -> Self::Tool = |_state| Self::Tool {};
     fn mcp_router(self) -> Result<axum::Router, crate::error::ApiError> {
-        Err(crate::error::ApiError::InternalError("MCP not implemented for ImageClassification model type"))
+        Err(crate::error::ApiError::InternalError(
+            "MCP not implemented for ImageClassification model type",
+        ))
     }
 }
 

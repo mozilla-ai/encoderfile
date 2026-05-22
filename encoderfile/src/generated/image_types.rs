@@ -18,7 +18,7 @@ impl From<common::ImageLabelScore> for ImageLabelScore {
         }
     }
 }
-    
+
 impl From<common::ImageLabels> for ImageLabels {
     fn from(val: common::ImageLabels) -> Self {
         ImageLabels {

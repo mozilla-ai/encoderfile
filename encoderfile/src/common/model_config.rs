@@ -31,7 +31,7 @@ impl ModelConfig {
 
         if let Some(id2label) = &self.id2label {
             return Some(id2label.len());
-            }
+        }
 
         if let Some(label2id) = &self.label2id {
             return Some(label2id.len());

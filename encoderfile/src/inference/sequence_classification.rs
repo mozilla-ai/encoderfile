@@ -1,5 +1,8 @@
 use crate::{
-    common::{SequenceClassificationResult}, error::ApiError, runtime::ClassifierState, transforms::{Postprocessor, SequenceClassificationTransform}
+    common::SequenceClassificationResult,
+    error::ApiError,
+    runtime::ClassifierState,
+    transforms::{Postprocessor, SequenceClassificationTransform},
 };
 use ndarray::{Array2, Axis, Ix2};
 use ndarray_stats::QuantileExt;

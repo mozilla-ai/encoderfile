@@ -5,10 +5,10 @@ pub mod builder;
 pub mod cache;
 pub mod cli;
 pub mod config;
+pub mod image_preprocessor;
 pub mod model;
 pub mod templates;
 /// Terminal logging utilities.
 pub mod terminal;
 pub mod tokenizer;
 pub mod transforms;
-pub mod image_preprocessor;

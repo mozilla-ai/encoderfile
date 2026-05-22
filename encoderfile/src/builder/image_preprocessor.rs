@@ -6,19 +6,15 @@
 // require users to provide the config for the model they are using, and we will deal with new
 // models on a case-by-case basis as they come in.
 
-use crate::{
-    format::assets::{AssetKind, AssetSource, PlannedAsset},
-};
+use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
 use anyhow::Result;
 
-use super::config::{
-    EncoderfileConfig
-};
-use crate::runtime::{
-    ImagePreprocessing
-};
+use super::config::EncoderfileConfig;
+use crate::runtime::ImagePreprocessing;
 
-pub fn validate_image_preprocessor<'a>(efconfig: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
+pub fn validate_image_preprocessor<'a>(
+    efconfig: &'a EncoderfileConfig,
+) -> Result<PlannedAsset<'a>> {
     let config = match efconfig.path.preprocessor_config_path()? {
         // if preprocessor_config.json is provided, use that
         Some(preprocessor_config_path) => {
@@ -38,14 +34,16 @@ pub fn validate_image_preprocessor<'a>(efconfig: &'a EncoderfileConfig) -> Resul
 
     // num_channels must be same as len for mean and std
     if let Some(num_channels) = model_config.num_channels {
-        if let Some(image_mean) = config.image_mean.as_ref() &&
-            image_mean.len() != num_channels as usize {
-                anyhow::bail!("num_channels must match length of image_mean");
-            }
-        if let Some(image_std) = config.image_std.as_ref() &&
-            image_std.len() != num_channels as usize {
-                anyhow::bail!("num_channels must match length of image_std");
-            }
+        if let Some(image_mean) = config.image_mean.as_ref()
+            && image_mean.len() != num_channels as usize
+        {
+            anyhow::bail!("num_channels must match length of image_mean");
+        }
+        if let Some(image_std) = config.image_std.as_ref()
+            && image_std.len() != num_channels as usize
+        {
+            anyhow::bail!("num_channels must match length of image_std");
+        }
     }
 
     PlannedAsset::from_asset_source(
@@ -53,8 +51,6 @@ pub fn validate_image_preprocessor<'a>(efconfig: &'a EncoderfileConfig) -> Resul
         AssetKind::ImagePreprocessor,
     )
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -83,8 +79,9 @@ mod tests {
         let preprocessor_config = validate_image_preprocessor(&config)
             .expect("Failed to validate image preprocessor config");
 
-        println!("Validated image preprocessor config: {:?}", preprocessor_config);
+        println!(
+            "Validated image preprocessor config: {:?}",
+            preprocessor_config
+        );
     }
-
-    
 }

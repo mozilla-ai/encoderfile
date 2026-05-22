@@ -1,7 +1,7 @@
-use ndarray::Array3;
+use super::Tensor;
 use image::{DynamicImage, GenericImageView};
 use mlua::prelude::*;
-use super::Tensor;
+use ndarray::Array3;
 
 const DEFAULT_FILTER_TYPE: image::imageops::FilterType = image::imageops::FilterType::Triangle;
 
@@ -46,8 +46,14 @@ fn resize_image(image: &DynamicImage, height: u32, width: u32) -> DynamicImage {
 impl LuaUserData for Image {
     fn add_methods<M: LuaUserDataMethods<Self>>(methods: &mut M) {
         // tensor ops
-        methods.add_method("to_array", |_, this, num_channels| Ok(Tensor(dyn_image_to_array3(this.into_inner(), num_channels).into_dyn())));
-        methods.add_method("resize", |_, this, (height, width)| Ok(Image(resize_image(this.into_inner(), height, width))));
+        methods.add_method("to_array", |_, this, num_channels| {
+            Ok(Tensor(
+                dyn_image_to_array3(this.into_inner(), num_channels).into_dyn(),
+            ))
+        });
+        methods.add_method("resize", |_, this, (height, width)| {
+            Ok(Image(resize_image(this.into_inner(), height, width)))
+        });
     }
 }
 
@@ -64,10 +70,7 @@ fn test_resize_image() {
     let lua = load_env();
     let img_val = Image(img);
     lua.globals().set("img", img_val).unwrap();
-    let resized: Image = lua
-        .load("return img:resize(224, 224)")
-        .eval()
-        .unwrap();
+    let resized: Image = lua.load("return img:resize(224, 224)").eval().unwrap();
     assert_eq!(resized.into_inner().dimensions(), (224, 224));
 }
 
@@ -83,4 +86,3 @@ fn test_image_to_array() {
         .unwrap();
     assert_eq!(array.into_inner().shape(), &[3, 224, 224]);
 }
-

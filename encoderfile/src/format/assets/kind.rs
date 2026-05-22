@@ -1,4 +1,7 @@
-use crate::{common::model_type::ModelTypeSpec, runtime::{Input, InputType, Task, TaskType}};
+use crate::{
+    common::model_type::ModelTypeSpec,
+    runtime::{Input, InputType, Task, TaskType},
+};
 
 /// Identifies the semantic role of an embedded artifact.
 ///

@@ -1,6 +1,6 @@
 use crate::{common::model_type, error::ApiError, runtime::ImageInputState};
 
-use super::{super::tensor::Tensor, super::image::Image, Postprocessor, Preprocessor, Transform};
+use super::{super::image::Image, super::tensor::Tensor, Postprocessor, Preprocessor, Transform};
 use ndarray::{Array2, Ix2};
 
 impl Postprocessor for Transform<model_type::ImageClassification> {
@@ -51,10 +51,15 @@ impl Preprocessor for Transform<model_type::ImageClassification> {
     fn preprocess(&self, (image, config): Self::Input) -> Result<Self::Output, ApiError> {
         let func = match self.preprocessor() {
             Some(p) => p,
-            None => return Err(ApiError::InternalError("No preprocessor defined for this model")),
+            None => {
+                return Err(ApiError::InternalError(
+                    "No preprocessor defined for this model",
+                ));
+            }
         };
 
-        self.lua.globals()
+        self.lua
+            .globals()
             .set("input_config", config)
             .map_err(|e| ApiError::LuaError(e.to_string()))?;
 
@@ -157,7 +162,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn test_image_preprocess() {
         let engine = Transform::<model_type::ImageClassification>::new(
@@ -176,17 +180,27 @@ mod tests {
         let img = image::open("../test-pictures/yoga02.jpg").expect("Failed to open test image");
 
         let config = ImageInputState {
-            config: crate::runtime::ImageConfig { num_channels: 3, image_size: Some(224) },
+            config: crate::runtime::ImageConfig {
+                num_channels: 3,
+                image_size: Some(224),
+            },
             preprocessing: crate::runtime::ImagePreprocessing {
-                rescale_factor: None, image_mean: None, image_std: None,
-                do_normalize: None, do_rescale: None, do_resize: None,
+                rescale_factor: None,
+                image_mean: None,
+                image_std: None,
+                do_normalize: None,
+                do_rescale: None,
+                do_resize: None,
                 image_processor_type: None,
-                size: Some(crate::runtime::ImageSize { height: Some(224), width: Some(224), shortest_edge: None }),
+                size: Some(crate::runtime::ImageSize {
+                    height: Some(224),
+                    width: Some(224),
+                    shortest_edge: None,
+                }),
             },
         };
         let result = engine.preprocess((Image(img), config)).expect("Failed");
 
-        assert!(result.into_inner().shape() == &[3, 224, 224]);
+        assert!(result.into_inner().shape() == [3, 224, 224]);
     }
-
 }

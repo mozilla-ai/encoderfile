@@ -1,11 +1,11 @@
 use anyhow::Result;
 use encoderfile::AppState;
 use encoderfile::common::model_type::ModelTypeSpec;
+use encoderfile::runtime::{InputType, TaskType};
 use encoderfile::transport::mcp::McpRouter;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 use tower_http::trace::DefaultOnResponse;
-use encoderfile::runtime::{InputType, TaskType};
 
 async fn run_mcp<T: ModelTypeSpec + InputType + TaskType>(
     addr: String,

@@ -3,11 +3,9 @@ use std::collections::HashMap;
 use crate::{
     common::{
         GetModelMetadataResponse,
-        model_type::{ModelType, ModelTypeSpec}
+        model_type::{ModelType, ModelTypeSpec},
     },
-    runtime::{
-        AppState, ClassifierState, FeatureExtractorState, InputType, TaskType
-    },
+    runtime::{AppState, ClassifierState, FeatureExtractorState, InputType, TaskType},
 };
 
 pub trait Metadata {
@@ -45,7 +43,7 @@ impl TaskStateMetadata for FeatureExtractorState {
 
 impl<T: ModelTypeSpec + InputType + TaskType> Metadata for AppState<T>
 where
-    <T as TaskType>::State: TaskStateMetadata
+    <T as TaskType>::State: TaskStateMetadata,
 {
     fn model_id(&self) -> String {
         self.config.name.clone()

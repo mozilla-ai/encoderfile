@@ -57,4 +57,3 @@ pub fn test_image_classification() {
             .is_err()
     );
 }
-

@@ -1,5 +1,8 @@
 use crate::{
-    common::{TokenClassification, TokenClassificationResult, TokenInfo}, error::ApiError, runtime::ClassifierState, transforms::{Postprocessor, TokenClassificationTransform}
+    common::{TokenClassification, TokenClassificationResult, TokenInfo},
+    error::ApiError,
+    runtime::ClassifierState,
+    transforms::{Postprocessor, TokenClassificationTransform},
 };
 use ndarray::{Array3, Axis, Ix3};
 use ndarray_stats::QuantileExt;

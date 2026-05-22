@@ -8,8 +8,7 @@ use crate::{
 
 use super::inference::Inference;
 
-impl Inference for AppState<model_type::TokenClassification>
-{
+impl Inference for AppState<model_type::TokenClassification> {
     type Input = TokenClassificationRequest;
     type Output = TokenClassificationResponse;
 
@@ -18,7 +17,10 @@ impl Inference for AppState<model_type::TokenClassification>
 
         let session = self.session.lock();
 
-        let encodings = self.model_input_state.tokenizer.encode_text(request.inputs)?;
+        let encodings = self
+            .model_input_state
+            .tokenizer
+            .encode_text(request.inputs)?;
 
         let transform =
             TokenClassificationTransform::new(self.lua_libs.clone(), self.transform_str())?;

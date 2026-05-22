@@ -10,10 +10,10 @@ use crate::builder::config::EncoderfileConfig;
 use prost::Message;
 
 mod embedding;
+mod image_classification;
 mod sentence_embedding;
 mod sequence_classification;
 mod token_classification;
-mod image_classification;
 mod utils;
 
 pub trait TransformValidatorExt: TransformSpec {

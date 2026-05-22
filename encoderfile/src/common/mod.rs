@@ -22,10 +22,10 @@ pub use token::*;
 pub use token_classification::*;
 
 // CV
+use anyhow::Result;
 pub use image_classification::*;
 pub use image_types::*;
 use std::io::Read;
-use anyhow::Result;
 
 pub trait FromCliInput {
     fn from_cli_input(inputs: Vec<String>) -> Self;
@@ -33,5 +33,6 @@ pub trait FromCliInput {
 
 pub trait FromReadInput {
     fn from_read_input(input: Vec<&mut impl Read>) -> Result<Self>
-    where Self: Sized;
+    where
+        Self: Sized;
 }

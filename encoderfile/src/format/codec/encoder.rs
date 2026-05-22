@@ -3,7 +3,8 @@ use anyhow::{Result, bail};
 
 use crate::{
     common::model_type::{
-        Embedding, ImageClassification, ModelType, SentenceEmbedding, SequenceClassification, TokenClassification,
+        Embedding, ImageClassification, ModelType, SentenceEmbedding, SequenceClassification,
+        TokenClassification,
     },
     format::{
         assets::{AssetPlan, AssetPolicySpec},

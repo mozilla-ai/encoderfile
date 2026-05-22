@@ -3,7 +3,7 @@ use crate::{
         FromCliInput,
         model_type::{self, ModelType, ModelTypeSpec},
     },
-    runtime::{EncoderfileLoader, EncoderfileState, ORTExecutionProvider, InputType, TaskType},
+    runtime::{EncoderfileLoader, EncoderfileState, InputType, ORTExecutionProvider, TaskType},
     services::{Inference, Metadata},
     transport::{
         grpc::GrpcRouter,
@@ -18,7 +18,7 @@ use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{
-    fmt::{Display, Debug},
+    fmt::{Debug, Display},
     io::{Read, Seek, Write},
     sync::Arc,
 };
@@ -137,7 +137,11 @@ impl Commands {
             }
         }
     }
-    pub async fn execute_from_loader<'loader, R: Read + Seek, T: ModelTypeSpec + InputType + TaskType>(
+    pub async fn execute_from_loader<
+        'loader,
+        R: Read + Seek,
+        T: ModelTypeSpec + InputType + TaskType,
+    >(
         self,
         loader: &mut EncoderfileLoader<'loader, R>,
     ) -> Result<()>
@@ -145,8 +149,10 @@ impl Commands {
         Arc<EncoderfileState<T>>: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
         <T as InputType>::State: Debug,
         <T as TaskType>::State: Debug,
-        for<'b> <T as InputType>::State: TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
-        for<'b> <T as TaskType>::State: TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
+        for<'b> <T as InputType>::State:
+            TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
+        for<'b> <T as TaskType>::State:
+            TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
     {
         match self {
             Commands::Serve {
@@ -174,8 +180,10 @@ impl Commands {
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
-                    <T as TaskType>::State::try_from(loader).expect("could not load model task state from file")
+                    <T as InputType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader)
+                        .expect("could not load model task state from file"),
                 ));
 
                 let banner = crate::get_banner(state.model_id().as_str());
@@ -236,8 +244,10 @@ impl Commands {
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
-                    <T as TaskType>::State::try_from(loader).expect("could not load model task state from file"),
+                    <T as InputType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader)
+                        .expect("could not load model task state from file"),
                 ));
 
                 setup_tracing(None)?;
@@ -264,8 +274,10 @@ impl Commands {
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    <T as InputType>::State::try_from(loader).expect("could not load model input state from file"),
-                    <T as TaskType>::State::try_from(loader).expect("could not load model input state from file"),
+                    <T as InputType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
                 ));
 
                 let banner = crate::get_banner(state.model_id().as_str());
@@ -277,7 +289,6 @@ impl Commands {
         Ok(())
     }
 }
-
 
 #[derive(Clone, Args)]
 pub struct ONNXArgs {

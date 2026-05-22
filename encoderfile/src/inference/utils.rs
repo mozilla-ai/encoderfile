@@ -79,8 +79,7 @@ macro_rules! run_model {
 #[macro_export]
 macro_rules! run_cv_model {
     ($session:expr, $image_bytes:expr) => {{
-        $session.run(ort::inputs!($image_bytes))
-        .map_err(|e| {
+        $session.run(ort::inputs!($image_bytes)).map_err(|e| {
             tracing::error!("Error running model: {:?}", e);
             $crate::error::ApiError::InternalError("Error running model")
         })

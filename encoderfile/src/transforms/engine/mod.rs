@@ -13,10 +13,10 @@ use super::tensor::Tensor;
 use mlua::prelude::*;
 
 mod embedding;
+mod image_classification;
 mod sentence_embedding;
 mod sequence_classification;
 mod token_classification;
-mod image_classification;
 
 impl From<&LuaLibs> for Vec<mlua::StdLib> {
     fn from(value: &LuaLibs) -> Self {

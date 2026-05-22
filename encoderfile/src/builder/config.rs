@@ -272,8 +272,6 @@ pub enum ModelPath {
     },
 }
 
-
-
 impl ModelPath {
     fn resolve(
         &self,

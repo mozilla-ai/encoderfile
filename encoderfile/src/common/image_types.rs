@@ -1,7 +1,7 @@
+use bytes::Bytes;
+use image::ImageFormat;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use image::ImageFormat;
-use bytes::Bytes;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageInfo {
@@ -15,10 +15,7 @@ pub struct ImageLabelScore {
     pub score: Option<f32>,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct ImageLabels {
     pub labels: Vec<ImageLabelScore>,
 }
-
-

@@ -1,18 +1,23 @@
+use mlua::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::{
+    fmt::Debug,
+    io::{Read, Seek},
     marker::PhantomData,
     sync::Arc,
-    io::{Read, Seek},
-    fmt::Debug,
 };
-use serde::{Deserialize, Serialize};
-use mlua::prelude::*;
 
 use ort::session::Session;
 use parking_lot::Mutex;
 
 use crate::{
-    common::{Config, ModelConfig, model_type::{ModelType, ModelTypeSpec, self}}, runtime::TokenizerService, transforms::DEFAULT_LIBS,
+    common::{
+        Config, ModelConfig,
+        model_type::{self, ModelType, ModelTypeSpec},
+    },
+    runtime::TokenizerService,
     runtime::loader::EncoderfileLoader,
+    transforms::DEFAULT_LIBS,
 };
 
 pub type AppState<T> = Arc<EncoderfileState<T>>;
@@ -79,7 +84,7 @@ pub struct ImagePreprocessing {
     pub do_rescale: Option<bool>,
     pub do_resize: Option<bool>,
     pub image_processor_type: Option<String>,
-    pub size: Option<ImageSize>
+    pub size: Option<ImageSize>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -93,21 +98,41 @@ impl LuaUserData for ImageInputState {
     fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
         fields.add_field_method_get("num_channels", |_, this| Ok(this.config.num_channels));
         fields.add_field_method_get("image_size", |_, this| Ok(this.config.image_size));
-        fields.add_field_method_get("rescale_factor", |_, this| Ok(this.preprocessing.rescale_factor));
-        fields.add_field_method_get("image_mean", |_, this| Ok(this.preprocessing.image_mean.clone()));
-        fields.add_field_method_get("image_std", |_, this| Ok(this.preprocessing.image_std.clone()));
-        fields.add_field_method_get("do_normalize", |_, this| Ok(this.preprocessing.do_normalize));
+        fields.add_field_method_get("rescale_factor", |_, this| {
+            Ok(this.preprocessing.rescale_factor)
+        });
+        fields.add_field_method_get("image_mean", |_, this| {
+            Ok(this.preprocessing.image_mean.clone())
+        });
+        fields.add_field_method_get("image_std", |_, this| {
+            Ok(this.preprocessing.image_std.clone())
+        });
+        fields.add_field_method_get("do_normalize", |_, this| {
+            Ok(this.preprocessing.do_normalize)
+        });
         fields.add_field_method_get("do_rescale", |_, this| Ok(this.preprocessing.do_rescale));
         fields.add_field_method_get("do_resize", |_, this| Ok(this.preprocessing.do_resize));
-        fields.add_field_method_get("size_height", |_, this| Ok(this.preprocessing.size.as_ref().and_then(|s| s.height)));
-        fields.add_field_method_get("size_width", |_, this| Ok(this.preprocessing.size.as_ref().and_then(|s| s.width)));
-        fields.add_field_method_get("size_shortest_edge", |_, this| Ok(this.preprocessing.size.as_ref().and_then(|s| s.shortest_edge)));
+        fields.add_field_method_get("size_height", |_, this| {
+            Ok(this.preprocessing.size.as_ref().and_then(|s| s.height))
+        });
+        fields.add_field_method_get("size_width", |_, this| {
+            Ok(this.preprocessing.size.as_ref().and_then(|s| s.width))
+        });
+        fields.add_field_method_get("size_shortest_edge", |_, this| {
+            Ok(this
+                .preprocessing
+                .size
+                .as_ref()
+                .and_then(|s| s.shortest_edge))
+        });
     }
 }
 
 impl LuaUserData for TextInputState {
     fn add_fields<F: LuaUserDataFields<Self>>(fields: &mut F) {
-        fields.add_field_method_get("model_type", |_, this| Ok(this.model_config.model_type.clone()));
+        fields.add_field_method_get("model_type", |_, this| {
+            Ok(this.model_config.model_type.clone())
+        });
         fields.add_field_method_get("num_labels", |_, this| Ok(this.model_config.num_labels()));
         fields.add_field_method_get("id2label", |_, this| Ok(this.model_config.id2label.clone()));
         fields.add_field_method_get("label2id", |_, this| Ok(this.model_config.label2id.clone()));
@@ -157,7 +182,9 @@ impl ClassifierState {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureExtractorState {}
 
-fn text_input_state_try_from_loader<'a, R>(loader: &mut EncoderfileLoader<'a, R>) -> Result<TextInputState, anyhow::Error>
+fn text_input_state_try_from_loader<'a, R>(
+    loader: &mut EncoderfileLoader<'a, R>,
+) -> Result<TextInputState, anyhow::Error>
 where
     R: Read + Seek,
 {
@@ -169,7 +196,9 @@ where
     })
 }
 
-fn image_input_state_try_from_loader<'a, R>(loader: &mut EncoderfileLoader<'a, R>) -> Result<ImageInputState, anyhow::Error>
+fn image_input_state_try_from_loader<'a, R>(
+    loader: &mut EncoderfileLoader<'a, R>,
+) -> Result<ImageInputState, anyhow::Error>
 where
     R: Read + Seek,
 {
@@ -177,7 +206,9 @@ where
     let preprocessor_config = loader.image_preprocessor_config()?;
     Ok(ImageInputState {
         config: ImageConfig {
-            num_channels: model_config.num_channels.ok_or_else(|| anyhow::anyhow!("num_channels is required for image models"))?,
+            num_channels: model_config
+                .num_channels
+                .ok_or_else(|| anyhow::anyhow!("num_channels is required for image models"))?,
             image_size: model_config.image_size,
         },
         preprocessing: ImagePreprocessing {
@@ -193,7 +224,9 @@ where
     })
 }
 
-fn classifier_state_try_from_loader<'a, R>(loader: &mut EncoderfileLoader<'a, R>) -> Result<ClassifierState, anyhow::Error>
+fn classifier_state_try_from_loader<'a, R>(
+    loader: &mut EncoderfileLoader<'a, R>,
+) -> Result<ClassifierState, anyhow::Error>
 where
     R: Read + Seek,
 {
@@ -205,7 +238,9 @@ where
     })
 }
 
-fn feature_extractor_state_try_from_loader<'a, R>(_loader: &mut EncoderfileLoader<'a, R>) -> Result<FeatureExtractorState, anyhow::Error>
+fn feature_extractor_state_try_from_loader<'a, R>(
+    _loader: &mut EncoderfileLoader<'a, R>,
+) -> Result<FeatureExtractorState, anyhow::Error>
 where
     R: Read + Seek,
 {
@@ -215,11 +250,14 @@ where
 macro_rules! state_from_source_impl {
     ($base_type:tt, $state_type:ty, $state_fun:ident) => {
         impl<'a, 'borrow, R> TryFrom<&'borrow mut EncoderfileLoader<'a, R>> for $state_type
-        where R: Read + Seek,
+        where
+            R: Read + Seek,
         {
             type Error = anyhow::Error;
 
-            fn try_from(loader: &'borrow mut EncoderfileLoader<'a, R>) -> Result<Self, Self::Error> {
+            fn try_from(
+                loader: &'borrow mut EncoderfileLoader<'a, R>,
+            ) -> Result<Self, Self::Error> {
                 $state_fun::<R>(loader)
             }
         }
@@ -227,10 +265,17 @@ macro_rules! state_from_source_impl {
 }
 
 state_from_source_impl!(InputType, TextInputState, text_input_state_try_from_loader);
-state_from_source_impl!(InputType, ImageInputState, image_input_state_try_from_loader);
+state_from_source_impl!(
+    InputType,
+    ImageInputState,
+    image_input_state_try_from_loader
+);
 state_from_source_impl!(TaskType, ClassifierState, classifier_state_try_from_loader);
-state_from_source_impl!(TaskType, FeatureExtractorState, feature_extractor_state_try_from_loader);
-
+state_from_source_impl!(
+    TaskType,
+    FeatureExtractorState,
+    feature_extractor_state_try_from_loader
+);
 
 macro_rules! input_state_impl {
     ($model_type:ty, $state_type:ty, $input:expr) => {
@@ -243,9 +288,17 @@ macro_rules! input_state_impl {
 
 input_state_impl!(model_type::Embedding, TextInputState, Input::Text);
 input_state_impl!(model_type::SentenceEmbedding, TextInputState, Input::Text);
-input_state_impl!(model_type::SequenceClassification, TextInputState, Input::Text);
+input_state_impl!(
+    model_type::SequenceClassification,
+    TextInputState,
+    Input::Text
+);
 input_state_impl!(model_type::TokenClassification, TextInputState, Input::Text);
-input_state_impl!(model_type::ImageClassification, ImageInputState, Input::Image);
+input_state_impl!(
+    model_type::ImageClassification,
+    ImageInputState,
+    Input::Image
+);
 
 macro_rules! task_state_impl {
     ($model_type:ty, $state_type:ty, $task:expr) => {
@@ -256,11 +309,31 @@ macro_rules! task_state_impl {
     };
 }
 
-task_state_impl!(model_type::SequenceClassification, ClassifierState, Task::Classification);
-task_state_impl!(model_type::TokenClassification, ClassifierState, Task::Classification);
-task_state_impl!(model_type::ImageClassification, ClassifierState, Task::Classification);
-task_state_impl!(model_type::Embedding, FeatureExtractorState, Task::FeatureExtraction);
-task_state_impl!(model_type::SentenceEmbedding, FeatureExtractorState, Task::FeatureExtraction);
+task_state_impl!(
+    model_type::SequenceClassification,
+    ClassifierState,
+    Task::Classification
+);
+task_state_impl!(
+    model_type::TokenClassification,
+    ClassifierState,
+    Task::Classification
+);
+task_state_impl!(
+    model_type::ImageClassification,
+    ClassifierState,
+    Task::Classification
+);
+task_state_impl!(
+    model_type::Embedding,
+    FeatureExtractorState,
+    Task::FeatureExtraction
+);
+task_state_impl!(
+    model_type::SentenceEmbedding,
+    FeatureExtractorState,
+    Task::FeatureExtraction
+);
 
 macro_rules! input_type_impl {
     [ $( $x:ident ),* $(,)? ] => {
@@ -279,7 +352,7 @@ macro_rules! input_type_impl {
                     )*
                 }
             }
-        }   
+        }
     }
 }
 input_type_impl![
@@ -291,8 +364,7 @@ input_type_impl![
 ];
 
 #[derive(Debug)]
-pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType> 
-{
+pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType> {
     pub config: Config,
     pub session: Mutex<Session>,
     pub model_input_state: <T as InputType>::State,
@@ -301,8 +373,7 @@ pub struct EncoderfileState<T: ModelTypeSpec + InputType + TaskType>
     _marker: PhantomData<T>,
 }
 
-impl<T: ModelTypeSpec + InputType + TaskType> EncoderfileState<T>
-{
+impl<T: ModelTypeSpec + InputType + TaskType> EncoderfileState<T> {
     pub fn new(
         config: Config,
         session: Mutex<Session>,
