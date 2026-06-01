@@ -1,3 +1,7 @@
 [env]
 
 RUST_LOG = "info,tower_http=debug,ort=warn,encoderfile=debug"
+
+[patch.crates-io]
+# esaxx-rs = { git = "https://github.com/thewh1teagle/esaxx-rs.git", branch = "feat/dynamic-msvc-link" }
+esaxx-rs = { path = "../esaxx-rs-dyn-msvc" }

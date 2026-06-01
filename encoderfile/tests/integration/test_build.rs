@@ -104,6 +104,11 @@ async fn test_build_encoderfile() -> Result<()> {
         .status()
         .expect("Failed to build encoderfile-runtime");
 
+    #[cfg(target_os = "windows")]
+    let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime.exe")
+        .expect("Failed to canonicalize base binary path");
+
+    #[cfg(not(target_os = "windows"))]
     let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")
         .expect("Failed to canonicalize base binary path");
 
@@ -159,11 +164,14 @@ async fn test_build_encoderfile() -> Result<()> {
         grpc_port,
     )?;
 
+    println!("encoderfile spawned, waiting for it to become ready...");
+
     wait_for_http(
         format!("http://localhost:{http_port}/health").as_str(),
         Duration::from_secs(10),
     )
     .await?;
+    println!("encoderfile is ready, sending inference requests...");
     send_http_inference(&sample_text, http_port.to_string()).await?;
     send_grpc_inference(&sample_text, grpc_port.to_string()).await?;
 
