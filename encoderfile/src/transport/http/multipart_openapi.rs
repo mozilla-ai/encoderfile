@@ -1,6 +1,7 @@
 use crate::common::model_type::ImageClassification;
-use crate::common::{ImageClassificationRequest, ImageInfo};
+use crate::common::{ImageClassificationRequest, ImageClassificationResponse, ImageInfo};
 use crate::runtime::AppState;
+use crate::services::Inference;
 use axum::{
     Json,
     extract::{Multipart, State},
@@ -29,13 +30,6 @@ pub struct ParsedAttachment {
     pub file_name: Option<String>,
     pub content_type: Option<String>,
     pub size_bytes: usize,
-}
-
-#[derive(Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::ToResponse)]
-pub struct MultipartPredictResponse {
-    pub payload: serde_json::Value,
-    pub attachment_count: usize,
-    pub attachments: Vec<ParsedAttachment>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -107,7 +101,7 @@ impl FromMultipart for ImageClassificationRequest {
 #[derive(Debug, utoipa::OpenApi)]
 #[openapi(
     paths(post_multipart),
-    components(schemas(MultipartPredictBody, MultipartPredictResponse, ParsedAttachment))
+    components(schemas(MultipartPredictBody, ImageClassificationResponse, ParsedAttachment))
 )]
 pub struct MultipartApiDoc;
 
@@ -131,21 +125,23 @@ pub async fn openapi() -> impl IntoResponse {
         description = "Multipart payload with a JSON part named 'payload' and 0..N binary parts named 'files'"
     ),
     responses(
-        (status = 200, body = MultipartPredictResponse),
+        (status = 200, body = ImageClassificationResponse),
         (status = 422, description = "Missing or invalid payload JSON"),
         (status = 400, description = "Invalid multipart body")
     )
 )]
 pub async fn post_multipart(
+    state: State<AppState<ImageClassification>>,
     mut multipart: Multipart,
-) -> Result<Json<MultipartPredictResponse>, MultipartApiError> {
-    parse_multipart(&mut multipart).await
+) -> Result<Json<ImageClassificationResponse>, MultipartApiError> {
+    parse_multipart(state, &mut multipart).await
 }
 
 /// Generic multipart parser that extracts payload and attachments.
 pub async fn parse_multipart(
+    State(state): State<AppState<ImageClassification>>,
     multipart: &mut Multipart,
-) -> Result<Json<MultipartPredictResponse>, MultipartApiError> {
+) -> Result<Json<ImageClassificationResponse>, MultipartApiError> {
     let mut payload: Option<serde_json::Value> = None;
     let mut attachments = Vec::new();
     let mut attachment_metadata = Vec::new();
@@ -184,17 +180,20 @@ pub async fn parse_multipart(
 
     let payload = payload.ok_or(MultipartApiError::MissingPayload)?;
 
-    Ok(Json(MultipartPredictResponse {
-        payload,
-        attachment_count: attachment_metadata.len(),
-        attachments: attachment_metadata,
-    }))
+        // Convert to typed request
+    let request = ImageClassificationRequest::from_multipart(payload.clone(), attachments)?;
+    let result = state.inference(request).map(Json).map_err(|e| {
+        MultipartApiError::RequestConstruction(format!("Inference error: {}", e.to_string()))
+    })?;
+
+    Ok(result)
 }
 
 /// Generic handler that converts multipart request into typed request.
 pub async fn post_multipart_typed<R: FromMultipart>(
+    State(state): State<AppState<ImageClassification>>,
     mut multipart: Multipart,
-) -> Result<Json<MultipartPredictResponse>, MultipartApiError> {
+) -> Result<Json<ImageClassificationResponse>, MultipartApiError> {
     let mut payload: Option<serde_json::Value> = None;
     let mut attachments = Vec::new();
     let mut attachment_metadata = Vec::new();
@@ -234,22 +233,12 @@ pub async fn post_multipart_typed<R: FromMultipart>(
     let payload = payload.ok_or(MultipartApiError::MissingPayload)?;
 
     // Convert to typed request
-    let _request: R = R::from_multipart(payload.clone(), attachments)?;
+    let request = ImageClassificationRequest::from_multipart(payload.clone(), attachments)?;
+    let result = state.inference(request).map(Json).map_err(|e| {
+        MultipartApiError::RequestConstruction(format!("Inference error: {}", e.to_string()))
+    })?;
 
-    Ok(Json(MultipartPredictResponse {
-        payload,
-        attachment_count: attachment_metadata.len(),
-        attachments: attachment_metadata,
-    }))
-}
-
-pub fn router() -> axum::Router {
-    axum::Router::new()
-        .route(
-            MULTIPART_PREDICT_ENDPOINT,
-            axum::routing::post(post_multipart),
-        )
-        .route(MULTIPART_OPENAPI_ENDPOINT, axum::routing::get(openapi))
+    Ok(result)
 }
 
 /// HttpRouter implementation for ImageClassification model type.
@@ -275,9 +264,10 @@ impl super::HttpRouter for crate::runtime::AppState<ImageClassification> {
 
 /// Multipart handler specialized for ImageClassificationRequest.
 async fn post_multipart_image_classification(
+    state: State<AppState<ImageClassification>>,
     multipart: Multipart,
-) -> Result<Json<MultipartPredictResponse>, MultipartApiError> {
-    post_multipart_typed::<crate::common::ImageClassificationRequest>(multipart).await
+) -> Result<Json<ImageClassificationResponse>, MultipartApiError> {
+    post_multipart_typed::<crate::common::ImageClassificationRequest>(state, multipart).await
 }
 
 /// Standard predict endpoint for ImageClassification.

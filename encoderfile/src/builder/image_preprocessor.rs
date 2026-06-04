@@ -13,9 +13,9 @@ use super::config::EncoderfileConfig;
 use crate::runtime::ImagePreprocessing;
 
 pub fn validate_image_preprocessor<'a>(
-    efconfig: &'a EncoderfileConfig,
+    encoderfile_config: &'a EncoderfileConfig,
 ) -> Result<PlannedAsset<'a>> {
-    let config = match efconfig.path.preprocessor_config_path()? {
+    let config = match encoderfile_config.path.preprocessor_config_path()? {
         // if preprocessor_config.json is provided, use that
         Some(preprocessor_config_path) => {
             // open preprocessor_config
@@ -26,10 +26,10 @@ pub fn validate_image_preprocessor<'a>(
         // some values may be present in config.json
         None => {
             // from_model_config(&image_preprocessing.config)?;
-            anyhow::bail!("FATAL: No preprocessor config provided");
+            anyhow::bail!("FATAL: No preprocessor_config.json provided");
         }
     };
-    let model_config = efconfig.model_config()?;
+    let model_config = encoderfile_config.model_config()?;
     let serialized = serde_json::to_vec(&config)?;
 
     // num_channels must be same as len for mean and std
