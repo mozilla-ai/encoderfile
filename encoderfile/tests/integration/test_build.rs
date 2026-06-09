@@ -250,7 +250,7 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<
     let src = src.as_ref();
     let dst = dst.as_ref();
 
-    fs::create_dir_all(dst).context(format!("Failed to create directory {:?}", &dst))?;
+    fs::create_dir_all(dst).context(format!("Failed to create directory {:?}", dst))?;
 
     for entry in fs::read_dir(src)? {
         let entry = entry?;
