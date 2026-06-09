@@ -244,7 +244,7 @@ impl Transform {
         match self {
             Self::Path { path } => {
                 if !path.exists() {
-                    bail!("No such file: {:?}", &path);
+                    bail!("No such file: {:?}", path);
                 }
 
                 let mut code = String::new();
