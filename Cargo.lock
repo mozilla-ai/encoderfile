@@ -937,6 +937,7 @@ dependencies = [
 [[package]]
 name = "esaxx-rs"
 version = "0.1.10"
+source = "git+https://github.com/mozilla-ai/esaxx-rs-dyn-msvc.git#2d72deeef87d0f1b3afd38599418cb8acc3aa19f"
 dependencies = [
  "cc",
 ]
