@@ -1,6 +1,9 @@
 encoderfile:
   name: my-model-2
   path: models/token_classification
+  base_binary_path: target/debug/encoderfile-runtime
+  # Base binary for windows
+  # base_binary_path: target/debug/encoderfile-runtime.exe
   model_type: token_classification
   output_path: ./test-model.encoderfile
   transform: |

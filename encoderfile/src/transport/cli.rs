@@ -175,9 +175,9 @@ impl Commands {
                 let banner = crate::get_banner(state.model_id().as_str());
 
                 if disable_grpc && disable_http {
-                    return Err(crate::error::ApiError::ConfigError(
+                    Err(crate::error::ApiError::ConfigError(
                         "Cannot disable both gRPC and HTTP",
-                    ))?;
+                    ))?
                 }
 
                 match enable_otel {

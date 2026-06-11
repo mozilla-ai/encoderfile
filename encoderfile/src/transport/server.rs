@@ -103,7 +103,7 @@ async fn serve_with_optional_tls<S: Inference>(
     state: S,
     into_service_fn: impl Fn(&S) -> IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
 ) -> Result<()> {
-    let addr = format!("{}:{}", &hostname, &port);
+    let addr = format!("{}:{}", hostname, port);
 
     let router = into_service_fn(&state);
 

@@ -1,3 +1,6 @@
 [env]
 
 RUST_LOG = "info,tower_http=debug,ort=warn,encoderfile=debug"
+
+[patch.crates-io]
+esaxx-rs = { git = "https://github.com/mozilla-ai/esaxx-rs-dyn-msvc.git" }

@@ -16,6 +16,10 @@ tonic::include_proto!("encoderfile.metadata");
 
 use encoderfile::generated::token_classification;
 
+#[cfg(target_os = "windows")]
+const BINARY_NAME: &str = "test.encoderfile.exe";
+
+#[cfg(not(target_os = "windows"))]
 const BINARY_NAME: &str = "test.encoderfile";
 
 fn config(model_name: &String, model_path: &Path, output_path: &Path) -> String {
@@ -104,6 +108,11 @@ async fn test_build_encoderfile() -> Result<()> {
         .status()
         .expect("Failed to build encoderfile-runtime");
 
+    #[cfg(target_os = "windows")]
+    let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime.exe")
+        .expect("Failed to canonicalize base binary path");
+
+    #[cfg(not(target_os = "windows"))]
     let base_binary_path = fs::canonicalize("../target/debug/encoderfile-runtime")
         .expect("Failed to canonicalize base binary path");
 
@@ -159,13 +168,18 @@ async fn test_build_encoderfile() -> Result<()> {
         grpc_port,
     )?;
 
+    println!("encoderfile spawned, waiting for it to become ready...");
+
     wait_for_http(
         format!("http://localhost:{http_port}/health").as_str(),
         Duration::from_secs(10),
     )
     .await?;
+    println!("encoderfile is ready, sending inference requests...");
     send_http_inference(&sample_text, http_port.to_string()).await?;
+    println!("http inference request successful");
     send_grpc_inference(&sample_text, grpc_port.to_string()).await?;
+    println!("grpc inference request successful");
 
     child.kill()?;
     child.wait().ok();
@@ -212,7 +226,7 @@ async fn send_http_inference(sample_text: &str, http_port: String) -> Result<()>
 }
 
 async fn send_grpc_inference(sample_text: &str, grpc_port: String) -> Result<()> {
-    let mut client = token_classification::token_classification_inference_client::TokenClassificationInferenceClient::connect(format!("http://[::]:{grpc_port}/predict")).await?;
+    let mut client = token_classification::token_classification_inference_client::TokenClassificationInferenceClient::connect(format!("http://[::1]:{grpc_port}/predict")).await?;
     let req = token_classification::TokenClassificationRequest {
         inputs: vec![sample_text.to_owned()],
         metadata: std::collections::HashMap::new(),
@@ -236,7 +250,7 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> anyhow::Result<
     let src = src.as_ref();
     let dst = dst.as_ref();
 
-    fs::create_dir_all(dst).context(format!("Failed to create directory {:?}", &dst))?;
+    fs::create_dir_all(dst).context(format!("Failed to create directory {:?}", dst))?;
 
     for entry in fs::read_dir(src)? {
         let entry = entry?;

@@ -105,7 +105,6 @@ impl BaseBinaryResolver<'_> {
 
     fn validate_binary(&self, path: &Path) -> Result<()> {
         terminal::info("Validating binary...");
-        use std::os::unix::fs::PermissionsExt;
 
         let meta = fs::metadata(path)
             .with_context(|| format!("base binary missing at {}", path.display()))?;
@@ -114,9 +113,13 @@ impl BaseBinaryResolver<'_> {
             anyhow::bail!("base binary is not a file: {}", path.display());
         }
 
-        let mode = meta.permissions().mode();
-        if mode & 0o111 == 0 {
-            anyhow::bail!("base binary is not executable: {}", path.display());
+        #[cfg(not(target_os = "windows"))]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = meta.permissions().mode();
+            if mode & 0o111 == 0 {
+                anyhow::bail!("base binary is not executable: {}", path.display());
+            }
         }
 
         terminal::success("Binary validated");

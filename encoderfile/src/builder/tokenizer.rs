@@ -117,7 +117,7 @@ fn from_tokenizer(tokenizer: &Tokenizer) -> Result<TokenizerConfig> {
 
             eprintln!(
                 "WARNING: No padding params found in `tokenizer.json`. Using defaults: {:?}",
-                &padding_params
+                padding_params
             );
 
             padding_params
@@ -130,8 +130,8 @@ fn from_tokenizer(tokenizer: &Tokenizer) -> Result<TokenizerConfig> {
             let truncation_params = TruncationParams::default();
 
             eprintln!(
-                "WARNING: No padding params found in `tokenizer.json`. Using defaults: {:?}",
-                &truncation_params,
+                "WARNING: No truncation params found in `tokenizer.json`. Using defaults: {:?}",
+                truncation_params
             );
 
             truncation_params
