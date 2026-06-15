@@ -75,6 +75,10 @@ This will:
 
 ## Building the CLI Tool
 
+> **Note for Windows users:** Before starting the build process, set `ESAXX_DYNAMIC_LINK=1` to
+  enable the dynamic linking of the `esaxx-rs` library. Since this library forces static linking,
+  Mozilla.ai's fork is used instead. This fork only modifies the build process.
+
 First, build the encoderfile CLI tool:
 
 ```bash
@@ -202,6 +206,10 @@ encoderfile:
     model_weights_path: ./models/model.onnx
     tokenizer_path: ./models/tokenizer.json
 ```
+
+> **Note for Windows users:** Since precompiled binaries are not available
+  for Windows yet, make sure you use the `base_binary_path: target/release/encoderfile-runtime.exe`
+  property in the configuration file.
 
 ### Step 3: Build the Encoderfile
 
