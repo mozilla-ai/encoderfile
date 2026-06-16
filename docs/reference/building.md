@@ -85,7 +85,9 @@ First, build the encoderfile CLI tool:
 cargo build --bin encoderfile --release
 ```
 
-The CLI binary will be created at `./target/release/encoderfile`.
+The CLI binary will be created at `./target/release/encoderfile`. This step also
+creates the base executable that powers each encoderfile at
+`target/release/encoderfile-runtime`.
 
 Optionally, install it to your system:
 
@@ -209,7 +211,8 @@ encoderfile:
 
 > **Note for Windows users:** Since precompiled binaries are not available
   for Windows yet, make sure you use the `base_binary_path: target/release/encoderfile-runtime.exe`
-  property in the configuration file.
+  property in the configuration file. This file is generated when
+  [bulding from source](#building-the-cli-tool).
 
 ### Step 3: Build the Encoderfile
 
