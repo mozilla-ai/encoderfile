@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package encoderfile.image_types;
+
+message ImageInput {
+  bytes image = 1;
+}
+
+message ImageLabelScore {
+  string label = 1;
+  optional float score = 2;
+}
+
+message ImageLabels {
+  repeated ImageLabelScore labels = 1;
+}

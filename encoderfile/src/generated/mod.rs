@@ -1,4 +1,6 @@
 pub mod embedding;
+pub mod image_classification;
+pub mod image_types;
 pub mod manifest;
 pub mod metadata;
 pub mod sentence_embedding;

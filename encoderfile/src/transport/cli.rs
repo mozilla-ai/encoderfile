@@ -1,9 +1,9 @@
 use crate::{
     common::{
-        FromCliInput, ModelType,
-        model_type::{self, ModelTypeSpec},
+        FromCliInput,
+        model_type::{self, ModelType, ModelTypeSpec},
     },
-    runtime::{EncoderfileLoader, EncoderfileState, ORTExecutionProvider},
+    runtime::{EncoderfileLoader, EncoderfileState, InputType, ORTExecutionProvider, TaskType},
     services::{Inference, Metadata},
     transport::{
         grpc::GrpcRouter,
@@ -18,7 +18,7 @@ use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::{
-    fmt::Display,
+    fmt::{Debug, Display},
     io::{Read, Seek, Write},
     sync::Arc,
 };
@@ -110,9 +110,9 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute<'a, R: Read + Seek>(
+    pub async fn execute<'loader, R: Read + Seek>(
         self,
-        loader: &mut EncoderfileLoader<'a, R>,
+        loader: &mut EncoderfileLoader<'loader, R>,
     ) -> Result<()> {
         match loader.model_type() {
             ModelType::Embedding => {
@@ -131,14 +131,28 @@ impl Commands {
                 self.execute_from_loader::<R, model_type::SentenceEmbedding>(loader)
                     .await
             }
+            ModelType::ImageClassification => {
+                self.execute_from_loader::<R, model_type::ImageClassification>(loader)
+                    .await
+            }
         }
     }
-    pub async fn execute_from_loader<'a, R: Read + Seek, T: ModelTypeSpec>(
+    pub async fn execute_from_loader<
+        'loader,
+        R: Read + Seek,
+        T: ModelTypeSpec + InputType + TaskType,
+    >(
         self,
-        loader: &mut EncoderfileLoader<'a, R>,
+        loader: &mut EncoderfileLoader<'loader, R>,
     ) -> Result<()>
     where
         Arc<EncoderfileState<T>>: Inference + GrpcRouter + HttpRouter + McpRouter + CliRoute,
+        <T as InputType>::State: Debug,
+        <T as TaskType>::State: Debug,
+        for<'b> <T as InputType>::State:
+            TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
+        for<'b> <T as TaskType>::State:
+            TryFrom<&'b mut EncoderfileLoader<'loader, R>, Error = anyhow::Error>,
     {
         match self {
             Commands::Serve {
@@ -161,15 +175,15 @@ impl Commands {
                         onnx_args.graph_optimization_level(),
                     )?
                     .into();
-                let model_config = loader.model_config()?;
-                let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
 
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    tokenizer,
-                    model_config,
+                    <T as InputType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader)
+                        .expect("could not load model task state from file"),
                 ));
 
                 let banner = crate::get_banner(state.model_id().as_str());
@@ -225,15 +239,15 @@ impl Commands {
                     )?
                     .into();
 
-                let model_config = loader.model_config()?;
-                let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
 
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    tokenizer,
-                    model_config,
+                    <T as InputType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader)
+                        .expect("could not load model task state from file"),
                 ));
 
                 setup_tracing(None)?;
@@ -255,15 +269,15 @@ impl Commands {
                     )?
                     .into();
 
-                let model_config = loader.model_config()?;
-                let tokenizer = loader.tokenizer()?;
                 let config = loader.encoderfile_config()?;
 
                 let state = Arc::new(EncoderfileState::<T>::new(
                     config,
                     session,
-                    tokenizer,
-                    model_config,
+                    <T as InputType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
+                    <T as TaskType>::State::try_from(loader)
+                        .expect("could not load model input state from file"),
                 ));
 
                 let banner = crate::get_banner(state.model_id().as_str());

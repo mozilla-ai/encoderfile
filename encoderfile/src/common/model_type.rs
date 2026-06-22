@@ -38,7 +38,12 @@ macro_rules! model_type {
                 }
             }
         )*
+
     }
+}
+
+pub trait ModelTypeSpec: Send + Sync + Clone + std::fmt::Debug + 'static {
+    fn enum_val() -> ModelType;
 }
 
 model_type![
@@ -46,8 +51,5 @@ model_type![
     SequenceClassification,
     TokenClassification,
     SentenceEmbedding,
+    ImageClassification
 ];
-
-pub trait ModelTypeSpec: Send + Sync + Clone + std::fmt::Debug + 'static {
-    fn enum_val() -> ModelType;
-}

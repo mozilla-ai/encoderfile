@@ -14,6 +14,15 @@ ndarray = "0.16.1"
 serde = { version = "1.0.228", features = ["serde_derive"] }
 tracing = "0.1.41"
 thiserror = "2.0.17"
+image-ndarray = "0.1.5"
+
+[workspace.dependencies.bytes]
+version = "1.11.1"
+features = ["serde"]
+
+[workspace.dependencies.image]
+version = "0.25.10"
+features = ["serde"]
 
 [workspace.dependencies.parking_lot]
 version = "0.12.5"

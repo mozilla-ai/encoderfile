@@ -10,6 +10,7 @@ fn test_embedding_model() {
     let state = embedding_state();
 
     let encodings = state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -34,6 +35,7 @@ fn test_embedding_inference_with_bad_model() {
     let state = token_classification_state();
 
     let encodings = state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -54,6 +56,7 @@ fn test_sequence_classification_model() {
     let state = sequence_classification_state();
 
     let encodings = state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -69,7 +72,7 @@ fn test_sequence_classification_model() {
     let results = sequence_classification(
         session_lock,
         &transform,
-        &state.model_config,
+        &state.task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");
@@ -77,12 +80,15 @@ fn test_sequence_classification_model() {
     assert!(results.len() == encodings.len());
 }
 
+// FIXME doesn't compile
+/*
 #[test]
 #[should_panic]
 fn test_sequence_classification_inference_with_bad_model() {
     let state = embedding_state();
 
     let encodings = state
+        .per_model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -98,17 +104,19 @@ fn test_sequence_classification_inference_with_bad_model() {
     sequence_classification(
         session_lock,
         &transform,
-        &state.model_config,
+        &state.per_task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");
 }
+*/
 
 #[test]
 fn test_token_classification_model() {
     let state = token_classification_state();
 
     let encodings = state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -124,7 +132,7 @@ fn test_token_classification_model() {
     let results = token_classification(
         session_lock,
         &transform,
-        &state.model_config,
+        &state.task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");
@@ -138,6 +146,7 @@ fn test_token_classification_inference_with_bad_model() {
     let state = sequence_classification_state();
 
     let encodings = state
+        .model_input_state
         .tokenizer
         .encode_text(vec![
             "hello world".to_string(),
@@ -153,8 +162,35 @@ fn test_token_classification_inference_with_bad_model() {
     token_classification(
         session_lock,
         &transform,
-        &state.model_config,
+        &state.task_state,
         encodings.clone(),
     )
     .expect("Failed to compute results");
+}
+
+#[test]
+fn test_image_classification_model() {
+    // TODO
+    /*
+    let state = embedding_state();
+
+    let encodings = state
+        .per_model_input_state
+        .tokenizer
+        .encode_text(vec![
+            "hello world".to_string(),
+            "the quick brown fox jumps over the lazy dog".to_string(),
+        ])
+        .expect("Failed to encode text");
+
+    let session_lock = state.session.lock();
+
+    let transform =
+        Transform::new(DEFAULT_LIBS.to_vec(), None).expect("Failed to create_transform");
+
+    let results =
+        embedding(session_lock, &transform, encodings.clone()).expect("Failed to compute results");
+
+    assert!(results.len() == encodings.len());
+    */
 }

@@ -5,10 +5,10 @@ use std::io::{Read, Seek};
 use ort::session::{Session, builder::GraphOptimizationLevel};
 
 use crate::{
-    common::{Config, LuaLibs, ModelConfig, ModelType},
+    common::{Config, LuaLibs, ModelConfig, model_type::ModelType},
     format::{assets::AssetKind, codec::EncoderfileCodec, container::Encoderfile},
     generated::manifest::{self, TransformType},
-    runtime::{ORTExecutionProvider, ORTSessionBuilder, TokenizerService},
+    runtime::{ImagePreprocessing, ORTExecutionProvider, ORTSessionBuilder, TokenizerService},
 };
 
 pub struct EncoderfileLoader<'a, R: Read + Seek> {
@@ -127,6 +127,21 @@ impl<'a, R: Read + Seek> EncoderfileLoader<'a, R> {
                 Ok(serde_json::from_slice(buf.as_slice())?)
             }
             Err(e) => bail!("Error loading model config: {e:?}"),
+        }
+    }
+
+    pub fn image_preprocessor_config(&mut self) -> Result<ImagePreprocessing> {
+        match self
+            .encoderfile
+            .open_required(self.reader, AssetKind::ImagePreprocessor)
+        {
+            Ok(mut r) => {
+                let mut buf = vec![0u8; r.len() as usize];
+                r.read_exact(&mut buf)?;
+
+                Ok(serde_json::from_slice(buf.as_slice())?)
+            }
+            Err(e) => bail!("Error loading image preprocessor config: {e:?}"),
         }
     }
 }

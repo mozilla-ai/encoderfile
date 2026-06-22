@@ -1,4 +1,5 @@
 mod embedding;
+mod image_classification;
 mod inference;
 mod model_metadata;
 mod sentence_embedding;

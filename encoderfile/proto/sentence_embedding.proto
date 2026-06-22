@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package encoderfile.sentence_embedding;
 
-import "proto/token.proto";
 import "proto/metadata.proto";
 
 service SentenceEmbeddingInference {

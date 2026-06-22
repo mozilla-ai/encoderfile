@@ -3,6 +3,9 @@ use rmcp::transport::streamable_http_server::{
     StreamableHttpService, session::local::LocalSessionManager,
 };
 
+use crate::common::model_type;
+use crate::runtime::AppState;
+
 mod error;
 
 pub trait McpRouter
@@ -13,7 +16,7 @@ where
     const NEW_TOOL: fn(Self) -> Self::Tool;
 
     // TODO figure out the lifetimes of a state so a ref can be safely passed
-    fn mcp_router(self) -> axum::Router
+    fn mcp_router(self) -> Result<axum::Router, crate::error::ApiError>
     where
         <Self as McpRouter>::Tool: rmcp::ServerHandler,
     {
@@ -23,7 +26,42 @@ where
             Default::default(),
         );
 
-        axum::Router::new().nest_service("/mcp", service)
+        Ok(axum::Router::new().nest_service("/mcp", service))
+    }
+}
+
+pub struct DummyTool {}
+
+impl ServerHandler for DummyTool {
+    fn get_info(&self) -> rmcp::model::ServerInfo {
+        rmcp::model::ServerInfo {
+            protocol_version: rmcp::model::ProtocolVersion::V_2025_06_18,
+            capabilities: rmcp::model::ServerCapabilities::default(),
+            server_info: rmcp::model::Implementation::default(),
+            instructions: None,
+        }
+    }
+
+    async fn initialize(
+        &self,
+        _request: rmcp::model::InitializeRequestParam,
+        _context: rmcp::service::RequestContext<rmcp::service::RoleServer>,
+    ) -> Result<rmcp::model::InitializeResult, rmcp::ErrorData> {
+        Err(rmcp::ErrorData {
+            code: rmcp::model::ErrorCode::INTERNAL_ERROR,
+            message: std::borrow::Cow::Borrowed("This is a dummy tool with no functionality."),
+            data: None,
+        })
+    }
+}
+
+impl McpRouter for AppState<model_type::ImageClassification> {
+    type Tool = DummyTool;
+    const NEW_TOOL: fn(Self) -> Self::Tool = |_state| Self::Tool {};
+    fn mcp_router(self) -> Result<axum::Router, crate::error::ApiError> {
+        Err(crate::error::ApiError::InternalError(
+            "MCP not implemented for ImageClassification model type",
+        ))
     }
 }
 
@@ -151,3 +189,16 @@ generate_mcp!(
     "Performs sentence embedding of input text sequences.",
     "This tool will embed a sequence of texts."
 );
+
+// Doesn't use a json schema, see how we can go around this limitation
+/*
+generate_mcp!(
+    ImageClassification,
+    ImageClassificationTool,
+    image_classification,
+    ImageClassificationRequest,
+    ImageClassificationResponse,
+    "Performs image classification of input images.",
+    "This tool will classify input images."
+);
+*/

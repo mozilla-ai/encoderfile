@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use encoderfile::{builder::model::ModelTypeExt as _, common::ModelType};
+use encoderfile::{builder::model::ModelTypeExt as _, common::model_type::ModelType};
 
 #[test]
 pub fn test_embedding() {
@@ -43,5 +43,17 @@ pub fn test_sequence_classification() {
         ModelType::SequenceClassification
             .validate_model(&path)
             .is_ok()
+    );
+}
+
+#[test]
+pub fn test_image_classification() {
+    let path = PathBuf::from("../models/image_classification/model.onnx");
+
+    assert!(ModelType::ImageClassification.validate_model(&path).is_ok());
+    assert!(
+        ModelType::TokenClassification
+            .validate_model(&path)
+            .is_err()
     );
 }

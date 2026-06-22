@@ -55,6 +55,9 @@ message EncoderfileManifest {
   // Tokenizer data (vocab, merges, config).
   // Serialized runtime::tokenizer::TokenizerService
   optional Artifact tokenizer = 130;
+
+  // Image preprocessor configuration.
+  optional Artifact image_preprocessor = 140;
 }
 
 message LuaLibs {

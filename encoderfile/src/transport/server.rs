@@ -23,14 +23,14 @@ pub async fn run_grpc<S: Inference + GrpcRouter>(
         "gRPC",
         state,
         |state| {
-            state
+            Ok(state
                 .clone()
                 .grpc_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_grpc()
                         .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
                 )
-                .into_make_service_with_connect_info::<std::net::SocketAddr>()
+                .into_make_service_with_connect_info::<std::net::SocketAddr>())
         },
     )
     .await
@@ -51,14 +51,14 @@ pub async fn run_http<S: Inference + HttpRouter>(
         "HTTP",
         state,
         |state| {
-            state
+            Ok(state
                 .clone()
                 .http_router()
                 .layer(
                     tower_http::trace::TraceLayer::new_for_http()
                         .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
                 )
-                .into_make_service_with_connect_info::<std::net::SocketAddr>()
+                .into_make_service_with_connect_info::<std::net::SocketAddr>())
         },
     )
     .await
@@ -79,16 +79,15 @@ pub async fn run_mcp<S: Inference + McpRouter>(
         "MCP",
         state,
         |state| {
-            state
-                .clone()
-                .mcp_router()
+            let mcp_router = state.clone().mcp_router()?;
+            Ok(mcp_router
                 .layer(
                     tower_http::trace::TraceLayer::new_for_http()
                         // TODO check if otel is enabled
                         // .make_span_with(crate::middleware::format_span)
                         .on_response(DefaultOnResponse::new().level(tracing::Level::INFO)),
                 )
-                .into_make_service_with_connect_info::<std::net::SocketAddr>()
+                .into_make_service_with_connect_info::<std::net::SocketAddr>())
         },
     )
     .await
@@ -101,11 +100,16 @@ async fn serve_with_optional_tls<S: Inference>(
     maybe_key_file: Option<String>,
     server_type_str: &str,
     state: S,
-    into_service_fn: impl Fn(&S) -> IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
+    into_service_fn: impl Fn(
+        &S,
+    ) -> Result<
+        IntoMakeServiceWithConnectInfo<axum::Router, SocketAddr>,
+        crate::error::ApiError,
+    >,
 ) -> Result<()> {
     let addr = format!("{}:{}", hostname, port);
 
-    let router = into_service_fn(&state);
+    let router = into_service_fn(&state)?;
 
     let model_type = state.model_type();
 

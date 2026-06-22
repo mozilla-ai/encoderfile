@@ -39,6 +39,18 @@ jobs:
           path: ~/.cache/uv
           key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
 
+      - name: Cache image classification model
+        id: cache-img-model
+        uses: actions/cache@v4
+        with:
+          path: models/image_classification/model.onnx
+          key: img-class-model
+
+      - name: Download ONNX model
+        if: steps.cache-img-model.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o models/image_classification/model.onnx https://huggingface.co/dima806/yoga_pose_image_classification/resolve/main/onnx/model.onnx
+
       - name: Project setup
         uses: ./.github/actions/project-setup
       

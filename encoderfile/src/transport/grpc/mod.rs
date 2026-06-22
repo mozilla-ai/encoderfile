@@ -1,6 +1,9 @@
 use crate::{
     common::model_type,
-    generated::{embedding, sentence_embedding, sequence_classification, token_classification},
+    generated::{
+        embedding, image_classification, sentence_embedding, sequence_classification,
+        token_classification,
+    },
     runtime::AppState,
     services::{Inference, Metadata},
 };
@@ -71,6 +74,7 @@ macro_rules! generate_grpc_server {
                 tonic::Response<$crate::generated::metadata::GetModelMetadataResponse>,
                 tonic::Status,
             > {
+                println!("And the metadata is...: {:?}", self.state.metadata());
                 Ok(tonic::Response::new(self.state.metadata().into()))
             }
         }
@@ -115,4 +119,14 @@ generate_grpc_server!(
     SentenceEmbeddingResponse,
     SentenceEmbeddingInference,
     SentenceEmbeddingInferenceServer
+);
+
+generate_grpc_server!(
+    ImageClassification,
+    image_classification,
+    image_classification_inference_server,
+    ImageClassificationRequest,
+    ImageClassificationResponse,
+    ImageClassificationInference,
+    ImageClassificationInferenceServer
 );

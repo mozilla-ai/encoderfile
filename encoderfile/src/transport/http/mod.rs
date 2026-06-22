@@ -1,5 +1,6 @@
 mod base;
 mod error;
+pub mod multipart_openapi;
 
 pub trait HttpRouter
 where

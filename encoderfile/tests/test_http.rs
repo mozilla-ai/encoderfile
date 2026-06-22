@@ -130,3 +130,81 @@ test_router_mod!(
         metadata: None,
     }
 );
+
+mod image_classification_tests {
+    use axum::http::{Request, StatusCode};
+    use encoderfile::{dev_utils, transport::http::HttpRouter};
+    use tower::ServiceExt;
+
+    fn router() -> axum::Router {
+        let state = dev_utils::image_classification_state();
+        state.http_router()
+    }
+
+    #[tokio::test]
+    async fn test_predict_route() {
+        let router = router();
+        let img_loc1 = "../test-pictures/yoga01.jpg";
+        let img_loc2 = "../test-pictures/yoga02.jpg";
+        let img_bytes1 = std::fs::read(img_loc1).unwrap();
+        let img_bytes2 = std::fs::read(img_loc2).unwrap();
+        let payload = serde_json::json!({
+            "inputs": ["yoga01.jpg", "yoga02.jpg"],
+            "metadata": {}
+        });
+
+        let boundary = "----encoderfile-boundary";
+        let mut multipart_body = Vec::new();
+
+        multipart_body.extend_from_slice(
+            format!(
+                "--{boundary}\r\nContent-Disposition: form-data; name=\"payload\"\r\nContent-Type: application/json\r\n\r\n{}\r\n",
+                payload
+            )
+            .as_bytes(),
+        );
+
+        multipart_body.extend_from_slice(
+            format!(
+                "--{boundary}\r\nContent-Disposition: form-data; name=\"files\"; filename=\"yoga01.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n"
+            )
+            .as_bytes(),
+        );
+        multipart_body.extend_from_slice(&img_bytes1);
+        multipart_body.extend_from_slice(b"\r\n");
+
+        multipart_body.extend_from_slice(
+            format!(
+                "--{boundary}\r\nContent-Disposition: form-data; name=\"files\"; filename=\"yoga02.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n"
+            )
+            .as_bytes(),
+        );
+        multipart_body.extend_from_slice(&img_bytes2);
+        multipart_body.extend_from_slice(b"\r\n");
+
+        multipart_body.extend_from_slice(format!("--{boundary}--\r\n").as_bytes());
+
+        let request = Request::post("/predict/multipart")
+            .header(
+                "Content-Type",
+                format!("multipart/form-data; boundary={boundary}"),
+            )
+            .body(axum::body::Body::from(multipart_body))
+            .unwrap();
+
+        let resp = router.oneshot(request).await.unwrap();
+
+        if resp.status() != StatusCode::OK {
+            panic!("{} {:#?}", resp.status(), resp.body())
+        }
+
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        // gather the body into a single bytes object and convert it into a string for easier debugging if the test fails
+        let body_bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_string = String::from_utf8(body_bytes.to_vec()).unwrap();
+        println!("Response body: {}", body_string);
+    }
+}

@@ -1,4 +1,4 @@
-use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, ModelType};
+use crate::common::{Config as EmbeddedConfig, LuaLibs, ModelConfig, model_type::ModelType};
 use anyhow::{Context, Result, bail};
 use schemars::JsonSchema;
 use std::string::String;
@@ -24,7 +24,7 @@ pub struct BuildConfig {
     pub encoderfile: EncoderfileConfig,
 }
 
-pub const DEFAULT_VERSION: &str = "0.1.0";
+pub const DEFAULT_VERSION: &str = "0.2.0";
 
 pub const CONFIG_FILE_NOT_FOUND_MSG: &str = "Encoderfile config not found";
 
@@ -268,6 +268,7 @@ pub enum ModelPath {
         model_weights_path: PathBuf,
         tokenizer_path: PathBuf,
         tokenizer_config_path: Option<PathBuf>,
+        preprocessor_config_path: Option<PathBuf>,
     },
 }
 
@@ -328,6 +329,7 @@ macro_rules! asset_path {
 impl ModelPath {
     asset_path!(model_config_path, "config.json", "model config");
     asset_path!(tokenizer_path, "tokenizer.json", "tokenizer");
+    asset_path!(@Optional preprocessor_config_path, "preprocessor_config.json", "image preprocessing");
     asset_path!(model_weights_path, "model.onnx", "model weights");
     asset_path!(@Optional tokenizer_config_path, "tokenizer_config.json", "tokenizer config");
 }
@@ -414,6 +416,23 @@ mod tests {
             tokenizer_path: base.join("tokenizer.json"),
             model_weights_path: base.join("model.onnx"),
             tokenizer_config_path: Some(base.join("tokenizer_config.json")),
+            preprocessor_config_path: None,
+        };
+
+        assert!(mp.model_config_path().is_ok());
+
+        cleanup(&base);
+    }
+
+    #[test]
+    fn test_modelpath_explicit_paths_image() {
+        let base = create_temp_model_dir();
+        let mp = ModelPath::Paths {
+            model_config_path: base.join("config.json"),
+            tokenizer_path: PathBuf::new(), // not needed for image model
+            model_weights_path: base.join("model.onnx"),
+            tokenizer_config_path: None,
+            preprocessor_config_path: Some(base.join("preprocessor_config.json")),
         };
 
         assert!(mp.model_config_path().is_ok());

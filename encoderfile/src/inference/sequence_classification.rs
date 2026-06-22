@@ -1,6 +1,7 @@
 use crate::{
-    common::{ModelConfig, SequenceClassificationResult},
+    common::SequenceClassificationResult,
     error::ApiError,
+    runtime::ClassifierState,
     transforms::{Postprocessor, SequenceClassificationTransform},
 };
 use ndarray::{Array2, Axis, Ix2};
@@ -11,10 +12,10 @@ use tokenizers::Encoding;
 pub fn sequence_classification<'a>(
     mut session: crate::runtime::Model<'a>,
     transform: &SequenceClassificationTransform,
-    config: &ModelConfig,
+    config: &ClassifierState,
     encodings: Vec<Encoding>,
 ) -> Result<Vec<SequenceClassificationResult>, ApiError> {
-    let (a_ids, a_mask, a_type_ids) = crate::prepare_inputs!(encodings);
+    let (a_ids, a_mask, a_type_ids) = crate::prepare_text_inputs!(encodings);
 
     let mut outputs = crate::run_model!(session, a_ids, a_mask, a_type_ids)?
         .get("logits")
@@ -35,7 +36,7 @@ pub fn sequence_classification<'a>(
 #[tracing::instrument(skip_all)]
 pub fn postprocess(
     outputs: Array2<f32>,
-    config: &ModelConfig,
+    config: &ClassifierState,
 ) -> Vec<SequenceClassificationResult> {
     outputs
         .axis_iter(Axis(0))

@@ -3,7 +3,8 @@ use anyhow::{Result, bail};
 
 use crate::{
     common::model_type::{
-        Embedding, ModelType, SentenceEmbedding, SequenceClassification, TokenClassification,
+        Embedding, ImageClassification, ModelType, SentenceEmbedding, SequenceClassification,
+        TokenClassification,
     },
     format::{
         assets::{AssetPlan, AssetPolicySpec},
@@ -85,6 +86,7 @@ impl EncoderfileCodec {
             }
             ModelType::TokenClassification => Self::validate_assets::<TokenClassification>(plan)?,
             ModelType::SentenceEmbedding => Self::validate_assets::<SentenceEmbedding>(plan)?,
+            ModelType::ImageClassification => Self::validate_assets::<ImageClassification>(plan)?,
         };
 
         let model_type: crate::generated::metadata::ModelType = model_type.into();
@@ -99,6 +101,7 @@ impl EncoderfileCodec {
             weights: None,
             transform: None,
             tokenizer: None,
+            image_preprocessor: None,
         };
 
         // Populate artifacts with length + hash

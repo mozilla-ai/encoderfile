@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package encoderfile.object_detection;
+
+import "proto/token.proto";
+import "proto/metadata.proto";
+
+service ObjectDetection {
+  rpc Predict(ObjectDetectionRequest) returns (ObjectDetectionResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message ObjectDetectionRequest {
+  repeated encoderfile.image_types.ImageInput inputs = 1;
+  map<string, string> metadata = 11;
+}
+
+message ImageBoundingBox {
+  encoderfile.image_types.ImageLabelScore label = 1;
+  xmin int32 = 2;
+  xmax int32 = 3;
+  ymin int32 = 4;
+  ymax int32 = 5;
+}
+
+message ImageBoundingBoxes {
+  repeated ImageBoundingBox box = 1;
+}
+
+message ObjectDetectionResponse {
+  repeated ImageBoundingBoxes boxes = 1;
+  map<string, string> metadata = 11;
+}

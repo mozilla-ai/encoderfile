@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{GetModelMetadataResponse, ModelType, model_type::ModelTypeSpec},
-    runtime::AppState,
+    common::{
+        GetModelMetadataResponse,
+        model_type::{ModelType, ModelTypeSpec},
+    },
+    runtime::{AppState, ClassifierState, FeatureExtractorState, InputType, TaskType},
 };
 
 pub trait Metadata {
@@ -21,7 +24,27 @@ pub trait Metadata {
     fn id2label(&self) -> Option<HashMap<u32, String>>;
 }
 
-impl<T: ModelTypeSpec> Metadata for AppState<T> {
+trait TaskStateMetadata {
+    fn id2label(&self) -> Option<HashMap<u32, String>>;
+}
+
+impl TaskStateMetadata for ClassifierState {
+    fn id2label(&self) -> Option<HashMap<u32, String>> {
+        println!("ClassifierState: {:?}", self);
+        self.id2label.clone()
+    }
+}
+
+impl TaskStateMetadata for FeatureExtractorState {
+    fn id2label(&self) -> Option<HashMap<u32, String>> {
+        None
+    }
+}
+
+impl<T: ModelTypeSpec + InputType + TaskType> Metadata for AppState<T>
+where
+    <T as TaskType>::State: TaskStateMetadata,
+{
     fn model_id(&self) -> String {
         self.config.name.clone()
     }
@@ -31,6 +54,6 @@ impl<T: ModelTypeSpec> Metadata for AppState<T> {
     }
 
     fn id2label(&self) -> Option<HashMap<u32, String>> {
-        self.model_config.id2label.clone()
+        self.task_state.id2label()
     }
 }

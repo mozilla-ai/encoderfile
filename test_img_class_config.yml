@@ -1,0 +1,8 @@
+# optimum-cli export onnx   --model dima806/yoga_pose_image_classification  --task image-classification ./yoga
+encoderfile:
+  name: test-img-class
+  path: models/image_classification
+  model_type: image_classification
+  output_path: ./test-img-class.encoderfile
+  base_binary_path: ./target/debug/encoderfile-runtime
+  no_download: true

@@ -4,11 +4,17 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModelConfig {
     pub model_type: String,
+    // FIXME to be moved to per-task structs
     pub num_labels: Option<usize>,
     pub id2label: Option<HashMap<u32, String>>,
     pub label2id: Option<HashMap<String, u32>>,
+    pub height: Option<u32>,
+    pub width: Option<u32>,
+    pub image_size: Option<u32>,
+    pub num_channels: Option<u32>,
 }
 
+// TODO add image handling metadata
 impl ModelConfig {
     pub fn id2label(&self, id: u32) -> Option<&str> {
         self.id2label.as_ref()?.get(&id).map(|s| s.as_str())
@@ -19,8 +25,8 @@ impl ModelConfig {
     }
 
     pub fn num_labels(&self) -> Option<usize> {
-        if self.num_labels.is_some() {
-            return self.num_labels;
+        if let Some(num_labels) = self.num_labels {
+            return Some(num_labels);
         }
 
         if let Some(id2label) = &self.id2label {
@@ -32,6 +38,17 @@ impl ModelConfig {
         }
 
         None
+    }
+    pub fn height(&self) -> Option<u32> {
+        self.height.or(self.image_size)
+    }
+
+    pub fn width(&self) -> Option<u32> {
+        self.width.or(self.image_size)
+    }
+
+    pub fn num_channels(&self) -> Option<u32> {
+        self.num_channels
     }
 }
 
@@ -58,6 +75,10 @@ mod tests {
             num_labels: Some(3),
             id2label: Some(id2label.clone()),
             label2id: Some(label2id.clone()),
+            height: None,
+            width: None,
+            image_size: None,
+            num_channels: None,
         };
 
         assert_eq!(config.num_labels(), Some(3));
@@ -67,6 +88,10 @@ mod tests {
             num_labels: None,
             id2label: Some(id2label.clone()),
             label2id: Some(label2id.clone()),
+            height: None,
+            width: None,
+            image_size: None,
+            num_channels: None,
         };
 
         assert_eq!(config.num_labels(), Some(3));
@@ -76,6 +101,10 @@ mod tests {
             num_labels: None,
             id2label: None,
             label2id: Some(label2id.clone()),
+            height: None,
+            width: None,
+            image_size: None,
+            num_channels: None,
         };
 
         assert_eq!(config.num_labels(), Some(3));

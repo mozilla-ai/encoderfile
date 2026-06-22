@@ -1,4 +1,7 @@
-use crate::common::model_type::ModelTypeSpec;
+use crate::{
+    common::model_type::ModelTypeSpec,
+    runtime::{Input, InputType, Task, TaskType},
+};
 
 /// Identifies the semantic role of an embedded artifact.
 ///
@@ -39,6 +42,9 @@ pub enum AssetKind {
 
     /// Tokenizer data required for text-based models.
     Tokenizer,
+
+    /// Optional image preprocessing configuration.
+    ImagePreprocessor,
 }
 
 impl AssetKind {
@@ -47,30 +53,49 @@ impl AssetKind {
         AssetKind::Transform,
         AssetKind::ModelConfig,
         AssetKind::Tokenizer,
+        AssetKind::ImagePreprocessor,
     ];
 }
 
-pub trait AssetPolicySpec: ModelTypeSpec {
-    fn required_assets() -> &'static [AssetKind];
-    fn optional_assets() -> &'static [AssetKind];
+pub trait AssetPolicySpec: ModelTypeSpec + InputType + TaskType {
+    fn required_assets() -> &'static [AssetKind] {
+        match (Self::input_type(), Self::task_type()) {
+            (Input::Text, Task::Classification) => &[
+                AssetKind::ModelWeights,
+                AssetKind::ModelConfig,
+                AssetKind::Tokenizer,
+            ],
+            (Input::Text, Task::FeatureExtraction) => &[
+                AssetKind::ModelWeights,
+                AssetKind::ModelConfig,
+                AssetKind::Tokenizer,
+            ],
+            (Input::Image, Task::Classification) => &[
+                AssetKind::ModelWeights,
+                AssetKind::ModelConfig,
+                AssetKind::ImagePreprocessor,
+            ],
+            (Input::Image, Task::FeatureExtraction) => &[
+                AssetKind::ModelWeights,
+                AssetKind::ModelConfig,
+                AssetKind::ImagePreprocessor,
+            ],
+        }
+    }
+    fn optional_assets() -> &'static [AssetKind] {
+        match (Self::input_type(), Self::task_type()) {
+            (Input::Text, Task::Classification) => &[AssetKind::Transform],
+            (Input::Text, Task::FeatureExtraction) => &[AssetKind::Transform],
+            (Input::Image, Task::Classification) => &[AssetKind::Transform],
+            (Input::Image, Task::FeatureExtraction) => &[AssetKind::Transform],
+        }
+    }
 }
 
 macro_rules! asset_policy_spec {
     // Huggingface-style encoders
     (Encoder, $model_type:ident) => {
-        impl AssetPolicySpec for crate::common::model_type::$model_type {
-            fn required_assets() -> &'static [AssetKind] {
-                &[
-                    AssetKind::ModelWeights,
-                    AssetKind::ModelConfig,
-                    AssetKind::Tokenizer,
-                ]
-            }
-
-            fn optional_assets() -> &'static [AssetKind] {
-                &[AssetKind::Transform]
-            }
-        }
+        impl AssetPolicySpec for crate::common::model_type::$model_type {}
     };
 }
 
@@ -78,3 +103,4 @@ asset_policy_spec!(Encoder, Embedding);
 asset_policy_spec!(Encoder, SequenceClassification);
 asset_policy_spec!(Encoder, TokenClassification);
 asset_policy_spec!(Encoder, SentenceEmbedding);
+asset_policy_spec!(Encoder, ImageClassification);

@@ -1,12 +1,13 @@
 use anyhow::Result;
 use encoderfile::AppState;
 use encoderfile::common::model_type::ModelTypeSpec;
+use encoderfile::runtime::{InputType, TaskType};
 use encoderfile::transport::mcp::McpRouter;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 use tower_http::trace::DefaultOnResponse;
 
-async fn run_mcp<T: ModelTypeSpec>(
+async fn run_mcp<T: ModelTypeSpec + InputType + TaskType>(
     addr: String,
     state: AppState<T>,
     shutdown_receiver: oneshot::Receiver<()>,
@@ -15,7 +16,7 @@ async fn run_mcp<T: ModelTypeSpec>(
 where
     AppState<T>: McpRouter,
 {
-    let router = state.mcp_router().layer(
+    let router = state.mcp_router()?.layer(
         tower_http::trace::TraceLayer::new_for_http()
             // TODO check if otel is enabled
             // .make_span_with(crate::middleware::format_span)

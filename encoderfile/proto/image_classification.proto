@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package encoderfile.image_classification;
+
+import "proto/metadata.proto";
+import "proto/image_types.proto";
+
+service ImageClassificationInference {
+  rpc Predict(ImageClassificationRequest) returns (ImageClassificationResponse);
+  rpc GetModelMetadata(encoderfile.metadata.GetModelMetadataRequest) returns (encoderfile.metadata.GetModelMetadataResponse);
+}
+
+message ImageClassificationRequest {
+  repeated encoderfile.image_types.ImageInput inputs = 1;
+  map<string, string> metadata = 11;
+}
+
+message ImageClassificationResponse {
+  repeated encoderfile.image_types.ImageLabels results = 1;
+  map<string, string> metadata = 11;
+}

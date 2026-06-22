@@ -348,7 +348,7 @@ impl<'a> TokenizerConfigBuilder<'a> {
 #[cfg(test)]
 mod tests {
     use crate::builder::config::{ModelPath, TokenizerBuildConfig};
-    use crate::common::ModelType;
+    use crate::common::model_type::ModelType;
 
     use super::*;
 
@@ -452,6 +452,7 @@ mod tests {
             model_weights_path: path.model_weights_path().unwrap(),
             tokenizer_path: path.tokenizer_path().unwrap(),
             tokenizer_config_path: None,
+            preprocessor_config_path: None,
         };
 
         let config = EncoderfileConfig {

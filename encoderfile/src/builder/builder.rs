@@ -16,6 +16,7 @@ use crate::{
         assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
         codec::EncoderfileCodec,
     },
+    runtime::Input,
 };
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
@@ -24,6 +25,10 @@ use serde::{Deserialize, Serialize};
 #[serde(transparent)]
 pub struct EncoderfileBuilder {
     pub config: BuildConfig,
+}
+
+pub fn validate(_input: &Input) -> Result<()> {
+    Ok(())
 }
 
 impl EncoderfileBuilder {
@@ -89,10 +94,22 @@ impl EncoderfileBuilder {
         }
 
         // validate tokenizer
-        let tokenizer_asset =
-            crate::builder::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
-        planned_assets.push(tokenizer_asset);
-        terminal::success("Tokenizer validated");
+        match self.config.encoderfile.model_type.input_type() {
+            Input::Text => {
+                let tokenizer_asset =
+                    crate::builder::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
+                planned_assets.push(tokenizer_asset);
+                terminal::success("Tokenizer validated");
+            }
+            Input::Image => {
+                let image_preprocessor_asset =
+                    crate::builder::image_preprocessor::validate_image_preprocessor(
+                        &self.config.encoderfile,
+                    )?;
+                planned_assets.push(image_preprocessor_asset);
+                terminal::success("Image preprocessor validated");
+            }
+        }
 
         // initialize final binary
         terminal::info("Writing encoderfile...");
