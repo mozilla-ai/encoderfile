@@ -25,12 +25,6 @@ impl Inference for AppState<model_type::ImageClassification> {
         if request.images.is_empty() {
             return Err(ApiError::InputError("Cannot classify empty image list"));
         }
-        /*
-        transform.preprocessor().as_ref().map(|pre| {
-            pre.call::<_, ()>(())
-                .map_err(|e| ApiError::LuaError(format!("Preprocessor error: {e}")))
-        })?;
-        */
 
         let postprocess_code = r##"
         function Preprocess(img)
@@ -72,16 +66,12 @@ impl Inference for AppState<model_type::ImageClassification> {
                     .preprocess((Image(img), self.model_input_state.clone()))
                     .expect("Failed")
                     .into_inner();
-                let mean_arr = ndarray::Array::from_shape_vec(
-                    (num_channels, 1, 1),
-                    image_mean.to_vec(),
-                )
-                .expect("mean shape mismatch");
-                let std_arr = ndarray::Array::from_shape_vec(
-                    (num_channels, 1, 1),
-                    image_std.to_vec(),
-                )
-                .expect("std shape mismatch");
+                let mean_arr =
+                    ndarray::Array::from_shape_vec((num_channels, 1, 1), image_mean.to_vec())
+                        .expect("mean shape mismatch");
+                let std_arr =
+                    ndarray::Array::from_shape_vec((num_channels, 1, 1), image_std.to_vec())
+                        .expect("std shape mismatch");
                 Zip::from(&mut res)
                     .and_broadcast(&mean_arr)
                     .and_broadcast(&std_arr)
@@ -111,13 +101,7 @@ impl Inference for AppState<model_type::ImageClassification> {
             .map(|(_, label)| label.clone())
             .collect();
 
-        let labels_batch = image_classification(
-            self.session.lock(),
-            images_array,
-            // COMMENT having optional fields complicates things later on, but otoh
-            // it allows models with variations of these fields
-            classes,
-        )?;
+        let labels_batch = image_classification(self.session.lock(), images_array, classes)?;
 
         Ok(ImageClassificationResponse {
             results: labels_batch
@@ -128,7 +112,6 @@ impl Inference for AppState<model_type::ImageClassification> {
                 .collect(),
             metadata: request.metadata,
         })
-
     }
 }
 
@@ -140,7 +123,7 @@ mod tests {
     use crate::common::model_type::ImageClassification;
     use crate::dev_utils;
     use std::fs::File;
-    use std::sync::Once;
+    use std::sync::{Arc, Once};
 
     fn init_tracing() {
         static TRACING: Once = Once::new();
@@ -194,5 +177,80 @@ mod tests {
         };
         let response = state.inference(request);
         assert!(response.is_err());
+    }
+
+    #[test]
+    fn test_image_classification_missing_rescale_factor() {
+        init_tracing();
+
+        let mut state =
+            dev_utils::get_state::<ImageClassification>("../models/image_classification");
+        Arc::get_mut(&mut state)
+            .expect("state should not be shared")
+            .model_input_state
+            .preprocessing
+            .rescale_factor = None;
+
+        let mut file =
+            File::open("../test-pictures/yoga02.jpg").expect("Failed to open test image");
+        let file_vec = vec![&mut file];
+        let request = ImageClassificationRequest::from_read_input(file_vec)
+            .expect("Failed to create request from read input");
+
+        let response = state.inference(request);
+        assert!(matches!(
+            response,
+            Err(ApiError::InternalError("missing rescale factor"))
+        ));
+    }
+
+    #[test]
+    fn test_image_classification_missing_image_mean() {
+        init_tracing();
+
+        let mut state =
+            dev_utils::get_state::<ImageClassification>("../models/image_classification");
+        Arc::get_mut(&mut state)
+            .expect("state should not be shared")
+            .model_input_state
+            .preprocessing
+            .image_mean = None;
+
+        let mut file =
+            File::open("../test-pictures/yoga02.jpg").expect("Failed to open test image");
+        let file_vec = vec![&mut file];
+        let request = ImageClassificationRequest::from_read_input(file_vec)
+            .expect("Failed to create request from read input");
+
+        let response = state.inference(request);
+        assert!(matches!(
+            response,
+            Err(ApiError::InternalError("missing image mean"))
+        ));
+    }
+
+    #[test]
+    fn test_image_classification_missing_image_std() {
+        init_tracing();
+
+        let mut state =
+            dev_utils::get_state::<ImageClassification>("../models/image_classification");
+        Arc::get_mut(&mut state)
+            .expect("state should not be shared")
+            .model_input_state
+            .preprocessing
+            .image_std = None;
+
+        let mut file =
+            File::open("../test-pictures/yoga02.jpg").expect("Failed to open test image");
+        let file_vec = vec![&mut file];
+        let request = ImageClassificationRequest::from_read_input(file_vec)
+            .expect("Failed to create request from read input");
+
+        let response = state.inference(request);
+        assert!(matches!(
+            response,
+            Err(ApiError::InternalError("missing image std"))
+        ));
     }
 }

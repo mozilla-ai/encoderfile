@@ -180,11 +180,12 @@ pub async fn parse_multipart(
 
     let payload = payload.ok_or(MultipartApiError::MissingPayload)?;
 
-        // Convert to typed request
+    // Convert to typed request
     let request = ImageClassificationRequest::from_multipart(payload.clone(), attachments)?;
-    let result = state.inference(request).map(Json).map_err(|e| {
-        MultipartApiError::RequestConstruction(format!("Inference error: {}", e.to_string()))
-    })?;
+    let result = state
+        .inference(request)
+        .map(Json)
+        .map_err(|e| MultipartApiError::RequestConstruction(format!("Inference error: {}", e)))?;
 
     Ok(result)
 }
@@ -234,9 +235,10 @@ pub async fn post_multipart_typed<R: FromMultipart>(
 
     // Convert to typed request
     let request = ImageClassificationRequest::from_multipart(payload.clone(), attachments)?;
-    let result = state.inference(request).map(Json).map_err(|e| {
-        MultipartApiError::RequestConstruction(format!("Inference error: {}", e.to_string()))
-    })?;
+    let result = state
+        .inference(request)
+        .map(Json)
+        .map_err(|e| MultipartApiError::RequestConstruction(format!("Inference error: {}", e)))?;
 
     Ok(result)
 }

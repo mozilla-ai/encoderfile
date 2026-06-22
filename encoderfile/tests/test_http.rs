@@ -94,7 +94,6 @@ macro_rules! test_router_mod {
     };
 }
 
-
 test_router_mod!(
     Embedding,
     embedding_tests,
@@ -132,20 +131,15 @@ test_router_mod!(
     }
 );
 
-
 mod image_classification_tests {
     use axum::http::{Request, StatusCode};
-    use encoderfile::{
-        dev_utils,
-        transport::http::HttpRouter,
-    };
+    use encoderfile::{dev_utils, transport::http::HttpRouter};
     use tower::ServiceExt;
 
     fn router() -> axum::Router {
         let state = dev_utils::image_classification_state();
         state.http_router()
     }
-
 
     #[tokio::test]
     async fn test_predict_route() {
@@ -207,7 +201,9 @@ mod image_classification_tests {
         assert_eq!(resp.status(), StatusCode::OK);
 
         // gather the body into a single bytes object and convert it into a string for easier debugging if the test fails
-        let body_bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let body_bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let body_string = String::from_utf8(body_bytes.to_vec()).unwrap();
         println!("Response body: {}", body_string);
     }
