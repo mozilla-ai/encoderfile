@@ -76,8 +76,9 @@ This will:
 ## Building the CLI Tool
 
 > **Note for Windows users:** Before starting the build process, set `ESAXX_DYNAMIC_LINK=1` to
-  enable the dynamic linking of the `esaxx-rs` library. Since this library forces static linking,
-  Mozilla.ai's fork is used instead. This fork only modifies the build process.
+  enable the dynamic linking of the [`esaxx-rs`](https://github.com/Narsil/esaxx-rs/) library.
+  Since this library forces static linking, [Mozilla.ai's fork](https://github.com/mozilla-ai/esaxx-rs-dyn-msvc)
+  is used instead. This fork only modifies the build process.
 
 First, build the encoderfile CLI tool:
 
