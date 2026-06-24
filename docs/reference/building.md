@@ -75,13 +75,20 @@ This will:
 
 ## Building the CLI Tool
 
+> **Note for Windows users:** Before starting the build process, set `ESAXX_DYNAMIC_LINK=1` to
+  enable the dynamic linking of the [`esaxx-rs`](https://github.com/Narsil/esaxx-rs/) library.
+  Since this library forces static linking, [Mozilla.ai's fork](https://github.com/mozilla-ai/esaxx-rs-dyn-msvc)
+  is used instead. This fork only modifies the build process.
+
 First, build the encoderfile CLI tool:
 
 ```bash
 cargo build --bin encoderfile --release
 ```
 
-The CLI binary will be created at `./target/release/encoderfile`.
+The CLI binary will be created at `./target/release/encoderfile`. This step also
+creates the base executable that powers each encoderfile at
+`target/release/encoderfile-runtime`.
 
 Optionally, install it to your system:
 
@@ -202,6 +209,11 @@ encoderfile:
     model_weights_path: ./models/model.onnx
     tokenizer_path: ./models/tokenizer.json
 ```
+
+> **Note for Windows users:** Since precompiled binaries are not available
+  for Windows yet, make sure you use the `base_binary_path: target/release/encoderfile-runtime.exe`
+  property in the configuration file. This file is generated when
+  [bulding from source](#building-the-cli-tool).
 
 ### Step 3: Build the Encoderfile
 
