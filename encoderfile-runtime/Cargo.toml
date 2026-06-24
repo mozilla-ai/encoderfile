@@ -1,6 +1,6 @@
 [package]
 name = "encoderfile-runtime"
-version = "0.7.0-rc.1"
+version = "0.7.0"
 edition = "2024"
 publish = false
 
@@ -15,7 +15,7 @@ dev-utils = []
 
 [dependencies.encoderfile]
 path = "../encoderfile"
-version = "0.7.0-rc.1"
+version = "0.7.0"
 features = ["transport"]
 default-features = false
 
