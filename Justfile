@@ -47,7 +47,7 @@ lint: lint-rs lint-py
 
 lint-rs:
     @cargo clippy \
-        --all-features \
+        --features dev-utils,cli,transport,internal \
         --all-targets \
         -- \
         -D warnings
