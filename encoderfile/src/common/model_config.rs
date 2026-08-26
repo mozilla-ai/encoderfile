@@ -53,6 +53,39 @@ impl ModelConfig {
     }
 }
 
+fn deserialize_str_map_to_int<'de, D>(
+    deserializer: D,
+) -> Result<Option<HashMap<String, u32>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum StringOrInt {
+        String(String),
+        Int(u32),
+    }
+
+    let raw: Option<HashMap<String, StringOrInt>> = Option::deserialize(deserializer)?;
+
+    if let Some(raw) = raw {
+        raw.into_iter()
+            .map(|(k, v)| {
+                let n = match v {
+                    StringOrInt::Int(i) => i,
+                    StringOrInt::String(s) => s.parse::<u32>().map_err(|e| {
+                        D::Error::custom(format!("value for key '{k}' is not a valid integer: {e}"))
+                    })?,
+                };
+                Ok((k, n))
+            })
+            .collect::<Result<HashMap<String, u32>, D::Error>>()
+            .map(Some)
+    } else {
+        Ok(None)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -109,38 +142,5 @@ mod tests {
         };
 
         assert_eq!(config.num_labels(), Some(3));
-    }
-}
-
-fn deserialize_str_map_to_int<'de, D>(
-    deserializer: D,
-) -> Result<Option<HashMap<String, u32>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(untagged)]
-    enum StringOrInt {
-        String(String),
-        Int(u32),
-    }
-
-    let raw: Option<HashMap<String, StringOrInt>> = Option::deserialize(deserializer)?;
-
-    if let Some(raw) = raw {
-        raw.into_iter()
-            .map(|(k, v)| {
-                let n = match v {
-                    StringOrInt::Int(i) => i,
-                    StringOrInt::String(s) => s.parse::<u32>().map_err(|e| {
-                        D::Error::custom(format!("value for key '{k}' is not a valid integer: {e}"))
-                    })?,
-                };
-                Ok((k, n))
-            })
-            .collect::<Result<HashMap<String, u32>, D::Error>>()
-            .map(Some)
-    } else {
-        Ok(None)
     }
 }
