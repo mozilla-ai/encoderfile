@@ -7,7 +7,7 @@ pub struct ModelConfig {
     // FIXME to be moved to per-task structs
     pub num_labels: Option<usize>,
     pub id2label: Option<HashMap<u32, String>>,
-    #[serde(deserialize_with = "deserialize_str_map_to_int")]
+    #[serde(default, deserialize_with = "deserialize_str_map_to_int")]
     pub label2id: Option<HashMap<String, u32>>,
     pub height: Option<u32>,
     pub width: Option<u32>,
