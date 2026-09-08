@@ -1,11 +1,11 @@
 use crate::{common::model_type, error::ApiError, runtime::ImageInputState};
 
 use super::{super::image::Image, super::tensor::Tensor, Postprocessor, Preprocessor, Transform};
-use ndarray::{Array2, Ix2};
+use ndarray::{Array2, ArrayD, Ix2};
 
 impl Postprocessor for Transform<model_type::ImageClassification> {
-    type Input = Array2<f32>;
-    type Output = Array2<f32>;
+    type Input = Array2<f32>; // The input is a 2D array of shape [num_labels, logits]
+    type Output = Array2<f32>; // The output is a 2D array of shape [num_labels, logits]
 
     fn postprocess(&self, data: Self::Input) -> Result<Self::Output, ApiError> {
         let func = match self.postprocessor() {
@@ -45,8 +45,8 @@ impl Postprocessor for Transform<model_type::ImageClassification> {
 }
 
 impl Preprocessor for Transform<model_type::ImageClassification> {
-    type Input = (Image, ImageInputState);
-    type Output = Tensor;
+    type Input = (Image, ImageInputState); // The input is a tuple of an image and its associated input state / config
+    type Output = ArrayD<f32>; // The output is an array that can be fed into the model
 
     fn preprocess(&self, (image, config): Self::Input) -> Result<Self::Output, ApiError> {
         let func = match self.preprocessor() {
@@ -65,6 +65,7 @@ impl Preprocessor for Transform<model_type::ImageClassification> {
 
         func.call::<Tensor>(image)
             .map_err(|e| ApiError::LuaError(e.to_string()))
+            .map(|t| t.into_inner())
     }
 }
 
@@ -201,6 +202,6 @@ mod tests {
         };
         let result = engine.preprocess((Image(img), config)).expect("Failed");
 
-        assert!(result.into_inner().shape() == [3, 224, 224]);
+        assert!(result.shape() == [3, 224, 224]);
     }
 }

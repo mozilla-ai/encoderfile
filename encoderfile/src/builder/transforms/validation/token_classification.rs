@@ -1,15 +1,17 @@
 use super::{
     TransformValidatorExt,
     utils::{BATCH_SIZE, SEQ_LEN, random_tensor, validation_err, validation_err_ctx},
+    get_text_input_state,
 };
 use crate::{
     common::ModelConfig,
     transforms::{Postprocessor, TokenClassificationTransform},
 };
 use anyhow::{Context, Result};
+use crate::runtime::TextInputState;
 
-impl TransformValidatorExt for TokenClassificationTransform {
-    fn dry_run(&self, model_config: &ModelConfig) -> Result<()> {
+impl TransformValidatorExt<TextInputState> for TokenClassificationTransform {
+    fn dry_run(&self, model_config: &ModelConfig, _input_state: &TextInputState) -> Result<()> {
         let num_labels = match model_config.num_labels() {
             Some(n) => n,
             None => validation_err(
@@ -51,6 +53,10 @@ impl TransformValidatorExt for TokenClassificationTransform {
 
         Ok(())
     }
+
+    fn get_input_state(&self, encoderfile_config: &crate::builder::config::EncoderfileConfig) -> Result<TextInputState> {
+        get_text_input_state(encoderfile_config)
+    }
 }
 
 #[cfg(test)]
@@ -65,7 +71,7 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/token_classification")),
+            path: ModelPath::Directory(std::path::PathBuf::from("../models/token_classification")),
             model_type: ModelType::TokenClassification,
             cache_dir: None,
             output_path: None,
@@ -78,37 +84,29 @@ mod tests {
         }
     }
 
-    fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../../models/token_classification/config.json");
-
-        serde_json::from_str(config_json).unwrap()
-    }
-
     #[test]
     fn test_identity_validation() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         TokenClassificationTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config)
+        .validate(&encoderfile_config)
         .expect("Failed to validate");
     }
 
     #[test]
     fn test_bad_return_type() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = TokenClassificationTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return 1 end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }
@@ -116,14 +114,13 @@ mod tests {
     #[test]
     fn test_bad_dimensionality() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = TokenClassificationTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }

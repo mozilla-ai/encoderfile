@@ -25,9 +25,7 @@
 // in the way encoderfile.yml works, etc.
 
 use crate::{
-    common::TokenizerConfig,
-    format::assets::{AssetKind, AssetSource, PlannedAsset},
-    runtime::TokenizerService,
+    common::TokenizerConfig, format::assets::{AssetKind, AssetSource, PlannedAsset}, runtime::{TextInputState, TokenizerService},
 };
 use anyhow::Result;
 use std::str::FromStr;
@@ -37,7 +35,7 @@ use super::config::{
     EncoderfileConfig, TokenizerPadStrategy, TokenizerTruncationSide, TokenizerTruncationStrategy,
 };
 
-pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<PlannedAsset<'a>> {
+pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<(PlannedAsset<'a>, TextInputState)> {
     let tokenizer =
         match Tokenizer::from_str(std::fs::read_to_string(config.path.tokenizer_path()?)?.as_str())
         {
@@ -45,16 +43,19 @@ pub fn validate_tokenizer<'a>(config: &'a EncoderfileConfig) -> Result<PlannedAs
             Err(e) => anyhow::bail!("FATAL: Failed to load tokenizer: {:?}", e),
         };
 
-    let config = config.validate_tokenizer_config(&tokenizer)?;
+    let tokenizer_config = config.validate_tokenizer_config(&tokenizer)?;
 
-    let service = TokenizerService::new(tokenizer, config)?;
+    let service = TokenizerService::new(tokenizer, tokenizer_config)?;
 
     let serialized = serde_json::to_vec(&service)?;
 
-    PlannedAsset::from_asset_source(
+    Ok((PlannedAsset::from_asset_source(
         AssetSource::InMemory(std::borrow::Cow::Owned(serialized)),
         AssetKind::Tokenizer,
-    )
+    )?, TextInputState {
+        tokenizer: service,
+        model_config: config.model_config()?,
+    }))
 }
 
 impl EncoderfileConfig {

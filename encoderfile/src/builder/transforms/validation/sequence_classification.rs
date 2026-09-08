@@ -1,6 +1,7 @@
 use super::{
     TransformValidatorExt,
     utils::{BATCH_SIZE, random_tensor, validation_err, validation_err_ctx},
+    get_text_input_state,
 };
 use crate::{
     common::ModelConfig,
@@ -8,8 +9,10 @@ use crate::{
 };
 use anyhow::{Context, Result};
 
-impl TransformValidatorExt for SequenceClassificationTransform {
-    fn dry_run(&self, model_config: &ModelConfig) -> Result<()> {
+use crate::runtime::TextInputState;
+
+impl TransformValidatorExt<TextInputState> for SequenceClassificationTransform {
+    fn dry_run(&self, model_config: &ModelConfig, _input_state: &TextInputState) -> Result<()> {
         let num_labels = match model_config.num_labels() {
             Some(n) => n,
             None => validation_err(
@@ -50,6 +53,10 @@ impl TransformValidatorExt for SequenceClassificationTransform {
 
         Ok(())
     }
+
+    fn get_input_state(&self, encoderfile_config: &crate::builder::config::EncoderfileConfig) -> Result<TextInputState> {
+        get_text_input_state(encoderfile_config)
+    }
 }
 
 #[cfg(test)]
@@ -65,7 +72,7 @@ mod tests {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
             path: ModelPath::Directory(std::path::PathBuf::from(
-                "models/dummy_sequence_classifier",
+                "../models/sequence_classification",
             )),
             model_type: ModelType::SequenceClassification,
             cache_dir: None,
@@ -79,37 +86,29 @@ mod tests {
         }
     }
 
-    fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../../models/sequence_classification/config.json");
-
-        serde_json::from_str(config_json).unwrap()
-    }
-
     #[test]
     fn test_identity_validation() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         SequenceClassificationTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config)
+        .validate(&encoderfile_config)
         .expect("Failed to validate");
     }
 
     #[test]
     fn test_bad_return_type() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = SequenceClassificationTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return 1 end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }
@@ -117,14 +116,13 @@ mod tests {
     #[test]
     fn test_bad_dimensionality() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = SequenceClassificationTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }

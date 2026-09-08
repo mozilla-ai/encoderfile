@@ -11,12 +11,13 @@ use crate::{
         config::BuildConfig,
         model::ModelTypeExt as _,
         terminal,
-    },
-    format::{
+        transforms::validate_transform,
+        image_preprocessor::validate_image_preprocessor,
+    }, format::{
         assets::{AssetKind, AssetPlan, AssetSource, PlannedAsset},
         codec::EncoderfileCodec,
-    },
-    runtime::Input,
+    }, runtime::Input,
+    common::model_type::ModelType
 };
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
@@ -73,6 +74,24 @@ impl EncoderfileBuilder {
         )?);
         terminal::success("Model config validated");
 
+        // validate transform and input state
+        if let Some(asset) =
+            validate_transform(&self.config.encoderfile)?
+        {
+            planned_assets.push(asset);
+            terminal::success("Transform validated");
+        }
+
+        // validate image preprocessor info
+        // TODO Move "if" to a trait plus default "nope" implementation?
+        if self.config.encoderfile.model_type == ModelType::ImageClassification {
+            let (asset, _input_state) = validate_image_preprocessor(&self.config.encoderfile)?;
+            {
+                planned_assets.push(asset);
+                terminal::success("Image preprocessor validated");
+            }
+        }
+
         // validate model
         let model_weights_path = self.config.encoderfile.path.model_weights_path()?;
 
@@ -84,32 +103,6 @@ impl EncoderfileBuilder {
 
         planned_assets.push(model_asset);
         terminal::success("Model weights validated");
-
-        // validate transform
-        if let Some(asset) =
-            crate::builder::transforms::validate_transform(&self.config.encoderfile, &model_config)?
-        {
-            planned_assets.push(asset);
-            terminal::success("Transform validated");
-        }
-
-        // validate tokenizer
-        match self.config.encoderfile.model_type.input_type() {
-            Input::Text => {
-                let tokenizer_asset =
-                    crate::builder::tokenizer::validate_tokenizer(&self.config.encoderfile)?;
-                planned_assets.push(tokenizer_asset);
-                terminal::success("Tokenizer validated");
-            }
-            Input::Image => {
-                let image_preprocessor_asset =
-                    crate::builder::image_preprocessor::validate_image_preprocessor(
-                        &self.config.encoderfile,
-                    )?;
-                planned_assets.push(image_preprocessor_asset);
-                terminal::success("Image preprocessor validated");
-            }
-        }
 
         // initialize final binary
         terminal::info("Writing encoderfile...");
