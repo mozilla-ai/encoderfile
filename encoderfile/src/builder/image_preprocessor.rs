@@ -6,7 +6,7 @@
 // require users to provide the config for the model they are using, and we will deal with new
 // models on a case-by-case basis as they come in.
 
-use crate::format::assets::{AssetKind, AssetSource, PlannedAsset};
+use crate::{format::assets::{AssetKind, AssetSource, PlannedAsset}};
 use anyhow::Result;
 
 use super::config::EncoderfileConfig;
@@ -14,7 +14,7 @@ use crate::runtime::ImagePreprocessing;
 
 pub fn validate_image_preprocessor<'a>(
     encoderfile_config: &'a EncoderfileConfig,
-) -> Result<PlannedAsset<'a>> {
+) -> Result<(PlannedAsset<'a>, crate::runtime::ImageInputState)> {
     let config = match encoderfile_config.path.preprocessor_config_path()? {
         // if preprocessor_config.json is provided, use that
         Some(preprocessor_config_path) => {
@@ -46,10 +46,16 @@ pub fn validate_image_preprocessor<'a>(
         }
     }
 
-    PlannedAsset::from_asset_source(
+    Ok((PlannedAsset::from_asset_source(
         AssetSource::InMemory(std::borrow::Cow::Owned(serialized)),
         AssetKind::ImagePreprocessor,
-    )
+    )?, crate::runtime::ImageInputState {
+        config: crate::runtime::ImageConfig {
+            num_channels: model_config.num_channels.ok_or(anyhow::anyhow!("num_channels not found"))?,
+            image_size: model_config.image_size,
+        },
+        preprocessing: config,
+    }))
 }
 
 #[cfg(test)]

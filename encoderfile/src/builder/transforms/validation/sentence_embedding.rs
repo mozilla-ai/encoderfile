@@ -4,15 +4,17 @@ use super::{
         BATCH_SIZE, HIDDEN_DIM, SEQ_LEN, create_dummy_attention_mask, random_tensor,
         validation_err, validation_err_ctx,
     },
+    get_text_input_state,
 };
 use crate::{
     common::ModelConfig,
     transforms::{Postprocessor, SentenceEmbeddingTransform},
 };
 use anyhow::{Context, Result};
+use crate::runtime::TextInputState;
 
-impl TransformValidatorExt for SentenceEmbeddingTransform {
-    fn dry_run(&self, _model_config: &ModelConfig) -> Result<()> {
+impl TransformValidatorExt<TextInputState> for SentenceEmbeddingTransform {
+    fn dry_run(&self, _model_config: &ModelConfig, _input_state: &TextInputState) -> Result<()> {
         // create dummy hidden states with shape [batch_size, seq_len, hidden_dim]
         let dummy_hidden_states = random_tensor(&[BATCH_SIZE, SEQ_LEN, HIDDEN_DIM], (-1.0, 1.0))?;
         let dummy_attention_mask = create_dummy_attention_mask(BATCH_SIZE, SEQ_LEN, 3)?;
@@ -54,6 +56,10 @@ impl TransformValidatorExt for SentenceEmbeddingTransform {
 
         Ok(())
     }
+
+    fn get_input_state(&self, encoderfile_config: &crate::builder::config::EncoderfileConfig) -> Result<TextInputState> {
+        get_text_input_state(encoderfile_config)
+    }
 }
 
 #[cfg(test)]
@@ -68,7 +74,7 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/sentence_embedding")),
+            path: ModelPath::Directory(std::path::PathBuf::from("../models/sentence_embedding")),
             model_type: ModelType::SentenceEmbedding,
             cache_dir: None,
             output_path: None,
@@ -81,37 +87,29 @@ mod tests {
         }
     }
 
-    fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../../models/sentence_embedding/config.json");
-
-        serde_json::from_str(config_json).unwrap()
-    }
-
     #[test]
     fn test_successful_mean_pool() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         SentenceEmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr, mask) return arr:mean_pool(mask) end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config)
+        .validate(&encoderfile_config)
         .expect("Failed to validate");
     }
 
     #[test]
     fn test_bad_return_type() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = SentenceEmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr, mask) return 1 end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }
@@ -119,14 +117,13 @@ mod tests {
     #[test]
     fn test_bad_dimensionality() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = SentenceEmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr, mask) return arr end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }

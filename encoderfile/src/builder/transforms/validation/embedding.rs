@@ -1,15 +1,15 @@
 use super::{
     TransformValidatorExt,
     utils::{BATCH_SIZE, HIDDEN_DIM, SEQ_LEN, random_tensor, validation_err, validation_err_ctx},
+    get_text_input_state,
 };
 use crate::{
-    common::ModelConfig,
-    transforms::{EmbeddingTransform, Postprocessor},
+    common::ModelConfig, runtime::TextInputState, transforms::{EmbeddingTransform, Postprocessor}
 };
 use anyhow::{Context, Result};
 
-impl TransformValidatorExt for EmbeddingTransform {
-    fn dry_run(&self, _model_config: &ModelConfig) -> Result<()> {
+impl TransformValidatorExt<TextInputState> for EmbeddingTransform {
+    fn dry_run(&self, _model_config: &ModelConfig, _input_state: &TextInputState) -> Result<()> {
         // create dummy hidden states with shape [batch_size, seq_len, hidden_dim]
         let dummy_hidden_states = random_tensor(&[BATCH_SIZE, SEQ_LEN, HIDDEN_DIM], (-1.0, 1.0))?;
         let shape = dummy_hidden_states.shape().to_owned();
@@ -51,11 +51,16 @@ impl TransformValidatorExt for EmbeddingTransform {
 
         Ok(())
     }
+
+    fn get_input_state(&self, encoderfile_config: &crate::builder::config::EncoderfileConfig) -> Result<TextInputState> {
+        get_text_input_state(encoderfile_config)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::builder::config::{EncoderfileConfig, ModelPath};
+
+use crate::builder::config::{EncoderfileConfig, ModelPath};
     use crate::common::model_type::ModelType;
     use crate::transforms::DEFAULT_LIBS;
 
@@ -65,7 +70,7 @@ mod tests {
         EncoderfileConfig {
             name: "my-model".to_string(),
             version: "0.0.1".to_string(),
-            path: ModelPath::Directory(std::path::PathBuf::from("models/embedding")),
+            path: ModelPath::Directory(std::path::PathBuf::from("../models/embedding")),
             model_type: ModelType::Embedding,
             cache_dir: None,
             output_path: None,
@@ -78,37 +83,29 @@ mod tests {
         }
     }
 
-    fn test_model_config() -> ModelConfig {
-        let config_json = include_str!("../../../../../models/embedding/config.json");
-
-        serde_json::from_str(config_json).unwrap()
-    }
-
     #[test]
     fn test_identity_validation() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         EmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config)
+        .validate(&encoderfile_config)
         .expect("Failed to validate");
     }
 
     #[test]
     fn test_bad_return_type() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = EmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return 1 end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }
@@ -116,14 +113,13 @@ mod tests {
     #[test]
     fn test_bad_dimensionality() {
         let encoderfile_config = test_encoderfile_config();
-        let model_config = test_model_config();
 
         let result = EmbeddingTransform::new(
             DEFAULT_LIBS.to_vec(),
             Some("function Postprocess(arr) return arr:sum_axis(1) end".to_string()),
         )
         .expect("Failed to create transform")
-        .validate(&encoderfile_config, &model_config);
+        .validate(&encoderfile_config);
 
         assert!(result.is_err());
     }

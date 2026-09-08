@@ -10,8 +10,8 @@ pub use loader::{EncoderfileLoader, load_assets};
 pub use session::{ORTExecutionProvider, ORTSessionBuilder};
 pub use state::{
     AppState, ClassifierState, EncoderfileState, FeatureExtractorState, ImageConfig,
-    ImageInputState, ImagePreprocessing, ImageSize, Input, InputType, Task, TaskType,
-    TextInputState,
+    ImagePreprocessing, ImageSize, Input, InputType, Task, TaskType,
+    TextInputState, ImageInputState
 };
 pub use tokenizer::TokenizerService;
 

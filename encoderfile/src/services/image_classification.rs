@@ -26,7 +26,7 @@ impl Inference for AppState<model_type::ImageClassification> {
             return Err(ApiError::InputError("Cannot classify empty image list"));
         }
 
-        let postprocess_code = r##"
+        let preprocess_code = r##"
         function Preprocess(img)
             return img:resize(224,224):to_array(3)
         end
@@ -34,7 +34,7 @@ impl Inference for AppState<model_type::ImageClassification> {
         .to_string();
 
         let engine =
-            ImageClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(postprocess_code))
+            ImageClassificationTransform::new(DEFAULT_LIBS.to_vec(), Some(preprocess_code))
                 .expect("Failed to create engine");
 
         let num_channels = self.model_input_state.config.num_channels as usize;
@@ -64,8 +64,7 @@ impl Inference for AppState<model_type::ImageClassification> {
                     .expect("Failed to load image from bytes");
                 let mut res = engine
                     .preprocess((Image(img), self.model_input_state.clone()))
-                    .expect("Failed")
-                    .into_inner();
+                    .expect("Failed");
                 let mean_arr =
                     ndarray::Array::from_shape_vec((num_channels, 1, 1), image_mean.to_vec())
                         .expect("mean shape mismatch");
